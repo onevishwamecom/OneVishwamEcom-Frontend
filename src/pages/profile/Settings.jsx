@@ -61,7 +61,9 @@ function ProfileSettings() {
     try {
       await updateProfile({ name, phone }).unwrap();
       Swal.fire({ icon: 'success', title: 'Profile updated!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
-    } catch {}
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Failed to update profile', text: err?.response?.data?.message || 'Please try again', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+    }
   };
 
   const handlePasswordSubmit = async (e) => {
@@ -73,16 +75,19 @@ function ProfileSettings() {
       await changePassword({ currentPassword: passwords.current, newPassword: passwords.newPass }).unwrap();
       setPasswords({ current: '', newPass: '', confirm: '' });
       Swal.fire({ icon: 'success', title: 'Password changed!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
-    } catch {}
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Failed to change password', text: err?.response?.data?.message || 'Please try again', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+    }
   };
 
-  const handleDelete = () => {
-    deleteAccount().then((res) => {
+  const handleDelete = async () => {
+    try {
+      const res = await deleteAccount();
       if (!res.error) {
         logout();
         navigate('/');
       }
-    });
+    } catch {}
   };
 
   function inputClass(field, errObj) {

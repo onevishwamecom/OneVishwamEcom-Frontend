@@ -3,10 +3,7 @@ import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import Field from '../../components/Field';
 import { uploadResumeToCloudinary } from '../../utils/uploadResumeToCloudinary';
-
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSConfigured } from '../../config/emailjs';
 
 function ApplicationForm() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: '' });
@@ -58,10 +55,8 @@ function ApplicationForm() {
       message: `Application for role: ${formData.role}. Resume: ${resumeUrl}`,
     };
 
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      Swal.fire({ title: 'Application Received!', text: 'We will keep your resume on file.', icon: 'success', confirmButtonColor: '#1a4b8c' });
-      setFormData({ name: '', email: '', phone: '', role: '' });
-      setResumeFile(null);
+    if (!isEmailJSConfigured()) {
+      Swal.fire({ title: 'Configuration Error', text: 'Email service is not configured. Please try again later.', icon: 'error', confirmButtonColor: '#1a4b8c' });
       setIsSubmitting(false);
       return;
     }

@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React, { useState, useEffect } from 'react';
 import { useLocation } from '../store/locationSlice';
 import { useAuth, login, logout, openAuthModal, closeAuthModal, switchAuthMode } from '../store/authSlice';
-import { navigateTo, NAVIGATION_EVENT } from '../config/navigation';
+import { navigateTo } from '../config/navigation';
 
 // --- Mocks & Context Setup ---
 

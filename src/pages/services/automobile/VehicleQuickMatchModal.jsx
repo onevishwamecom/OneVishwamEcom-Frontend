@@ -2,15 +2,7 @@ import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import { cities } from '../../../data/locations';
-
-function getNumericPrice(price) {
-  const num = parseFloat(price.replace(/[₹,\s]/g, ''));
-  const lower = price.toLowerCase();
-  if (lower.includes('l') || lower.includes('lakh')) return num * 100000;
-  if (lower.includes('cr') || lower.includes('crore')) return num * 10000000;
-  if (lower.includes('k') || lower.includes('thousand')) return num * 1000;
-  return num;
-}
+import { getNumericPrice } from '../GalleryComponents';
 
 const CITY_OPTIONS = [
   { id: 'bengaluru', label: 'Bangalore' },
@@ -25,6 +17,10 @@ export default function VehicleQuickMatchModal({ onClose }) {
   const [budgetMax, setBudgetMax] = useState('');
   const [vehicleType, setVehicleType] = useState('');
   const [condition, setCondition] = useState('');
+  const [city, setCity] = useState('');
+  const [location, setLocation] = useState('');
+
+  const areas = city ? (cities[city]?.areas || []) : [];
 
   const handleFindMatch = () => setStep(2);
 
@@ -45,8 +41,10 @@ export default function VehicleQuickMatchModal({ onClose }) {
         (!budgetMax || price <= +budgetMax * 100000);
       const typeMatch = !vehicleType || v.category === vehicleType;
       const conditionMatch = !condition || v.condition === condition.toLowerCase();
+      const cityMatch = !city || v.city === city;
+      const locationMatch = !location || v.location === location;
 
-      if (v.loanApproved && budgetMatch && typeMatch && conditionMatch) {
+      if (v.loanApproved && budgetMatch && typeMatch && conditionMatch && cityMatch && locationMatch) {
         preApproved.push(v);
       } else if (typeMatch || conditionMatch) {
         shortlisted.push(v);
@@ -54,7 +52,7 @@ export default function VehicleQuickMatchModal({ onClose }) {
     });
 
     return { preApproved, shortlisted, closed };
-  }, [budgetMin, budgetMax, vehicleType, condition]);
+  }, [budgetMin, budgetMax, vehicleType, condition, city, location]);
 
   const hasAnyResults = buckets.preApproved.length > 0 || buckets.shortlisted.length > 0 || buckets.closed.length > 0;
 
@@ -124,6 +122,29 @@ export default function VehicleQuickMatchModal({ onClose }) {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-brand-charcoal">City</label>
+                <select value={city} onChange={(e) => { setCity(e.target.value); setLocation(''); }}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-blue bg-white">
+                  <option value="">Select City</option>
+                  {Object.keys(cities).map((c) => (
+                    <option key={c} value={c}>{cities[c].label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-brand-charcoal">Area <span className="text-gray-400 font-normal">(optional)</span></label>
+                <select value={location} onChange={(e) => setLocation(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-blue bg-white disabled:opacity-50"
+                  disabled={!city}>
+                  <option value="">{city ? 'Select Area' : 'Select city first'}</option>
+                  {areas.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
               </div>
 
               <button onClick={handleFindMatch}

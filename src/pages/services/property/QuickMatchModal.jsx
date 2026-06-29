@@ -2,17 +2,7 @@ import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { dummyProperties } from '../../../data/dummyProperties';
 import { cities } from '../../../data/locations';
-
-/* ── Helpers ── */
-
-function getNumericPrice(price) {
-  const num = parseFloat(price.replace(/[₹,\s]/g, ''));
-  const lower = price.toLowerCase();
-  if (lower.includes('l') || lower.includes('lakh')) return num * 100000;
-  if (lower.includes('cr') || lower.includes('crore')) return num * 10000000;
-  if (lower.includes('k') || lower.includes('thousand')) return num * 1000;
-  return num;
-}
+import { getNumericPrice } from '../GalleryComponents';
 
 function getCardType(property) {
   const s = property.subtitle.toLowerCase();

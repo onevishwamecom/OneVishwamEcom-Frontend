@@ -5,11 +5,6 @@ import { NAVIGATION_EVENT } from './config/navigation';
 import BrandLoader from './components/ui/BrandLoader';
 import { useAuth, forceLogout } from './store/authSlice';
 import store from './store';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import VerifyOtp from './pages/auth/VerifyOtp';
-import ResetPassword from './pages/auth/ResetPassword';
-import ResetSuccess from './pages/auth/ResetSuccess';
-import ProfileSettings from './pages/profile/Settings';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -27,6 +22,11 @@ const JewelleryDetails = lazy(() => import('./pages/services/jewellery/Jewellery
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceDashboard = lazy(() => import('./services/FinanceDashboard'));
 const AddListing = lazy(() => import('./pages/add-listing'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
+const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
+const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
 
 function ScrollToTopAndNavHelper() {
   const location = useLocation();

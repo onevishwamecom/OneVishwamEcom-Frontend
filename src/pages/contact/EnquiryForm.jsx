@@ -4,10 +4,7 @@ import Swal from 'sweetalert2';
 import { serviceItems } from '../../data/servicesContent';
 import Field from '../../components/Field';
 import { uploadAudioToCloudinary } from '../../utils/uploadAudioToCloudinary';
-
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSConfigured } from '../../config/emailjs';
 
 function EnquiryForm({ loanContext }) {
   const [formData, setFormData] = useState({
@@ -102,10 +99,9 @@ function EnquiryForm({ loanContext }) {
       message: activeTab === 'text' ? formData.message : '[Voice Message Recorded]', voice_message: voicePublicUrl,
     };
 
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      Swal.fire({ title: 'Success!', text: 'Your enquiry has been submitted.', icon: 'success', confirmButtonColor: '#1a4b8c' });
-      setFormData({ name: '', phone: '', additionalPhone: '', additionalPhone2: '', service: '', message: '' });
-      deleteRecording(); setErrors({}); setIsSending(false); return;
+    if (!isEmailJSConfigured()) {
+      Swal.fire({ title: 'Configuration Error', text: 'Email service is not configured. Please try again later.', icon: 'error', confirmButtonColor: '#1a4b8c' });
+      setIsSending(false); return;
     }
 
     try {
