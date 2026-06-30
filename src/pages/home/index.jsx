@@ -10,6 +10,7 @@ import { dummyGroceries } from '../../data/dummyGroceries';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
 import { loanProducts } from '../../data/dummyLoans';
+import { financeServices } from '../../data/dummyFinanceServices';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 
@@ -22,7 +23,17 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity } = useLocation();
 
-  const filteredServices = serviceItems.filter((s) =>
+  const filteredServices = [
+    ...serviceItems,
+    ...financeServices.map((s) => ({
+      id: `finance-${s.id}`,
+      title: s.serviceName,
+      description: `${s.companyName} — ${s.category}`,
+      image: s.banner,
+      href: `/finance-service/${s.id}`,
+      icon: 'fa-building-columns',
+    })),
+  ].filter((s) =>
     s.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -177,7 +188,62 @@ function Home() {
           </div>
         </section>
 
-        {/* ── Module 3: People Are Buying ── */}
+        {/* ── Module 3: Finance & Loan Services ── */}
+        <section className="pt-14 sm:pt-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
+                  <i className="fa-solid fa-building-columns mr-1.5" /> Finance & Loans
+                </p>
+                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Finance & Loan Services</h2>
+                <p className="mt-1 text-sm text-gray-500">Find trusted financial services, loans, insurance, and investment options near you.</p>
+              </div>
+              <button
+                onClick={() => navigateTo('/our-services/finance-lending')}
+                className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
+              >
+                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
+              </button>
+            </div>
+
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
+              {financeServices.slice(0, 5).map((s) => (
+                <div key={s.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  <ProductCard
+                    link={`/finance-service/${s.id}`}
+                    image={s.banner}
+                    alt={s.serviceName}
+                    title={s.serviceName}
+                    overline={s.companyName}
+                    price={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? s.interestRate : undefined}
+                    priceSuffix=""
+                    priceOverride={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? undefined : (
+                      <p className="mt-0.5 text-sm font-bold text-brand-blue">{s.minAmount} – {s.maxAmount}</p>
+                    )}
+                    location={s.location}
+                    tags={[s.category, s.providerType].filter(Boolean)}
+                    badges={[
+                      ...(s.featured ? [{ label: 'Featured', className: 'bg-yellow-500 text-white' }] : []),
+                      ...(s.availability === 'Available Now' ? [{ label: 'Available', className: 'bg-green-500 text-white' }] : []),
+                    ]}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 text-center sm:hidden">
+              <button
+                onClick={() => navigateTo('/our-services/finance-lending')}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
+              >
+                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Module 4: People Are Buying ── */}
         <section className="mt-14 sm:mt-16 bg-gradient-to-br from-white to-gray-50 py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto">

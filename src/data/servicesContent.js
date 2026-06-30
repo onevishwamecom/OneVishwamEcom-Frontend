@@ -1,31 +1,5 @@
 export const serviceItems = [
   {
-    id: 'finance-lending',
-    title: 'Loans & Money Help',
-    description: 'Home loan, vehicle loan, personal loan, and more — all in one place.',
-    image: 'https://images.pexels.com/photos/33175662/pexels-photo-33175662.jpeg?cs=srgb&dl=pexels-bia-limova-1908542654-33175662.jpg&fm=jpg',
-    details: {
-      overviewText: 'We help you get loans for home, vehicle, business, and more. We work with banks and finance companies to find the best option for you.',
-      sections: [
-        {
-          title: 'Loans We Offer',
-          items: [
-            'Personal Loan', 'Business Loan', 'Home Loan', 'Plot Loan', 'Construction Loan',
-            'Vehicle Loan', 'Gold Loan', 'Education Loan', 'Loan Against Property',
-            'Working Capital Loan', 'Machinery Loan', 'Equipment Loan', 'Agriculture Loan',
-            'Startup Loan', 'Credit Card', 'Insurance', 'EMI Finance'
-          ]
-        },
-        {
-          title: 'Our Lending Partners',
-          items: [
-            'Banks', 'NBFCs', 'Co-operative Societies', 'Souharda Societies', 'Other Financial Institutions'
-          ]
-        }
-      ]
-    }
-  },
-  {
     id: 'real-estate-property',
     title: 'Houses & Land',
     description: 'Find houses, flats, lands, plots, and commercial properties for sale or rent.',

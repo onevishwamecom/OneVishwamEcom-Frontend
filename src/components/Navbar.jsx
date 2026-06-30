@@ -83,6 +83,7 @@ function Navbar() {
     if (link.id === 'about-us') return path.startsWith('/about-us');
     if (link.id === 'our-services') return path.startsWith('/our-services');
     if (link.id === 'careers') return path.startsWith('/careers');
+    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service');
     if (link.id === 'contacts') return path.startsWith('/contact-us');
     return false;
   };
