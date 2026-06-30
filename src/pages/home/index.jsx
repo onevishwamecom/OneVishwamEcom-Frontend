@@ -3,14 +3,13 @@ import { navigateTo } from '../../config/navigation';
 import { serviceItems } from '../../data/servicesContent';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
-import { dummyProperties } from '../../data/dummyProperties';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
 import { dummyGrocery } from '../../data/dummyGrocery';
 import { dummyGroceries } from '../../data/dummyGroceries';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
-import { loanProducts } from '../../data/dummyLoans';
 import { financeServices } from '../../data/dummyFinanceServices';
+import { useProperties } from '../../hooks/useProperties';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 
@@ -22,6 +21,7 @@ const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-x
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity } = useLocation();
+  const { properties: dummyProperties } = useProperties();
 
   const filteredServices = [
     ...serviceItems,

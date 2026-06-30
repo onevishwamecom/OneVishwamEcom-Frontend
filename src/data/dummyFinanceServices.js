@@ -7,7 +7,7 @@ export const financeServices = [
     category: 'Home Loans',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HDFC_Logo.svg/1200px-HDFC_Logo.svg.png',
     banner: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1600',
-    interestRate: '8.5% – 10.5%',
+    interestRate: '7%',
     minAmount: '₹5,00,000',
     maxAmount: '₹5,00,00,000',
     tenure: 'Up to 30 years',
@@ -21,7 +21,6 @@ export const financeServices = [
     area: 'Indiranagar',
     pincode: '560038',
     contactPhone: '+91 1800-123-4567',
-
     providerType: 'Bank',
     serviceMode: 'Both',
     postedBy: 'Bank',

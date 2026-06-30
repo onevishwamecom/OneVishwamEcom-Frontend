@@ -1,18 +1,19 @@
 import { useRef, useMemo } from 'react';
-import { dummyProperties } from '../../data/dummyProperties';
 import { cities } from '../../data/locations';
 import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
+import { useProperties } from '../../hooks/useProperties';
 
 function FeaturedProperties() {
   const scrollRef = useRef(null);
   const { selectedCity, selectedArea, setArea } = useLocation();
+  const { properties } = useProperties();
 
   const cityAreas = cities[selectedCity]?.areas || [];
 
   const filtered = useMemo(() => {
-    return dummyProperties.filter((p) => p.city && p.zone === selectedArea);
-  }, [selectedArea]);
+    return properties.filter((p) => p.city && p.zone === selectedArea);
+  }, [properties, selectedArea]);
 
   const top2 = filtered.slice(0, 2);
   const isEmpty = filtered.length === 0;

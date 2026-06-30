@@ -103,25 +103,34 @@ export const authAPI = {
   getSaved: () => client.get('/auth/saved'),
 };
 
-// ─── Listings (authenticated) ────────────────────────────────────────────────
-export const listingAPI = {
-  create: (formData) => client.post('/listings', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  getMy: () => client.get('/listings/my'),
-  update: (id, body) => client.put(`/listings/${id}`, body),
-  remove: (id) => client.delete(`/listings/${id}`),
-  toggleStatus: (id) => client.patch(`/listings/${id}/status`),
-};
-
 // ─── Public ──────────────────────────────────────────────────────────────────
 export const publicAPI = {
-  getListings: (params) => client.get('/listings', { params }),
-  getFeatured: () => client.get('/listings/featured'),
-  search: (params) => client.get('/listings/search', { params }),
-  getById: (id) => client.get(`/listings/${id}`),
   getLoans: (params) => client.get('/loans', { params }),
   sendEnquiry: (body) => client.post('/enquiries', body),
   submitReview: (body) => client.post('/reviews', body),
   getUserReviews: (userId) => client.get(`/users/${userId}/reviews`),
+};
+
+// ─── Property ────────────────────────────────────────────────────────────────
+export const propertyAPI = {
+  getAll: (params) => client.get('/product/properties', { params }),
+  getById: (id) => client.get(`/product/properties/${id}`),
+  search: (params) => client.get('/product/properties/search', { params }),
+  getFeatured: () => client.get('/product/properties/featured'),
+  getLatest: (params) => client.get('/product/properties/latest', { params }),
+  getByCity: (city, params) => client.get(`/product/properties/by-city/${city}`, { params }),
+  getByArea: (area, params) => client.get(`/product/properties/by-area/${area}`, { params }),
+  getByType: (type, params) => client.get(`/product/properties/by-type/${type}`, { params }),
+  getByCategory: (category, params) => client.get(`/product/properties/by-category/${category}`, { params }),
+  getSimilar: (id) => client.get(`/product/properties/similar/${id}`),
+  create: (formData) => client.post('/product/properties', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, body) => client.put(`/product/properties/${id}`, body),
+  remove: (id) => client.delete(`/product/properties/${id}`),
+  toggleStatus: (id) => client.patch(`/product/properties/${id}/status`),
+  uploadImages: (id, formData) => client.post(`/product/properties/${id}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  deleteImage: (id, imageUrl) => client.delete(`/product/properties/${id}/images`, { data: { imageUrl } }),
+  getMy: () => client.get('/product/properties/my/listings'),
+  submitRequirement: (body) => client.post('/product/properties/requirements', body),
 };
 
 export default client;

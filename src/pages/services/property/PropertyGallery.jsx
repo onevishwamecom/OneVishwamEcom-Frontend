@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "../../../store/locationSlice";
 import { cities } from "../../../data/locations";
 import { ActiveChip } from "../GalleryComponents";
+import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";
 
 import {
@@ -27,6 +28,7 @@ import {
 
 function PropertyGallery() {
   const { selectedCity, selectCity } = useLocation();
+  const { properties, loading, error } = useProperties();
 
   /* ── Top-level state ── */
   const [selectedCardType, setSelectedCardType] = useState("All");
@@ -54,9 +56,10 @@ function PropertyGallery() {
   const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
   /* ── Custom hooks ── */
-  const cardTypeStats = useCardTypeStats(PROPERTY_CARD_TYPES);
+  const cardTypeStats = useCardTypeStats(properties, PROPERTY_CARD_TYPES);
   const activeChips = useActiveChips(filters);
   const filteredProperties = useFilteredProperties({
+    properties,
     selectedCardType,
     searchTerm,
     requirementText,
@@ -301,6 +304,20 @@ function PropertyGallery() {
             <i className="fa-solid fa-arrow-right text-xs" />
           </a>
         </div>
+
+        {/* ── Loading / Error states ── */}
+        {loading && (
+          <div className="mt-5 flex items-center justify-center gap-2 py-10 text-gray-400">
+            <i className="fa-solid fa-spinner fa-spin text-lg" />
+            <span className="text-sm">Loading properties...</span>
+          </div>
+        )}
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+            <i className="fa-solid fa-circle-exclamation text-red-400 text-lg mb-1" />
+            <p className="text-sm text-red-600">Failed to load properties. Please try again later.</p>
+          </div>
+        )}
 
         {/* ── Results Bar: Count + Active chips + Search + Sort ── */}
         <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3">

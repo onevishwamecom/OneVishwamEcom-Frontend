@@ -1,28 +1,44 @@
 import { useEffect, useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyProperties } from '../../../data/dummyProperties';
+import { useProperties } from '../../../hooks/useProperties';
 
 const FINANCE_STATS = { enquiries: 5, enrolled: 6, slots: 25 };
 
 function PropertyDetails({ location }) {
+  const { properties, loading: listLoading } = useProperties();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showLoanBanner, setShowLoanBanner] = useState(false);
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
-  const propertyId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const property = dummyProperties.find((p) => p.id === propertyId);
+  const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
-  useEffect(() => { window.scrollTo(0, 0); }, [propertyId]);
+  const property = properties.find(
+    (p) => p._id === propertySlug || String(p.id) === propertySlug
+  ) || null;
+  const loading = listLoading;
+  const error = !property && !listLoading ? new Error('Property not found') : null;
+
+  useEffect(() => { window.scrollTo(0, 0); }, [propertySlug]);
 
   useEffect(() => {
+    if (!property) return;
     const timer = setTimeout(() => setShowLoanBanner(true), 2000);
     return () => clearTimeout(timer);
-  }, [propertyId]);
+  }, [property]);
 
   const loanCtaParams = property
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
     : '';
 
-  if (!property) {
+  if (loading) {
+    return (
+      <div className="py-32 flex items-center justify-center gap-2 text-gray-400">
+        <i className="fa-solid fa-spinner fa-spin text-lg" />
+        <span className="text-sm">Loading property...</span>
+      </div>
+    );
+  }
+
+  if (error || !property) {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Property not found</h1>
