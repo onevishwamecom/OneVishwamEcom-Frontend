@@ -1,11 +1,6 @@
 export const navLinks = [
   { label: 'Home', href: '/home', id: 'home' },
   {
-    label: 'About Us',
-    href: '/about-us/',
-    id: 'about-us',
-  },
-  {
     label: 'Our Services',
     href: '/our-services/',
     id: 'our-services',
@@ -38,4 +33,9 @@ export const navLinks = [
   // { label: 'Careers', href: '/careers/', id: 'careers' },
   { label: 'Finance', href: '/our-services/finance-lending', id: 'finance' },
   { label: 'Contacts', href: '/contact-us/', id: 'contacts' },
+  {
+    label: 'About Us',
+    href: '/about-us/',
+    id: 'about-us',
+  },
 ];

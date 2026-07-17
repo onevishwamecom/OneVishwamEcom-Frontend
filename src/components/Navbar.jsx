@@ -80,11 +80,11 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'about-us') return path.startsWith('/about-us');
     if (link.id === 'our-services') return path.startsWith('/our-services');
     if (link.id === 'careers') return path.startsWith('/careers');
     if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service');
     if (link.id === 'contacts') return path.startsWith('/contact-us');
+    if (link.id === 'about-us') return path.startsWith('/about-us');
     return false;
   };
 
@@ -118,10 +118,8 @@ function Navbar() {
           <a href="/home" onClick={(e) => { e.preventDefault(); navigateTo('/home'); }}
             className="flex items-center gap-2 shrink-0"
           >
-            <img src={logo} alt="Vishwam" className="h-9 w-9 sm:h-11 sm:w-11 object-contain" />
-            <span className="text-base sm:text-lg font-bold tracking-tight text-brand-navy hidden sm:block">
-              One<span className="text-brand-blue">Vishwam</span>
-            </span>
+            <img src={logo} alt="Vishwam" className="h-14 w-auto sm:h-16 object-contain drop-shadow-sm" />
+
           </a>
 
           {/* City Dropdown (Desktop) */}
