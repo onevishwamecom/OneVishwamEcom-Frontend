@@ -123,7 +123,7 @@ export const propertyAPI = {
   getByType: (type, params) => client.get(`/product/properties/by-type/${type}`, { params }),
   getByCategory: (category, params) => client.get(`/product/properties/by-category/${category}`, { params }),
   getSimilar: (id) => client.get(`/product/properties/similar/${id}`),
-  create: (formData) => client.post('/product/properties', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  create: (body) => client.post('/product/properties', body),
   update: (id, body) => client.put(`/product/properties/${id}`, body),
   remove: (id) => client.delete(`/product/properties/${id}`),
   toggleStatus: (id) => client.patch(`/product/properties/${id}/status`),
@@ -131,6 +131,32 @@ export const propertyAPI = {
   deleteImage: (id, imageUrl) => client.delete(`/product/properties/${id}/images`, { data: { imageUrl } }),
   getMy: () => client.get('/product/properties/my/listings'),
   submitRequirement: (body) => client.post('/product/properties/requirements', body),
+  uploadBrochure: (id, formData) => client.post(`/product/properties/${id}/brochure`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+};
+
+// ─── Vehicle ─────────────────────────────────────────────────────────────────
+export const vehicleAPI = {
+  create: (body) => client.post('/product/vehicles', body),
+};
+
+// ─── Grocery ─────────────────────────────────────────────────────────────────
+export const groceryAPI = {
+  create: (body) => client.post('/product/groceries', body),
+};
+
+// ─── Garment ─────────────────────────────────────────────────────────────────
+export const garmentAPI = {
+  create: (body) => client.post('/product/garments', body),
+};
+
+// ─── Jewellery ───────────────────────────────────────────────────────────────
+export const jewelleryAPI = {
+  create: (body) => client.post('/product/jewellery', body),
+};
+
+// ─── Finance ─────────────────────────────────────────────────────────────────
+export const financeAPI = {
+  create: (body) => client.post('/product/finance', body),
 };
 
 export default client;

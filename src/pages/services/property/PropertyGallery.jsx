@@ -287,23 +287,17 @@ function PropertyGallery() {
         )}
 
         {/* ── Post Requirement Banner ── */}
-        <div className="mt-5 rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <a href="/property/requirement"
+          className="mt-5 rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 p-5 flex items-center justify-between gap-4 hover:bg-brand-blue/10 transition-colors group"
+        >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0 group-hover:bg-brand-blue/20 transition-colors">
               <i className="fa-solid fa-circle-plus text-brand-blue" />
             </div>
-            <div>
-              <p className="text-sm font-bold text-brand-charcoal">Can't Find What You Need?</p>
-              <p className="text-xs text-gray-500">Tell us what you're looking for and we'll find matching properties.</p>
-            </div>
+            <p className="text-sm font-bold text-brand-charcoal">Post Your Requirement</p>
           </div>
-          <a href="/property/requirement"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors shrink-0"
-          >
-            Post Your Requirement
-            <i className="fa-solid fa-arrow-right text-xs" />
-          </a>
-        </div>
+          <i className="fa-solid fa-arrow-right text-brand-blue text-sm" />
+        </a>
 
         {/* ── Loading / Error states ── */}
         {loading && (

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { cities } from '../../data/locations';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
+import { propertyAPI, vehicleAPI, groceryAPI, garmentAPI, jewelleryAPI, financeAPI } from '../../api';
 
 const CATEGORIES = [
   { id: 'real-estate', label: 'Real Estate', icon: 'fa-house-chimney', desc: 'House, Plot, Apartment' },
@@ -15,8 +16,18 @@ const CATEGORIES = [
 const CATEGORY_FIELDS = {
   'real-estate': [
     { name: 'propertyType', label: 'Property Type', type: 'select', options: ['Apartment', 'House', 'Villa', 'Plot', 'Commercial'] },
-    { name: 'bedrooms', label: 'Bedrooms', type: 'select', options: ['1 BHK', '2 BHK', '3 BHK', '4+ BHK'] },
-    { name: 'area', label: 'Area (sq. ft.)', type: 'number', placeholder: 'e.g. 1200' },
+    { name: 'bhk', label: 'BHK', type: 'select', options: ['1 BHK', '2 BHK', '3 BHK', '4+ BHK'] },
+    { name: 'bathrooms', label: 'Bathrooms', type: 'select', options: ['1', '2', '3', '4+'] },
+    { name: 'area_sqft', label: 'Area (sq. ft.)', type: 'number', placeholder: 'e.g. 1500' },
+    { name: 'furnishing', label: 'Furnishing', type: 'select', options: ['Furnished', 'Semi-Furnished', 'Unfurnished'] },
+    { name: 'floor', label: 'Floor', type: 'text', placeholder: 'e.g. 20th of 20 Floors' },
+    { name: 'parking', label: 'Parking', type: 'text', placeholder: 'e.g. 2 Covered + 2 Open' },
+    { name: 'extraRoom', label: 'Extra Room', type: 'text', placeholder: 'e.g. Pooja Room' },
+    { name: 'priceSuffix', label: 'Price Suffix', type: 'select', options: ['', '/ Per Month', '/ Per Year', 'Negotiable'] },
+    { name: 'pincode', label: 'Pincode', type: 'text', placeholder: 'e.g. 560066' },
+    { name: 'projectCount', label: 'Total Projects', type: 'number', placeholder: 'e.g. 120' },
+    { name: 'totalUnits', label: 'Total Units', type: 'number', placeholder: 'e.g. 120' },
+    { name: 'availableUnits', label: 'Available Units', type: 'number', placeholder: 'e.g. 5' },
   ],
   'vehicle': [
     { name: 'brand', label: 'Brand', type: 'text', placeholder: 'e.g. Toyota, Honda' },
@@ -53,8 +64,10 @@ function PlaceholderImage({ index }) {
 }
 
 const INITIAL = {
-  title: '', description: '', price: '', city: 'bengaluru', area: '', contact: '',
-  propertyType: '', bedrooms: '', area_sqft: '', brand: '', model: '', year: '',
+  title: '', subtitle: '', description: '', price: '', priceSuffix: '', city: 'bengaluru', area: '', zone: '', contact: '',
+  propertyType: '', bhk: '', bathrooms: '', area_sqft: '', furnishing: '', floor: '', parking: '', extraRoom: '',
+  pincode: '', projectCount: '', totalUnits: '', availableUnits: '',
+  brand: '', model: '', year: '',
   quantity: '', unit: '', size: '', color: '', serviceType: '', experience: '',
 };
 
@@ -93,6 +106,7 @@ function StepCategory({ selected, onSelect }) {
 
 function StepDetails({ form, onChange }) {
   const cityOptions = Object.entries(cities);
+  const areaOptions = cities[form.city]?.areas || [];
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-500 mb-2">Fill in the details about your item</p>
@@ -103,14 +117,21 @@ function StepDetails({ form, onChange }) {
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all"
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-        <textarea rows={3} value={form.description} onChange={(e) => onChange('description', e.target.value)}
-          placeholder="Describe your item in detail..."
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all resize-none"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Subtitle</label>
+          <input type="text" value={form.subtitle} onChange={(e) => onChange('subtitle', e.target.value)}
+            placeholder="e.g. 4 BHK Flat for Rent in Whitefield"
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+          <textarea rows={3} value={form.description} onChange={(e) => onChange('description', e.target.value)}
+            placeholder="Describe your item in detail..."
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all resize-none"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Price</label>
           <div className="relative">
@@ -142,18 +163,23 @@ function StepDetails({ form, onChange }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Area / Locality</label>
-          <input type="text" value={form.area} onChange={(e) => onChange('area', e.target.value)}
-            placeholder="e.g. Koramangala"
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all"
-          />
+          <select value={form.area} onChange={(e) => { onChange('area', e.target.value); onChange('zone', e.target.value); }}
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all bg-white"
+          >
+            <option value="">Select Area</option>
+            {areaOptions.map((area) => (
+              <option key={area} value={area}>{area}</option>
+            ))}
+          </select>
         </div>
       </div>
     </div>
   );
 }
 
-function StepPhotos({ photos, onAdd }) {
+function StepPhotos({ photos, onAdd, brochure, onBrochureChange }) {
   const fileRef = useRef(null);
+  const brochureRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
 
   const handleFile = (file) => {
@@ -163,48 +189,74 @@ function StepPhotos({ photos, onAdd }) {
   };
 
   return (
-    <div>
-      <p className="text-sm text-gray-500 mb-6">Upload photos of your item (max 6)</p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-gray-500 mb-6">Upload photos of your item (max 6)</p>
 
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
-        onClick={() => fileRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200 hover:border-gray-300 bg-gray-50/50'
-        }`}
-      >
-        <i className="fa-solid fa-cloud-arrow-up text-4xl text-gray-300" />
-        <p className="mt-3 text-sm font-medium text-gray-600">Drag & drop photos here</p>
-        <p className="mt-1 text-xs text-gray-400">or click to browse</p>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden"
-          onChange={(e) => { if (e.target.files[0]) handleFile(e.target.files[0]); e.target.value = ''; }}
-        />
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
+          onClick={() => fileRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${
+            dragOver ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200 hover:border-gray-300 bg-gray-50/50'
+          }`}
+        >
+          <i className="fa-solid fa-cloud-arrow-up text-4xl text-gray-300" />
+          <p className="mt-3 text-sm font-medium text-gray-600">Drag & drop photos here</p>
+          <p className="mt-1 text-xs text-gray-400">or click to browse</p>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { if (e.target.files[0]) handleFile(e.target.files[0]); e.target.value = ''; }}
+          />
+        </div>
+
+        {photos.length > 0 && (
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {photos.map((p, i) => (
+              <div key={p.id} className="relative">
+                <PlaceholderImage index={i} />
+                <button onClick={() => onAdd(photos.filter((_, idx) => idx !== i))}
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors"
+                >
+                  <i className="fa-solid fa-xmark" />
+                </button>
+              </div>
+            ))}
+            {photos.length < 6 && (
+              <button onClick={() => fileRef.current?.click()}
+                className="aspect-[4/3] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                <i className="fa-solid fa-plus text-xl" />
+                <span className="mt-1 text-xs">Add More</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {photos.length > 0 && (
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {photos.map((p, i) => (
-            <div key={p.id} className="relative">
-              <PlaceholderImage index={i} />
-              <button onClick={() => onAdd(photos.filter((_, idx) => idx !== i))}
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
-            </div>
-          ))}
-          {photos.length < 6 && (
-            <button onClick={() => fileRef.current?.click()}
-              className="aspect-[4/3] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-            >
-              <i className="fa-solid fa-plus text-xl" />
-              <span className="mt-1 text-xs">Add More</span>
-            </button>
-          )}
+      <div className="border-t border-gray-100 pt-6">
+        <p className="text-sm text-gray-500 mb-4">Upload a brochure PDF (optional)</p>
+        <div
+          onClick={() => brochureRef.current?.click()}
+          className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors hover:border-brand-blue hover:bg-brand-blue/5"
+        >
+          <i className="fa-solid fa-file-pdf text-3xl text-red-400" />
+          <p className="mt-2 text-sm font-medium text-gray-600">
+            {brochure ? brochure.name : 'Click to upload brochure PDF'}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-400">PDF only, max 10MB</p>
+          <input ref={brochureRef} type="file" accept=".pdf" className="hidden"
+            onChange={(e) => { if (e.target.files[0]) onBrochureChange(e.target.files[0]); e.target.value = ''; }}
+          />
         </div>
-      )}
+        {brochure && (
+          <button onClick={() => onBrochureChange(null)}
+            className="mt-2 text-xs text-red-500 hover:text-red-600"
+          >
+            <i className="fa-solid fa-xmark mr-1" />Remove
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -257,13 +309,14 @@ function StepReview({ category, form, photos }) {
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue">{catLabel}</p>
               <h3 className="text-lg font-bold text-brand-charcoal">{form.title || 'Untitled Listing'}</h3>
+              {form.subtitle && <p className="text-sm text-gray-500">{form.subtitle}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-gray-400 text-xs">Price</p>
-              <p className="font-semibold text-brand-charcoal">{form.price ? `Rs. ${form.price}` : 'Not set'}</p>
+              <p className="font-semibold text-brand-charcoal">{form.price ? `Rs. ${form.price}${form.priceSuffix ? ' ' + form.priceSuffix : ''}` : 'Not set'}</p>
             </div>
             <div>
               <p className="text-gray-400 text-xs">Location</p>
@@ -322,7 +375,11 @@ function AddListing() {
   const [category, setCategory] = useState('');
   const [form, setForm] = useState(INITIAL);
   const [photos, setPhotos] = useState([]);
+  const [brochure, setBrochure] = useState(null);
+  const [brochureUrl, setBrochureUrl] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -343,6 +400,14 @@ function AddListing() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-brand-charcoal">Listing Submitted!</h2>
           <p className="mt-2 text-sm text-gray-500">Your listing has been submitted for review. You will be notified once it is live.</p>
+          {brochureUrl && (
+            <a href={brochureUrl} target="_blank" rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors"
+            >
+              <i className="fa-solid fa-file-pdf" />
+              Download Brochure
+            </a>
+          )}
           <button onClick={() => navigateTo('/')}
             className="mt-8 inline-flex items-center gap-2 bg-brand-blue text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-brand-navy transition-colors"
           >
@@ -377,9 +442,65 @@ function AddListing() {
     }
   };
 
-  const handlePublish = () => {
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handlePublish = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const imageUrls = photos.map((_, i) => `https://example.com/photo${i + 1}.jpg`);
+      const base = { title: form.title, description: form.description, price: form.price, city: form.city, contact: form.contact };
+
+      const apiCalls = {
+        'real-estate': () => propertyAPI.create({
+          title: form.title,
+          subtitle: form.subtitle,
+          description: form.description,
+          city: form.city,
+          zone: form.zone || form.area,
+          location: `${form.area}, ${cities[form.city]?.label || form.city}`,
+          price: form.price,
+          priceSuffix: form.priceSuffix,
+          bhk: form.bhk,
+          bathrooms: form.bathrooms,
+          area: `${form.area_sqft} Sq.Ft.`,
+          furnishing: form.furnishing,
+          floor: form.floor,
+          parking: form.parking,
+          extraRoom: form.extraRoom,
+          pincode: form.pincode,
+          projectCount: parseInt(form.projectCount, 10) || 0,
+          totalUnits: parseInt(form.totalUnits, 10) || 0,
+          availableUnits: parseInt(form.availableUnits, 10) || 0,
+          propertyType: form.propertyType,
+          images: imageUrls,
+        }),
+        'vehicle': () => vehicleAPI.create({ make: form.brand, model: form.model, year: Number(form.year), price: form.price, location: form.area, city: form.city, mileage: '', fuelType: '', transmission: '', condition: 'Used', images: imageUrls }),
+        'grocery': () => groceryAPI.create({ name: form.title, category: '', price: form.price, city: form.city, unit: form.unit, stock: Number(form.quantity) || 0, brand: '', organic: false, images: imageUrls }),
+        'garment': () => garmentAPI.create({ name: form.title, category: '', price: form.price, city: form.city, size: form.size, color: form.color, material: '', brand: '', quantity: 1, images: imageUrls }),
+        'jewellery': () => jewelleryAPI.create({ name: form.title, category: '', material: '', price: form.price, city: form.city, purity: '', weight: 0, weightUnit: 'grams', gemstone: '', occasion: '', images: imageUrls }),
+        'finance': () => financeAPI.create({ name: form.title, type: form.serviceType, provider: '', interestRate: '', city: form.city, amountMin: 0, amountMax: 0, tenureMin: 1, tenureMax: 30, features: [], image: imageUrls[0] || '' }),
+        'service': () => propertyAPI.create({ ...base, area: form.area, images: imageUrls }),
+      };
+
+      const apiCall = apiCalls[category];
+      if (!apiCall) throw new Error(`Unknown category: ${category}`);
+
+      const { data: createRes } = await apiCall();
+      const propertyId = createRes?.data?._id || createRes?._id;
+
+      if (brochure && propertyId) {
+        const fd = new FormData();
+        fd.append('brochure', brochure);
+        const { data: brochureRes } = await propertyAPI.uploadBrochure(propertyId, fd);
+        setBrochureUrl(brochureRes?.data?.brochure || brochureRes?.brochure || null);
+      }
+
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitError(err?.response?.data?.message || err?.message || 'Failed to publish listing');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const progress = ((step + 1) / STEPS.length) * 100;
@@ -413,9 +534,16 @@ function AddListing() {
 
           {step === 0 && <StepCategory selected={category} onSelect={setCategory} />}
           {step === 1 && <StepDetails form={form} onChange={updateForm} />}
-          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} />}
+          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} brochure={brochure} onBrochureChange={setBrochure} />}
           {step === 3 && <StepSpecifics category={category} form={form} onChange={updateForm} />}
           {step === 4 && <StepReview category={category} form={form} photos={photos} />}
+
+          {submitError && (
+            <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600 flex items-center gap-2">
+              <i className="fa-solid fa-circle-exclamation" />
+              {submitError}
+            </div>
+          )}
 
           <div className={`flex items-center ${step === 0 ? 'justify-end' : 'justify-between'} mt-8 pt-6 border-t border-gray-100`}>
             {step > 0 && (
@@ -433,13 +561,14 @@ function AddListing() {
               </button>
             ) : (
               <div className="flex gap-3">
-                <button onClick={handlePublish}
-                  className="inline-flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-navy transition-colors"
+                <button onClick={handlePublish} disabled={submitting}
+                  className="inline-flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <i className="fa-solid fa-check" /> Publish Listing
+                  {submitting ? <i className="fa-solid fa-spinner fa-spin" /> : <i className="fa-solid fa-check" />}
+                  {submitting ? 'Publishing...' : 'Publish Listing'}
                 </button>
-                <button onClick={handlePublish}
-                  className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+                <button onClick={handlePublish} disabled={submitting}
+                  className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fa-solid fa-floppy-disk" /> Save Draft
                 </button>
