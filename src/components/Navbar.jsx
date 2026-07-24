@@ -254,10 +254,10 @@ function Navbar() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1">
                   <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center text-white text-base font-bold shrink-0">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    {(user?.fullName || user?.name) ? (user.fullName || user.name).charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-brand-charcoal truncate">{user?.name}</p>
+                    <p className="text-sm font-semibold text-brand-charcoal truncate">{user?.fullName || user?.name}</p>
                     <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                   </div>
                 </div>
