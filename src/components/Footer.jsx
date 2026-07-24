@@ -1,4 +1,4 @@
-import { footerBrandName, footerSummary, footerQuickLinks, footerLegalLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
+import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
 import logoName from '../assets/Logo_name.png';
 
 function Footer() {
@@ -30,17 +30,17 @@ function Footer() {
                   <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
                 </li>
               ))}
-              <li>
+              {/* <li>
                 <a href="/add-listing/" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
                   <i className="fa-solid fa-plus mr-1.5" />Post Your Listing
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Services</h4>
             <ul className="space-y-2.5">
-              {footerLegalLinks.slice(0, 7).map((l) => (
+              {footerServiceLinks.map((l) => (
                 <li key={l.label}>
                   <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
                 </li>

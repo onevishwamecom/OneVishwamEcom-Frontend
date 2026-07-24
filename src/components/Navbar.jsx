@@ -249,8 +249,8 @@ function Navbar() {
           </div>
 
           {/* Mobile User Profile Section */}
-          <div className="p-4 border-b">
-            {isLoggedIn ? (
+          {isLoggedIn ? (
+            <div className="p-4 border-b">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1">
                   <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center text-white text-base font-bold shrink-0">
@@ -274,15 +274,20 @@ function Navbar() {
                   </button>
                 </div>
               </div>
-            ) : (
+            </div>
+          ) : (
+            /*
+            <div className="p-4 border-b">
               <button onClick={() => { openAuthModal('login'); setMenuOpen(false); }}
                 className="flex w-full items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 px-4 text-sm font-semibold rounded-lg transition-colors"
               >
                 <i className="fa-solid fa-right-to-bracket text-brand-blue" />
                 Login / Register
               </button>
-            )}
-          </div>
+            </div>
+            */
+            null
+          )}
 
           {/* Mobile city selector */}
           <div className="p-4 border-b">
