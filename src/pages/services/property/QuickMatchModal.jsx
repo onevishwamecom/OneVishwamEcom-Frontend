@@ -1,18 +1,8 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyProperties } from '../../../data/dummyProperties';
+import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
-
-/* ── Helpers ── */
-
-function getNumericPrice(price) {
-  const num = parseFloat(price.replace(/[₹,\s]/g, ''));
-  const lower = price.toLowerCase();
-  if (lower.includes('l') || lower.includes('lakh')) return num * 100000;
-  if (lower.includes('cr') || lower.includes('crore')) return num * 10000000;
-  if (lower.includes('k') || lower.includes('thousand')) return num * 1000;
-  return num;
-}
+import { getNumericPrice } from '../GalleryComponents';
 
 function getCardType(property) {
   const s = property.subtitle.toLowerCase();
@@ -50,6 +40,7 @@ const BEDROOM_OPTIONS = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', '4BHK+'];
 /* ── Component ── */
 
 function QuickMatchModal({ onClose }) {
+  const { properties } = useProperties();
   const [step, setStep] = useState(1);
 
   /* Step 1 state */
@@ -77,7 +68,7 @@ function QuickMatchModal({ onClose }) {
     const shortlisted = [];
     const closed = [];
 
-    dummyProperties.forEach((p) => {
+    properties.forEach((p) => {
       const price = getNumericPrice(p.price);
       const cardType = getCardType(p);
 
@@ -98,7 +89,7 @@ function QuickMatchModal({ onClose }) {
     });
 
     return { preApproved, shortlisted, closed };
-  }, [budgetMin, budgetMax, propertyType, city, location, bedrooms]);
+  }, [properties, budgetMin, budgetMax, propertyType, city, location, bedrooms]);
 
   const hasAnyResults = buckets.preApproved.length > 0 || buckets.shortlisted.length > 0 || buckets.closed.length > 0;
 

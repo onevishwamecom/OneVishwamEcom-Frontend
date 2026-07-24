@@ -80,10 +80,11 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'about-us') return path.startsWith('/about-us');
     if (link.id === 'our-services') return path.startsWith('/our-services');
     if (link.id === 'careers') return path.startsWith('/careers');
+    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service');
     if (link.id === 'contacts') return path.startsWith('/contact-us');
+    if (link.id === 'about-us') return path.startsWith('/about-us');
     return false;
   };
 
@@ -117,10 +118,8 @@ function Navbar() {
           <a href="/home" onClick={(e) => { e.preventDefault(); navigateTo('/home'); }}
             className="flex items-center gap-2 shrink-0"
           >
-            <img src={logo} alt="Vishwam" className="h-9 w-9 sm:h-11 sm:w-11 object-contain" />
-            <span className="text-base sm:text-lg font-bold tracking-tight text-brand-navy hidden sm:block">
-              One<span className="text-brand-blue">Vishwam</span>
-            </span>
+            <img src={logo} alt="Vishwam" className="h-14 w-auto sm:h-16 object-contain drop-shadow-sm" />
+
           </a>
 
           {/* City Dropdown (Desktop) */}
@@ -250,8 +249,8 @@ function Navbar() {
           </div>
 
           {/* Mobile User Profile Section */}
-          <div className="p-4 border-b">
-            {isLoggedIn ? (
+          {isLoggedIn ? (
+            <div className="p-4 border-b">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1">
                   <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center text-white text-base font-bold shrink-0">
@@ -275,15 +274,20 @@ function Navbar() {
                   </button>
                 </div>
               </div>
-            ) : (
+            </div>
+          ) : (
+            /*
+            <div className="p-4 border-b">
               <button onClick={() => { openAuthModal('login'); setMenuOpen(false); }}
                 className="flex w-full items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 px-4 text-sm font-semibold rounded-lg transition-colors"
               >
                 <i className="fa-solid fa-right-to-bracket text-brand-blue" />
                 Login / Register
               </button>
-            )}
-          </div>
+            </div>
+            */
+            null
+          )}
 
           {/* Mobile city selector */}
           <div className="p-4 border-b">

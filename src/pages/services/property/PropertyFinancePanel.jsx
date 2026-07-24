@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { FINANCE_STATS, FINANCE_FOCUS_AREAS, FINANCE_INCENTIVES } from './propertyConstants';
+import FinanceFlow from '../../../services/FinanceFlow';
 
 /**
  * Finance options panel (Home Loan / Construction Loan / Other Finance).
@@ -10,35 +12,7 @@ export default function PropertyFinancePanel({ show, onToggle, onPreApproved, pa
     return (
         <div className="mt-3 grid gap-4 sm:grid-cols-3">
 
-          {/* Home Loan */}
-          <div className="rounded-xl border border-brand-blue/20 bg-brand-paper p-5 flex flex-col">
-            <h3 className="text-base font-bold text-brand-charcoal">Home Loan</h3>
-            <p className="mt-1 text-xs text-gray-500">Pre-approved, starting at 7%+</p>
-            <div className="mt-3 flex flex-wrap gap-4">
-              {[
-                { label: 'Enquiries', val: FINANCE_STATS.enquiries },
-                { label: 'Enrolled',  val: FINANCE_STATS.enrolled  },
-                { label: 'Slots',     val: FINANCE_STATS.slots     },
-              ].map(({ label, val }) => (
-                <div key={label}>
-                  <p className="text-[11px] text-gray-500">{label}</p>
-                  <p className="text-lg font-bold text-brand-blue">{val}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 space-y-1 text-xs text-gray-600">
-              <p><i className="fa-solid fa-check text-emerald-500 mr-1.5" />100% home loan available</p>
-              <p><i className="fa-solid fa-check text-emerald-500 mr-1.5" />Starting @ 7% interest</p>
-            </div>
-            <div className="mt-auto pt-4">
-              <button
-                onClick={onPreApproved}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                ⚡ Just Click — Get Pre-Approved
-              </button>
-            </div>
-          </div>
+          <FinanceFlow />
 
           {/* Construction Loan */}
           <div className="rounded-xl border border-brand-blue/20 bg-brand-paper p-5 flex flex-col">
@@ -114,35 +88,7 @@ export default function PropertyFinancePanel({ show, onToggle, onPreApproved, pa
       {show && (
         <div className="mt-3 grid gap-4 sm:grid-cols-3">
 
-          {/* Home Loan */}
-          <div className="rounded-xl border border-brand-blue/20 bg-brand-paper p-5 flex flex-col">
-            <h3 className="text-base font-bold text-brand-charcoal">Home Loan</h3>
-            <p className="mt-1 text-xs text-gray-500">Pre-approved, starting at 7%+</p>
-            <div className="mt-3 flex flex-wrap gap-4">
-              {[
-                { label: 'Enquiries', val: FINANCE_STATS.enquiries },
-                { label: 'Enrolled',  val: FINANCE_STATS.enrolled  },
-                { label: 'Slots',     val: FINANCE_STATS.slots     },
-              ].map(({ label, val }) => (
-                <div key={label}>
-                  <p className="text-[11px] text-gray-500">{label}</p>
-                  <p className="text-lg font-bold text-brand-blue">{val}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 space-y-1 text-xs text-gray-600">
-              <p><i className="fa-solid fa-check text-emerald-500 mr-1.5" />100% home loan available</p>
-              <p><i className="fa-solid fa-check text-emerald-500 mr-1.5" />Starting @ 7% interest</p>
-            </div>
-            <div className="mt-auto pt-4">
-              <button
-                onClick={onPreApproved}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm"
-              >
-                ⚡ Just Click — Get Pre-Approved
-              </button>
-            </div>
-          </div>
+          <FinanceFlow />
 
           {/* Construction Loan */}
           <div className="rounded-xl border border-brand-blue/20 bg-brand-paper p-5 flex flex-col">

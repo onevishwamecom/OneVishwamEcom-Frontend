@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { dummyProperties } from '../../../data/dummyProperties';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays,
@@ -8,13 +7,13 @@ import {
 /**
  * Builds card-type stats (projects / keys / sites) for each property type.
  */
-export function useCardTypeStats(PROPERTY_CARD_TYPES) {
+export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
   return useMemo(() => {
     const stats = {};
     PROPERTY_CARD_TYPES.forEach((ct) => {
       const items = ct.id === 'All'
-        ? dummyProperties
-        : dummyProperties.filter((p) => getCardType(p) === ct.id);
+        ? properties
+        : properties.filter((p) => getCardType(p) === ct.id);
       stats[ct.id] = {
         projects: items.reduce((sum, p) => sum + (p.projectCount || 0), 0),
         keys:     items.reduce((sum, p) => sum + (p.totalUnits   || 0), 0),
@@ -22,7 +21,7 @@ export function useCardTypeStats(PROPERTY_CARD_TYPES) {
       };
     });
     return stats;
-  }, [PROPERTY_CARD_TYPES]);
+  }, [properties, PROPERTY_CARD_TYPES]);
 }
 
 /**
@@ -60,12 +59,12 @@ export function useActiveChips(filters) {
  * Returns the filtered + sorted property list.
  */
 export function useFilteredProperties({
-  selectedCardType, searchTerm, requirementText, sortBy,
+  properties, selectedCardType, searchTerm, requirementText, sortBy,
   filters, selectedCity, locationInput, pincodeInput,
   familyLocationsOnly, preApprovedMode,
 }) {
   return useMemo(() => {
-    return dummyProperties
+    return properties
       .filter((p) => {
         const type        = getPropertyType(p);
         const np          = getNumericPrice(p.price);
@@ -150,7 +149,7 @@ export function useFilteredProperties({
         return b.id - a.id;
       });
   }, [
-    selectedCardType, searchTerm, requirementText, sortBy, filters,
+    properties, selectedCardType, searchTerm, requirementText, sortBy, filters,
     selectedCity, locationInput, pincodeInput, familyLocationsOnly, preApprovedMode,
     // filters.loanApprovedOnly is included via filters object
   ]);

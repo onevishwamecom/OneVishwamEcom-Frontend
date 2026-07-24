@@ -7,6 +7,7 @@ import {
 } from '../../data/aboutContent';
 import PageHero from '../../components/PageHero';
 import SectionHeader from '../../components/SectionHeader';
+import logoIcon from '../../assets/Logo_icon.png';
 
 function AboutPage() {
   return (
@@ -16,6 +17,7 @@ function AboutPage() {
         eyebrow="About Us"
         title="Driving Enterprise Excellence Across Verticals."
         subtitle="OneVishwam is building a comprehensive ecosystem across financial services, real estate, marketplace, and enterprise solutions."
+        logo={logoIcon}
         ctas={[
           { label: 'Partner With Us', href: '/contact-us/', primary: true, icon: 'fa-solid fa-arrow-right' },
           { label: 'Explore Services', href: '/our-services/', primary: false },

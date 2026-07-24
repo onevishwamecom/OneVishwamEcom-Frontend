@@ -5,11 +5,6 @@ import { NAVIGATION_EVENT } from './config/navigation';
 import BrandLoader from './components/ui/BrandLoader';
 import { useAuth, forceLogout } from './store/authSlice';
 import store from './store';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import VerifyOtp from './pages/auth/VerifyOtp';
-import ResetPassword from './pages/auth/ResetPassword';
-import ResetSuccess from './pages/auth/ResetSuccess';
-import ProfileSettings from './pages/profile/Settings';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -25,8 +20,17 @@ const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetail
 const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
-const FinanceDashboard = lazy(() => import('./services/FinanceDashboard'));
+const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
+const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
+const PostFinanceService = lazy(() => import('./pages/services/finance/PostFinanceService'));
+const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
+const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
 const AddListing = lazy(() => import('./pages/add-listing'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
+const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
+const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
 
 function ScrollToTopAndNavHelper() {
   const location = useLocation();
@@ -91,7 +95,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about-us/*" element={<AboutPage />} />
-            <Route path="/our-services/finance-lending" element={<FinanceDashboard />} />
+            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
             <Route path="/our-services/*" element={<ServicesPage location={location} />} />
             <Route path="/contact-us/*" element={<ContactPage location={location} />} />
             <Route path="/careers/*" element={<CareersPage />} />
@@ -99,6 +103,10 @@ function App() {
             <Route path="/property/requirement" element={<PostRequirement />} />
             <Route path="/property/*" element={<PropertyDetails location={location} />} />
             <Route path="/finance/*" element={<LoanDetails location={location} />} />
+            <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
+            <Route path="/finance-service/:id" element={<FinanceDetails location={location} />} />
+            <Route path="/add-finance-service" element={<PostFinanceService />} />
+            <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<GroceryDetails location={location} />} />
             <Route path="/vehicle/*" element={<VehicleDetails location={location} />} />
             <Route path="/jewellery/*" element={<JewelleryDetails location={location} />} />

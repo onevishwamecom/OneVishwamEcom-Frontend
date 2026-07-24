@@ -12,17 +12,14 @@ export const footerQuickLinks = [
   { label: 'Contacts', href: '/contact-us/' },
 ];
 
-export const footerLegalLinks = [
-  { label: 'Privacy Policy', href: '#' },
-  { label: 'Terms & Conditions', href: '#' },
-  { label: 'Refund Policy', href: '#' },
-  { label: 'Cancellation Policy', href: '#' },
-  { label: 'Disclaimer', href: '#' },
-  { label: 'KYC Policy', href: '#' },
-  { label: 'AML Policy', href: '#' },
-  { label: 'Vendor Agreement', href: '#' },
-  { label: 'Franchise Agreement', href: '#' },
-  { label: 'Data Protection Policy', href: '#' },
+export const footerServiceLinks = [
+  { label: 'Finance & Lending', href: '/our-services/finance-lending' },
+  { label: 'Real Estate & Properties', href: '/our-services/real-estate-property' },
+  { label: 'Consumer Marketplace', href: '/our-services/consumer-marketplace' },
+  { label: 'Open Marketplace', href: '/our-services/open-marketplace' },
+  { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
+  { label: 'Automobiles & Vehicles', href: '/our-services/automobile' },
+  { label: 'HR & Staffing', href: '/our-services/hr-staffing' },
 ];
 
 export const footerSocialLinks = [

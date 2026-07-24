@@ -1,20 +1,6 @@
 export const navLinks = [
   { label: 'Home', href: '/home', id: 'home' },
   {
-    label: 'About Us',
-    href: '/about-us/',
-    id: 'about-us',
-    // submenu: {
-    //   type: 'simple',
-    //   items: [
-    //     { label: 'Overview', href: '/about-us/#about-overview' },
-    //     { label: 'Mission', href: '/about-us/#mission' },
-    //     { label: 'FAQ', href: '/about-us/#faq' },
-    //     { label: 'Team Members', href: '/about-us/#team-members' },
-    //   ],
-    // },
-  },
-  {
     label: 'Our Services',
     href: '/our-services/',
     id: 'our-services',
@@ -22,7 +8,7 @@ export const navLinks = [
       type: 'mega',
       columns: [
         [
-          { label: 'Loans & Money Help', href: '/our-services/finance-lending' },
+          // { label: 'Loans & Money Help', href: '/our-services/finance-lending' },
           { label: 'Houses & Land', href: '/our-services/real-estate-property' },
           { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
         ],
@@ -45,5 +31,11 @@ export const navLinks = [
   // { label: 'Social Services', href: '/#social-services', id: 'social-services' },
   // { label: 'Privacy', href: '/#privacy', id: 'privacy' },
   // { label: 'Careers', href: '/careers/', id: 'careers' },
+  { label: 'Finance', href: '/our-services/finance-lending', id: 'finance' },
   { label: 'Contacts', href: '/contact-us/', id: 'contacts' },
+  {
+    label: 'About Us',
+    href: '/about-us/',
+    id: 'about-us',
+  },
 ];

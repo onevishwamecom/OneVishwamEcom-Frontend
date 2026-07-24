@@ -1,4 +1,5 @@
-import { footerBrandName, footerSummary, footerQuickLinks, footerLegalLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
+import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
+import logoName from '../assets/Logo_name.png';
 
 function Footer() {
   const year = new Date().getFullYear();
@@ -9,7 +10,7 @@ function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">{footerBrandName}</h3>
+            <img src={logoName} alt={footerBrandName} className="h-10 w-auto object-contain" />
             <p className="text-sm leading-6 text-gray-400">{footerSummary}</p>
             <div className="flex gap-3">
               {footerSocialLinks.map((s) => (
@@ -29,17 +30,17 @@ function Footer() {
                   <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
                 </li>
               ))}
-              <li>
+              {/* <li>
                 <a href="/add-listing/" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
                   <i className="fa-solid fa-plus mr-1.5" />Post Your Listing
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Services</h4>
             <ul className="space-y-2.5">
-              {footerLegalLinks.slice(0, 7).map((l) => (
+              {footerServiceLinks.map((l) => (
                 <li key={l.label}>
                   <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
                 </li>
