@@ -40,7 +40,7 @@ const locationSlice = createSlice({
   },
 });
 
-export const { selectCity, selectArea, setCity, setArea, setDetectStatus } = locationSlice.actions;
+export const { selectCity, selectArea, setArea, setDetectStatus } = locationSlice.actions;
 export default locationSlice.reducer;
 
 export function useLocation() {

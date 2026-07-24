@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
+
+const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
+);
 
 /**
  * Generic product card component.
@@ -32,6 +36,7 @@ export default React.memo(function ProductCard({
   showButton = true,
   children,
 }) {
+  const [imgError, setImgError] = useState(false);
   return (
     <div
       onClick={link ? () => navigateTo(link) : undefined}
@@ -39,11 +44,18 @@ export default React.memo(function ProductCard({
     >
       {/* Image */}
       <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
-        {image && (
+        {image && !imgError ? (
           <img
             src={image}
             alt={alt}
+            onError={() => setImgError(true)}
             className="h-full w-full object-cover hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <img
+            src={FALLBACK_IMG}
+            alt=""
+            className="h-full w-full object-cover"
           />
         )}
         {/* Badges */}

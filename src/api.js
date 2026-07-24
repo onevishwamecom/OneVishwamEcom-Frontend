@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: 'http://192.168.29.240:5001/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5001/api`,
+  timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
 

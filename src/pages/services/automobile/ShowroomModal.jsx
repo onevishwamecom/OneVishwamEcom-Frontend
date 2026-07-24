@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
-
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSConfigured } from '../../../config/emailjs';
 
 function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
   const [step, setStep] = useState(1);
@@ -41,9 +38,11 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
       voice_message: '',
     };
     try {
-      if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      if (!isEmailJSConfigured()) {
+        Swal.fire({ title: 'Configuration Error', text: 'Email service is not configured.', icon: 'error', confirmButtonColor: '#1a4b8c' });
+        setIsSending(false); return;
       }
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
       Swal.fire({ title: 'Submitted!', text: 'Our team will contact you shortly.', icon: 'success', confirmButtonColor: '#1a4b8c' });
       onClose();
     } catch {

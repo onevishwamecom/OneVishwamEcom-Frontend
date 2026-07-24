@@ -231,7 +231,7 @@ function PropertyGallery() {
             {/* Search button */}
             <div className="flex items-center px-3 py-2 sm:py-0">
               <button
-                onClick={() => {}}
+                onClick={() => setQuickMatchOpen(true)}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
               >
                 <i className="fa-solid fa-magnifying-glass" />

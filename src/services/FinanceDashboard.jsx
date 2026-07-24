@@ -119,7 +119,7 @@ function FinanceDashboard() {
 
           {/* 3B. Loan cards grid */}
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            {filteredLoans.map((loan) => (
+            {filteredLoans.length > 0 ? filteredLoans.map((loan) => (
               <div
                 key={loan.id}
                 className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
@@ -159,7 +159,13 @@ function FinanceDashboard() {
                   Apply Now
                 </a>
               </div>
-            ))}
+            )) : (
+              <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/50 py-16 text-center">
+                <i className="fa-solid fa-file-invoice text-4xl text-gray-300 mb-3" />
+                <p className="text-sm font-semibold text-gray-500">No loan products found</p>
+                <p className="text-xs text-gray-400 mt-1">Try selecting a different loan category above.</p>
+              </div>
+            )}
           </div>
 
           {/* 3C. Construction Loan Stage Grid */}

@@ -25,7 +25,8 @@ function UserDropdown() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const initial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  const displayName = user?.fullName || user?.name;
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : 'U';
 
   return (
     <div className="relative" ref={ref}>
@@ -35,7 +36,7 @@ function UserDropdown() {
         <div className="h-8 w-8 rounded-full bg-brand-blue flex items-center justify-center text-white text-sm font-bold">
           {initial}
         </div>
-        <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.name || 'User'}</span>
+        <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.fullName || user?.name || 'User'}</span>
         <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -43,7 +44,7 @@ function UserDropdown() {
         <div className="absolute right-0 top-full pt-2 w-56 z-50">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2">
             <div className="px-4 py-2 border-b border-gray-100 mb-1">
-              <p className="text-sm font-medium text-brand-charcoal">{user?.name}</p>
+              <p className="text-sm font-medium text-brand-charcoal">{user?.fullName || user?.name}</p>
               <p className="text-xs text-gray-400">{user?.email}</p>
             </div>
             {menuItems.map((item) => (
