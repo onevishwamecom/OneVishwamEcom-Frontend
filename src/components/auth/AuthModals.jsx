@@ -82,46 +82,135 @@ function LoginForm({ onSwitch, onClose }) {
   );
 }
 
+function validateName(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return 'Full name is required';
+  if (trimmed.length < 2) return 'Name must be at least 2 characters';
+  if (trimmed.length > 50) return 'Name must be at most 50 characters';
+  return '';
+}
+
+function validatePhone(phone) {
+  if (!phone.trim()) return 'Mobile number is required';
+  const digits = phone.replace(/[\s-]/g, '');
+  if (!/^\d{10}$/.test(digits)) return 'Invalid mobile number';
+  return '';
+}
+
+function validateEmail(email) {
+  if (!email.trim()) return 'Email is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Invalid email';
+  return '';
+}
+
+function validatePassword(password) {
+  if (!password) return 'Password is required';
+  if (password.length < 8) return 'At least 8 characters';
+  if (!/[A-Z]/.test(password)) return 'Missing uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Missing lowercase letter';
+  if (!/[0-9]/.test(password)) return 'Missing number';
+  if (!/[!@#$%^&*()_\-+=<>?/{}[\]~|]/.test(password)) return 'Missing special character';
+  return '';
+}
+
+function validateConfirm(password, confirm) {
+  if (!confirm) return 'Confirm password is required';
+  if (password !== confirm) return 'Passwords do not match';
+  return '';
+}
+
+function isFormValid(name, phone, email, password, confirm) {
+  return !validateName(name) && !validatePhone(phone) && !validateEmail(email) && !validatePassword(password) && !validateConfirm(password, confirm);
+}
+
 function RegisterForm({ onSwitch, onClose }) {
   const { register, loading, error, clearError } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
 
-  function validate() {
-    const e = {};
-    if (!form.name.trim()) e.name = 'Name is required';
-    else if (form.name.trim().length < 2) e.name = 'At least 2 characters';
-    if (!form.phone.trim()) e.phone = 'Phone number is required';
-    else if (!/^\+?[\d\s-]{10,15}$/.test(form.phone)) e.phone = 'Invalid phone number';
-    if (!form.email.trim()) e.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email format';
-    if (!form.password) e.password = 'Password is required';
-    else if (form.password.length < 6) e.password = 'At least 6 characters';
-    if (!form.confirm) e.confirm = 'Please confirm password';
-    else if (form.password !== form.confirm) e.confirm = 'Passwords do not match';
-    return e;
+  function getFieldError(field, data = form) {
+    switch (field) {
+      case 'name': return validateName(data.name);
+      case 'phone': return validatePhone(data.phone);
+      case 'email': return validateEmail(data.email);
+      case 'password': return validatePassword(data.password);
+      case 'confirm': return validateConfirm(data.password, data.confirm);
+      default: return '';
+    }
   }
 
   function handleChange(field, value) {
-    setForm({ ...form, [field]: value });
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      const err = getFieldError(field, updated);
+      if (err) {
+        next[field] = err;
+      } else {
+        delete next[field];
+      }
+      if (field === 'password' && 'confirm' in next) {
+        const confirmErr = getFieldError('confirm', updated);
+        if (confirmErr) {
+          next.confirm = confirmErr;
+        } else {
+          delete next.confirm;
+        }
+      }
+      return next;
+    });
+
     clearError();
-    if (errors[field]) {
-      const next = { ...errors };
-      delete next[field];
-      setErrors(next);
-    }
+    setServerError(null);
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const v = validate();
-    setErrors(v);
-    if (Object.keys(v).length) return;
+
+    const newErrors = {};
+    for (const field of ['name', 'phone', 'email', 'password', 'confirm']) {
+      const err = getFieldError(field, form);
+      if (err) newErrors[field] = err;
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length) return;
+
     try {
-      await register({ name: form.name, phone: form.phone, email: form.email, password: form.password }).unwrap();
+      await register({
+        fullName: form.name,
+        mobile: form.phone,
+        email: form.email,
+        password: form.password,
+        confirmPassword: form.confirm,
+      }).unwrap();
       Swal.fire({ icon: 'success', title: 'Account Created!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
       onClose();
-    } catch {}
+    } catch (err) {
+      if (err?.response?.data?.message) {
+        setServerError(err.response.data.message);
+      }
+      const srvErrors = err?.response?.data?.errors;
+      if (srvErrors && Array.isArray(srvErrors)) {
+        const mapped = {};
+        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
+        for (const { field, message } of srvErrors) {
+          const formField = fieldMap[field] || field;
+          if (formField in form) mapped[formField] = message;
+        }
+        if (Object.keys(mapped).length) setErrors(mapped);
+      } else if (srvErrors && typeof srvErrors === 'object') {
+        const mapped = {};
+        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
+        for (const [fld, msg] of Object.entries(srvErrors)) {
+          const formField = fieldMap[fld] || fld;
+          if (formField in form) mapped[formField] = Array.isArray(msg) ? msg[0] : msg;
+        }
+        if (Object.keys(mapped).length) setErrors(mapped);
+      }
+    }
   };
 
   function inputClass(field) {
@@ -132,9 +221,14 @@ function RegisterForm({ onSwitch, onClose }) {
     }`;
   }
 
+  const valid = isFormValid(form.name, form.phone, form.email, form.password, form.confirm);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
+      {serverError && (
+        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{serverError}</div>
+      )}
+      {!serverError && error && (
         <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
       <div>
@@ -168,7 +262,7 @@ function RegisterForm({ onSwitch, onClose }) {
           placeholder="Confirm password" error={errors.confirm}
         />
       </div>
-      <button type="submit" disabled={loading}
+      <button type="submit" disabled={!valid || loading}
         className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}

@@ -7,8 +7,8 @@ import PasswordInput from '../../components/ui/PasswordInput';
 function ProfileSettings() {
   const navigate = useNavigate();
   const { user, updateProfile, changePassword, deleteAccount, logout, loading, error, clearError } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [name, setName] = useState(user?.fullName || user?.name || '');
+  const [phone, setPhone] = useState(user?.mobile || user?.phone || '');
   const [profileErrors, setProfileErrors] = useState({});
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' });
   const [passwordErrors, setPasswordErrors] = useState({});
@@ -59,7 +59,7 @@ function ProfileSettings() {
     setProfileErrors(v);
     if (Object.keys(v).length) return;
     try {
-      await updateProfile({ name, phone }).unwrap();
+      await updateProfile({ fullName: name, mobile: phone }).unwrap();
       Swal.fire({ icon: 'success', title: 'Profile updated!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Failed to update profile', text: err?.response?.data?.message || 'Please try again', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
