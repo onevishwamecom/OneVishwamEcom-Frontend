@@ -32,7 +32,8 @@ export function useProperties() {
       .catch((err) => {
         if (!cancelled) {
           console.error('[useProperties] Fetch error:', err?.response?.data || err?.message || err);
-          setError(err?.response?.data || err?.message || err);
+          const msg = err?.response?.data?.message || err?.message || 'Failed to load properties';
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
         }
       })
       .finally(() => {

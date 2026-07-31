@@ -23,18 +23,13 @@ function Footer() {
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Quick Links</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Company</h4>
             <ul className="space-y-2.5">
               {footerQuickLinks.map((l) => (
                 <li key={l.label}>
                   <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
                 </li>
               ))}
-              {/* <li>
-                <a href="/add-listing/" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
-                  <i className="fa-solid fa-plus mr-1.5" />Post Your Listing
-                </a>
-              </li> */}
             </ul>
           </div>
           <div>

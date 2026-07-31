@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
+import { vehicleAPI } from '../../../api';
 import { cities } from '../../../data/locations';
 import { getNumericPrice } from '../GalleryComponents';
 
@@ -19,6 +19,15 @@ export default function VehicleQuickMatchModal({ onClose }) {
   const [condition, setCondition] = useState('');
   const [city, setCity] = useState('');
   const [location, setLocation] = useState('');
+  const [allVehicles, setAllVehicles] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    vehicleAPI.getAll({ limit: 100 })
+      .then((res) => { if (!cancelled) setAllVehicles(res.data.data.items || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const areas = city ? (cities[city]?.areas || []) : [];
 
@@ -35,7 +44,7 @@ export default function VehicleQuickMatchModal({ onClose }) {
     const shortlisted = [];
     const closed = [];
 
-    dummyAutomobiles.forEach((v) => {
+    allVehicles.forEach((v) => {
       const price = getNumericPrice(v.price);
       const budgetMatch = (!budgetMin || price >= +budgetMin * 100000) &&
         (!budgetMax || price <= +budgetMax * 100000);

@@ -1,29 +1,66 @@
 import { useEffect, useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
+import { vehicleAPI } from '../../../api';
 import ProductCard from '../ProductCard';
 
 function VehicleDetails({ location }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [vehicle, setVehicle] = useState(null);
+  const [relatedVehicles, setRelatedVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
-  const vehicleId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const vehicle = dummyAutomobiles.find((v) => v.id === vehicleId);
+  const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
 
-  useEffect(() => { window.scrollTo(0, 0); }, [vehicleId]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (!vehicleId) { setLoading(false); setError('Invalid vehicle ID'); return; }
 
-  if (!vehicle) {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    vehicleAPI.getById(vehicleId)
+      .then((res) => {
+        if (cancelled) return;
+        const item = res.data.data.item;
+        setVehicle({ ...item, id: item._id });
+        return vehicleAPI.getSimilar(item._id);
+      })
+      .then((simRes) => {
+        if (cancelled) return;
+        if (simRes) {
+          const items = (simRes.data.data.items || []).map((v) => ({ ...v, id: v._id }));
+          setRelatedVehicles(items);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.response?.data?.message || 'Vehicle not found');
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [vehicleId]);
+
+  if (loading) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Vehicle not found</h1>
-        <a href="/our-services/automobile" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Vehicles</a>
+        <i className="fa-solid fa-spinner fa-spin text-3xl text-gray-400 mb-4" />
+        <p className="text-lg font-medium text-gray-400">Loading vehicle details...</p>
       </div>
     );
   }
 
-  const relatedVehicles = dummyAutomobiles
-    .filter((v) => v.id !== vehicle.id && v.category === vehicle.category)
-    .slice(0, 4);
+  if (error || !vehicle) {
+    return (
+      <div className="py-32 text-center">
+        <i className="fa-solid fa-circle-exclamation text-3xl text-gray-400 mb-4" />
+        <h1 className="text-2xl font-bold text-gray-400">{error || 'Vehicle not found'}</h1>
+        <a href="/our-services/automobile" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Vehicles</a>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 pt-8 sm:pb-24">
@@ -106,21 +143,23 @@ function VehicleDetails({ location }) {
             </div>
 
             {/* Showroom */}
-            <div className="rounded-xl border border-gray-100 p-4">
-              <p className="text-xs font-semibold text-gray-500 mb-1">Showroom</p>
-              <p className="text-sm font-bold text-brand-charcoal">{vehicle.showroom.name}</p>
-              <p className="mt-1 text-xs text-gray-500">{vehicle.showroom.address}</p>
-              <div className="mt-3 flex gap-2">
-                <a href={vehicle.showroom.mapsLink} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                  <i className="fa-solid fa-map-location-dot text-brand-blue" /> View on Map
-                </a>
-                <a href={`tel:${vehicle.showroom.phone}`}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
-                  <i className="fa-solid fa-phone" /> Call
-                </a>
+            {vehicle.showroom && (
+              <div className="rounded-xl border border-gray-100 p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">Showroom</p>
+                <p className="text-sm font-bold text-brand-charcoal">{vehicle.showroom.name}</p>
+                <p className="mt-1 text-xs text-gray-500">{vehicle.showroom.address}</p>
+                <div className="mt-3 flex gap-2">
+                  <a href={vehicle.showroom.mapsLink} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i className="fa-solid fa-map-location-dot text-brand-blue" /> View on Map
+                  </a>
+                  <a href={`tel:${vehicle.showroom.phone}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
+                    <i className="fa-solid fa-phone" /> Call
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Loan CTA */}
             {vehicle.loanApproved && (

@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5001/api`,
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
+  validateStatus: (status) => status >= 200 && status < 400,
 });
 
 let isRefreshing = false;
@@ -136,7 +137,14 @@ export const propertyAPI = {
 
 // ─── Vehicle ─────────────────────────────────────────────────────────────────
 export const vehicleAPI = {
+  getAll: (params) => client.get('/product/vehicles', { params }),
+  getById: (id) => client.get(`/product/vehicles/${id}`),
+  getSimilar: (id) => client.get(`/product/vehicles/similar/${id}`),
+  getMy: () => client.get('/product/vehicles/my'),
   create: (body) => client.post('/product/vehicles', body),
+  update: (id, body) => client.put(`/product/vehicles/${id}`, body),
+  remove: (id) => client.delete(`/product/vehicles/${id}`),
+  toggleStatus: (id) => client.patch(`/product/vehicles/${id}/status`),
 };
 
 // ─── Grocery ─────────────────────────────────────────────────────────────────

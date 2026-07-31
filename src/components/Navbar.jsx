@@ -80,11 +80,11 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'our-services') return path.startsWith('/our-services');
-    if (link.id === 'careers') return path.startsWith('/careers');
-    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service');
-    if (link.id === 'contacts') return path.startsWith('/contact-us');
-    if (link.id === 'about-us') return path.startsWith('/about-us');
+    if (link.id === 'housing') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
+    if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
+    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
+    if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');
+    if (link.id === 'garments') return path.startsWith('/our-services/garments-fashion-lifestyle') || path.startsWith('/garment/');
     return false;
   };
 
@@ -157,9 +157,9 @@ function Navbar() {
             {navLinks.map((link) => (
               <div key={link.id} className="relative"
                 onMouseEnter={() => { clearTimeout(closeTimerRef.current); if (link.submenu) setActiveDropdown(link.id); }}
-                onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 150); }}
+                onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 200); }}
               >
-                <a href={link.href} onClick={(e) => { e.preventDefault(); navigateTo(link.href); setActiveDropdown(null); }}
+                <a href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); setActiveDropdown(null); }}
                   className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
                   }`}
@@ -168,11 +168,11 @@ function Navbar() {
                   {link.submenu && <i className="fa-solid fa-chevron-down ml-1.5 text-[10px] text-gray-400" />}
                 </a>
                 {link.submenu && activeDropdown === link.id && (
-                  <div className="absolute left-0 top-full pt-2 w-64 z-50"
-                    onMouseEnter={() => clearTimeout(closeTimerRef.current)}
-                    onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 150); }}
+                  <div className="absolute left-0 top-full w-64 z-50"
+                    onMouseEnter={() => { clearTimeout(closeTimerRef.current); setActiveDropdown(link.id); }}
+                    onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 200); }}
                   >
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2 mt-2">
                       {link.submenu.columns.flat().map((item) => (
                         <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); navigateTo(item.href); setActiveDropdown(null); }}
                           className="block px-4 py-2.5 text-sm text-gray-700 rounded-lg hover:bg-brand-blue/5 hover:text-brand-blue transition-colors"
@@ -312,7 +312,7 @@ function Navbar() {
           <nav className="p-4 space-y-1">
             {navLinks.map((link) => (
               <div key={link.id}>
-                <a href={link.href} onClick={(e) => { e.preventDefault(); navigateTo(link.href); setMenuOpen(false); }}
+                <a href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); setMenuOpen(false); }}
                   className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:bg-gray-50'
                   }`}
