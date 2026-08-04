@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { financeServices, FINANCE_CATEGORIES } from '../../../data/dummyFinanceServices';
-import { getNumericPrice } from '../GalleryComponents';
+import { FINANCE_CATEGORIES } from './financeConstants';
 
 function parsePriceRange(amountStr) {
   const cleaned = amountStr.replace(/[₹,\s]/g, '');
@@ -21,15 +20,15 @@ function parseAmount(amountStr) {
   return m ? parseFloat(m[1]) : 0;
 }
 
-export function useTabStats(activeTab) {
+export function useTabStats(services, activeTab) {
   return useMemo(() => {
     const stats = {};
     FINANCE_CATEGORIES.forEach((cat) => {
-      stats[cat] = financeServices.filter((s) => s.category === cat).length;
+      stats[cat] = services.filter((s) => s.category === cat).length;
     });
-    stats.All = financeServices.length;
+    stats.All = services.length;
     return stats;
-  }, []);
+  }, [services]);
 }
 
 export function useActiveChips(filters) {
@@ -53,10 +52,10 @@ export function useActiveChips(filters) {
 }
 
 export function useFilteredServices({
-  activeTab, searchTerm, sortBy, filters,
+  services, activeTab, searchTerm, sortBy, filters,
 }) {
   return useMemo(() => {
-    let results = [...financeServices];
+    let results = [...services];
 
     if (activeTab !== 'All') {
       results = results.filter((s) => s.category === activeTab);
@@ -153,9 +152,9 @@ export function useFilteredServices({
         return (rb.min || 0) - (ra.min || 0);
       });
     } else {
-      results.sort((a, b) => a.id - b.id);
+      results.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
     }
 
     return results;
-  }, [activeTab, searchTerm, sortBy, filters]);
+  }, [services, activeTab, searchTerm, sortBy, filters]);
 }

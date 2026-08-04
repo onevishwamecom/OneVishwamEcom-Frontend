@@ -6,20 +6,20 @@ export const footerSummary =
 export const footerQuickLinks = [
   { label: 'Home', href: '/home' },
   { label: 'About Us', href: '/about-us/' },
-  { label: 'Our Services', href: '/#our-services' },
-  { label: 'Social Services', href: '/#social-services' },
+  { label: 'Contact Us', href: '/contact-us/' },
   { label: 'Careers', href: '/careers/' },
-  { label: 'Contacts', href: '/contact-us/' },
 ];
 
 export const footerServiceLinks = [
+  { label: 'Properties', href: '/our-services/real-estate-property' },
+  { label: 'Automobiles', href: '/our-services/automobile' },
   { label: 'Finance & Lending', href: '/our-services/finance-lending' },
-  { label: 'Real Estate & Properties', href: '/our-services/real-estate-property' },
-  { label: 'Consumer Marketplace', href: '/our-services/consumer-marketplace' },
-  { label: 'Open Marketplace', href: '/our-services/open-marketplace' },
+  { label: 'Groceries & Daily Needs', href: '/our-services/consumer-marketplace' },
+  { label: 'Garments & Fashion', href: '/our-services/garments-fashion-lifestyle' },
   { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
-  { label: 'Automobiles & Vehicles', href: '/our-services/automobile' },
+  { label: 'Open Marketplace', href: '/our-services/open-marketplace' },
   { label: 'HR & Staffing', href: '/our-services/hr-staffing' },
+  { label: 'Investment & Business', href: '/our-services/investment-venture-capital' },
 ];
 
 export const footerSocialLinks = [

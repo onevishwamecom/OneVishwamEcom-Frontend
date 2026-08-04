@@ -52,3 +52,28 @@ export const FINANCE_PROVIDER_TYPES = ['Bank', 'NBFC', 'Financial Institution', 
 export const FINANCE_SERVICE_MODES = ['Online', 'Offline', 'Both'];
 export const FINANCE_POSTED_BY = ['Bank', 'Agent', 'Financial Consultant'];
 export const FINANCE_AVAILABILITY = ['Available Now', 'Appointment Required'];
+
+export const FINANCE_CATEGORIES = [
+  'Home Loans',
+  'Personal Loans',
+  'Vehicle Loans',
+  'Business Loans',
+  'Gold Loans',
+  'Education Loans',
+  'Insurance',
+  'Investment Services',
+  'Credit Cards',
+  'Financial Advisors',
+];
+
+export function formatFinanceAmount(value) {
+  if (value === null || value === undefined || value === '') return '';
+  const str = String(value).trim();
+  if (str === 'N/A' || str === 'Varies' || /^No limit$/i.test(str)) return str;
+  if (str.startsWith('₹')) return str;
+  if (/^[\d,.\s]+$/.test(str)) {
+    const num = parseFloat(str.replace(/[, ]/g, ''));
+    if (!isNaN(num)) return '₹' + num.toLocaleString('en-IN');
+  }
+  return str;
+}

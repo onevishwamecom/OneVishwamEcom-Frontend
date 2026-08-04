@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5001/api`,
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
+  validateStatus: (status) => status >= 200 && status < 400,
 });
 
 let isRefreshing = false;
@@ -136,7 +137,14 @@ export const propertyAPI = {
 
 // ─── Vehicle ─────────────────────────────────────────────────────────────────
 export const vehicleAPI = {
+  getAll: (params) => client.get('/product/vehicles', { params }),
+  getById: (id) => client.get(`/product/vehicles/${id}`),
+  getSimilar: (id) => client.get(`/product/vehicles/similar/${id}`),
+  getMy: () => client.get('/product/vehicles/my'),
   create: (body) => client.post('/product/vehicles', body),
+  update: (id, body) => client.put(`/product/vehicles/${id}`, body),
+  remove: (id) => client.delete(`/product/vehicles/${id}`),
+  toggleStatus: (id) => client.patch(`/product/vehicles/${id}/status`),
 };
 
 // ─── Grocery ─────────────────────────────────────────────────────────────────
@@ -151,12 +159,26 @@ export const garmentAPI = {
 
 // ─── Jewellery ───────────────────────────────────────────────────────────────
 export const jewelleryAPI = {
+  getAll: (params) => client.get('/product/jewellery', { params }),
+  getById: (id) => client.get(`/product/jewellery/${id}`),
+  getSimilar: (id) => client.get(`/product/jewellery/${id}/similar`),
+  getMy: () => client.get('/product/jewellery/my'),
   create: (body) => client.post('/product/jewellery', body),
+  update: (id, body) => client.put(`/product/jewellery/${id}`, body),
+  remove: (id) => client.delete(`/product/jewellery/${id}`),
+  toggleStatus: (id) => client.patch(`/product/jewellery/${id}/status`),
 };
 
 // ─── Finance ─────────────────────────────────────────────────────────────────
 export const financeAPI = {
+  getAll: (params) => client.get('/product/finance', { params }),
+  getById: (id) => client.get(`/product/finance/${id}`),
+  getSimilar: (id) => client.get(`/product/finance/similar/${id}`),
+  getMy: () => client.get('/product/finance/my'),
   create: (body) => client.post('/product/finance', body),
+  update: (id, body) => client.put(`/product/finance/${id}`, body),
+  remove: (id) => client.delete(`/product/finance/${id}`),
+  toggleStatus: (id) => client.patch(`/product/finance/${id}/status`),
 };
 
 export default client;

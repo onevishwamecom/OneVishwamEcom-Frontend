@@ -1,23 +1,29 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { loanProducts } from '../../../data/dummyLoans';
+import { LOAN_TYPE_META } from './loanUtils';
+import useLoanProducts from './useLoanProducts';
 import { FINANCE_STATS, FINANCE_FOCUS_AREAS, FINANCE_INCENTIVES } from '../property/propertyConstants';
 import LoanQuickMatchModal from './LoanQuickMatchModal';
-
-const LOAN_TYPE_STRIP = [
-  { id: 'All',          icon: 'fa-layer-group',    label: 'All' },
-  { id: 'home-loan',    icon: 'fa-house-chimney',  label: 'Home Loan' },
-  { id: 'vehicle-loan', icon: 'fa-car',            label: 'Vehicle Loan' },
-];
 
 function FinanceLoanGallery() {
   const [selectedType, setSelectedType] = useState('All');
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
+  const { loans, loading, error } = useLoanProducts();
+
+  const typeStrip = useMemo(() => {
+    const present = new Set(loans.map((l) => l.type));
+    return [
+      { id: 'All', icon: 'fa-layer-group', label: 'All' },
+      ...Object.entries(LOAN_TYPE_META)
+        .filter(([type]) => present.has(type))
+        .map(([type, meta]) => ({ id: type, icon: meta.icon, label: meta.label })),
+    ];
+  }, [loans]);
 
   const filteredLoans = useMemo(() => {
-    if (selectedType === 'All') return loanProducts;
-    return loanProducts.filter((l) => l.id === selectedType);
-  }, [selectedType]);
+    if (selectedType === 'All') return loans;
+    return loans.filter((l) => l.type === selectedType);
+  }, [loans, selectedType]);
 
   return (
     <div className="pb-24 pt-6 sm:pt-10 relative">
@@ -40,7 +46,7 @@ function FinanceLoanGallery() {
         {/* ── Stats Bar ── */}
         <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-4">
           <div className="rounded-xl border border-brand-blue/10 bg-brand-blue/5 p-4 text-center">
-            <p className="text-2xl font-bold text-brand-blue sm:text-3xl">{loanProducts.length}</p>
+            <p className="text-2xl font-bold text-brand-blue sm:text-3xl">{loading ? '–' : loans.length}</p>
             <p className="text-[11px] font-semibold text-gray-500 mt-0.5">Products</p>
           </div>
           <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 text-center">
@@ -55,9 +61,9 @@ function FinanceLoanGallery() {
 
         {/* ── Loan Type Pill Strip ── */}
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {LOAN_TYPE_STRIP.map((ct) => {
+          {typeStrip.map((ct) => {
             const sel = selectedType === ct.id;
-            const count = ct.id === 'All' ? loanProducts.length : loanProducts.filter((l) => l.id === ct.id).length;
+            const count = ct.id === 'All' ? loans.length : loans.filter((l) => l.type === ct.id).length;
             return (
               <button
                 key={ct.id}
@@ -82,7 +88,18 @@ function FinanceLoanGallery() {
 
         {/* ── Loan Product Cards ── */}
         <div className="mt-6">
-          {filteredLoans.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/50 py-20 text-center">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent mb-4" />
+              <p className="text-sm font-semibold text-gray-500">Loading loan products...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-200 bg-red-50/50 py-20 text-center">
+              <i className="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-4" />
+              <p className="text-lg font-semibold text-gray-600">Something went wrong</p>
+              <p className="text-sm text-gray-400 mt-1 max-w-md">{error}</p>
+            </div>
+          ) : filteredLoans.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2">
               {filteredLoans.map((loan) => (
                 <div

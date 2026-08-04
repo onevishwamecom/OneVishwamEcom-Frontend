@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { navigateTo } from "../../../config/navigation";
-import { dummyJewellery } from "../../../data/dummyJewellery";
+import { useJewellery } from "./jewelleryHooks";
 import {
   CollapsibleSection,
   CheckboxGroup,
@@ -82,6 +82,23 @@ function JewelleryGallery() {
   const [enquiryCart, setEnquiryCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
 
+  const apiParams = useMemo(() => ({
+    category: activeCategory === "All" ? undefined : activeCategory,
+    search: searchTerm || undefined,
+    sortBy: sortBy === "latest" ? undefined : sortBy,
+    budgetMin: filters.budgetMin || undefined,
+    budgetMax: filters.budgetMax || undefined,
+    metals: filters.metals.length ? filters.metals.join(",") : undefined,
+    weightMin: filters.weightMin || undefined,
+    weightMax: filters.weightMax || undefined,
+    genders: filters.genders.length ? filters.genders.join(",") : undefined,
+    occasions: filters.occasions.length ? filters.occasions.join(",") : undefined,
+    availability: filters.availability.includes("Try At Home") ? "tryAtHome" : undefined,
+    limit: 100,
+  }), [activeCategory, searchTerm, sortBy, filters]);
+
+  const { jewellery, loading, error } = useJewellery(apiParams);
+
   const updateFilter = (key, value) =>
     setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) =>
@@ -90,79 +107,24 @@ function JewelleryGallery() {
 
   const toggleCartItem = (item) => {
     setEnquiryCart((prev) =>
-      prev.find((i) => i.id === item.id)
-        ? prev.filter((i) => i.id !== item.id)
+      prev.find((i) => (i._id || i.id) === (item._id || item.id))
+        ? prev.filter((i) => (i._id || i.id) !== (item._id || item.id))
         : [...prev, item],
     );
   };
 
-  const isInCart = (id) => enquiryCart.some((i) => i.id === id);
+  const isInCart = (id) => enquiryCart.some((i) => (i._id || i.id) === id);
 
-  const filteredItems = useMemo(() => {
-    return dummyJewellery
-      .filter((p) => {
-        let matchCat = true;
-        if (activeCategory !== "All") matchCat = p.category === activeCategory;
-
-        const q = searchTerm.toLowerCase();
-        const matchSearch =
-          !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.metalType.toLowerCase().includes(q) ||
-          p.store.city.toLowerCase().includes(q);
-
-        const matchOccasion =
-          filters.occasions.length === 0 ||
-          filters.occasions.some((o) => p.occasion.includes(o));
-
-        const np = getNumericPrice(p.price);
-        const matchBudget =
-          (!filters.budgetMin || np >= +filters.budgetMin) &&
-          (!filters.budgetMax || np <= +filters.budgetMax);
-        const matchMetal =
-          filters.metals.length === 0 ||
-          filters.metals.some(
-            (m) =>
-              `${p.metalType} ${p.purity}`.includes(m) ||
-              p.metalType.includes(m),
-          );
-        const matchWeight =
-          (!filters.weightMin || p.weightGrams >= +filters.weightMin) &&
-          (!filters.weightMax || p.weightGrams <= +filters.weightMax);
-        const matchGender =
-          filters.genders.length === 0 || filters.genders.includes(p.gender);
-        const matchAvailability =
-          filters.availability.length === 0 ||
-          (filters.availability.includes("Try At Home") && p.tryAtHome);
-
-        return (
-          matchCat &&
-          matchSearch &&
-          matchOccasion &&
-          matchBudget &&
-          matchMetal &&
-          matchWeight &&
-          matchGender &&
-          matchAvailability
-        );
-      })
-      .sort((a, b) => {
-        if (sortBy === "price-low")
-          return getNumericPrice(a.price) - getNumericPrice(b.price);
-        if (sortBy === "price-high")
-          return getNumericPrice(b.price) - getNumericPrice(a.price);
-        return b.id - a.id;
-      });
-  }, [activeCategory, searchTerm, sortBy, filters]);
+  const filteredItems = jewellery;
 
   const totalCartValue = useMemo(
     () => enquiryCart.reduce((sum, i) => sum + getNumericPrice(i.price), 0),
     [enquiryCart],
   );
 
-  const certifiedCount = dummyJewellery.filter((p) => p.certified).length;
-  const tryAtHomeCount = dummyJewellery.filter((p) => p.tryAtHome).length;
-  const aiPickCount = dummyJewellery.filter((p) => p.aiRecommended).length;
+  const certifiedCount = jewellery.filter((p) => p.certified).length;
+  const tryAtHomeCount = jewellery.filter((p) => p.tryAtHome).length;
+  const aiPickCount = jewellery.filter((p) => p.aiRecommended).length;
 
   const filterContent = (
     <FilterSidebar filters={filters} onReset={resetFilters}>
@@ -335,8 +297,8 @@ function JewelleryGallery() {
             const sel = activeCategory === ct.id;
             const count =
               ct.id === "All"
-                ? dummyJewellery.length
-                : dummyJewellery.filter((p) => p.category === ct.id).length;
+                ? jewellery.length
+                : jewellery.filter((p) => p.category === ct.id).length;
             return (
               <button
                 key={ct.id}
@@ -388,22 +350,33 @@ function JewelleryGallery() {
           </aside>
 
           <div className="flex-1 min-w-0">
-            {filteredItems.length > 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/50 py-20 text-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent mb-4" />
+                <p className="text-sm font-semibold text-gray-500">Loading jewellery...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-200 bg-red-50/50 py-20 text-center">
+                <i className="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-4" />
+                <p className="text-lg font-semibold text-gray-600">Something went wrong</p>
+                <p className="text-sm text-gray-400 mt-1 max-w-md">{error}</p>
+              </div>
+            ) : filteredItems.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredItems.map((p) => (
                   <ProductCard
-                    key={p.id}
-                    link={`/jewellery/${p.id}`}
-                    image={p.images[0]}
+                    key={p._id || p.id}
+                    link={`/jewellery/${p._id || p.id}`}
+                    image={p.images?.[0]}
                     alt={p.name}
                     title={p.name}
                     price={p.price}
-                    location={p.store.city}
-                    pincode={p.store.pincode}
+                    location={p.store?.city}
+                    pincode={p.store?.pincode}
                     tags={[
                       `${p.metalType} ${p.purity}`,
                       `${p.weightGrams}g`,
-                      ...p.occasion.slice(0, 2),
+                      ...(p.occasion || []).slice(0, 2),
                     ]}
                     badges={[
                       ...(p.certified
@@ -442,12 +415,12 @@ function JewelleryGallery() {
                           toggleCartItem(p);
                         }}
                         className={`flex-1 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${
-                          isInCart(p.id)
+                          isInCart(p._id || p.id)
                             ? "bg-brand-blue text-white border-brand-blue"
                             : "border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
                         }`}
                       >
-                        {isInCart(p.id) ? "Added ✓" : "Add to Enquiry"}
+                        {isInCart(p._id || p.id) ? "Added ✓" : "Add to Enquiry"}
                       </button>
                       {p.tryAtHome && (
                         <button
@@ -520,7 +493,7 @@ function JewelleryGallery() {
       >
         {enquiryCart.map((item) => (
           <div
-            key={item.id}
+            key={item._id || item.id}
             className="flex items-center justify-between rounded-xl border border-gray-100 p-3"
           >
             <div className="min-w-0 flex-1">
@@ -543,33 +516,6 @@ function JewelleryGallery() {
           </div>
         ))}
       </SlideinPanel>
-
-      {/* Call Centre Widget */}
-      <div className="mt-16 rounded-2xl bg-gray-950 text-white px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
-            Available everywhere · 24 / 7
-          </p>
-          <h3 className="text-xl font-medium mb-1">
-            Call centre support
-          </h3>
-          <p className="text-sm text-gray-300">
-            Live call · toll-free number · or enter a message — our team connects you instantly.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-          <a href="tel:+918000000000"
-             className="inline-flex items-center gap-2 bg-white text-gray-950 font-medium text-sm px-5 py-3 rounded-xl hover:bg-gray-100 transition-colors">
-            <i className="fa-solid fa-phone"></i>
-            Call now
-          </a>
-          <a href="/contact-us/"
-             className="inline-flex items-center gap-2 border border-white/30 text-white text-sm px-5 py-3 rounded-xl hover:bg-white/10 transition-colors">
-            <i className="fa-solid fa-message"></i>
-            Send a message
-          </a>
-        </div>
-      </div>
     </div>
   );
 }

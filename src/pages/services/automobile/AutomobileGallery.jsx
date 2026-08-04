@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
+import { vehicleAPI } from '../../../api';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import VehicleTypeStrip from './VehicleTypeStrip';
@@ -48,20 +48,46 @@ function AutomobileGallery() {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
   const [showroomTarget, setShowroomTarget] = useState(null);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    vehicleAPI.getAll({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) {
+          const raw = res.data?.data?.items || res.data?.items || [];
+          const items = raw.map((v) => ({ ...v, id: v._id || v.id }));
+          setVehicles(items);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Vehicle fetch error:', err);
+          const msg = err.response?.data?.message || err.message || 'Failed to load vehicles';
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
   const cardTypeStats = useMemo(() => {
-    const pool = dummyAutomobiles.filter((v) => v.condition === condition);
+    const pool = vehicles.filter((v) => v.condition === condition);
     const stats = {};
     VEHICLE_TYPE_STRIP.forEach((ct) => {
       if (ct.id === 'All') stats.All = pool.length;
       else stats[ct.id] = pool.filter((v) => v.category === ct.id).length;
     });
     return stats;
-  }, [condition]);
+  }, [condition, vehicles]);
 
   const activeChips = useMemo(() => {
     const chips = [];
@@ -86,7 +112,7 @@ function AutomobileGallery() {
   };
 
   const filteredVehicles = useMemo(() => {
-    return dummyAutomobiles
+    return vehicles
       .filter((v) => {
         if (v.condition !== condition) return false;
         if (selectedCardType !== 'All' && v.category !== selectedCardType) return false;
@@ -119,9 +145,9 @@ function AutomobileGallery() {
       .sort((a, b) => {
         if (sortBy === 'price-low') return getNumericPrice(a.price) - getNumericPrice(b.price);
         if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
-        return b.id - a.id;
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
-  }, [condition, selectedCardType, searchTerm, sortBy, filters, preApprovedMode, wheelerType]);
+  }, [condition, selectedCardType, searchTerm, sortBy, filters, preApprovedMode, wheelerType, vehicles]);
 
   const sidebarProps = { filters, updateFilter, openSections, toggleSection, activeChips, resetFilters, kmOpen: condition === 'old' };
 
@@ -346,8 +372,28 @@ function AutomobileGallery() {
           </div>
         )}
 
+        {/* ── Loading State ── */}
+        {loading && (
+          <div className="mt-8 flex flex-col items-center justify-center py-20 text-gray-400">
+            <i className="fa-solid fa-spinner fa-spin text-3xl mb-4" />
+            <p className="text-sm font-medium">Loading vehicles...</p>
+          </div>
+        )}
+
+        {/* ── Error State ── */}
+        {error && !loading && (
+          <div className="mt-8 flex flex-col items-center justify-center py-20 text-red-400">
+            <i className="fa-solid fa-circle-exclamation text-3xl mb-4" />
+            <p className="text-sm font-medium">{error}</p>
+            <button onClick={() => window.location.reload()}
+              className="mt-4 rounded-xl bg-brand-blue px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* ── Main Layout: Sidebar + Grid ── */}
-        <div className="mt-5 flex gap-6">
+        {!loading && !error && <div className="mt-5 flex gap-6">
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4">
               <VehicleFilterSidebar {...sidebarProps} />
@@ -409,7 +455,8 @@ function AutomobileGallery() {
               </div>
             )}
           </div>
-        </div>
+        </div>}
+
       </div>
 
       {/* Mobile Filter Drawer */}
@@ -441,20 +488,6 @@ function AutomobileGallery() {
         </div>
       )}
 
-      {/* Support Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-gray-900 text-gray-300 sm:relative sm:mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex items-center justify-between py-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-phone-volume text-brand-blue" />
-              <span>24/7 Live Support Available</span>
-              <a href="tel:+919364862542" className="font-semibold text-white hover:underline ml-1">+91 93648 62542</a>
-            </div>
-            <span className="text-gray-500 hidden sm:inline">All transactions follow RBI & IRDAI guidelines</span>
-          </div>
-        </div>
-      </div>
-
       {/* Showroom Modal */}
       {showroomTarget && (
         <ShowroomModal
@@ -485,32 +518,7 @@ function AutomobileGallery() {
         <VehicleQuickMatchModal onClose={() => setQuickMatchOpen(false)} />
       )}
 
-      {/* Call Centre Widget */}
-      <div className="mt-16 rounded-2xl bg-gray-950 text-white px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
-            Available everywhere · 24 / 7
-          </p>
-          <h3 className="text-xl font-medium mb-1">
-            Call centre support
-          </h3>
-          <p className="text-sm text-gray-300">
-            Live call · toll-free number · or enter a message — our team connects you instantly.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-          <a href="tel:+918000000000"
-             className="inline-flex items-center gap-2 bg-white text-gray-950 font-medium text-sm px-5 py-3 rounded-xl hover:bg-gray-100 transition-colors">
-            <i className="fa-solid fa-phone"></i>
-            Call now
-          </a>
-          <a href="/contact-us/"
-             className="inline-flex items-center gap-2 border border-white/30 text-white text-sm px-5 py-3 rounded-xl hover:bg-white/10 transition-colors">
-            <i className="fa-solid fa-message"></i>
-            Send a message
-          </a>
-        </div>
-      </div>
+      
     </div>
   );
 }

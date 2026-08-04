@@ -523,33 +523,6 @@ function PropertyGallery() {
       {quickMatchOpen && (
         <QuickMatchModal onClose={() => setQuickMatchOpen(false)} />
       )}
-
-      {/* Call Centre Widget */}
-      <div className="mt-16 rounded-2xl bg-gray-950 text-white px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
-            Available everywhere · 24 / 7
-          </p>
-          <h3 className="text-xl font-medium mb-1">
-            Call centre support
-          </h3>
-          <p className="text-sm text-gray-300">
-            Live call · toll-free number · or enter a message — our team connects you instantly.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-          <a href="tel:+918000000000"
-             className="inline-flex items-center gap-2 bg-white text-gray-950 font-medium text-sm px-5 py-3 rounded-xl hover:bg-gray-100 transition-colors">
-            <i className="fa-solid fa-phone"></i>
-            Call now
-          </a>
-          <a href="/contact-us/"
-             className="inline-flex items-center gap-2 border border-white/30 text-white text-sm px-5 py-3 rounded-xl hover:bg-white/10 transition-colors">
-            <i className="fa-solid fa-message"></i>
-            Send a message
-          </a>
-        </div>
-      </div>
     </div>
   );
 }
