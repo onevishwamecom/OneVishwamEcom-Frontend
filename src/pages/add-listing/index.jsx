@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { cities } from '../../data/locations';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
-import { propertyAPI, vehicleAPI, groceryAPI, garmentAPI, jewelleryAPI, financeAPI } from '../../api';
+import { propertyAPI, vehicleAPI, groceryAPI, garmentAPI, jewelleryAPI, financeAPI, uploadAPI } from '../../api';
 
 const CATEGORIES = [
   { id: 'real-estate', label: 'Real Estate', icon: 'fa-house-chimney', desc: 'House, Plot, Apartment' },
@@ -183,14 +183,35 @@ function StepDetails({ form, onChange }) {
   );
 }
 
-function StepPhotos({ photos, onAdd, brochure, onBrochureChange }) {
+function StepPhotos({ photos, onAdd, onRemove, imageUrls, onImageUrlsChange, brochure, onBrochureChange }) {
   const fileRef = useRef(null);
   const brochureRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const handleFile = (file) => {
-    if (file && photos.length < 6) {
-      onAdd([...photos, { id: Date.now(), name: file.name, size: file.size }]);
+  const handleFile = async (file) => {
+    if (!file || photos.length >= 6) return;
+    
+    // Add placeholder immediately for UI
+    const tempId = Date.now();
+    onAdd([...photos, { id: tempId, name: file.name, size: file.size, file }]);
+    
+    // Upload to Cloudinary
+    setUploading(true);
+    try {
+      const { data } = await uploadAPI.uploadImages([file]);
+      const urls = data?.data?.images || data?.images || [];
+      if (urls.length > 0) {
+        const newUrls = [...imageUrls, urls[0]];
+        onImageUrlsChange(newUrls);
+        // Update the photo entry with the URL
+        onAdd(photos.map(p => p.id === tempId ? { ...p, url: urls[0] } : p));
+      }
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      onAdd(photos.filter(p => p.id !== tempId));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -220,7 +241,16 @@ function StepPhotos({ photos, onAdd, brochure, onBrochureChange }) {
           <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
             {photos.map((p, i) => (
               <div key={p.id} className="relative">
-                <PlaceholderImage index={i} />
+                {p.url ? (
+                  <img src={p.url} alt={p.name} className="aspect-[4/3] w-full object-cover rounded-xl" />
+                ) : (
+                  <PlaceholderImage index={i} />
+                )}
+                {p.file && uploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  </div>
+                )}
                 <button onClick={() => onAdd(photos.filter((_, idx) => idx !== i))}
                   className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors"
                 >
@@ -381,6 +411,7 @@ function AddListing() {
   const [category, setCategory] = useState('');
   const [form, setForm] = useState(INITIAL);
   const [photos, setPhotos] = useState([]);
+  const [imageUrls, setImageUrls] = useState([]);
   const [brochure, setBrochure] = useState(null);
   const [brochureUrl, setBrochureUrl] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -452,7 +483,6 @@ function AddListing() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const imageUrls = photos.map((_, i) => `https://example.com/photo${i + 1}.jpg`);
       const base = { title: form.title, description: form.description, price: form.price, city: form.city, contact: form.contact };
 
       const apiCalls = {
@@ -553,7 +583,7 @@ function AddListing() {
 
           {step === 0 && <StepCategory selected={category} onSelect={setCategory} />}
           {step === 1 && <StepDetails form={form} onChange={updateForm} />}
-          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} brochure={brochure} onBrochureChange={setBrochure} />}
+          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} onRemove={() => {}} imageUrls={imageUrls} onImageUrlsChange={setImageUrls} brochure={brochure} onBrochureChange={setBrochure} />}
           {step === 3 && <StepSpecifics category={category} form={form} onChange={updateForm} />}
           {step === 4 && <StepReview category={category} form={form} photos={photos} />}
 

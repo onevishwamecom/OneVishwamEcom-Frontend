@@ -112,6 +112,17 @@ export const publicAPI = {
   getUserReviews: (userId) => client.get(`/users/${userId}/reviews`),
 };
 
+// ─── Upload ──────────────────────────────────────────────────────────────────
+export const uploadAPI = {
+  uploadImages: (files) => {
+    const formData = new FormData();
+    files.forEach(f => formData.append('images', f));
+    return client.post('/upload/images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
 // ─── Property ────────────────────────────────────────────────────────────────
 export const propertyAPI = {
   getAll: (params) => client.get('/product/properties', { params }),
