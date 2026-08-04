@@ -14,7 +14,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Honda Dream Showroom',
       address: 'No. 45, MG Road, Ashok Nagar, Bangalore - 560001',
-      phone: '+91 98765 43210',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Honda+Showroom+Bangalore+MG+Road',
     },
     loanApproved: true,
@@ -41,7 +41,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Bajaj Pro Showroom',
       address: '12, KRS Road, Bannimantap, Mysore - 570015',
-      phone: '+91 98765 43211',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Bajaj+Showroom+Mysore',
     },
     loanApproved: false,
@@ -67,7 +67,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Toyota Liva Motors',
       address: '88, Old Airport Road, Domlur, Bangalore - 560017',
-      phone: '+91 98765 43212',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Toyota+Showroom+Bangalore+Airport+Road',
     },
     loanApproved: true,
@@ -94,7 +94,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Maruti Suzuki Arena',
       address: 'Survey No. 120, Gokul Road, Hubli - 580030',
-      phone: '+91 98765 43213',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Maruti+Showroom+Hubli',
     },
     loanApproved: false,
@@ -121,7 +121,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Tata Motors Commercial',
       address: 'NH-66, Panambur, Mangalore - 575010',
-      phone: '+91 98765 43214',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Tata+Motors+Mangalore',
     },
     loanApproved: true,
@@ -147,7 +147,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Ashok Leyland Truck Zone',
       address: 'Plot 56, Peenya Industrial Area, Bangalore - 560058',
-      phone: '+91 98765 43215',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Ashok+Leyland+Peenya+Bangalore',
     },
     loanApproved: false,
@@ -173,7 +173,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Bajaj 3W Hub',
       address: '22, Mysore-Nanjangud Road, Metagalli, Mysore - 570016',
-      phone: '+91 98765 43216',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Bajaj+3W+Mysore',
     },
     loanApproved: true,
@@ -199,7 +199,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Ola Experience Centre',
       address: '1st Floor, VR Mall, Whitefield, Bangalore - 560066',
-      phone: '+91 98765 43217',
+      phone: '9364862542',
       mapsLink: 'https://maps.google.com/?q=Ola+Experience+Whitefield',
     },
     loanApproved: false,

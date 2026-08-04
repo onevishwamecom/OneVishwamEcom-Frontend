@@ -80,7 +80,7 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'housing') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
+    if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
     if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
     if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
     if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');

@@ -11,7 +11,7 @@ export const footerQuickLinks = [
 ];
 
 export const footerServiceLinks = [
-  { label: 'Housing', href: '/our-services/real-estate-property' },
+  { label: 'Properties', href: '/our-services/real-estate-property' },
   { label: 'Automobiles', href: '/our-services/automobile' },
   { label: 'Finance & Lending', href: '/our-services/finance-lending' },
   { label: 'Groceries & Daily Needs', href: '/our-services/consumer-marketplace' },

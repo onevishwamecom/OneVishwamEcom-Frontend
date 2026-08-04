@@ -1,6 +1,6 @@
 export const navLinks = [
   { label: 'Home', href: '/home', id: 'home' },
-  { label: 'Housing', href: '/our-services/real-estate-property', id: 'housing' },
+  { label: 'Properties', href: '/our-services/real-estate-property', id: 'properties' },
   { label: 'Automobiles', href: '/our-services/automobile', id: 'automobiles' },
   { label: 'Finance', href: '/our-services/finance-lending', id: 'finance' },
   { label: 'Groceries', href: '/our-services/consumer-marketplace', id: 'groceries' },
