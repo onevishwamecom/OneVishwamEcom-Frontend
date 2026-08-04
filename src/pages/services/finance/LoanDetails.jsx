@@ -1,13 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { loanProducts } from '../../../data/dummyLoans';
+import useLoanProducts from './useLoanProducts';
+import { resolveLoan } from './loanUtils';
 
 function LoanDetails({ location }) {
   useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
   const loanId = pathParts.length > 1 ? pathParts[1] : null;
-  const loan = loanProducts.find((l) => l.id === loanId);
+  const { loans, loading, error } = useLoanProducts();
+
+  const { selected: loan, related: relatedLoans } = useMemo(
+    () => resolveLoan(loans, loanId),
+    [loans, loanId]
+  );
 
   const [emiAmount, setEmiAmount] = useState(5000000);
   const [emiRate, setEmiRate] = useState(8.5);
@@ -24,6 +30,25 @@ function LoanDetails({ location }) {
     return { emi: Math.round(emi), totalInterest: Math.round(totalInterest), totalPayment: Math.round(totalPayment) };
   }, [emiAmount, emiRate, emiTenure]);
 
+  if (loading) {
+    return (
+      <div className="py-32 text-center">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
+        <p className="mt-4 text-sm font-semibold text-gray-500">Loading loan details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-32 text-center">
+        <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
+        <p className="mt-2 text-sm text-gray-500">{error}</p>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</a>
+      </div>
+    );
+  }
+
   if (!loan) {
     return (
       <div className="py-32 text-center">
@@ -33,13 +58,9 @@ function LoanDetails({ location }) {
     );
   }
 
-  const defaultAmount = loan.id === 'home-loan' ? 5000000 : 1000000;
-  const defaultRate = loan.id === 'home-loan' ? 8.5 : 10;
-  const defaultTenure = loan.id === 'home-loan' ? 20 : 5;
-  const maxAmount = loan.id === 'home-loan' ? 20000000 : 5000000;
-  const maxTenure = loan.id === 'home-loan' ? 30 : 7;
-
-  const relatedLoans = loanProducts.filter((l) => l.id !== loan.id);
+  const isHome = loan.type === 'home';
+  const maxAmount = isHome ? 20000000 : 5000000;
+  const maxTenure = isHome ? 30 : 7;
 
   return (
     <div className="pb-24 sm:pb-32">

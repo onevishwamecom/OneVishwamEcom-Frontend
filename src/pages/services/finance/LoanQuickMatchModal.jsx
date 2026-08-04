@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { loanProducts } from '../../../data/dummyLoans';
+import useLoanProducts from './useLoanProducts';
 
-const LOAN_TYPES = ['home-loan', 'vehicle-loan'];
+const LOAN_TYPES = ['home', 'vehicle'];
 const EMPLOYMENT_TYPES = ['Salaried', 'Self-employed', 'Business Owner', 'Freelancer'];
 
-function getNumericMaxAmount(amount) {
-  const num = parseFloat(amount.replace(/[₹,\s]/g, ''));
-  const lower = amount.toLowerCase();
+function getNumericMaxAmount(loan) {
+  if (loan.maxAmountNumeric != null) return Number(loan.maxAmountNumeric) || 0;
+  const amount = loan.maxAmount;
+  const num = parseFloat(String(amount).replace(/[₹,\s]/g, ''));
+  const lower = String(amount).toLowerCase();
   if (lower.includes('cr')) return num * 10000000;
   if (lower.includes('l') || lower.includes('lakh')) return num * 100000;
   return num;
@@ -18,6 +20,7 @@ export default function LoanQuickMatchModal({ onClose }) {
   const [budgetNeeded, setBudgetNeeded] = useState('');
   const [loanType, setLoanType] = useState('');
   const [employment, setEmployment] = useState('');
+  const { loans } = useLoanProducts();
 
   const handleFindMatch = () => setStep(2);
 
@@ -31,10 +34,10 @@ export default function LoanQuickMatchModal({ onClose }) {
     const preApproved = [];
     const shortlisted = [];
 
-    loanProducts.forEach((loan) => {
-      const maxAmt = getNumericMaxAmount(loan.maxAmount);
+    loans.forEach((loan) => {
+      const maxAmt = getNumericMaxAmount(loan);
       const budgetMatch = !budgetNeeded || maxAmt >= +budgetNeeded * 100000;
-      const typeMatch = !loanType || loan.id === loanType;
+      const typeMatch = !loanType || loan.type === loanType;
 
       if (budgetMatch && typeMatch) {
         preApproved.push(loan);
@@ -44,7 +47,7 @@ export default function LoanQuickMatchModal({ onClose }) {
     });
 
     return { preApproved, shortlisted };
-  }, [budgetNeeded, loanType]);
+  }, [budgetNeeded, loanType, loans]);
 
   const hasAnyResults = buckets.preApproved.length > 0 || buckets.shortlisted.length > 0;
 
@@ -79,7 +82,7 @@ export default function LoanQuickMatchModal({ onClose }) {
                 <label className="mb-1.5 block text-sm font-semibold text-brand-charcoal">Loan Type</label>
                 <div className="flex flex-wrap gap-2">
                   {LOAN_TYPES.map((lt) => {
-                    const loan = loanProducts.find((l) => l.id === lt);
+                    const loan = loans.find((l) => l.type === lt);
                     return (
                       <label key={lt} className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm cursor-pointer transition-colors ${
                         loanType === lt

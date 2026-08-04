@@ -164,7 +164,14 @@ export const jewelleryAPI = {
 
 // ─── Finance ─────────────────────────────────────────────────────────────────
 export const financeAPI = {
+  getAll: (params) => client.get('/product/finance', { params }),
+  getById: (id) => client.get(`/product/finance/${id}`),
+  getSimilar: (id) => client.get(`/product/finance/similar/${id}`),
+  getMy: () => client.get('/product/finance/my'),
   create: (body) => client.post('/product/finance', body),
+  update: (id, body) => client.put(`/product/finance/${id}`, body),
+  remove: (id) => client.delete(`/product/finance/${id}`),
+  toggleStatus: (id) => client.patch(`/product/finance/${id}/status`),
 };
 
 export default client;

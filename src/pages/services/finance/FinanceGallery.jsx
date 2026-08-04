@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { financeServices, FINANCE_CATEGORIES } from '../../../data/dummyFinanceServices';
+import { financeAPI } from '../../../api';
 import { cities } from '../../../data/locations';
 import { ActiveChip } from '../GalleryComponents';
 import FinanceCard from './FinanceCard';
@@ -15,14 +15,39 @@ function FinanceGallery() {
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const [openSections, setOpenSections] = useState({ ...INITIAL_SECTIONS });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    financeAPI.getAll({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) {
+          const raw = res.data?.data?.items || res.data?.items || [];
+          setServices(raw.map((s) => ({ ...s, id: s._id || s.id })));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Finance fetch error:', err);
+          const msg = err.response?.data?.message || err.message || 'Failed to load finance services';
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
-  const tabStats = useTabStats(activeTab);
+  const tabStats = useTabStats(services, activeTab);
   const activeChips = useActiveChips(filters);
-  const filteredServices = useFilteredServices({ activeTab, searchTerm, sortBy, filters });
+  const filteredServices = useFilteredServices({ services, activeTab, searchTerm, sortBy, filters });
 
   const removeChip = (chip) => {
     if (chip.key.startsWith('lt-')) {
@@ -81,7 +106,7 @@ function FinanceGallery() {
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {FINANCE_TABS.map((tab) => {
             const sel = activeTab === tab.id;
-            const count = tab.id === 'All' ? financeServices.length : (tabStats[tab.id] || 0);
+            const count = tab.id === 'All' ? services.length : (tabStats[tab.id] || 0);
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex-shrink-0 flex items-center gap-2 rounded-full border px-4 py-2 transition-all ${
@@ -158,10 +183,25 @@ function FinanceGallery() {
 
           {/* Service Cards Grid */}
           <div>
-            {filteredServices.length > 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/50 py-20 text-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent mb-4" />
+                <p className="text-sm font-semibold text-gray-500">Loading finance services...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-200 bg-red-50/50 py-20 text-center">
+                <i className="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-4" />
+                <p className="text-lg font-semibold text-gray-600">Something went wrong</p>
+                <p className="text-sm text-gray-400 mt-1 max-w-md">{error}</p>
+                <button onClick={() => { setServices([]); setLoading(true); setError(null); window.location.reload(); }}
+                  className="mt-4 rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+                  Try Again
+                </button>
+              </div>
+            ) : filteredServices.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredServices.map((service) => (
-                  <FinanceCard key={service.id} service={service} />
+                  <FinanceCard key={service._id} service={service} />
                 ))}
               </div>
             ) : (

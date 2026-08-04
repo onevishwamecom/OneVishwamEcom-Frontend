@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
+import { formatFinanceAmount } from './financeConstants';
 
 const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="none"><rect width="80" height="80" rx="12" fill="#e5e7eb"/><path fill="#9ca3af" d="M28 48h24v-2l-8-8-16 16v-6zm-4 6h32V30l-8-8-24 24v8z"/></svg>`
@@ -10,7 +11,7 @@ export default function FinanceCard({ service }) {
 
   return (
     <div
-      onClick={() => navigateTo(`/finance-service/${service.id}`)}
+      onClick={() => navigateTo(`/finance-service/${service._id || service.id}`)}
       className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer flex flex-col"
     >
       {/* Banner area */}
@@ -59,7 +60,7 @@ export default function FinanceCard({ service }) {
             </div>
             <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Starting</p>
-              <p className="text-sm font-bold text-emerald-700">{service.minAmount}</p>
+              <p className="text-sm font-bold text-emerald-700">{formatFinanceAmount(service.minAmount)}</p>
             </div>
           </div>
         )}

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { financeServices } from '../../../data/dummyFinanceServices';
+import { financeAPI } from '../../../api';
 import FinanceCard from './FinanceCard';
+import { formatFinanceAmount } from './financeConstants';
 
 const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="none"><rect width="80" height="80" rx="12" fill="#e5e7eb"/><path fill="#9ca3af" d="M28 48h24v-2l-8-8-16 16v-6zm-4 6h32V30l-8-8-24 24v8z"/></svg>`
@@ -10,12 +11,69 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 function FinanceDetails({ location }) {
   const [currentImageIndex] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [service, setService] = useState(null);
+  const [relatedServices, setRelatedServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
-  const serviceId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const service = financeServices.find((s) => s.id === serviceId);
+  const serviceId = pathParts.length > 1 ? pathParts[1] : null;
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
+
+  useEffect(() => {
+    if (!serviceId) {
+      setService(null);
+      setLoading(false);
+      setError('Service not found');
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    financeAPI.getById(serviceId)
+      .then((res) => {
+        if (cancelled) return;
+        const item = res.data?.data?.item || null;
+        setService(item);
+        if (item) {
+          financeAPI.getSimilar(serviceId)
+            .then((r) => { if (!cancelled) setRelatedServices(r.data?.data?.items || []); })
+            .catch(() => { if (!cancelled) setRelatedServices([]); });
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Finance fetch error:', err);
+          const msg = err.response?.data?.message || err.message || 'Failed to load service';
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [serviceId]);
+
+  if (loading) {
+    return (
+      <div className="py-32 text-center">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
+        <p className="mt-4 text-sm font-semibold text-gray-500">Loading service details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-32 text-center">
+        <h1 className="text-2xl font-bold text-gray-400">Service not found</h1>
+        <p className="mt-2 text-sm text-gray-500">{error}</p>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
+      </div>
+    );
+  }
 
   if (!service) {
     return (
@@ -25,10 +83,6 @@ function FinanceDetails({ location }) {
       </div>
     );
   }
-
-  const relatedServices = financeServices
-    .filter((s) => s.id !== service.id && s.category === service.category)
-    .slice(0, 4);
 
   const isInterestApplicable = service.interestRate !== 'N/A' && service.interestRate !== 'Varies';
 
@@ -59,7 +113,7 @@ function FinanceDetails({ location }) {
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur-sm">
-                  <i className="fa-solid fa-indian-rupee-sign text-yellow-400" /> {service.minAmount} – {service.maxAmount}
+                  <i className="fa-solid fa-indian-rupee-sign text-yellow-400" /> {formatFinanceAmount(service.minAmount)} – {formatFinanceAmount(service.maxAmount)}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur-sm">
                   <i className="fa-solid fa-clock text-yellow-400" /> {service.tenure}
@@ -207,7 +261,7 @@ function FinanceDetails({ location }) {
                 )}
                 <li className="flex justify-between border-b border-gray-100 pb-3 text-sm">
                   <span className="text-gray-500">Loan Range</span>
-                  <span className="font-semibold text-brand-charcoal">{service.minAmount} – {service.maxAmount}</span>
+                  <span className="font-semibold text-brand-charcoal">{formatFinanceAmount(service.minAmount)} – {formatFinanceAmount(service.maxAmount)}</span>
                 </li>
                 <li className="flex justify-between border-b border-gray-100 pb-3 text-sm">
                   <span className="text-gray-500">Tenure</span>
@@ -294,7 +348,7 @@ function FinanceDetails({ location }) {
             <h2 className="text-xl font-bold text-brand-charcoal mb-6">Related {service.category}</h2>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {relatedServices.map((s) => (
-                <FinanceCard key={s.id} service={s} />
+                <FinanceCard key={s._id || s.id} service={s} />
               ))}
             </div>
           </div>

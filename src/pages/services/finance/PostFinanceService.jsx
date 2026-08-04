@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cities } from '../../../data/locations';
-import { FINANCE_CATEGORIES } from '../../../data/dummyFinanceServices';
-import { FINANCE_PROVIDER_TYPES, FINANCE_SERVICE_MODES, FINANCE_POSTED_BY, FINANCE_AVAILABILITY } from './financeConstants';
+import { financeAPI } from '../../../api';
+import { FINANCE_CATEGORIES, FINANCE_PROVIDER_TYPES, FINANCE_SERVICE_MODES, FINANCE_POSTED_BY, FINANCE_AVAILABILITY } from './financeConstants';
 
 function PostFinanceService() {
   const navigate = useNavigate();
@@ -27,6 +27,8 @@ function PostFinanceService() {
     availability: '',
   });
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const cityAreas = formData.city ? (cities[formData.city]?.areas || []) : [];
 
@@ -43,10 +45,53 @@ function PostFinanceService() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     if (!validate()) return;
-    navigate('/finance-service/success');
+
+    const splitLines = (value) => String(value || '').split('\n').map((s) => s.trim()).filter(Boolean);
+
+    const payload = {
+      companyName: formData.companyName.trim(),
+      category: formData.category,
+      providerType: formData.providerType || undefined,
+      interestRate: formData.interestRate.trim() || undefined,
+      minAmount: formData.minAmount.trim() || undefined,
+      maxAmount: formData.maxAmount.trim() || undefined,
+      processingTime: formData.processingTime.trim() || undefined,
+      postedBy: formData.postedBy || undefined,
+      availability: formData.availability || undefined,
+      serviceMode: formData.serviceMode || undefined,
+      description: formData.description.trim(),
+      city: formData.city,
+      area: formData.area || undefined,
+      contactPhone: formData.contactPhone,
+      contactEmail: formData.contactEmail.trim(),
+      eligibility: splitLines(formData.eligibility),
+      documentsRequired: splitLines(formData.documentsRequired),
+      features: [],
+    };
+
+    setSubmitting(true);
+    try {
+      await financeAPI.create(payload);
+      navigate('/finance-service/success');
+    } catch (err) {
+      console.error('Create finance service error:', err);
+      if (err.response?.status === 401) {
+        setSubmitError('Please login to post a finance service.');
+      } else {
+        const fieldErrors = err.response?.data?.errors || [];
+        const nextErrors = {};
+        fieldErrors.forEach((fe) => { if (fe.field && !errors[fe.field]) nextErrors[fe.field] = fe.message; });
+        if (Object.keys(nextErrors).length > 0) setErrors((prev) => ({ ...prev, ...nextErrors }));
+        const msg = err.response?.data?.message || err.message || 'Failed to publish service. Please try again.';
+        setSubmitError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (field, value) => {
@@ -76,6 +121,16 @@ function PostFinanceService() {
           <h1 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">Post a Financial Service</h1>
           <p className="text-sm text-gray-500 mt-2">List your loan, insurance, or investment service for thousands of users to discover.</p>
         </div>
+
+        {submitError && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <i className="fa-solid fa-circle-exclamation mt-0.5" />
+            <div className="flex-1">{submitError}</div>
+            <button onClick={() => setSubmitError('')} className="text-red-400 hover:text-red-600">
+              <i className="fa-solid fa-xmark" />
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Company Details */}
@@ -280,9 +335,13 @@ function PostFinanceService() {
 
           {/* Submit */}
           <div className="flex flex-wrap items-center gap-4">
-            <button type="submit"
-              className="inline-flex items-center justify-center gap-2 bg-brand-blue text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors">
-              <i className="fa-solid fa-paper-plane" /> Publish Service
+            <button type="submit" disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 bg-brand-blue text-white px-8 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {submitting ? (
+                <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Publishing...</>
+              ) : (
+                <><i className="fa-solid fa-paper-plane" /> Publish Service</>
+              )}
             </button>
             <p className="text-xs text-gray-400">All fields marked with <span className="text-red-400">*</span> are required.</p>
           </div>

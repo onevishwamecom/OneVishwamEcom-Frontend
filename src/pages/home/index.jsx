@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { navigateTo } from '../../config/navigation';
 import { serviceItems } from '../../data/servicesContent';
 import { useLocation } from '../../store/locationSlice';
@@ -8,8 +8,9 @@ import { dummyGrocery } from '../../data/dummyGrocery';
 import { dummyGroceries } from '../../data/dummyGroceries';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
-import { financeServices } from '../../data/dummyFinanceServices';
 import { useProperties } from '../../hooks/useProperties';
+import { financeAPI } from '../../api';
+import { formatFinanceAmount } from '../services/finance/financeConstants';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 
@@ -22,6 +23,17 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity } = useLocation();
   const { properties: dummyProperties } = useProperties();
+  const [financeServices, setFinanceServices] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    financeAPI.getAll({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) setFinanceServices((res.data?.data?.items || res.data?.items || []).map((s) => ({ ...s, id: s._id || s.id })));
+      })
+      .catch((err) => { console.error('Home finance fetch error:', err); });
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredServices = [
     ...serviceItems,
@@ -219,7 +231,7 @@ function Home() {
                     price={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? s.interestRate : undefined}
                     priceSuffix=""
                     priceOverride={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? undefined : (
-                      <p className="mt-0.5 text-sm font-bold text-brand-blue">{s.minAmount} – {s.maxAmount}</p>
+                      <p className="mt-0.5 text-sm font-bold text-brand-blue">{formatFinanceAmount(s.minAmount)} – {formatFinanceAmount(s.maxAmount)}</p>
                     )}
                     location={s.location}
                     tags={[s.category, s.providerType].filter(Boolean)}
