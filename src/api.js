@@ -159,7 +159,14 @@ export const garmentAPI = {
 
 // ─── Jewellery ───────────────────────────────────────────────────────────────
 export const jewelleryAPI = {
+  getAll: (params) => client.get('/product/jewellery', { params }),
+  getById: (id) => client.get(`/product/jewellery/${id}`),
+  getSimilar: (id) => client.get(`/product/jewellery/${id}/similar`),
+  getMy: () => client.get('/product/jewellery/my'),
   create: (body) => client.post('/product/jewellery', body),
+  update: (id, body) => client.put(`/product/jewellery/${id}`, body),
+  remove: (id) => client.delete(`/product/jewellery/${id}`),
+  toggleStatus: (id) => client.patch(`/product/jewellery/${id}/status`),
 };
 
 // ─── Finance ─────────────────────────────────────────────────────────────────

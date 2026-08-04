@@ -1,28 +1,37 @@
 import { useEffect, useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyJewellery } from '../../../data/dummyJewellery';
+import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
 
 function JewelleryDetails({ location }) {
   useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
-  const jewelleryId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const item = dummyJewellery.find((g) => g.id === jewelleryId);
+  const jewelleryId = pathParts.length > 1 ? pathParts[1] : null;
+
+  const { jewellery: item, loading, error } = useJewelleryById(jewelleryId);
+  const { similar: relatedItems, loading: similarLoading } = useSimilarJewellery(jewelleryId);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  if (!item) {
+  if (loading) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
-        <a href="/our-services/jewellery-gold" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Jewellery &amp; Gold</a>
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-blue border-t-transparent mx-auto mb-4" />
+        <p className="text-sm font-semibold text-gray-500">Loading jewellery...</p>
       </div>
     );
   }
 
-  const relatedItems = dummyJewellery
-    .filter((g) => g.id !== item.id && g.category === item.category)
-    .slice(0, 4);
+  if (error || !item) {
+    return (
+      <div className="py-32 text-center">
+        <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
+        <a href="/our-services/jewellery-gold" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Jewellery & Gold</a>
+      </div>
+    );
+  }
+
+  const itemId = item._id || item.id;
 
   return (
     <div className="pb-24 sm:pb-32">
@@ -31,25 +40,25 @@ function JewelleryDetails({ location }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/jewellery-gold')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-            <i className="fa-solid fa-arrow-left" /> Back to Jewellery &amp; Gold
+            <i className="fa-solid fa-arrow-left" /> Back to Jewellery & Gold
           </button>
 
           <div className="grid gap-6 lg:grid-cols-5">
             {/* Images */}
             <div className="lg:col-span-3 space-y-3">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-white/10 shadow-lg">
-                <img src={item.images[currentImageIndex]} alt={item.name}
+                <img src={item.images?.[currentImageIndex] || item.images?.[0]} alt={item.name}
                   className="h-full w-full object-cover" />
               </div>
-              {item.images.length > 1 && (
+              {(item.images || []).length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {item.images.map((img, idx) => (
+                  {(item.images || []).map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                       className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                         idx === currentImageIndex ? 'border-yellow-400' : 'border-transparent opacity-60 hover:opacity-100'
                       }`}>
-                      <img src={img} alt={`View ${idx + 1}`} className="h-full w-full object-cover" />
-                    </button>
+                    <img src={img} alt={`View ${idx + 1}`} className="h-full w-full object-cover" />
+                  </button>
                   ))}
                 </div>
               )}
@@ -57,7 +66,7 @@ function JewelleryDetails({ location }) {
 
             {/* Info */}
             <div className="lg:col-span-2 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.store.name} · {item.store.city}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.store?.name} · {item.store?.city}</p>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{item.name}</h1>
               <p className="text-white/70 text-sm">{item.category} · {item.gender}</p>
 
@@ -83,7 +92,7 @@ function JewelleryDetails({ location }) {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {item.occasion.map((o) => (
+                {(item.occasion || []).map((o) => (
                   <span key={o} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
                     <i className="fa-solid fa-tag text-yellow-400" /> {o}
                   </span>
@@ -106,12 +115,12 @@ function JewelleryDetails({ location }) {
                   <i className="fa-solid fa-store text-lg" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-brand-charcoal">{item.store.name}</p>
-                  <p className="text-xs text-gray-400">{item.store.city}</p>
+                  <p className="text-sm font-bold text-brand-charcoal">{item.store?.name}</p>
+                  <p className="text-xs text-gray-400">{item.store?.city}</p>
                 </div>
               </div>
               <p className="text-sm text-gray-600">
-                <i className="fa-solid fa-location-dot text-brand-blue w-4" /> {item.store.address}
+                <i className="fa-solid fa-location-dot text-brand-blue w-4" /> {item.store?.address}
               </p>
             </div>
 
@@ -178,7 +187,7 @@ function JewelleryDetails({ location }) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Occasion</span>
-                  <span className="font-semibold">{item.occasion.join(', ')}</span>
+                  <span className="font-semibold">{(item.occasion || []).join(', ')}</span>
                 </div>
               </div>
             </div>
@@ -220,25 +229,38 @@ function JewelleryDetails({ location }) {
         </div>
 
         {/* Related Items */}
-        {relatedItems.length > 0 && (
+        {(relatedItems.length > 0 || similarLoading) && (
           <div className="mt-8">
             <h2 className="text-xl font-bold text-brand-charcoal mb-6">More {item.category} Jewellery</h2>
-            <div className="grid gap-5 grid-cols-2 md:grid-cols-4">
-              {relatedItems.map((r) => (
-                <div key={r.id}
-                  onClick={() => navigateTo(`/jewellery/${r.id}`)}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 mb-3">
-                    <img src={r.images[0]} alt={r.name}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            {similarLoading ? (
+              <div className="grid gap-5 grid-cols-2 md:grid-cols-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-[4/3] overflow-hidden rounded-xl bg-gray-200 mb-3" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-1" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-4 bg-gray-200 rounded w-1/3 mt-0.5" />
                   </div>
-                  <p className="text-sm font-bold text-brand-charcoal group-hover:text-brand-blue transition-colors">{r.name}</p>
-                  <p className="text-xs text-gray-500">{r.metalType} {r.purity} · {r.weightGrams}g</p>
-                  <p className="text-sm font-bold text-brand-blue mt-0.5">{r.price}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-5 grid-cols-2 md:grid-cols-4">
+                {relatedItems.map((r) => (
+                  <div key={r._id || r.id}
+                    onClick={() => navigateTo(`/jewellery/${r._id || r.id}`)}
+                    className="group cursor-pointer"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 mb-3">
+                      <img src={r.images?.[0]} alt={r.name}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                    <p className="text-sm font-bold text-brand-charcoal group-hover:text-brand-blue transition-colors">{r.name}</p>
+                    <p className="text-xs text-gray-500">{r.metalType} {r.purity} · {r.weightGrams}g</p>
+                    <p className="text-sm font-bold text-brand-blue mt-0.5">{r.price}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
