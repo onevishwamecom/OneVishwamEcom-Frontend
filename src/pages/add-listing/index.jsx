@@ -183,35 +183,28 @@ function StepDetails({ form, onChange }) {
   );
 }
 
-function StepPhotos({ photos, onAdd, onRemove, imageUrls, onImageUrlsChange, brochure, onBrochureChange }) {
+function StepPhotos({ photos, onAdd, onRemove, brochure, onBrochureChange }) {
   const fileRef = useRef(null);
   const brochureRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const handleFile = async (file) => {
     if (!file || photos.length >= 6) return;
-    
-    // Add placeholder immediately for UI
+
     const tempId = Date.now();
-    onAdd([...photos, { id: tempId, name: file.name, size: file.size, file }]);
-    
-    // Upload to Cloudinary
-    setUploading(true);
+    onAdd((prev) => [...prev, { id: tempId, name: file.name, size: file.size, file, uploading: true }]);
+
     try {
       const { data } = await uploadAPI.uploadImages([file]);
       const urls = data?.data?.images || data?.images || [];
       if (urls.length > 0) {
-        const newUrls = [...imageUrls, urls[0]];
-        onImageUrlsChange(newUrls);
-        // Update the photo entry with the URL
-        onAdd(photos.map(p => p.id === tempId ? { ...p, url: urls[0] } : p));
+        onAdd((prev) => prev.map((p) => (p.id === tempId ? { ...p, url: urls[0], uploading: false } : p)));
+      } else {
+        onAdd((prev) => prev.map((p) => (p.id === tempId ? { ...p, uploading: false } : p)));
       }
     } catch (err) {
       console.error('Image upload failed:', err);
-      onAdd(photos.filter(p => p.id !== tempId));
-    } finally {
-      setUploading(false);
+      onAdd((prev) => prev.filter((p) => p.id !== tempId));
     }
   };
 
@@ -246,12 +239,12 @@ function StepPhotos({ photos, onAdd, onRemove, imageUrls, onImageUrlsChange, bro
                 ) : (
                   <PlaceholderImage index={i} />
                 )}
-                {p.file && uploading && (
+                {p.uploading && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   </div>
                 )}
-                <button onClick={() => onAdd(photos.filter((_, idx) => idx !== i))}
+                <button onClick={() => onRemove && onRemove(i)}
                   className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition-colors"
                 >
                   <i className="fa-solid fa-xmark" />
@@ -389,10 +382,14 @@ function StepReview({ category, form, photos }) {
             <div>
               <p className="text-gray-400 text-xs mb-2">Photos ({photos.length})</p>
               <div className="flex gap-2 overflow-x-auto">
-                {photos.map((_, i) => (
-                  <div key={i} className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
-                    <i className="fa-solid fa-image text-lg" />
-                  </div>
+                {photos.map((p, i) => (
+                  p.url ? (
+                    <img key={i} src={p.url} alt={p.name || `photo-${i + 1}`} className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div key={i} className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                      <i className="fa-solid fa-image text-lg" />
+                    </div>
+                  )
                 ))}
               </div>
             </div>
@@ -411,7 +408,6 @@ function AddListing() {
   const [category, setCategory] = useState('');
   const [form, setForm] = useState(INITIAL);
   const [photos, setPhotos] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]);
   const [brochure, setBrochure] = useState(null);
   const [brochureUrl, setBrochureUrl] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -457,10 +453,14 @@ function AddListing() {
 
   const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  const imageUrls = photos.filter((p) => p.url).map((p) => p.url);
+
+  const removePhoto = (index) => setPhotos((prev) => prev.filter((_, idx) => idx !== index));
+
   const canNext = () => {
     if (step === 0) return !!category;
     if (step === 1) return form.title && form.price && form.contact;
-    if (step === 2) return photos.length > 0;
+    if (step === 2) return imageUrls.length > 0 && !photos.some((p) => p.uploading);
     if (step === 3) return true;
     return true;
   };
@@ -583,7 +583,7 @@ function AddListing() {
 
           {step === 0 && <StepCategory selected={category} onSelect={setCategory} />}
           {step === 1 && <StepDetails form={form} onChange={updateForm} />}
-          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} onRemove={() => {}} imageUrls={imageUrls} onImageUrlsChange={setImageUrls} brochure={brochure} onBrochureChange={setBrochure} />}
+          {step === 2 && <StepPhotos photos={photos} onAdd={setPhotos} onRemove={removePhoto} brochure={brochure} onBrochureChange={setBrochure} />}
           {step === 3 && <StepSpecifics category={category} form={form} onChange={updateForm} />}
           {step === 4 && <StepReview category={category} form={form} photos={photos} />}
 
