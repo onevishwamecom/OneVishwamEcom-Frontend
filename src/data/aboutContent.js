@@ -10,7 +10,7 @@ export const aboutStats = [
 export const implementationPhases = [
   {
     icon: 'fa-solid fa-flag-checkered',
-    title: 'Phase 1 (0–7 Months)',
+    title: 'Phase 1 (0–6 Months)',
     description: 'Start with loans, properties, and groceries & daily needs.',
   },
   {
