@@ -30,7 +30,9 @@ export const footerSocialLinks = [
 ];
 
 export const footerLocations = [
-  { label: 'Headquarters', value: 'RajajiNagar Bangalore 560010', primary: true },
+  { label: 'Headquarters', value: 'No.38/2, Rama Krupa, N.A.T. Street, Basavanagudi behind Domino\'s Pizza, Bull Temple Road, Bangalore - 560 004', primary: true },
+  { label: 'Phone', value: '99005 74214' },
+  { label: 'Email', value: 'ceo@onevishwam.com' },
   { label: 'Sub Location', value: 'BTM Layout Bangalore' },
   { label: 'Sub Location', value: 'HSR Layout Bangalore' },
   { label: 'Sub Location', value: 'Vijaya Nagar Bangalore' },
