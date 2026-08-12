@@ -48,6 +48,21 @@ export const updateUserProfile = createAsyncThunk('auth/updateProfile', async (b
   }
 });
 
+export const updateUserNotifications = createAsyncThunk('auth/updateNotifications', async (prefs, { rejectWithValue }) => {
+  try {
+    const { data } = await authAPI.updateProfile({
+      notifications: {
+        email: prefs.email,
+        whatsapp: prefs.whatsapp,
+      },
+    });
+    localStorage.setItem('user', JSON.stringify(data.data.user));
+    return data.data.user;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || 'Update failed');
+  }
+});
+
 export const changeUserPassword = createAsyncThunk('auth/changePassword', async (body, { rejectWithValue }) => {
   try {
     const { data } = await authAPI.changePassword(body);
@@ -267,6 +282,7 @@ export function useAuth() {
     clearSuccess: () => dispatch(clearSuccess()),
     fetchMe: () => dispatch(fetchMe()),
     updateProfile: (body) => dispatch(updateUserProfile(body)),
+    updateNotifications: (prefs) => dispatch(updateUserNotifications(prefs)),
     changePassword: (body) => dispatch(changeUserPassword(body)),
     forgotPassword: (email) => dispatch(forgotUserPassword(email)),
     verifyOtp: (body) => dispatch(verifyUserOtp(body)),

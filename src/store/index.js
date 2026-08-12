@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import locationReducer from './locationSlice';
 import authReducer from './authSlice';
+import notificationsReducer from './notificationsSlice';
 
 const LS_CITY = 'vishwam_city';
 const LS_AREA = 'vishwam_area';
@@ -9,6 +10,7 @@ const store = configureStore({
   reducer: {
     location: locationReducer,
     auth: authReducer,
+    notifications: notificationsReducer,
   },
 });
 

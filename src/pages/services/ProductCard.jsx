@@ -20,6 +20,8 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
  * - badges: Array of { label: string, className: string } objects displayed in the top‑left overlay
  * - children: Optional JSX rendered at the bottom of the card (e.g., action buttons)
  */
+import { useAuth } from '../../store/authSlice';
+
 export default React.memo(function ProductCard({
   link = "#",
   image,
@@ -37,9 +39,22 @@ export default React.memo(function ProductCard({
   children,
 }) {
   const [imgError, setImgError] = useState(false);
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  const handleCardClick = (e) => {
+    if (e) e.stopPropagation();
+    if (!isLoggedIn) {
+      openAuthModal('login');
+      return;
+    }
+    if (link) {
+      navigateTo(link);
+    }
+  };
+
   return (
     <div
-      onClick={link ? () => navigateTo(link) : undefined}
+      onClick={handleCardClick}
       className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
     >
       {/* Image */}

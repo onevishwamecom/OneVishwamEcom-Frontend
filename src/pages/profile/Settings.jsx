@@ -4,9 +4,29 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
 import PasswordInput from '../../components/ui/PasswordInput';
 
+function ToggleSwitch({ checked, onChange }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors outline-none ${
+        checked ? 'bg-brand-orange' : 'bg-gray-300'
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
+}
+
 function ProfileSettings() {
   const navigate = useNavigate();
-  const { user, updateProfile, changePassword, deleteAccount, logout, loading, error, clearError } = useAuth();
+  const { user, updateProfile, changePassword, updateNotifications, deleteAccount, logout, loading, error, clearError } = useAuth();
   const [name, setName] = useState(user?.fullName || user?.name || '');
   const [phone, setPhone] = useState(user?.mobile || user?.phone || '');
   const [profileErrors, setProfileErrors] = useState({});
@@ -174,6 +194,49 @@ function ProfileSettings() {
             {loading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
+      </section>
+
+      {/* Notifications */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 className="text-lg font-bold text-brand-charcoal mb-4 flex items-center gap-2">
+          <i className="fa-solid fa-bell text-brand-accent" />
+          Notification Preferences
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Choose how you want to be notified about important account and listing activity.
+        </p>
+
+        <div className="flex items-center justify-between py-4 border-b border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-accent/10 text-brand-accent">
+              <i className="fa-solid fa-envelope" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-800">Email Notifications</p>
+              <p className="text-sm text-gray-500">Receive alerts and updates via email.</p>
+            </div>
+          </div>
+          <ToggleSwitch
+            checked={user?.notifications?.email ?? false}
+            onChange={(checked) => updateNotifications({ email: checked, whatsapp: user?.notifications?.whatsapp ?? false })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-orange/10 text-brand-orange">
+              <i className="fa-brands fa-whatsapp" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-800">WhatsApp Notifications</p>
+              <p className="text-sm text-gray-500">Receive important alerts on WhatsApp.</p>
+            </div>
+          </div>
+          <ToggleSwitch
+            checked={user?.notifications?.whatsapp ?? false}
+            onChange={(checked) => updateNotifications({ email: user?.notifications?.email ?? false, whatsapp: checked })}
+          />
+        </div>
       </section>
 
       {/* Delete Account */}

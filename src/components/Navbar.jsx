@@ -9,6 +9,7 @@ import { navigateTo } from '../config/navigation';
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import AuthModals from './auth/AuthModals';
 import UserDropdown from './auth/UserDropdown';
+import NotificationsDropdown from './auth/NotificationsDropdown';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -206,7 +207,10 @@ function Navbar() {
             </a>
 
             {isLoggedIn ? (
-              <UserDropdown />
+              <>
+                <NotificationsDropdown />
+                <UserDropdown />
+              </>
             ) : (
               <button onClick={() => openAuthModal('login')}
                 className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"

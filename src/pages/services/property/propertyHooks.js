@@ -59,8 +59,8 @@ export function useActiveChips(filters) {
  * Returns the filtered + sorted property list.
  */
 export function useFilteredProperties({
-  properties, selectedCardType, searchTerm, requirementText, sortBy,
-  filters, selectedCity, locationInput, pincodeInput,
+  properties, selectedCardType, searchTerm, sortBy,
+  filters, selectedCity, locationInput,
   familyLocationsOnly, preApprovedMode,
 }) {
   return useMemo(() => {
@@ -81,13 +81,6 @@ export function useFilteredProperties({
           p.title.toLowerCase().includes(q) ||
           p.location.toLowerCase().includes(q) ||
           p.subtitle.toLowerCase().includes(q);
-
-        const qReq = requirementText.toLowerCase();
-        const matchRequirement = !qReq ||
-          p.title.toLowerCase().includes(qReq) ||
-          p.location.toLowerCase().includes(qReq) ||
-          p.subtitle.toLowerCase().includes(qReq) ||
-          (p.description && p.description.toLowerCase().includes(qReq));
 
         const matchBudget =
           (!filters.budgetMin || np >= +filters.budgetMin) &&
@@ -120,27 +113,27 @@ export function useFilteredProperties({
         const matchAge              = filters.propertyAge.length === 0;
         const matchAvailability     = filters.availability.length === 0;
 
-        let matchListedWithin = true;
-        if      (filters.listedWithin === 'Today')       matchListedWithin = listedDays === 0;
-        else if (filters.listedWithin === 'Last 3 Days') matchListedWithin = listedDays <= 3;
-        else if (filters.listedWithin === 'Last 7 Days') matchListedWithin = listedDays <= 7;
-        else if (filters.listedWithin === 'Last 30 Days')matchListedWithin = listedDays <= 30;
+        const matchTenantType =
+          filters.tenantType.length === 0 || filters.tenantType.includes(p.tenantType || 'Other');
+
+        const matchPets =
+          filters.pets.length === 0 || filters.pets.includes(p.pets || 'No Preference');
 
         const matchCity           = !selectedCity    || p.city === selectedCity;
         const matchLocation       = !locationInput   || p.zone === locationInput;
-        const matchPincode        = !pincodeInput    || (p.pincode && p.pincode.startsWith(pincodeInput));
         const matchFamilyLocation = !familyLocationsOnly || getBuildingType(p) === 'Residential';
         const matchPreApproved    = !preApprovedMode || p.loanApproved === true;
         const matchLoanApproved   = !filters.loanApprovedOnly || p.loanApproved === true;
 
         return (
-          matchCardType && matchSearch && matchRequirement && matchBudget && matchSize &&
+          matchCardType && matchSearch && matchBudget && matchSize &&
           matchBuildingType && matchPropertyType && matchBedrooms &&
           matchLocality && matchFurnishing && matchGated &&
           matchPostedBy && matchPossession && matchAmenities &&
-          matchFacing && matchAge && matchAvailability && matchListedWithin &&
-          matchCity && matchLocation && matchPincode &&
-          matchFamilyLocation && matchPreApproved && matchLoanApproved
+          matchFacing && matchAge && matchAvailability &&
+          matchCity && matchLocation &&
+          matchFamilyLocation && matchPreApproved && matchLoanApproved &&
+          matchTenantType && matchPets
         );
       })
       .sort((a, b) => {
@@ -149,8 +142,8 @@ export function useFilteredProperties({
         return b.id - a.id;
       });
   }, [
-    properties, selectedCardType, searchTerm, requirementText, sortBy, filters,
-    selectedCity, locationInput, pincodeInput, familyLocationsOnly, preApprovedMode,
+    properties, selectedCardType, searchTerm, sortBy, filters,
+    selectedCity, locationInput, familyLocationsOnly, preApprovedMode,
     // filters.loanApprovedOnly is included via filters object
   ]);
 }

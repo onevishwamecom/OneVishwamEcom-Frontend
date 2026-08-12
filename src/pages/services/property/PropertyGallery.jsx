@@ -33,8 +33,6 @@ function PropertyGallery() {
   /* ── Top-level state ── */
   const [selectedCardType, setSelectedCardType] = useState("All");
   const [locationInput, setLocationInput] = useState("");
-  const [pincodeInput, setPincodeInput] = useState("");
-  const [requirementText, setRequirementText] = useState("");
   const [showFinance, setShowFinance] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("latest");
@@ -62,12 +60,10 @@ function PropertyGallery() {
     properties,
     selectedCardType,
     searchTerm,
-    requirementText,
     sortBy,
     filters,
     selectedCity,
     locationInput,
-    pincodeInput,
     familyLocationsOnly,
     preApprovedMode,
   });
@@ -77,8 +73,6 @@ function PropertyGallery() {
     if (chip.key === "budget") {
       updateFilter("budgetMin", "");
       updateFilter("budgetMax", "");
-    } else if (chip.key === "listed") {
-      updateFilter("listedWithin", "");
     } else if (chip.key === "gated") {
       updateFilter("gatedCommunity", false);
     } else if (chip.key === "loan") {
@@ -117,6 +111,7 @@ function PropertyGallery() {
     resetFilters,
     cityAreas,
     noCityMessage,
+    properties,
   };
 
   /* ── Render ── */
@@ -195,40 +190,6 @@ function PropertyGallery() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Pincode */}
-            <div className="flex-1 flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
-                Pincode
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                value={pincodeInput}
-                onChange={(e) =>
-                  setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6))
-                }
-                placeholder="6-digit code"
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-              />
-            </div>
-
-            {/* Requirement text */}
-            <div className="flex-[2] flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-pen mr-1 text-brand-blue/60" />
-                Requirement
-              </label>
-              <input
-                type="text"
-                value={requirementText}
-                onChange={(e) => setRequirementText(e.target.value)}
-                placeholder="e.g. 3 BHK ready to move, budget 50L"
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-              />
             </div>
 
             {/* Search button */}
