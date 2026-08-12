@@ -1,6 +1,62 @@
 import { useEffect, useState } from 'react';
-import { publicAPI } from '../../../api';
-import { enrichLoan } from './loanUtils';
+
+const dummyLoans = [
+  {
+    id: 1,
+    name: 'HDFC Home Loan',
+    type: 'home',
+    interestRate: '7.5%',
+    minAmount: '₹5,00,000',
+    maxAmount: '₹5,00,00,000',
+    tenure: 'Up to 30 years',
+    eligibility: 'Salaried / Self-employed, Age 21-65, Min income ₹25,000/month, CIBIL 650+',
+    provider: 'HDFC Bank',
+  },
+  {
+    id: 2,
+    name: 'ICICI Home Loan',
+    type: 'home',
+    interestRate: '7.8%',
+    minAmount: '₹5,00,000',
+    maxAmount: '₹5,00,00,000',
+    tenure: 'Up to 30 years',
+    eligibility: 'Salaried / Self-employed, Age 21-65, Min income ₹25,000/month, CIBIL 650+',
+    provider: 'ICICI Bank',
+  },
+  {
+    id: 3,
+    name: 'SBI Home Loan',
+    type: 'home',
+    interestRate: '7.2%',
+    minAmount: '₹5,00,000',
+    maxAmount: '₹10,00,00,000',
+    tenure: 'Up to 30 years',
+    eligibility: 'Salaried / Self-employed, Age 21-70, Min income ₹25,000/month, CIBIL 650+',
+    provider: 'State Bank of India',
+  },
+  {
+    id: 4,
+    name: 'Bajaj Finserv Personal Loan',
+    type: 'vehicle',
+    interestRate: '10.5%',
+    minAmount: '₹50,000',
+    maxAmount: '₹50,00,000',
+    tenure: '1-5 years',
+    eligibility: 'Salaried, Age 23-58, Min income ₹20,000/month, CIBIL 700+',
+    provider: 'Bajaj Finserv',
+  },
+  {
+    id: 5,
+    name: 'HDFC Car Loan',
+    type: 'vehicle',
+    interestRate: '8.5%',
+    minAmount: '₹1,00,000',
+    maxAmount: '₹2,00,00,000',
+    tenure: '1-7 years',
+    eligibility: 'Salaried / Self-employed, Age 21-60, Min income ₹15,000/month, CIBIL 600+',
+    provider: 'HDFC Bank',
+  },
+];
 
 export default function useLoanProducts() {
   const [loans, setLoans] = useState([]);
@@ -8,25 +64,10 @@ export default function useLoanProducts() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let cancelled = false;
     setLoading(true);
     setError(null);
-    publicAPI.getLoans()
-      .then((res) => {
-        if (!cancelled) {
-          const raw = res.data?.data?.loans || res.data?.loans || [];
-          setLoans(raw.map(enrichLoan));
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('Loans fetch error:', err);
-          const msg = err.response?.data?.message || err.message || 'Failed to load loan products';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
-        }
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    setLoans(dummyLoans);
+    setLoading(false);
   }, []);
 
   return { loans, loading, error };

@@ -9,7 +9,7 @@ import { dummyGroceries } from '../../data/dummyGroceries';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
-import { financeAPI } from '../../api';
+import { financeServices } from '../../data/dummyFinanceServices';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
@@ -26,13 +26,7 @@ function Home() {
   const [financeServices, setFinanceServices] = useState([]);
 
   useEffect(() => {
-    let cancelled = false;
-    financeAPI.getAll({ limit: 100 })
-      .then((res) => {
-        if (!cancelled) setFinanceServices((res.data?.data?.items || res.data?.items || []).map((s) => ({ ...s, id: s._id || s.id })));
-      })
-      .catch((err) => { console.error('Home finance fetch error:', err); });
-    return () => { cancelled = true; };
+    setFinanceServices(financeServices.map(s => ({ ...s, id: s.id })));
   }, []);
 
   const filteredServices = [

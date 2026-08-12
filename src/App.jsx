@@ -3,8 +3,6 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import { NAVIGATION_EVENT } from './config/navigation';
 import BrandLoader from './components/ui/BrandLoader';
-import { useAuth, forceLogout } from './store/authSlice';
-import store from './store';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -22,20 +20,12 @@ const JewelleryDetails = lazy(() => import('./pages/services/jewellery/Jewellery
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
-const PostFinanceService = lazy(() => import('./pages/services/finance/PostFinanceService'));
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
-const AddListing = lazy(() => import('./pages/add-listing'));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
-const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
-const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
-const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
 
 function ScrollToTopAndNavHelper() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { openAuthModal, isLoggedIn } = useAuth();
 
   useEffect(() => {
     if (!location.hash) {
@@ -55,37 +45,11 @@ function ScrollToTopAndNavHelper() {
     window.addEventListener(NAVIGATION_EVENT, handleCustomNav);
     return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
   }, [navigate]);
-  
-  // Handle /add-listing/ authorization check here, triggering modal if needed
-  useEffect(() => {
-      if (location.pathname === '/add-listing/' && !isLoggedIn) {
-          openAuthModal('login');
-      }
-  }, [location.pathname, openAuthModal, isLoggedIn]);
-
-  // Listen for forced logout from token refresh failure
-  useEffect(() => {
-    const handleForceLogout = () => {
-      store.dispatch(forceLogout());
-    };
-    window.addEventListener('auth:logout', handleForceLogout);
-    return () => window.removeEventListener('auth:logout', handleForceLogout);
-  }, []);
 
   return null;
 }
 
 function App() {
-  const location = useLocation();
-  const { isLoggedIn, fetchMe } = useAuth();
-
-  // Validate stored session on mount
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchMe();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
     <>
       <ScrollToTopAndNavHelper />
@@ -105,19 +69,11 @@ function App() {
             <Route path="/finance/*" element={<LoanDetails location={location} />} />
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<FinanceDetails location={location} />} />
-            <Route path="/add-finance-service" element={<PostFinanceService />} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<GroceryDetails location={location} />} />
             <Route path="/vehicle/*" element={<VehicleDetails location={location} />} />
             <Route path="/jewellery/*" element={<JewelleryDetails location={location} />} />
             <Route path="/garment/*" element={<GarmentDetails location={location} />} />
-            <Route path="/add-listing/" element={<AddListing />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-success" element={<ResetSuccess />} />
-            <Route path="/profile/settings" element={<ProfileSettings />} />
-            <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
       </main>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { vehicleAPI } from '../../../api';
+import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import ProductCard from '../ProductCard';
 
 function VehicleDetails({ location }) {
@@ -17,30 +17,15 @@ function VehicleDetails({ location }) {
     window.scrollTo(0, 0);
     if (!vehicleId) { setLoading(false); setError('Invalid vehicle ID'); return; }
 
-    let cancelled = false;
     setLoading(true);
     setError(null);
 
-    vehicleAPI.getById(vehicleId)
-      .then((res) => {
-        if (cancelled) return;
-        const item = res.data.data.item;
-        setVehicle({ ...item, id: item._id });
-        return vehicleAPI.getSimilar(item._id);
-      })
-      .then((simRes) => {
-        if (cancelled) return;
-        if (simRes) {
-          const items = (simRes.data.data.items || []).map((v) => ({ ...v, id: v._id }));
-          setRelatedVehicles(items);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.response?.data?.message || 'Vehicle not found');
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-
-    return () => { cancelled = true; };
+    const item = dummyAutomobiles.find(v => String(v.id) === String(vehicleId));
+    setVehicle(item);
+    if (item) {
+      setRelatedVehicles(dummyAutomobiles.filter(v => v.category === item.category && v.id !== item.id).slice(0, 4));
+    }
+    setLoading(false);
   }, [vehicleId]);
 
   if (loading) {

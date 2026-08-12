@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-import { jewelleryAPI } from '../../../api';
-
-function extractData(res) {
-  if (Array.isArray(res.data)) return { data: res.data };
-  if (Array.isArray(res.data?.data)) return { data: res.data.data };
-  if (Array.isArray(res.data?.items)) return { data: res.data.items };
-  if (res.data?.data && Array.isArray(res.data.data.items)) return { data: res.data.data.items };
-  return { data: [] };
-}
+import { dummyJewellery } from '../../../data/dummyJewellery';
 
 export function useJewellery(params = {}) {
   const [jewellery, setJewellery] = useState([]);
@@ -15,25 +7,18 @@ export function useJewellery(params = {}) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let cancelled = false;
     setLoading(true);
-    jewelleryAPI.getAll(params)
-      .then((res) => {
-        if (cancelled) return;
-        const { data } = extractData(res);
-        setJewellery(data);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('[useJewellery] Fetch error:', err?.response?.data || err?.message || err);
-          const msg = err?.response?.data?.message || err?.message || 'Failed to load jewellery';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
+    setError(null);
+    let filtered = dummyJewellery;
+    if (params.category) {
+      filtered = filtered.filter(j => j.category === params.category);
+    }
+    if (params.search) {
+      const search = params.search.toLowerCase();
+      filtered = filtered.filter(j => j.name.toLowerCase().includes(search));
+    }
+    setJewellery(filtered);
+    setLoading(false);
   }, [params]);
 
   return { jewellery, loading, error };
@@ -46,25 +31,11 @@ export function useJewelleryById(id) {
 
   useEffect(() => {
     if (!id) return;
-    let cancelled = false;
     setLoading(true);
-    jewelleryAPI.getById(id)
-      .then((res) => {
-        if (cancelled) return;
-        const item = res.data?.data?.item || res.data?.item || res.data?.data;
-        setJewellery(item);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('[useJewelleryById] Fetch error:', err?.response?.data || err?.message || err);
-          const msg = err?.response?.data?.message || err?.message || 'Failed to load jewellery';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
+    setError(null);
+    const item = dummyJewellery.find(j => String(j.id) === String(id));
+    setJewellery(item);
+    setLoading(false);
   }, [id]);
 
   return { jewellery, loading, error };
@@ -76,21 +47,12 @@ export function useSimilarJewellery(id) {
 
   useEffect(() => {
     if (!id) return;
-    let cancelled = false;
     setLoading(true);
-    jewelleryAPI.getSimilar(id)
-      .then((res) => {
-        if (cancelled) return;
-        const items = res.data?.data?.items || res.data?.items || [];
-        setSimilar(items);
-      })
-      .catch((err) => {
-        console.error('[useSimilarJewellery] Fetch error:', err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
+    const item = dummyJewellery.find(j => String(j.id) === String(id));
+    if (item) {
+      setSimilar(dummyJewellery.filter(j => j.category === item.category && j.id !== item.id).slice(0, 4));
+    }
+    setLoading(false);
   }, [id]);
 
   return { similar, loading };

@@ -3,12 +3,9 @@ import logo from '../assets/logo.png';
 import { navLinks } from '../data/siteContent';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
-import { useAuth } from '../store/authSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { navigateTo } from '../config/navigation';
 import { useLocation as useRouterLocation } from 'react-router-dom';
-import AuthModals from './auth/AuthModals';
-import UserDropdown from './auth/UserDropdown';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,7 +17,6 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
-  const { isLoggedIn, openAuthModal, user, logout } = useAuth();
 
   useEffect(() => {
     if (locationOpen) setDetectStatus('idle');
@@ -47,47 +43,6 @@ function Navbar() {
     close();
   };
 
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') { setMenuOpen(false); setActiveDropdown(null); setLocationOpen(false); }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        handleDetect(() => {});
-      }
-    };
-    const onClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target) && !locationRef.current?.contains(e.target)) {
-        setMenuOpen(false);
-        setActiveDropdown(null);
-        setLocationOpen(false);
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('pointerdown', onClick);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('pointerdown', onClick);
-    };
-  }, [handleDetect]);
-
-  const isActive = (link) => {
-    const path = currentLocation.pathname;
-    if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
-    if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
-    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
-    if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');
-    if (link.id === 'garments') return path.startsWith('/our-services/garments-fashion-lifestyle') || path.startsWith('/garment/');
-    return false;
-  };
-
   const detectButton = (close) => (
     <button onClick={() => handleDetect(close)}
       disabled={detectStatus === 'detecting'}
@@ -105,116 +60,130 @@ function Navbar() {
          detectStatus === 'unsupported' ? 'Location not covered yet' :
          'Detect My Location'}
       </span>
-      {detectStatus === 'idle' && <span className="text-[10px] text-gray-400 font-medium">⌘L</span>}
     </button>
   );
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { setMenuOpen(false); setActiveDropdown(null); setLocationOpen(false); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        setLocationOpen(!locationOpen);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [locationOpen]);
+
+  const isActive = (link) => {
+    const path = currentLocation.pathname;
+    if (link.id === 'home') return path === '/' || path === '/home';
+    if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
+    if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
+    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
+    if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');
+    if (link.id === 'garments') return path.startsWith('/our-services/garments-fashion-lifestyle') || path.startsWith('/garment/');
+    return false;
+  };
+
   return (
-    <div ref={menuRef}>
-      <header className={`sticky top-0 z-50 transition-colors duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-white'
-      }`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:py-3">
-          <a href="/home" onClick={(e) => { e.preventDefault(); navigateTo('/home'); }}
-            className="flex items-center gap-2 shrink-0"
-          >
-            <img src={logo} alt="Vishwam" className="h-14 w-auto sm:h-16 object-contain drop-shadow-sm" />
+    <div>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'}`}>
+        <div className="max-w-[1400px] mx-auto px-4">
+          <div className="flex items-center justify-between h-16 lg:h-14">
+            <a href="/" onClick={(e) => { e.preventDefault(); navigateTo('/'); }} className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
+              <img src={logo} alt="Vishwam Logo" className="h-8 w-auto" />
+            </a>
 
-          </a>
-
-          {/* City Dropdown (Desktop) */}
-          <div className="relative hidden lg:block" ref={locationRef}>
-            <button onClick={() => { setLocationOpen(!locationOpen); setActiveDropdown(null); }}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <i className="fa-solid fa-location-dot text-brand-blue" />
-              <span>{getCityLabel(selectedCity)}</span>
-              <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform ${locationOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {locationOpen && (
-              <div className="absolute left-0 top-full pt-2 w-56 z-50">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2 space-y-0.5">
-                  {detectButton(() => setLocationOpen(false))}
-                  <hr className="my-1.5 border-gray-100" />
-                  {Object.entries(cities).map(([cityId, city]) => (
-                    <button key={cityId} onClick={() => handleSelectCity(cityId, () => setLocationOpen(false))}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                        selectedCity === cityId
-                          ? 'bg-brand-blue/5 text-brand-blue font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {city.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <nav className="hidden lg:flex items-center gap-0.5">
-            {navLinks.map((link) => (
-              <div key={link.id} className="relative"
-                onMouseEnter={() => { clearTimeout(closeTimerRef.current); if (link.submenu) setActiveDropdown(link.id); }}
-                onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 200); }}
-              >
-                <a href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); setActiveDropdown(null); }}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
-                  }`}
-                >
-                  {link.label}
-                  {link.submenu && <i className="fa-solid fa-chevron-down ml-1.5 text-[10px] text-gray-400" />}
-                </a>
-                {link.submenu && activeDropdown === link.id && (
-                  <div className="absolute left-0 top-full w-64 z-50"
-                    onMouseEnter={() => { clearTimeout(closeTimerRef.current); setActiveDropdown(link.id); }}
-                    onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setActiveDropdown(null), 200); }}
+            <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
+              {navLinks.map((link) => {
+                const active = isActive(link);
+                if (link.submenu) {
+                  return (
+                    <div key={link.id} className="relative" onMouseEnter={() => setActiveDropdown(link.id)} onMouseLeave={() => setActiveDropdown(null)}>
+                      <button type="button"
+                        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
+                        aria-haspopup="true"
+                        aria-expanded={activeDropdown === link.id}
+                      >
+                        {link.label}
+                        <i className={`fa-solid fa-chevron-down text-xs transition-transform ${activeDropdown === link.id ? 'rotate-180' : ''}`} />
+                      </button>
+                      {activeDropdown === link.id && (
+                        <div className="absolute left-0 top-full mt-1.5 min-w-[200px] rounded-xl border border-gray-100 bg-white shadow-lg py-2 z-50 animate-fade-in"
+                             onMouseEnter={() => setActiveDropdown(link.id)}
+                             onMouseLeave={() => setActiveDropdown(null)}>
+                          {link.submenu.columns.map((col, ci) => (
+                            <div key={ci} className="border-r border-gray-100 last:border-r-0">
+                              {col.map((item) => (
+                                <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); navigateTo(item.href); setActiveDropdown(null); }}
+                                  className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-blue transition-colors"
+                                >
+                                  {item.label}
+                                </a>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <a key={link.id} href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); }}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
                   >
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2 mt-2">
-                      {link.submenu.columns.flat().map((item) => (
-                        <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); navigateTo(item.href); setActiveDropdown(null); }}
-                          className="block px-4 py-2.5 text-sm text-gray-700 rounded-lg hover:bg-brand-blue/5 hover:text-brand-blue transition-colors"
+                    {link.label}
+                  </a>
+                );
+              })}
+            </nav>
+
+            <div className="hidden lg:flex items-center gap-3">
+              <div className="relative" onMouseEnter={() => setLocationOpen(true)} onMouseLeave={() => setLocationOpen(false)}>
+                <button type="button"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  aria-haspopup="true"
+                  aria-expanded={locationOpen}
+                >
+                  <i className="fa-solid fa-location-dot text-brand-blue" />
+                  <span className="hidden sm:inline truncate max-w-[120px]">{getCityLabel(selectedCity)}</span>
+                  <i className={`fa-solid fa-chevron-down text-xs transition-transform ${locationOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {locationOpen && (
+                  <div className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-gray-100 bg-white shadow-lg py-2 z-50 animate-fade-in"
+                       onMouseEnter={() => setLocationOpen(true)}
+                       onMouseLeave={() => setLocationOpen(false)}>
+                    <div className="px-3 py-2">
+                      {detectButton(() => setLocationOpen(false))}
+                    </div>
+                    <hr className="my-1.5 border-gray-100 mx-2" />
+                    <div className="max-h-48 overflow-y-auto px-2">
+                      {Object.entries(cities).map(([cityId, city]) => (
+                        <button key={cityId} onClick={() => handleSelectCity(cityId, () => setLocationOpen(false))}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCity === cityId ? 'bg-brand-blue/5 text-brand-blue font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
                         >
-                          {item.label}
-                        </a>
+                          {city.label}
+                        </button>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
-            ))}
-          </nav>
 
-          <div className="flex items-center gap-2">
-            {/* Mobile location trigger */}
-            <div className="lg:hidden">
-              <button onClick={() => setMenuOpen(true)}
-                className="flex items-center gap-1.5 px-2 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+              <a href="/contact-us/" onClick={(e) => { e.preventDefault(); navigateTo('/contact-us/'); }}
+                className="hidden sm:inline-flex items-center gap-2 bg-brand-blue text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-brand-navy transition-colors"
               >
-                <i className="fa-solid fa-location-dot text-brand-blue text-xs" />
-                <span className="text-xs truncate max-w-[80px]">{getCityLabel(selectedCity)}</span>
-              </button>
+                <i className="fa-solid fa-phone" /> Enquire Now
+              </a>
             </div>
 
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
-              className="hidden lg:inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-4 py-2 text-xs font-bold rounded-lg hover:bg-yellow-300 hover:shadow-sm transition-all"
-            >
-              <i className="fa-solid fa-plus" />
-              Post Your Listing
-            </a>
-
-            {isLoggedIn ? (
-              <UserDropdown />
-            ) : (
-              <button onClick={() => openAuthModal('login')}
-                className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
-              >
-                <i className="fa-solid fa-user text-brand-blue" />
-                Login
-              </button>
-            )}
             <button onClick={() => setMenuOpen(!menuOpen)}
               className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -223,124 +192,72 @@ function Navbar() {
             </button>
           </div>
         </div>
-
       </header>
 
       {/* Mobile overlay */}
       <div className={`fixed inset-0 z-40 bg-black/30 transition-opacity lg:hidden ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setMenuOpen(false)}
       />
-      
+
       {/* Mobile sidebar */}
       <div className={`fixed top-0 right-0 z-[60] h-full w-72 bg-white shadow-xl transition-transform overflow-y-auto lg:hidden ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-4 border-b">
-            <span className="font-bold text-brand-navy">Menu</span>
-            <button onClick={() => setMenuOpen(false)} className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
-              <i className="fa-solid fa-xmark" />
-            </button>
-          </div>
-
-          <div className="p-4 border-b">
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); setMenuOpen(false); }}
-              className="flex items-center justify-center gap-2 bg-yellow-400 text-brand-navy px-5 py-3 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
-            >
-              <i className="fa-solid fa-plus" /> Post Your Listing
-            </a>
-          </div>
-
-          {/* Mobile User Profile Section */}
-          {isLoggedIn ? (
-            <div className="p-4 border-b">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-1">
-                  <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center text-white text-base font-bold shrink-0">
-                    {(user?.fullName || user?.name) ? (user.fullName || user.name).charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-brand-charcoal truncate">{user?.fullName || user?.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <a href="/profile/settings" onClick={(e) => { e.preventDefault(); navigateTo('/profile/settings'); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-100 rounded-lg hover:bg-gray-100 hover:text-brand-blue transition-colors"
-                  >
-                    <i className="fa-solid fa-user-gear text-gray-400" /> Settings
-                  </a>
-                  <button onClick={() => { logout(); setMenuOpen(false); }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <i className="fa-solid fa-right-from-bracket" /> Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /*
-            <div className="p-4 border-b">
-              <button onClick={() => { openAuthModal('login'); setMenuOpen(false); }}
-                className="flex w-full items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 px-4 text-sm font-semibold rounded-lg transition-colors"
-              >
-                <i className="fa-solid fa-right-to-bracket text-brand-blue" />
-                Login / Register
-              </button>
-            </div>
-            */
-            null
-          )}
-
-          {/* Mobile city selector */}
-          <div className="p-4 border-b">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Your Location</p>
-            <div className="space-y-1">
-              {detectButton(() => setMenuOpen(false))}
-              <hr className="my-1.5 border-gray-100" />
-              {Object.entries(cities).map(([cityId, city]) => (
-                <button key={cityId} onClick={() => handleSelectCity(cityId, () => setMenuOpen(false))}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                    selectedCity === cityId
-                      ? 'bg-brand-blue/5 text-brand-blue font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {city.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <nav className="p-4 space-y-1">
-            {navLinks.map((link) => (
-              <div key={link.id}>
-                <a href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); setMenuOpen(false); }}
-                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.label}
-                </a>
-                {link.submenu && (
-                  <div className="ml-4 mt-1 space-y-0.5">
-                    {link.submenu.columns.flat().map((item) => (
-                      <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); navigateTo(item.href); setMenuOpen(false); }}
-                        className="block px-4 py-2 text-sm text-gray-500 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            <hr className="my-3" />
-            <a href="/contact-us/" onClick={(e) => { e.preventDefault(); navigateTo('/contact-us/'); setMenuOpen(false); }}
-              className="flex items-center justify-center gap-2 bg-brand-blue text-white px-5 py-3 text-sm font-semibold rounded-lg"
-            >
-              <i className="fa-solid fa-phone" /> Enquire Now
-            </a>
-          </nav>
+          <span className="font-bold text-brand-navy">Menu</span>
+          <button onClick={() => setMenuOpen(false)} className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
+            <i className="fa-solid fa-xmark" />
+          </button>
         </div>
-      <AuthModals />
+
+        <div className="p-4 border-b">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Your Location</p>
+          <div className="space-y-1">
+            {detectButton(() => setMenuOpen(false))}
+            <hr className="my-1.5 border-gray-100" />
+            {Object.entries(cities).map(([cityId, city]) => (
+              <button key={cityId} onClick={() => handleSelectCity(cityId, () => setMenuOpen(false))}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  selectedCity === cityId
+                    ? 'bg-brand-blue/5 text-brand-blue font-semibold'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {city.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <nav className="p-4 space-y-1">
+          {navLinks.map((link) => (
+            <div key={link.id}>
+              <a href={link.href} onClick={(e) => { e.preventDefault(); if (link.href !== '#') navigateTo(link.href); setMenuOpen(false); }}
+                className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {link.label}
+              </a>
+              {link.submenu && (
+                <div className="ml-4 mt-1 space-y-0.5">
+                  {link.submenu.columns.flat().map((item) => (
+                    <a key={item.label} href={item.href} onClick={(e) => { e.preventDefault(); navigateTo(item.href); setMenuOpen(false); }}
+                      className="block px-4 py-2 text-sm text-gray-500 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          <hr className="my-3" />
+          <a href="/contact-us/" onClick={(e) => { e.preventDefault(); navigateTo('/contact-us/'); setMenuOpen(false); }}
+            className="flex items-center justify-center gap-2 bg-brand-blue text-white px-5 py-3 text-sm font-semibold rounded-lg"
+          >
+            <i className="fa-solid fa-phone" /> Enquire Now
+          </a>
+        </nav>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { financeAPI } from '../../../api';
+import { financeServices } from '../../../data/dummyFinanceServices';
 import FinanceCard from './FinanceCard';
 import { formatFinanceAmount } from './financeConstants';
 
@@ -29,31 +29,15 @@ function FinanceDetails({ location }) {
       return;
     }
 
-    let cancelled = false;
     setLoading(true);
     setError(null);
 
-    financeAPI.getById(serviceId)
-      .then((res) => {
-        if (cancelled) return;
-        const item = res.data?.data?.item || null;
-        setService(item);
-        if (item) {
-          financeAPI.getSimilar(serviceId)
-            .then((r) => { if (!cancelled) setRelatedServices(r.data?.data?.items || []); })
-            .catch(() => { if (!cancelled) setRelatedServices([]); });
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('Finance fetch error:', err);
-          const msg = err.response?.data?.message || err.message || 'Failed to load service';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
-        }
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-
-    return () => { cancelled = true; };
+    const item = financeServices.find(s => String(s.id) === String(serviceId));
+    setService(item);
+    if (item) {
+      setRelatedServices(financeServices.filter(s => s.category === item.category && s.id !== item.id).slice(0, 4));
+    }
+    setLoading(false);
   }, [serviceId]);
 
   if (loading) {

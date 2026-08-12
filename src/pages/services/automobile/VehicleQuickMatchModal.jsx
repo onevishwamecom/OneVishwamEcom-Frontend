@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { vehicleAPI } from '../../../api';
+import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import { cities } from '../../../data/locations';
 import { getNumericPrice } from '../GalleryComponents';
 
@@ -22,11 +22,7 @@ export default function VehicleQuickMatchModal({ onClose }) {
   const [allVehicles, setAllVehicles] = useState([]);
 
   useEffect(() => {
-    let cancelled = false;
-    vehicleAPI.getAll({ limit: 100 })
-      .then((res) => { if (!cancelled) setAllVehicles(res.data.data.items || []); })
-      .catch(() => {});
-    return () => { cancelled = true; };
+    setAllVehicles(dummyAutomobiles);
   }, []);
 
   const areas = city ? (cities[city]?.areas || []) : [];
