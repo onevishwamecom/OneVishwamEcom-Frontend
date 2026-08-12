@@ -36,8 +36,11 @@ export function getPropertyTypeLabel(property) {
 }
 
 export function getBedrooms(bhk) {
-  const match = bhk?.match(/(\d+(\.\d+)?)\s*BHK/i);
-  return match ? `${match[1]} BHK` : '';
+  const bhkStr = String(bhk || '');
+  const match = bhkStr.match(/(\d+(\.\d+)?)\s*BHK/i);
+  if (match) return `${match[1]} BHK`;
+  const num = parseFloat(bhkStr);
+  return !isNaN(num) ? `${num} BHK` : '';
 }
 
 export function getBuildingType(property) {
