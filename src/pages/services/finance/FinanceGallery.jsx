@@ -82,10 +82,7 @@ function FinanceGallery() {
               Find trusted financial services, loans, insurance, and investment options near you.
             </p>
           </div>
-          <button onClick={() => navigateTo('/add-finance-service')}
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0">
-            <i className="fa-solid fa-plus" />Post a Service
-          </button>
+         
         </div>
 
         {/* ── Category Tabs ── */}
@@ -187,7 +184,7 @@ function FinanceGallery() {
             ) : filteredServices.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredServices.map((service) => (
-                  <FinanceCard key={service._id} service={service} />
+                  <FinanceCard key={service.id} service={service} />
                 ))}
               </div>
             ) : (
