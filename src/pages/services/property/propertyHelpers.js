@@ -9,7 +9,7 @@ export function getNumericArea(area) {
 
 export function getPropertyType(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (s.includes('villa') || s.includes('farmhouse')) return 'Villas';
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
@@ -22,7 +22,7 @@ export function getPropertyType(property) {
 
 export function getPropertyTypeLabel(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (s.includes('villa'))       return 'Villa';
   if (s.includes('farmhouse'))   return 'Farmhouse';
   if (s.includes('penthouse'))   return 'Penthouse';
@@ -42,7 +42,7 @@ export function getBedrooms(bhk) {
 
 export function getBuildingType(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
   return 'Residential';
@@ -50,7 +50,8 @@ export function getBuildingType(property) {
 
 export function getDetailTags(property) {
   const tags = [];
-  if (property.bhk && !property.bhk.toLowerCase().includes('office') && !property.bhk.toLowerCase().includes('shop')) {
+  const bhkStr = String(property.bhk || '').toLowerCase();
+  if (property.bhk && !bhkStr.includes('office') && !bhkStr.includes('shop')) {
     tags.push(property.bhk);
   }
   if (property.area)    tags.push(property.area);
