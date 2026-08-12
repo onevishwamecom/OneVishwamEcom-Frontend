@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
@@ -48,17 +48,8 @@ function AutomobileGallery() {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
   const [showroomTarget, setShowroomTarget] = useState(null);
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    const items = dummyAutomobiles.map(v => ({ ...v, id: v.id }));
-    setVehicles(items);
-    setLoading(false);
-  }, []);
+  // Initialize directly from the in-memory data — no async loading needed.
+  const [vehicles] = useState(() => dummyAutomobiles.map(v => ({ ...v, id: v.id })));
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -357,28 +348,8 @@ function AutomobileGallery() {
           </div>
         )}
 
-        {/* ── Loading State ── */}
-        {loading && (
-          <div className="mt-8 flex flex-col items-center justify-center py-20 text-gray-400">
-            <i className="fa-solid fa-spinner fa-spin text-3xl mb-4" />
-            <p className="text-sm font-medium">Loading vehicles...</p>
-          </div>
-        )}
-
-        {/* ── Error State ── */}
-        {error && !loading && (
-          <div className="mt-8 flex flex-col items-center justify-center py-20 text-red-400">
-            <i className="fa-solid fa-circle-exclamation text-3xl mb-4" />
-            <p className="text-sm font-medium">{error}</p>
-            <button onClick={() => window.location.reload()}
-              className="mt-4 rounded-xl bg-brand-blue px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-              Retry
-            </button>
-          </div>
-        )}
-
         {/* ── Main Layout: Sidebar + Grid ── */}
-        {!loading && !error && <div className="mt-5 flex gap-6">
+        <div className="mt-5 flex gap-6">
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4">
               <VehicleFilterSidebar {...sidebarProps} />
@@ -440,7 +411,7 @@ function AutomobileGallery() {
               </div>
             )}
           </div>
-        </div>}
+        </div>
 
       </div>
 

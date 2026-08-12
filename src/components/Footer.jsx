@@ -1,5 +1,6 @@
 import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
 import logoName from '../assets/Logo_name.png';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   const year = new Date().getFullYear();
@@ -27,7 +28,7 @@ function Footer() {
             <ul className="space-y-2.5">
               {footerQuickLinks.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
+                  <Link to={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</Link>
                 </li>
               ))}
             </ul>
@@ -37,7 +38,7 @@ function Footer() {
             <ul className="space-y-2.5">
               {footerServiceLinks.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</a>
+                  <Link to={l.href} className="text-sm text-gray-400 hover:text-white transition-colors">{l.label}</Link>
                 </li>
               ))}
             </ul>

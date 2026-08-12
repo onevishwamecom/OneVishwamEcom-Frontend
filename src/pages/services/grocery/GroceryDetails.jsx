@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGrocery } from '../../../data/dummyGrocery';
 import ProductCard from '../ProductCard';
 
-function GroceryDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function GroceryDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const groceryId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
   const item = dummyGrocery.find((g) => g.id === groceryId);
 

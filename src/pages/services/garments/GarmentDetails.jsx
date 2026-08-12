@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGarments } from '../../../data/dummyGarments';
 
-function GarmentDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function GarmentDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const garmentId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
   const item = dummyGarments.find((g) => g.id === garmentId);
 

@@ -1,8 +1,8 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
-import { NAVIGATION_EVENT } from './config/navigation';
-import BrandLoader from './components/ui/BrandLoader';
+import { setNavigate } from './config/navigation';
+import PageSkeleton from './components/ui/PageSkeleton';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -23,13 +23,26 @@ const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetail
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
 
-function ScrollToTopAndNavHelper() {
+/**
+ * Registers React Router's navigate function with the navigateTo() utility so that
+ * any component calling navigateTo() gets true client-side SPA navigation instead of
+ * going through the DOM CustomEvent indirection layer.
+ *
+ * Also handles scroll-to-top on every route change.
+ */
+function RouterSyncEffect() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Register navigate with the module-level utility on mount and whenever it changes.
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
+  // Scroll to top on route change (unless navigating to a hash anchor).
   useEffect(() => {
     if (!location.hash) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     } else {
       const targetId = location.hash.replace('#', '');
       requestAnimationFrame(() => {
@@ -38,42 +51,34 @@ function ScrollToTopAndNavHelper() {
     }
   }, [location.pathname, location.hash]);
 
-  useEffect(() => {
-    const handleCustomNav = (e) => {
-      navigate(e.detail);
-    };
-    window.addEventListener(NAVIGATION_EVENT, handleCustomNav);
-    return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
-  }, [navigate]);
-
   return null;
 }
 
 function App() {
   return (
     <>
-      <ScrollToTopAndNavHelper />
+      <RouterSyncEffect />
       <main>
-        <Suspense fallback={<BrandLoader />}>
+        <Suspense fallback={<PageSkeleton />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about-us/*" element={<AboutPage />} />
             <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
-            <Route path="/our-services/*" element={<ServicesPage location={location} />} />
-            <Route path="/contact-us/*" element={<ContactPage location={location} />} />
+            <Route path="/our-services/*" element={<ServicesPage />} />
+            <Route path="/contact-us/*" element={<ContactPage />} />
             <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />
-            <Route path="/property/*" element={<PropertyDetails location={location} />} />
-            <Route path="/finance/*" element={<LoanDetails location={location} />} />
+            <Route path="/property/*" element={<PropertyDetails />} />
+            <Route path="/finance/*" element={<LoanDetails />} />
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
-            <Route path="/finance-service/:id" element={<FinanceDetails location={location} />} />
+            <Route path="/finance-service/:id" element={<FinanceDetails />} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
-            <Route path="/grocery/*" element={<GroceryDetails location={location} />} />
-            <Route path="/vehicle/*" element={<VehicleDetails location={location} />} />
-            <Route path="/jewellery/*" element={<JewelleryDetails location={location} />} />
-            <Route path="/garment/*" element={<GarmentDetails location={location} />} />
+            <Route path="/grocery/*" element={<GroceryDetails />} />
+            <Route path="/vehicle/*" element={<VehicleDetails />} />
+            <Route path="/jewellery/*" element={<JewelleryDetails />} />
+            <Route path="/garment/*" element={<GarmentDetails />} />
           </Routes>
         </Suspense>
       </main>

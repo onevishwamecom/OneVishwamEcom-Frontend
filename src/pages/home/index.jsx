@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { navigateTo } from '../../config/navigation';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { serviceItems } from '../../data/servicesContent';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
@@ -8,7 +8,7 @@ import { dummyGrocery } from '../../data/dummyGrocery';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
-import { financeServices } from '../../data/dummyFinanceServices';
+import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
@@ -22,11 +22,7 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity } = useLocation();
   const { properties: dummyProperties } = useProperties();
-  const [financeServices, setFinanceServices] = useState([]);
-
-  useEffect(() => {
-    setFinanceServices(financeServices.map(s => ({ ...s, id: s.id })));
-  }, []);
+  const [financeServices] = useState(() => rawFinanceServices.map(s => ({ ...s, id: s.id })));
 
   const filteredServices = [
     ...serviceItems,
@@ -103,12 +99,12 @@ function Home() {
                 <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Your Dream Home May Be Just Around the Corner</h2>
                 <p className="mt-1.5 text-sm text-white/70">Houses, plots, apartments and rental homes near you.</p>
               </div>
-              <button
-                onClick={() => navigateTo('/our-services/real-estate-property')}
+              <Link
+                to="/our-services/real-estate-property"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2.5 text-xs font-bold text-brand-navy hover:bg-yellow-300 transition-colors shrink-0"
               >
                 Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
@@ -133,12 +129,12 @@ function Home() {
             </div>
 
             <div className="mt-5 text-center sm:hidden">
-              <button
-                onClick={() => navigateTo('/our-services/real-estate-property')}
+              <Link
+                to="/our-services/real-estate-property"
                 className={BTN_SECONDARY}
               >
                 Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -153,12 +149,12 @@ function Home() {
                 </p>
                 <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Cars, bikes and commercial vehicles available nearby.</h2>
               </div>
-              <button
-                onClick={() => navigateTo('/our-services/automobile')}
+              <Link
+                to="/our-services/automobile"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
               >
                 See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
@@ -183,12 +179,12 @@ function Home() {
             </div>
 
             <div className="mt-5 text-center sm:hidden">
-              <button
-                onClick={() => navigateTo('/our-services/automobile')}
+              <Link
+                to="/our-services/automobile"
                 className={BTN_SECONDARY}
               >
                 See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -204,12 +200,12 @@ function Home() {
                 <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Finance & Loan Services</h2>
                 <p className="mt-1 text-sm text-gray-500">Find trusted financial services, loans, insurance, and investment options near you.</p>
               </div>
-              <button
-                onClick={() => navigateTo('/our-services/finance-lending')}
+              <Link
+                to="/our-services/finance-lending"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
               >
                 Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
@@ -238,12 +234,12 @@ function Home() {
             </div>
 
             <div className="mt-5 text-center sm:hidden">
-              <button
-                onClick={() => navigateTo('/our-services/finance-lending')}
+              <Link
+                to="/our-services/finance-lending"
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
               >
                 Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -332,8 +328,8 @@ function Home() {
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3">
               {dummyProperties.slice(0, 1).map((p) => (
-                <div key={`fresh-prop-${p.id}`} onClick={() => navigateTo(`/property/${p.id}`)}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start">
+                <Link key={`fresh-prop-${p.id}`} to={`/property/${p.id}`}
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
                   <div className="aspect-[16/9] overflow-hidden">
                     <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
@@ -345,11 +341,11 @@ function Home() {
                     <p className="text-sm font-semibold text-brand-blue">{p.price} {p.priceSuffix}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.location} · {p.bhk} · {p.furnishing}</p>
                   </div>
-                </div>
+                </Link>
               ))}
               {dummyAutomobiles.slice(5, 6).map((v) => (
-                <div key={`fresh-veh-${v.id}`} onClick={() => navigateTo(`/vehicle/${v.id}`)}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start">
+                <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
                   <div className="aspect-[16/9] overflow-hidden">
                     <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
@@ -361,11 +357,11 @@ function Home() {
                     <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
                     <p className="text-xs text-gray-500 mt-1">{v.location} · {v.fuelType} · {v.year}</p>
                   </div>
-                </div>
+                </Link>
               ))}
               {dummyGarments.slice(5, 6).map((g) => (
-                <div key={`fresh-garm-${g.id}`} onClick={() => navigateTo(`/garment/${g.id}`)}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start">
+                <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
                   <div className="aspect-[16/9] overflow-hidden">
                     <img src={g.images[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
@@ -381,7 +377,7 @@ function Home() {
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || ''} · {g.category}</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -407,9 +403,9 @@ function Home() {
                 { icon: 'fa-building-columns', label: 'Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
                 { icon: 'fa-wrench', label: 'Services', desc: 'Find services near you', href: '/our-services/' },
               ].map((item) => (
-                <div key={item.label}
-                  onClick={() => navigateTo(item.href)}
-                  className="group rounded-xl border border-gray-100 bg-white p-3 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all w-[46vw] lg:w-auto shrink-0 snap-start"
+                <Link key={item.label}
+                  to={item.href}
+                  className="group rounded-xl border border-gray-100 bg-white p-3 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all w-[46vw] lg:w-auto shrink-0 snap-start block"
                 >
                     <div className="flex items-center justify-between">
                     <div className="w-9 h-9 rounded-xl bg-brand-blue/5 flex items-center justify-center text-sm text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-colors">
@@ -419,7 +415,7 @@ function Home() {
                   </div>
                   <h3 className="mt-3 text-sm font-bold text-brand-charcoal">{item.label}</h3>
                   <p className="mt-1 text-xs text-gray-500">{item.desc}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

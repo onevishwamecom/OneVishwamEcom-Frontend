@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { navigateTo } from '../../../config/navigation';
+import { useParams, Link } from 'react-router-dom';
 import { financeServices } from '../../../data/dummyFinanceServices';
 import FinanceCard from './FinanceCard';
 import { formatFinanceAmount } from './financeConstants';
@@ -8,7 +8,7 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="none"><rect width="80" height="80" rx="12" fill="#e5e7eb"/><path fill="#9ca3af" d="M28 48h24v-2l-8-8-16 16v-6zm-4 6h32V30l-8-8-24 24v8z"/></svg>`
 );
 
-function FinanceDetails({ location }) {
+function FinanceDetails() {
   const [currentImageIndex] = useState(0);
   const [saved, setSaved] = useState(false);
   const [service, setService] = useState(null);
@@ -16,8 +16,7 @@ function FinanceDetails({ location }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
-  const serviceId = pathParts.length > 1 ? pathParts[1] : null;
+  const { id: serviceId } = useParams();
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
 
@@ -75,10 +74,10 @@ function FinanceDetails({ location }) {
       {/* ── Gradient Hero Banner ── */}
       <div className="bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
-          <button onClick={() => navigateTo('/our-services/finance-lending')}
+          <Link to="/our-services/finance-lending"
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Finance Services
-          </button>
+          </Link>
 
           <div className="grid gap-8 lg:grid-cols-5">
             <div className="lg:col-span-3 space-y-5">

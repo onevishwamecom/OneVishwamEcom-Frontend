@@ -1,10 +1,11 @@
-import { navigateTo } from '../../config/navigation';
+import { Link, useLocation } from 'react-router-dom';
 import ServiceDetails from './ServiceDetails';
 import { serviceItems, serviceIconMap } from '../../data/servicesContent';
 import PageHero from '../../components/PageHero';
 
-function ServicesPage({ location }) {
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+function ServicesPage() {
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
   const serviceId = pathParts.length > 1 ? pathParts[1] : null;
 
   if (serviceId) {
@@ -24,10 +25,10 @@ function ServicesPage({ location }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {serviceItems.map((item) => (
-              <article
+              <Link
                 key={item.id}
-                onClick={() => navigateTo(`/our-services/${item.id}`)}
-                className="group bg-white rounded-xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg hover:border-brand-blue/20 transition-all"
+                to={`/our-services/${item.id}`}
+                className="group bg-white rounded-xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg hover:border-brand-blue/20 transition-all block"
               >
                 <div className="aspect-[16/10] overflow-hidden rounded-lg bg-gray-100 mb-4">
                   <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
@@ -46,7 +47,7 @@ function ServicesPage({ location }) {
                     </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

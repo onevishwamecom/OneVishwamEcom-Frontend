@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { navigateTo } from '../../../config/navigation';
+import { useLocation, Link } from 'react-router-dom';
 import useLoanProducts from './useLoanProducts';
 import { resolveLoan } from './loanUtils';
 
-function LoanDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function LoanDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const loanId = pathParts.length > 1 ? pathParts[1] : null;
   const { loans, loading, error } = useLoanProducts();
 
@@ -67,10 +68,10 @@ function LoanDetails({ location }) {
       {/* ── Gradient Hero Banner ── */}
       <div className="bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
-          <button onClick={() => navigateTo('/our-services/finance-lending')}
+          <Link to="/our-services/finance-lending"
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Loan Products
-          </button>
+          </Link>
 
           <div className="grid gap-8 lg:grid-cols-5">
             <div className="lg:col-span-3 space-y-5">

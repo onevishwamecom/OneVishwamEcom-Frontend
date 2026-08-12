@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
 
-function JewelleryDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function JewelleryDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const jewelleryId = pathParts.length > 1 ? pathParts[1] : null;
 
   const { jewellery: item, loading, error } = useJewelleryById(jewelleryId);

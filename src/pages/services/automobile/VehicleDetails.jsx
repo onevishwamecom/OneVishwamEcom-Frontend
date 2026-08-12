@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { navigateTo } from '../../../config/navigation';
+import { useLocation, Link } from 'react-router-dom';
 import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import ProductCard from '../ProductCard';
 
-function VehicleDetails({ location }) {
+function VehicleDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [vehicle, setVehicle] = useState(null);
   const [relatedVehicles, setRelatedVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
   const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
 
   useEffect(() => {
@@ -50,10 +51,10 @@ function VehicleDetails({ location }) {
   return (
     <div className="pb-24 pt-8 sm:pb-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <button onClick={() => navigateTo('/our-services/automobile')}
+        <Link to="/our-services/automobile"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:underline">
           <i className="fa-solid fa-arrow-left" /> Back to Vehicles
-        </button>
+        </Link>
 
         <div className="grid gap-8 lg:grid-cols-5">
           {/* Images */}

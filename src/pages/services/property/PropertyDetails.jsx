@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { navigateTo } from '../../../config/navigation';
+import { useLocation, Link } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
 
@@ -193,14 +193,15 @@ function PropertyCard({ property }) {
   );
 }
 
-function PropertyDetails({ location }) {
+function PropertyDetails() {
   const { properties, loading: listLoading } = useProperties();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showLoanBanner, setShowLoanBanner] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const similarRef = useRef(null);
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
   const property = properties.find(

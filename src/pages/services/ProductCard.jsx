@@ -48,6 +48,8 @@ export default React.memo(function ProductCard({
           <img
             src={image}
             alt={alt}
+            loading="lazy"
+            decoding="async"
             onError={() => setImgError(true)}
             className="h-full w-full object-cover hover:scale-105 transition-transform duration-500"
           />
