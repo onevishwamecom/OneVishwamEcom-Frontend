@@ -59,11 +59,11 @@ function HeroSection({ searchQuery, setSearchQuery }) {
             >
               <i className="fa-solid fa-list" /> See Available Items
             </a>
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
+            {/* <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
               className="inline-flex items-center justify-center gap-2 bg-yellow-400 text-brand-navy px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-yellow-300 shadow-md transition-all whitespace-nowrap"
             >
               <i className="fa-solid fa-plus" /> Post Your Listing
-            </a>
+            </a> */}
           </div>
 
           <div className="mt-10 flex flex-col sm:flex-row items-stretch gap-3 max-w-2xl mx-auto">

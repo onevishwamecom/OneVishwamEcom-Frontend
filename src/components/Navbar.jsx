@@ -199,12 +199,12 @@ function Navbar() {
               </button>
             </div>
 
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
+            {/* <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
               className="hidden lg:inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-4 py-2 text-xs font-bold rounded-lg hover:bg-yellow-300 hover:shadow-sm transition-all"
             >
               <i className="fa-solid fa-plus" />
               Post Your Listing
-            </a>
+            </a> */}
 
             {isLoggedIn ? (
               <>
@@ -245,11 +245,11 @@ function Navbar() {
           </div>
 
           <div className="p-4 border-b">
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); setMenuOpen(false); }}
+            {/* <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); setMenuOpen(false); }}
               className="flex items-center justify-center gap-2 bg-yellow-400 text-brand-navy px-5 py-3 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
             >
               <i className="fa-solid fa-plus" /> Post Your Listing
-            </a>
+            </a> */}
           </div>
 
           {/* Mobile User Profile Section */}
