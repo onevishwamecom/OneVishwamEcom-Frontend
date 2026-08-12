@@ -5,7 +5,6 @@ import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
 import { dummyGrocery } from '../../data/dummyGrocery';
-import { dummyGroceries } from '../../data/dummyGroceries';
 import { dummyGarments } from '../../data/dummyGarments';
 import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
@@ -77,7 +76,7 @@ function Home() {
               </span>
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                 <i className="fa-solid fa-box text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{foodGrocery.length + dummyGroceries.length}</span> products added today
+                <span className="font-semibold text-brand-charcoal">{foodGrocery.length + dummyGrocery.length}</span> products added today
               </span>
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                 <i className="fa-solid fa-users text-brand-blue text-sm" />
@@ -301,14 +300,14 @@ function Home() {
                   />
                 </div>
               ))}
-              {dummyGroceries.slice(0, 1).map((g) => (
+              {dummyGrocery.slice(0, 1).map((g) => (
                 <div key={`pop-elec-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
                     link={`/grocery/${g.id}`}
                     image={g.images[0]}
-                    alt={g.title}
-                    title={g.title}
-                    price={g.price}
+                    alt={g.name}
+                    title={g.name}
+                    price={g.pricePerUnit}
                     location=""
                     badges={[{ label: g.recentlyAdded ? 'New' : 'Trending', className: g.recentlyAdded ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white' }]}
                   />
