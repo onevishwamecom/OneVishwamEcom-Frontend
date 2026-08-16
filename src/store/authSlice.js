@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
 import { authAPI } from '../api';
+import { cacheUser, cachedUserIsFresh, clearAllUserCaches } from '../services/cache/userCache';
 
 export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, { rejectWithValue }) => {
   try {
@@ -8,6 +9,7 @@ export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, 
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.data.user));
+    cacheUser(data.data.user);
     return data.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Login failed');
@@ -20,6 +22,7 @@ export const registerUser = createAsyncThunk('auth/registerUser', async (userDat
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.data.user));
+    cacheUser(data.data.user);
     return data.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Registration failed');
@@ -28,11 +31,19 @@ export const registerUser = createAsyncThunk('auth/registerUser', async (userDat
 
 export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithValue }) => {
   try {
+    // Fresh cached profile → skip the network call entirely (no duplicate /auth/me).
+    const storedRaw = localStorage.getItem('user');
+    const stored = storedRaw ? JSON.parse(storedRaw) : null;
+    if (stored && cachedUserIsFresh(stored)) {
+      return stored;
+    }
     const { data } = await authAPI.getMe();
+    cacheUser(data.data.user);
     return data.data.user;
   } catch (err) {
     if (err.response?.status === 401) {
       clearStorage();
+      clearAllUserCaches();
     }
     return rejectWithValue(err.response?.data?.message || 'Session expired');
   }
@@ -42,6 +53,7 @@ export const updateUserProfile = createAsyncThunk('auth/updateProfile', async (b
   try {
     const { data } = await authAPI.updateProfile(body);
     localStorage.setItem('user', JSON.stringify(data.data.user));
+    cacheUser(data.data.user);
     return data.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Update failed');
@@ -57,6 +69,7 @@ export const updateUserNotifications = createAsyncThunk('auth/updateNotification
       },
     });
     localStorage.setItem('user', JSON.stringify(data.data.user));
+    cacheUser(data.data.user);
     return data.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Update failed');
@@ -114,6 +127,7 @@ export const deleteUserAccount = createAsyncThunk('auth/deleteAccount', async (_
   try {
     await authAPI.deleteAccount();
     clearStorage();
+    clearAllUserCaches();
     return null;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Delete failed');
@@ -146,6 +160,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       clearStorage();
+      clearAllUserCaches();
     },
     openAuthModal(state, action) {
       state.showAuthModal = true;
@@ -183,6 +198,7 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       clearStorage();
+      clearAllUserCaches();
     },
   },
   extraReducers: (builder) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { financeAPI } from '../../../api';
+import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
 import FinanceCard from './FinanceCard';
 import { formatFinanceAmount } from './financeConstants';
 
@@ -11,13 +12,20 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 function FinanceDetails({ location }) {
   const [currentImageIndex] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [service, setService] = useState(null);
   const [relatedServices, setRelatedServices] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
   const serviceId = pathParts.length > 1 ? pathParts[1] : null;
+
+  const itemKey = `finance:item:${serviceId}`;
+  const similarKey = `finance:similar:${serviceId}`;
+
+  const [service, setService] = useState(() => {
+    if (!serviceId) return null;
+    return cache.get(PUBLIC_NAMESPACE, itemKey)?.data ?? null;
+  });
+  const [loading, setLoading] = useState(() => (serviceId ? !cache.get(PUBLIC_NAMESPACE, itemKey) : false));
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
 
@@ -30,31 +38,47 @@ function FinanceDetails({ location }) {
     }
 
     let cancelled = false;
-    setLoading(true);
     setError(null);
+    const cached = cache.get(PUBLIC_NAMESPACE, itemKey);
+    setLoading(!cached);
+    if (cached) setService(cached.data);
 
-    financeAPI.getById(serviceId)
-      .then((res) => {
+    cache
+      .fetch(
+        PUBLIC_NAMESPACE,
+        itemKey,
+        () => financeAPI.getById(serviceId).then((res) => res.data?.data?.item || null),
+        { ttl: CACHE_TTL.detail },
+      )
+      .then(({ data: item }) => {
         if (cancelled) return;
-        const item = res.data?.data?.item || null;
         setService(item);
         if (item) {
-          financeAPI.getSimilar(serviceId)
-            .then((r) => { if (!cancelled) setRelatedServices(r.data?.data?.items || []); })
-            .catch(() => { if (!cancelled) setRelatedServices([]); });
+          return cache
+            .fetch(
+              PUBLIC_NAMESPACE,
+              similarKey,
+              () => financeAPI.getSimilar(serviceId).then((r) => r.data?.data?.items || []),
+              { ttl: CACHE_TTL.similar },
+            )
+            .then(({ data: items }) => {
+              if (!cancelled) setRelatedServices(items);
+            });
         }
       })
       .catch((err) => {
         if (!cancelled) {
           console.error('Finance fetch error:', err);
           const msg = err.response?.data?.message || err.message || 'Failed to load service';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Please check your connection.' : msg);
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => { cancelled = true; };
-  }, [serviceId]);
+  }, [serviceId, itemKey, similarKey]);
 
   if (loading) {
     return (

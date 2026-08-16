@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { vehicleAPI } from '../../../api';
+import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import VehicleTypeStrip from './VehicleTypeStrip';
@@ -48,30 +49,39 @@ function AutomobileGallery() {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
   const [showroomTarget, setShowroomTarget] = useState(null);
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [vehicles, setVehicles] = useState(
+    () => cache.get(PUBLIC_NAMESPACE, 'vehicles:all')?.data ?? [],
+  );
+  const [loading, setLoading] = useState(() => !cache.get(PUBLIC_NAMESPACE, 'vehicles:all'));
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     setError(null);
-    vehicleAPI.getAll({ limit: 100 })
-      .then((res) => {
-        if (!cancelled) {
-          const raw = res.data?.data?.items || res.data?.items || [];
-          const items = raw.map((v) => ({ ...v, id: v._id || v.id }));
-          setVehicles(items);
-        }
+    cache
+      .fetch(
+        PUBLIC_NAMESPACE,
+        'vehicles:all',
+        () =>
+          vehicleAPI.getAll({ limit: 100 }).then((res) => {
+            const raw = res.data?.data?.items || res.data?.items || [];
+            return raw.map((v) => ({ ...v, id: v._id || v.id }));
+          }),
+        { ttl: CACHE_TTL.products },
+      )
+      .then(({ data }) => {
+        if (!cancelled) setVehicles(data);
       })
       .catch((err) => {
         if (!cancelled) {
           console.error('Vehicle fetch error:', err);
           const msg = err.response?.data?.message || err.message || 'Failed to load vehicles';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Please check your connection.' : msg);
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
   }, []);
 

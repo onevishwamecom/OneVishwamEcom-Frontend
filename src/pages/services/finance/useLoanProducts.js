@@ -1,33 +1,17 @@
-import { useEffect, useState } from 'react';
 import { publicAPI } from '../../../api';
 import { enrichLoan } from './loanUtils';
+import useCachedData from '../../../hooks/useCachedData';
+import { CACHE_TTL } from '../../../services/cache/cacheService';
 
 export default function useLoanProducts() {
-  const [loans, setLoans] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    publicAPI.getLoans()
-      .then((res) => {
-        if (!cancelled) {
-          const raw = res.data?.data?.loans || res.data?.loans || [];
-          setLoans(raw.map(enrichLoan));
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('Loans fetch error:', err);
-          const msg = err.response?.data?.message || err.message || 'Failed to load loan products';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
-        }
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
+  const { data: loans, loading, error } = useCachedData(
+    'loans:all',
+    () =>
+      publicAPI
+        .getLoans()
+        .then((res) => (res.data?.data?.loans || res.data?.loans || []).map(enrichLoan)),
+    { ttl: CACHE_TTL.products, fallback: [] },
+  );
 
   return { loans, loading, error };
 }

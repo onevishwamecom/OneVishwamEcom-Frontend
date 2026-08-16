@@ -5,21 +5,37 @@ import { getCityLabel } from '../../data/locations';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
 import { useProperties } from '../../hooks/useProperties';
 import { financeAPI } from '../../api';
+import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../services/cache/cacheService';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
+
+const FINANCE_ALL_KEY = 'finance:all';
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity, selectedArea } = useLocation();
   const { properties: dummyProperties } = useProperties();
-  const [financeServices, setFinanceServices] = useState([]);
+  const [financeServices, setFinanceServices] = useState(
+    () => cache.get(PUBLIC_NAMESPACE, FINANCE_ALL_KEY)?.data ?? [],
+  );
 
   useEffect(() => {
     let cancelled = false;
-    financeAPI.getAll({ limit: 100 })
-      .then((res) => {
-        if (!cancelled) setFinanceServices((res.data?.data?.items || res.data?.items || []).map((s) => ({ ...s, id: s._id || s.id })));
+    // Same key as FinanceGallery → requests are de-duplicated.
+    cache
+      .fetch(
+        PUBLIC_NAMESPACE,
+        FINANCE_ALL_KEY,
+        () =>
+          financeAPI.getAll({ limit: 100 }).then((res) => {
+            const raw = res.data?.data?.items || res.data?.items || [];
+            return raw.map((s) => ({ ...s, id: s._id || s.id }));
+          }),
+        { ttl: CACHE_TTL.products },
+      )
+      .then(({ data }) => {
+        if (!cancelled) setFinanceServices(data);
       })
       .catch((err) => { console.error('Home finance fetch error:', err); });
     return () => { cancelled = true; };

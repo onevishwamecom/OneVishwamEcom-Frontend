@@ -1,38 +1,63 @@
 import { useEffect, useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { vehicleAPI } from '../../../api';
+import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
 import ProductCard from '../ProductCard';
 
 function VehicleDetails({ location }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [vehicle, setVehicle] = useState(null);
   const [relatedVehicles, setRelatedVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
   const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
+
+  const itemKey = `vehicle:item:${vehicleId}`;
+  const similarKey = `vehicle:similar:${vehicleId}`;
+
+  const [vehicle, setVehicle] = useState(() => {
+    if (!vehicleId) return null;
+    return cache.get(PUBLIC_NAMESPACE, itemKey)?.data ?? null;
+  });
+  const [loading, setLoading] = useState(() => (vehicleId ? !cache.get(PUBLIC_NAMESPACE, itemKey) : false));
 
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!vehicleId) { setLoading(false); setError('Invalid vehicle ID'); return; }
 
     let cancelled = false;
-    setLoading(true);
     setError(null);
+    const cached = cache.get(PUBLIC_NAMESPACE, itemKey);
+    setLoading(!cached);
+    if (cached) setVehicle(cached.data);
 
-    vehicleAPI.getById(vehicleId)
-      .then((res) => {
+    cache
+      .fetch(
+        PUBLIC_NAMESPACE,
+        itemKey,
+        () => vehicleAPI.getById(vehicleId).then((res) => {
+          const item = res.data?.data?.item;
+          return item ? { ...item, id: item._id } : null;
+        }),
+        { ttl: CACHE_TTL.detail },
+      )
+      .then(({ data: item }) => {
         if (cancelled) return;
-        const item = res.data.data.item;
-        setVehicle({ ...item, id: item._id });
-        return vehicleAPI.getSimilar(item._id);
-      })
-      .then((simRes) => {
-        if (cancelled) return;
-        if (simRes) {
-          const items = (simRes.data.data.items || []).map((v) => ({ ...v, id: v._id }));
-          setRelatedVehicles(items);
+        setVehicle(item);
+        if (item) {
+          return cache
+            .fetch(
+              PUBLIC_NAMESPACE,
+              similarKey,
+              () => vehicleAPI.getSimilar(item._id).then((simRes) => {
+                const items = simRes.data?.data?.items || [];
+                return items.map((v) => ({ ...v, id: v._id }));
+              }),
+              { ttl: CACHE_TTL.similar },
+            )
+            .then(({ data: items }) => {
+              if (!cancelled) setRelatedVehicles(items);
+            });
         }
       })
       .catch((err) => {
@@ -41,7 +66,7 @@ function VehicleDetails({ location }) {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [vehicleId]);
+  }, [vehicleId, itemKey, similarKey]);
 
   if (loading) {
     return (
