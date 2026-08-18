@@ -142,7 +142,7 @@ function Navbar() {
 
   return (
     <div>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-gradient-to-r from-brand-navy to-brand-blue ${scrolled ? 'shadow-lg' : ''}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'}`}>
         <div className="max-w-[1400px] mx-auto px-4">
           <div className="flex items-center justify-between h-16 lg:h-14">
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
@@ -168,7 +168,7 @@ function Navbar() {
                         aria-haspopup="true"
                         aria-expanded={openDropdown === link.id}
                         onClick={() => toggleDropdown(link.id)}
-                        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-yellow-400 bg-white/10' : 'text-white hover:text-yellow-300 hover:bg-white/10'}`}
+                        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
                       >
                         {link.label}
                         <i className={`fa-solid fa-chevron-down text-xs transition-transform ${openDropdown === link.id ? 'rotate-180' : ''}`} />
@@ -204,7 +204,7 @@ function Navbar() {
                 }
                 return (
                   <Link key={link.id} to={link.href}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-yellow-400 bg-white/10' : 'text-white hover:text-yellow-300 hover:bg-white/10'}`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
                   >
                     {link.label}
                   </Link>
@@ -226,11 +226,11 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={openDropdown === 'location'}
                   onClick={() => toggleDropdown('location')}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <i className="fa-solid fa-location-dot text-yellow-400" />
+                  <i className="fa-solid fa-location-dot text-brand-blue" />
                   <span className="hidden sm:inline truncate max-w-[120px]">{getCityLabel(selectedCity)}</span>
-                  <i className={`fa-solid fa-chevron-down text-xs transition-transform text-white/70 ${openDropdown === 'location' ? 'rotate-180' : ''}`} />
+                  <i className={`fa-solid fa-chevron-down text-xs transition-transform ${openDropdown === 'location' ? 'rotate-180' : ''}`} />
                 </button>
                 {openDropdown === 'location' && (
                   <div
@@ -261,14 +261,14 @@ function Navbar() {
               </div>
 
               <Link to="/contact-us/"
-                className="hidden sm:inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-4 py-2 text-sm font-semibold rounded-lg hover:bg-yellow-300 transition-colors"
+                className="hidden sm:inline-flex items-center gap-2 bg-brand-blue text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-brand-navy transition-colors"
               >
                 <i className="fa-solid fa-phone" /> Enquire Now
               </Link>
             </div>
 
             <button onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/30 text-white hover:bg-white/10"
+              className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             >
               <i className={`fa-solid ${menuOpen ? 'fa-xmark' : 'fa-bars'} text-base`} />
