@@ -25,6 +25,12 @@ import zenIndraprastha4 from '../assets/Zen Indraprastha/4.jpg';
 import zenIndraprastha5 from '../assets/Zen Indraprastha/5.jpg';
 import zenIndraprastha6 from '../assets/Zen Indraprastha/6.jpg';
 import zenIndraprastha7 from '../assets/Zen Indraprastha/7.jpg';
+import royalKadhambas1 from '../assets/Royal Kadhambas/1.png';
+import royalKadhambas2 from '../assets/Royal Kadhambas/2.png';
+import royalKadhambas3 from '../assets/Royal Kadhambas/3.png';
+import royalKadhambas4 from '../assets/Royal Kadhambas/4.png';
+import royalKadhambas5 from '../assets/Royal Kadhambas/5.png';
+import royalKadhambas6 from '../assets/Royal Kadhambas/6.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -63,6 +69,15 @@ export const ZEN_INDRAPRASTHA_IMAGES = [
   zenIndraprastha5,
   zenIndraprastha6,
   zenIndraprastha7,
+];
+
+export const ROYAL_KADHAMBAS_IMAGES = [
+  royalKadhambas1,
+  royalKadhambas2,
+  royalKadhambas3,
+  royalKadhambas4,
+  royalKadhambas5,
+  royalKadhambas6,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -320,7 +335,7 @@ export const dummyProperties = [
     possession: 'Ready for registration & construction',
     approval: 'BMRDA Approved',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: ROYAL_KADHAMBAS_IMAGES,
     loanApproved: false,
   },
   {
