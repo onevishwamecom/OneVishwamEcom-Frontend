@@ -31,6 +31,9 @@ import royalKadhambas3 from '../assets/Royal Kadhambas/3.png';
 import royalKadhambas4 from '../assets/Royal Kadhambas/4.png';
 import royalKadhambas5 from '../assets/Royal Kadhambas/5.png';
 import royalKadhambas6 from '../assets/Royal Kadhambas/6.png';
+import goldenCity1 from '../assets/Golden City/1.png';
+import goldenCity2 from '../assets/Golden City/2.png';
+import goldenCity3 from '../assets/Golden City/3.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -78,6 +81,12 @@ export const ROYAL_KADHAMBAS_IMAGES = [
   royalKadhambas4,
   royalKadhambas5,
   royalKadhambas6,
+];
+
+export const GOLDEN_CITY_IMAGES = [
+  goldenCity1,
+  goldenCity2,
+  goldenCity3,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -302,7 +311,7 @@ export const dummyProperties = [
     possession: 'Ready for registration & construction',
     approval: 'BMRDA Approved',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: GOLDEN_CITY_IMAGES,
     loanApproved: false,
   },
   {
