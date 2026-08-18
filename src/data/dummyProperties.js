@@ -1,3 +1,7 @@
+const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f3f4f6"/><path fill="#9ca3af" d="M300 260h200v-30l-100-100-100 100v30zm-50 130h300v-150l-100-100-200 200v50z"/></svg>`
+);
+
 export const dummyProperties = [
   {
     id: 1,
@@ -9,9 +13,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '40 Acres',
     bhk: '5 & 10 Guntas',
-    possession: 'Immediate',
-    approval: 'Farm Approval',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -24,10 +27,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '102 Units',
     bhk: '3 & 4 BHK',
-    possession: 'Handover by 2028 Dec',
-    approval: 'RERA',
-    videoUrl: 'https://youtu.be/QWm0C_BkEcE?si=M_6GfcHrjVSJLotY',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -40,9 +41,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '150 Units',
     bhk: '1, 2, 3, 4 BHK',
-    possession: 'Handover by 2029-2030',
-    approval: 'RERA',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -55,9 +55,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '400 Units',
     bhk: '2, 3, 4 BHK',
-    possession: 'Handover by 2029',
-    approval: 'RERA',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -70,10 +69,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '200 Units',
     bhk: '300-500 Sq.ft',
-    possession: 'Handover by 2029 May',
-    approval: 'RERA',
-    videoUrl: 'WhatsApp Video 2026-08-11 at 12.48.29.mp4',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -86,10 +83,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '70 Sites',
     bhk: '30x40, odd',
-    possession: 'Immediate position',
-    approval: 'DTCP',
-    videoUrl: 'WhatsApp Video 2026-08-12 at 16.26.49.mp4',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -102,10 +97,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '75 Sites',
     bhk: '1200-1800 Sq.ft',
-    possession: 'Immediate position',
-    approval: 'DTCP',
-    videoUrl: 'WhatsApp Video 2026-08-12 at 16.03.51.mp4',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -118,9 +111,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '4+4 Acres',
     bhk: 'EOI',
-    possession: 'EOI looking for investors',
-    approval: 'EOI',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -133,10 +125,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '49 Units',
     bhk: '2-3 BHK',
-    possession: 'Handover by 2028',
-    approval: 'RERA',
-    videoUrl: 'WhatsApp Video 2026-08-13 at 10.38.32.mp4',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -149,9 +139,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '100 Units',
     bhk: '1 BHK',
-    possession: 'Handover by 2029 May',
-    approval: 'EOI',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
   {
@@ -164,10 +153,8 @@ export const dummyProperties = [
     city: 'bengaluru',
     area: '40 Units',
     bhk: '2-3 BHK',
-    possession: 'Handover by 2027',
-    approval: 'RERA',
-    videoUrl: 'WhatsApp Video 2026-08-16 at 14.41.25.mp4',
     status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: false,
   },
 ];
