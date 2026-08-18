@@ -6,6 +6,10 @@ import nexonTravenza5 from '../assets/NexonTravenza/5.png';
 import nexonTravenza6 from '../assets/NexonTravenza/6.png';
 import nexonTravenza7 from '../assets/NexonTravenza/7.png';
 import nexonTravenza8 from '../assets/NexonTravenza/8.png';
+import axisNiran1 from '../assets/Axis Niran/1.png';
+import axisNiran2 from '../assets/Axis Niran/2.png';
+import axisNiran3 from '../assets/Axis Niran/3.png';
+import axisNiran4 from '../assets/Axis Niran/4.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -16,6 +20,13 @@ export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza6,
   nexonTravenza7,
   nexonTravenza8,
+];
+
+export const AXIS_NIRAN_IMAGES = [
+  axisNiran1,
+  axisNiran2,
+  axisNiran3,
+  axisNiran4,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -169,7 +180,7 @@ export const dummyProperties = [
     approval: 'RERA',
     videoUrl: 'WhatsApp Video 2026-08-13 at 10.38.32.mp4',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: AXIS_NIRAN_IMAGES,
     loanApproved: false,
   },
   {
