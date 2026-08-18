@@ -12,6 +12,7 @@ import { financeServices as rawFinanceServices } from '../../data/dummyFinanceSe
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
+import { PROPERTIES_ONLY } from '../../config/appConfig';
 
 const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Beverages', 'Packaged Foods', 'Spices'];
 
@@ -66,14 +67,18 @@ function Home() {
                 <i className="fa-solid fa-house-chimney text-brand-blue text-sm" />
                 <span className="font-semibold text-brand-charcoal">{dummyProperties.length}</span> properties added today
               </span>
-              <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                <i className="fa-solid fa-car text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{dummyAutomobiles.length}</span> vehicles added today
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                <i className="fa-solid fa-box text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{foodGrocery.length + dummyGrocery.length}</span> products added today
-              </span>
+              {!PROPERTIES_ONLY && (
+                <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
+                  <i className="fa-solid fa-car text-brand-blue text-sm" />
+                  <span className="font-semibold text-brand-charcoal">{dummyAutomobiles.length}</span> vehicles added today
+                </span>
+              )}
+              {!PROPERTIES_ONLY && (
+                <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
+                  <i className="fa-solid fa-box text-brand-blue text-sm" />
+                  <span className="font-semibold text-brand-charcoal">{foodGrocery.length + dummyGrocery.length}</span> products added today
+                </span>
+              )}
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                 <i className="fa-solid fa-users text-brand-blue text-sm" />
                 <span className="font-semibold text-brand-charcoal">250+</span> people visited today
@@ -140,6 +145,7 @@ function Home() {
         </section>
 
         {/* ── Module 2: Vehicles Corner ── */}
+        {!PROPERTIES_ONLY && (
         <section className="pt-14 sm:pt-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex items-end justify-between">
@@ -188,8 +194,10 @@ function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ── Module 3: Finance & Loan Services ── */}
+        {!PROPERTIES_ONLY && (
         <section className="pt-14 sm:pt-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex items-end justify-between">
@@ -243,8 +251,10 @@ function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ── Module 4: People Are Buying ── */}
+        {!PROPERTIES_ONLY && (
         <section className="mt-14 sm:mt-16 bg-gradient-to-br from-white to-gray-50 py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto">
@@ -312,6 +322,7 @@ function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ── Module 4: Fresh Arrivals ── */}
         <section className="pt-14 sm:pt-16">
@@ -343,42 +354,46 @@ function Home() {
                   </div>
                 </Link>
               ))}
-              {dummyAutomobiles.slice(5, 6).map((v) => (
-                <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  <div className="p-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
-                      <i className="fa-solid fa-clock" /> Added Today
-                    </span>
-                    <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
-                    <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
-                    <p className="text-xs text-gray-500 mt-1">{v.location} · {v.fuelType} · {v.year}</p>
-                  </div>
-                </Link>
-              ))}
-              {dummyGarments.slice(5, 6).map((g) => (
-                <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img src={g.images[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  <div className="p-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">
-                      <i className="fa-solid fa-clock" /> Added Yesterday
-                    </span>
-                    <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className="text-sm font-bold text-brand-blue">{g.finalPrice}</span>
-                      <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
-                      <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || ''} · {g.category}</p>
-                  </div>
-                </Link>
-              ))}
+              {!PROPERTIES_ONLY && (
+                <>
+                  {dummyAutomobiles.slice(5, 6).map((v) => (
+                    <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
+                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
+                      <div className="aspect-[16/9] overflow-hidden">
+                        <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      <div className="p-3">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
+                          <i className="fa-solid fa-clock" /> Added Today
+                        </span>
+                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
+                        <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
+                        <p className="text-xs text-gray-500 mt-1">{v.location} · {v.fuelType} · {v.year}</p>
+                      </div>
+                    </Link>
+                  ))}
+                  {dummyGarments.slice(5, 6).map((g) => (
+                    <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
+                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
+                      <div className="aspect-[16/9] overflow-hidden">
+                        <img src={g.images[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      <div className="p-3">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">
+                          <i className="fa-solid fa-clock" /> Added Yesterday
+                        </span>
+                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice}</span>
+                          <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
+                          <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || ''} · {g.category}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -402,7 +417,7 @@ function Home() {
                 { icon: 'fa-basket-shopping', label: 'Groceries', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
                 { icon: 'fa-building-columns', label: 'Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
                 { icon: 'fa-wrench', label: 'Services', desc: 'Find services near you', href: '/our-services/' },
-              ].map((item) => (
+              ].filter((t) => !PROPERTIES_ONLY || t.label === 'Houses & Land').map((item) => (
                 <Link key={item.label}
                   to={item.href}
                   className="group rounded-xl border border-gray-100 bg-white p-3 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all w-[46vw] lg:w-auto shrink-0 snap-start block"
@@ -451,45 +466,49 @@ function Home() {
                   </div>
                 )
               ))}
-              {dummyAutomobiles.slice(3, 5).map((v) => (
-                <div key={`near-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/vehicle/${v.id}`}
-                    image={v.images[0]}
-                    alt={`${v.brand} ${v.model}`}
-                    title={`${v.brand} ${v.model}`}
-                    price={v.price}
-                    location={v.location}
-                    tags={[v.fuelType]}
-                  />
-                </div>
-              ))}
-              {foodGrocery.slice(2, 4).map((g) => (
-                <div key={`near-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit}
-                    priceSuffix={`/ ${g.unit}`}
-                    location={`${g.location?.area || ''}`}
-                  />
-                </div>
-              ))}
-              {dummyGarments.slice(2, 3).map((g) => (
-                <div key={`near-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/garment/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={`${g.brand} ${g.name}`}
-                    price={g.finalPrice}
-                    location={g.store?.city || ''}
-                    badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
-                  />
-                </div>
-              ))}
+              {!PROPERTIES_ONLY && (
+                <>
+                  {dummyAutomobiles.slice(3, 5).map((v) => (
+                    <div key={`near-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/vehicle/${v.id}`}
+                        image={v.images[0]}
+                        alt={`${v.brand} ${v.model}`}
+                        title={`${v.brand} ${v.model}`}
+                        price={v.price}
+                        location={v.location}
+                        tags={[v.fuelType]}
+                      />
+                    </div>
+                  ))}
+                  {foodGrocery.slice(2, 4).map((g) => (
+                    <div key={`near-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/grocery/${g.id}`}
+                        image={g.images[0]}
+                        alt={g.name}
+                        title={g.name}
+                        price={g.pricePerUnit}
+                        priceSuffix={`/ ${g.unit}`}
+                        location={`${g.location?.area || ''}`}
+                      />
+                    </div>
+                  ))}
+                  {dummyGarments.slice(2, 3).map((g) => (
+                    <div key={`near-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/garment/${g.id}`}
+                        image={g.images[0]}
+                        alt={g.name}
+                        title={`${g.brand} ${g.name}`}
+                        price={g.finalPrice}
+                        location={g.store?.city || ''}
+                        badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -520,46 +539,50 @@ function Home() {
                   />
                 </div>
               ))}
-              {dummyAutomobiles.slice(1, 3).map((v) => (
-                <div key={`deal-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/vehicle/${v.id}`}
-                    image={v.images[0]}
-                    alt={`${v.brand} ${v.model}`}
-                    title={`${v.brand} ${v.model}`}
-                    price={v.price}
-                    location={v.location}
-                    badges={[{ label: v.id % 2 === 0 ? 'Hot Deal' : 'Recommended', className: v.id % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {dummyGarments.slice(0, 2).map((g) => (
-                <div key={`deal-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/garment/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={`${g.brand} ${g.name}`}
-                    price={g.finalPrice}
-                    location={g.store?.city || ''}
-                    badges={[{ label: 'Recommended', className: 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {foodGrocery.slice(0, 2).map((g) => (
-                <div key={`deal-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit}
-                    priceSuffix={`/ ${g.unit}`}
-                    location={`${g.location?.area || ''}`}
-                    badges={[{ label: g.organic ? 'Great Price' : 'Hot Deal', className: g.organic ? 'bg-red-500 text-white' : 'bg-rose-500 text-white' }]}
-                  />
-                </div>
-              ))}
+              {!PROPERTIES_ONLY && (
+                <>
+                  {dummyAutomobiles.slice(1, 3).map((v) => (
+                    <div key={`deal-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/vehicle/${v.id}`}
+                        image={v.images[0]}
+                        alt={`${v.brand} ${v.model}`}
+                        title={`${v.brand} ${v.model}`}
+                        price={v.price}
+                        location={v.location}
+                        badges={[{ label: v.id % 2 === 0 ? 'Hot Deal' : 'Recommended', className: v.id % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
+                      />
+                    </div>
+                  ))}
+                  {dummyGarments.slice(0, 2).map((g) => (
+                    <div key={`deal-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/garment/${g.id}`}
+                        image={g.images[0]}
+                        alt={g.name}
+                        title={`${g.brand} ${g.name}`}
+                        price={g.finalPrice}
+                        location={g.store?.city || ''}
+                        badges={[{ label: 'Recommended', className: 'bg-amber-500 text-white' }]}
+                      />
+                    </div>
+                  ))}
+                  {foodGrocery.slice(0, 2).map((g) => (
+                    <div key={`deal-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                      <ProductCard
+                        link={`/grocery/${g.id}`}
+                        image={g.images[0]}
+                        alt={g.name}
+                        title={g.name}
+                        price={g.pricePerUnit}
+                        priceSuffix={`/ ${g.unit}`}
+                        location={`${g.location?.area || ''}`}
+                        badges={[{ label: g.organic ? 'Great Price' : 'Hot Deal', className: g.organic ? 'bg-red-500 text-white' : 'bg-rose-500 text-white' }]}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </section>

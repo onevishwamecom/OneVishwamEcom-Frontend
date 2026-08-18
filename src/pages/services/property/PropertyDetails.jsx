@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
+import { contactInfo } from '../../../data/footerContent';
+import EnquiryModal from '../../../components/EnquiryModal';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -199,6 +201,7 @@ function PropertyDetails() {
   const [showLoanBanner, setShowLoanBanner] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
   const similarRef = useRef(null);
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
@@ -251,6 +254,8 @@ function PropertyDetails() {
       </div>
     );
   }
+
+  const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title}.`)}`;
 
   const renderAmenityCard = (amenity) => {
     const icon = AMENITY_ICONS[amenity] || 'fa-star';
@@ -379,19 +384,11 @@ function PropertyDetails() {
               {/* Primary CTAs */}
               <div className="space-y-2 pt-2">
                 <div className="grid grid-cols-2 gap-2">
-                  <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
-                    <i className="fa-solid fa-phone" /> Call Owner
-                  </a>
-                  <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
-                    <i className="fa-brands fa-whatsapp" /> WhatsApp
-                  </a>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="flex items-center justify-center gap-2 rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-2.5 text-xs font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-calendar-check" /> Schedule Visit
-                  </button>
-                  <a href={`/contact-us/${loanCtaParams}`} className="flex items-center justify-center gap-2 rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-2.5 text-xs font-semibold hover:bg-brand-blue/5 transition-colors">
+                  <button onClick={() => setEnquiryOpen(true)} className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
                     <i className="fa-solid fa-paper-plane" /> Enquire Now
+                  </button>
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
+                    <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
                 </div>
               </div>
@@ -575,15 +572,12 @@ function PropertyDetails() {
                       <span><span className="font-bold text-emerald-600">&lt; 5 min</span> Response</span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center gap-1.5 rounded-lg bg-brand-blue text-white px-4 py-2 text-xs font-semibold hover:bg-brand-navy transition-colors">
-                        <i className="fa-solid fa-phone" /> Call
-                      </a>
-                      <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-xs font-semibold hover:bg-emerald-700 transition-colors">
+                      <button onClick={() => setEnquiryOpen(true)} className="flex items-center gap-1.5 rounded-lg bg-brand-blue text-white px-4 py-2 text-xs font-semibold hover:bg-brand-navy transition-colors">
+                        <i className="fa-solid fa-paper-plane" /> Enquire Now
+                      </button>
+                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-xs font-semibold hover:bg-emerald-700 transition-colors">
                         <i className="fa-brands fa-whatsapp" /> WhatsApp
                       </a>
-                      <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                        View Profile
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -679,18 +673,12 @@ function PropertyDetails() {
                 <p className="text-xs text-gray-500 mb-4">Take the next step towards your dream property.</p>
 
                 <div className="space-y-2">
-                  <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
-                    <i className="fa-solid fa-phone" /> Call Owner
-                  </a>
-                  <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
+                  <button onClick={() => setEnquiryOpen(true)} className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
+                    <i className="fa-solid fa-paper-plane" /> Enquire Now
+                  </button>
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
-                  <button className="flex items-center justify-center gap-2 w-full rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-3 text-sm font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-calendar-check" /> Book a Visit
-                  </button>
-                  <button className="flex items-center justify-center gap-2 w-full rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-3 text-sm font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-phone-volume" /> Request Callback
-                  </button>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3">
@@ -753,10 +741,10 @@ function PropertyDetails() {
       {/* ─── MOBILE STICKY BOTTOM BAR ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
-          <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue text-white py-3 text-xs font-bold">
-            <i className="fa-solid fa-phone" /> Call
-          </a>
-          <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
+          <button onClick={() => setEnquiryOpen(true)} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue text-white py-3 text-xs font-bold">
+            <i className="fa-solid fa-paper-plane" /> Enquire Now
+          </button>
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
             <i className="fa-brands fa-whatsapp" /> WhatsApp
           </a>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
@@ -797,6 +785,8 @@ function PropertyDetails() {
 
       {/* Remove mobile bottom padding since sticky bar overlaps */}
       {!showLoanBanner && <div className="h-20 lg:hidden" />}
+
+      <EnquiryModal open={enquiryOpen} onClose={() => setEnquiryOpen(false)} propertyTitle={property.title} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cities, getCityLabel } from '../../data/locations';
 import { useLocation } from '../../store/locationSlice';
+import { PROPERTIES_ONLY } from '../../config/appConfig';
 
 const categoryCards = [
   { icon: 'fa-solid fa-house-chimney', label: 'Real Estate', bg: 'bg-blue-100', iconColor: 'text-blue-600', href: '/our-services/real-estate-property' },
@@ -36,19 +37,21 @@ function HeroSection({ searchQuery, setSearchQuery }) {
         <div className="mx-auto max-w-3xl text-center">
 
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
-            Find Anything You Need{' '}
+            Find Your Dream Home{' '}
             <span className="text-yellow-400">Near You</span>
           </h1>
 
           <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
-            Find houses, cars, jewellery, jobs, services, and more near you. See what is available or share your item.
+            {PROPERTIES_ONLY
+              ? 'Houses, plots, apartments and rental homes near you. See what is available or share your property.'
+              : 'Find houses, cars, jewellery, jobs, services, and more near you. See what is available or share your item.'}
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/our-services/"
+            <Link to={PROPERTIES_ONLY ? "/our-services/real-estate-property" : "/our-services/"}
               className="inline-flex items-center justify-center gap-2 bg-yellow-400 text-brand-navy px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-yellow-300 transition-colors whitespace-nowrap"
             >
-              <i className="fa-solid fa-list" /> See Available Items
+              <i className="fa-solid fa-list" /> {PROPERTIES_ONLY ? 'See Available Properties' : 'See Available Items'}
             </Link>
           </div>
 
@@ -87,7 +90,7 @@ function HeroSection({ searchQuery, setSearchQuery }) {
 
           <div className="mt-10">
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-              {categoryCards.map((cat) => (
+              {categoryCards.filter((cat) => !PROPERTIES_ONLY || cat.label === 'Real Estate').map((cat) => (
                 <Link key={cat.label} to={cat.href}
                   className={`flex flex-col items-center gap-2 ${cat.bg} rounded-2xl px-3 py-5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer`}
                 >

@@ -34,3 +34,12 @@ export const footerLocations = [
   { label: 'Phone', value: '99005 74214' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
+
+export const contactInfo = {
+  brandName: 'One Vishwam',
+  phoneDisplay: '+91 93648 62542',
+  phoneRaw: '9364862542',
+  phoneTel: '+919364862542',
+  whatsapp: '919364862542',
+  email: 'ceo@onevishwam.com',
+};

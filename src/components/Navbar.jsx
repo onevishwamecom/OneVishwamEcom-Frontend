@@ -4,6 +4,7 @@ import { navLinks } from '../data/siteContent';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
+import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 
 function Navbar() {
@@ -15,6 +16,10 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
+
+  const visibleNavLinks = PROPERTIES_ONLY
+    ? navLinks.filter((l) => l.id === 'home' || l.id === 'properties')
+    : navLinks;
 
   const showDropdown = useCallback((name) => {
     if (closeTimerRef.current) {
@@ -145,7 +150,7 @@ function Navbar() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
-              {navLinks.map((link) => {
+              {visibleNavLinks.map((link) => {
                 const active = isActive(link);
                 if (link.submenu) {
                   return (
@@ -306,7 +311,7 @@ function Navbar() {
         </div>
 
         <nav className="p-4 space-y-1">
-          {navLinks.map((link) => (
+          {visibleNavLinks.map((link) => (
             <div key={link.id}>
               <Link to={link.href} onClick={() => setMenuOpen(false)}
                 className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
