@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { serviceItems } from '../../data/servicesContent';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
@@ -10,6 +9,7 @@ import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
 import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
+import { hasPropertyImages, getPropertyCoverImage } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
@@ -25,34 +25,82 @@ function Home() {
   const { properties: dummyProperties } = useProperties();
   const [financeServices] = useState(() => rawFinanceServices.map(s => ({ ...s, id: s.id })));
 
-  const filteredServices = [
-    ...serviceItems,
-    ...financeServices.map((s) => ({
-      id: `finance-${s.id}`,
-      title: s.serviceName,
-      description: `${s.companyName} — ${s.category}`,
-      image: s.banner,
-      href: `/finance-service/${s.id}`,
-      icon: 'fa-building-columns',
-    })),
-  ].filter((s) =>
-    s.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const foodGrocery = dummyGrocery.filter((g) => FOOD_CATEGORIES.includes(g.category));
   const heroProp = dummyProperties[0];
   const locationName = selectedCity ? getCityLabel(selectedCity) : 'Your Area';
 
+  /* ── Property helpers: images-first priority, best cover image ── */
+  const sortPropertiesImagesFirst = (list) =>
+    [...list].sort((a, b) => {
+      const aImg = hasPropertyImages(a) ? 1 : 0;
+      const bImg = hasPropertyImages(b) ? 1 : 0;
+      if (aImg !== bImg) return bImg - aImg;
+      return b.id - a.id;
+    });
+
+  const todayListed = useMemo(
+    () => sortPropertiesImagesFirst(dummyProperties.filter((p) => p.recentlyAdded)).slice(0, 3),
+    [dummyProperties],
+  );
+  const availableNearYou = useMemo(
+    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 6),
+    [dummyProperties],
+  );
+  const dreamHomes = useMemo(
+    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 5),
+    [dummyProperties],
+  );
+
+  const propertyResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const matched = dummyProperties.filter((p) =>
+      [p.title, p.subtitle, p.location, p.bhk, p.area, p.propertyType]
+        .filter(Boolean)
+        .some((f) => String(f).toLowerCase().includes(q)),
+    );
+    return sortPropertiesImagesFirst(matched).slice(0, 6);
+  }, [searchQuery, dummyProperties]);
+
   return (
-    <div>
+    <div className='sm:pt-16'>
       <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {searchQuery && (
         <section className="border-b bg-gray-50">
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-            <p className="text-sm text-gray-500">
-              {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found for "<strong>{searchQuery}</strong>"
-            </p>
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <p className="text-sm text-gray-600">
+                {propertyResults.length} propert{propertyResults.length === 1 ? 'y' : 'ies'} found for "<strong>{searchQuery}</strong>"
+              </p>
+              {propertyResults.length > 0 && (
+                <Link to={`/our-services/real-estate-property?q=${encodeURIComponent(searchQuery)}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:underline">
+                  View All Results <i className="fa-solid fa-arrow-right text-[10px]" />
+                </Link>
+              )}
+            </div>
+            {propertyResults.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
+                {propertyResults.map((p) => (
+                  <div key={p.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                    <ProductCard
+                      link={`/property/${p.id}`}
+                      image={getPropertyCoverImage(p)}
+                      alt={p.title}
+                      title={p.title}
+                      price={p.price}
+                      location={p.location}
+                      tags={[p.bhk || '', p.area || ''].filter(Boolean)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">
+                No properties match "<strong>{searchQuery}</strong>". Try a different search.
+              </p>
+            )}
           </div>
         </section>
       )}
@@ -65,7 +113,7 @@ function Home() {
             <div className="flex items-center justify-between gap-6 overflow-x-auto py-3.5 text-xs sm:text-sm flex-nowrap scrollbar-thin">
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                 <i className="fa-solid fa-house-chimney text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{dummyProperties.length}</span> properties added today
+                <span className="font-semibold text-brand-charcoal">{dummyProperties.filter((p) => p.recentlyAdded).length}</span> properties added today
               </span>
               {!PROPERTIES_ONLY && (
                 <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
@@ -113,11 +161,11 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
-              {dummyProperties.slice(0, 5).map((p) => (
+              {dreamHomes.map((p) => (
                 <div key={p.id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id}`}
-                    image={p.images[0]}
+                    image={getPropertyCoverImage(p)}
                     alt={p.title}
                     title={p.title}
                     price={p.price}
@@ -338,19 +386,19 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3">
-              {dummyProperties.slice(0, 1).map((p) => (
+              {todayListed.map((p) => (
                 <Link key={`fresh-prop-${p.id}`} to={`/property/${p.id}`}
                   className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
                   <div className="aspect-[16/9] overflow-hidden">
-                    <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-3">
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      <i className="fa-solid fa-clock" /> Added 2 hours ago
+                      <i className="fa-solid fa-clock" /> Added Today
                     </span>
                     <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
                     <p className="text-sm font-semibold text-brand-blue">{p.price} {p.priceSuffix}</p>
-                    <p className="text-xs text-gray-500 mt-1">{p.location} · {p.bhk} · {p.furnishing}</p>
+                    <p className="text-xs text-gray-500 mt-1">{p.location} · {p.bhk} · {p.area}</p>
                   </div>
                 </Link>
               ))}
@@ -399,7 +447,7 @@ function Home() {
         </section>
 
         {/* ── Module 5: Category Selection ── */}
-        <section className="mt-14 sm:mt-16 bg-white py-14 sm:py-16">
+        {/* <section className="mt-14 sm:mt-16 bg-white py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto">
               <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
@@ -434,7 +482,7 @@ function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ── Module 6: Available Near You ── */}
         <section className="pt-14 sm:pt-16">
@@ -450,21 +498,19 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
-              {[{ item: dummyProperties[1], type: 'property' }, { item: dummyProperties[2], type: 'property' }].map(({ item }) => (
-                item && (
-                  <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                    <ProductCard
-                      link={`/property/${item.id}`}
-                      image={item.images[0]}
-                      alt={item.title}
-                      title={item.title}
-                      price={item.price}
-                      priceSuffix={item.priceSuffix}
-                      location={item.location}
-                      tags={[item.bhk || '']}
-                    />
-                  </div>
-                )
+              {availableNearYou.map((item) => (
+                <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  <ProductCard
+                    link={`/property/${item.id}`}
+                    image={getPropertyCoverImage(item)}
+                    alt={item.title}
+                    title={item.title}
+                    price={item.price}
+                    priceSuffix={item.priceSuffix}
+                    location={item.location}
+                    tags={[item.bhk || '']}
+                  />
+                </div>
               ))}
               {!PROPERTIES_ONLY && (
                 <>
@@ -514,7 +560,7 @@ function Home() {
         </section>
 
         {/* ── Module 7: Best Deals ── */}
-        <section className="mt-14 sm:mt-16 bg-gradient-to-br from-rose-50 to-orange-50 py-14 sm:py-16">
+        {/* <section className="mt-14 sm:mt-16 bg-gradient-to-br from-rose-50 to-orange-50 py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto">
               <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
@@ -585,7 +631,7 @@ function Home() {
               )}
             </div>
           </div>
-        </section>
+        </section> */}
 
       </div>
     </div>

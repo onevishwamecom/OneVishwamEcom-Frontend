@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
 import { contactInfo } from '../../../data/footerContent';
+import { navigateTo } from '../../../config/navigation';
+import { getPropertyCoverImage } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
@@ -76,7 +78,7 @@ function PropertyCard({ property }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
   if (!property) return null;
-  const imgSrc = resolveImage(property.images?.[0] || property.image);
+  const imgSrc = resolveImage(getPropertyCoverImage(property));
   return (
     <div className="w-[190px] sm:w-[260px] lg:w-[280px] flex-shrink-0 snap-start">
       <div onClick={() => navigateTo(`/property/${property._id || property.id}`)}
@@ -132,7 +134,9 @@ function PropertyDetails() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [detailSearch, setDetailSearch] = useState('');
   const similarRef = useRef(null);
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
@@ -148,6 +152,19 @@ function PropertyDetails() {
     : [];
 
   useEffect(() => { window.scrollTo(0, 0); }, [propertySlug]);
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigateTo('/our-services/real-estate-property');
+  };
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    const q = detailSearch.trim();
+    navigateTo(q
+      ? `/our-services/real-estate-property?q=${encodeURIComponent(q)}`
+      : '/our-services/real-estate-property');
+  };
 
   const loanCtaParams = property
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
@@ -222,33 +239,62 @@ function PropertyDetails() {
       {/* ─── HERO SECTION ─── */}
       <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 sm:pt-16">
-          <button onClick={() => navigateTo('/our-services/real-estate-property')}
-            className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors">
-            <i className="fa-solid fa-arrow-left" /> Back to Properties
-          </button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <button onClick={goBack}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors shrink-0">
+              <i className="fa-solid fa-arrow-left" /> Back to Properties
+            </button>
+
+            {/* Details page search bar — consistent with the listing/home experience */}
+            <form onSubmit={submitSearch} className="relative flex-1 w-full sm:max-w-md">
+              <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+              <input
+                type="text"
+                value={detailSearch}
+                onChange={(e) => setDetailSearch(e.target.value)}
+                placeholder="Search properties by name, location or type…"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-brand-blue focus:bg-white focus:ring-2 focus:ring-brand-blue/10 transition-all"
+              />
+              <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
+                Search
+              </button>
+            </form>
+          </div>
 
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => setGalleryOpen(true)}>
-                <img src={resolveImage(property.images[currentImageIndex])} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group cursor-pointer" onClick={() => setGalleryOpen(true)}>
+                <img
+                  key={currentImageIndex}
+                  src={resolveImage(property.images[currentImageIndex])}
+                  alt={property.title}
+                  className="gallery-fade h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+                />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
                   <i className="fa-solid fa-chevron-left" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
                   <i className="fa-solid fa-chevron-right" />
                 </button>
-                <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
                   <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
+                </div>
+                <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                  <i className="fa-solid fa-magnifying-glass-plus mr-1" /> Click to view
                 </div>
               </div>
               {property.images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
+                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
                   {property.images.map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
-                      className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${idx === currentImageIndex ? 'border-brand-blue ring-2 ring-brand-blue/20' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                      <img src={resolveImage(img)} alt="" className="h-full w-full object-cover" />
+                      className={`relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all duration-200 ${
+                        idx === currentImageIndex
+                          ? 'border-brand-blue ring-2 ring-brand-blue/25 shadow-md scale-[1.02]'
+                          : 'border-transparent opacity-70 hover:opacity-100 hover:border-gray-300'
+                      }`}>
+                      <img src={resolveImage(img)} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>

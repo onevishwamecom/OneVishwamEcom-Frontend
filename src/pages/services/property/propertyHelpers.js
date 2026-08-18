@@ -84,3 +84,24 @@ export function getStatusBadge(property) {
 export function getListedWithinDays(property) {
   return property.recentlyAdded ? 0 : 30;
 }
+
+/**
+ * True when a property has at least one real (non-placeholder) image.
+ * Used to show properties-with-images first across listings.
+ */
+export function hasPropertyImages(property) {
+  return Array.isArray(property.images) &&
+    property.images.some((src) => src && !src.startsWith('data:'));
+}
+
+/**
+ * Best available cover image: prefers a real property/building image,
+ * falls back to the first entry, then to a legacy single `image` field.
+ */
+export function getPropertyCoverImage(property) {
+  if (Array.isArray(property.images)) {
+    return property.images.find((src) => src && !src.startsWith('data:')) ||
+      property.images[0] || '';
+  }
+  return property.image || '';
+}

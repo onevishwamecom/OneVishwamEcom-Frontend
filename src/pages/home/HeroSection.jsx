@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cities, getCityLabel } from '../../data/locations';
 import { useLocation } from '../../store/locationSlice';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
@@ -18,6 +18,15 @@ function HeroSection({ searchQuery, setSearchQuery }) {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const cityDropdownRef = useRef(null);
   const { selectedCity, selectCity: setLocationCity } = useLocation();
+  const navigate = useNavigate();
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    navigate(q
+      ? `/our-services/real-estate-property?q=${encodeURIComponent(q)}`
+      : '/our-services/real-estate-property');
+  };
 
   useEffect(() => {
     if (!showCityDropdown) return;
@@ -56,13 +65,16 @@ function HeroSection({ searchQuery, setSearchQuery }) {
           </div>
 
           <div className="mt-10 flex flex-col sm:flex-row items-stretch gap-3 max-w-2xl mx-auto">
-            <div className="relative flex-1">
+            <form onSubmit={submitSearch} className="relative flex-1">
               <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="What are you looking for?"
-                className="w-full rounded-xl border-0 pl-11 pr-4 py-3.5 text-sm shadow-lg focus:ring-2 focus:ring-yellow-400 outline-none"
+                className="w-full rounded-xl border-0 pl-11 pr-12 py-3.5 text-sm shadow-lg focus:ring-2 focus:ring-yellow-400 outline-none"
               />
-            </div>
+              <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg bg-yellow-400 p-2 text-brand-navy hover:bg-yellow-300 transition-colors" aria-label="Search">
+                <i className="fa-solid fa-magnifying-glass" />
+              </button>
+            </form>
             <div className="relative shrink-0" ref={cityDropdownRef}>
               <button
                 onClick={() => setShowCityDropdown(!showCityDropdown)}

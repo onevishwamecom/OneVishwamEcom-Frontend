@@ -516,6 +516,10 @@ export const dummyProperties = [
   },
 ];
 
+dummyProperties.forEach((p) => {
+  if (p.id >= 12) p.recentlyAdded = true;
+});
+
 export const PROPERTY_TYPES = ['Flat', 'House', 'Villa', 'Plot', 'Commercial'];
 export const PROPERTY_CONDITIONS = ['Ready to Move', 'Under Construction', 'Resale'];
 export const FURNISH_TYPES = ['Unfurnished', 'Semi-Furnished', 'Fully Furnished', 'NA'];
