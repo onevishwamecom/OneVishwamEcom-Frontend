@@ -38,6 +38,10 @@ import nambiar1 from '../assets/Nambiar District 25/1.png';
 import nambiar2 from '../assets/Nambiar District 25/2.png';
 import nambiar3 from '../assets/Nambiar District 25/3.png';
 import nambiar4 from '../assets/Nambiar District 25/4.png';
+import dsMaxSamyak1 from '../assets/DS-MAX Samyak/1.png';
+import dsMaxSamyak2 from '../assets/DS-MAX Samyak/2.png';
+import dsMaxSamyak3 from '../assets/DS-MAX Samyak/3.png';
+import dsMaxSamyak4 from '../assets/DS-MAX Samyak/4.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -98,6 +102,13 @@ export const NAMBIAR_IMAGES = [
   nambiar2,
   nambiar3,
   nambiar4,
+];
+
+export const DS_MAX_SAMYAK_IMAGES = [
+  dsMaxSamyak1,
+  dsMaxSamyak2,
+  dsMaxSamyak3,
+  dsMaxSamyak4,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -372,7 +383,7 @@ export const dummyProperties = [
     possession: 'Under Construction',
     approval: 'RERA – PRM/KA/RERA/1251/310/PR/150223/005721',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: DS_MAX_SAMYAK_IMAGES,
     loanApproved: false,
   },
 ];
