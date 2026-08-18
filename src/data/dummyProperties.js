@@ -18,6 +18,13 @@ import axisEktava5 from '../assets/Axis Ektava/5.png';
 import axisEktava6 from '../assets/Axis Ektava/6.png';
 import axisEktava7 from '../assets/Axis Ektava/7.png';
 import axisEktava8 from '../assets/Axis Ektava/8.png';
+import zenIndraprastha1 from '../assets/Zen Indraprastha/1.jpg';
+import zenIndraprastha2 from '../assets/Zen Indraprastha/2.jpg';
+import zenIndraprastha3 from '../assets/Zen Indraprastha/3.jpg';
+import zenIndraprastha4 from '../assets/Zen Indraprastha/4.jpg';
+import zenIndraprastha5 from '../assets/Zen Indraprastha/5.jpg';
+import zenIndraprastha6 from '../assets/Zen Indraprastha/6.jpg';
+import zenIndraprastha7 from '../assets/Zen Indraprastha/7.jpg';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -46,6 +53,16 @@ export const AXIS_EKTAVA_IMAGES = [
   axisEktava6,
   axisEktava7,
   axisEktava8,
+];
+
+export const ZEN_INDRAPRASTHA_IMAGES = [
+  zenIndraprastha1,
+  zenIndraprastha2,
+  zenIndraprastha3,
+  zenIndraprastha4,
+  zenIndraprastha5,
+  zenIndraprastha6,
+  zenIndraprastha7,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -237,7 +254,7 @@ export const dummyProperties = [
     approval: 'RERA',
     videoUrl: 'WhatsApp Video 2026-08-16 at 14.41.25.mp4',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: ZEN_INDRAPRASTHA_IMAGES,
     loanApproved: false,
   },
 ];
