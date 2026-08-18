@@ -198,7 +198,6 @@ function PropertyCard({ property }) {
 function PropertyDetails() {
   const { properties, loading: listLoading } = useProperties();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showLoanBanner, setShowLoanBanner] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
@@ -218,11 +217,6 @@ function PropertyDetails() {
     : [];
 
   useEffect(() => { window.scrollTo(0, 0); }, [propertySlug]);
-  useEffect(() => {
-    if (!property) return;
-    const timer = setTimeout(() => setShowLoanBanner(true), 2000);
-    return () => clearTimeout(timer);
-  }, [property]);
 
   const loanCtaParams = property
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
@@ -756,35 +750,8 @@ function PropertyDetails() {
         </div>
       </div>
 
-      {/* ─── FLOATING LOAN BANNER ─── */}
-      {showLoanBanner && property.loanApproved && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:bottom-4">
-          <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
-            <div className="rounded-xl border border-emerald-200 bg-white shadow-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-3">
-                <i className="fa-solid fa-circle-check text-emerald-500 text-lg" />
-                <div>
-                  <p className="text-sm font-bold text-brand-charcoal">100% Pre-Approved Home Loan at 7%+</p>
-                  <p className="text-xs text-gray-500">Just Click to see qualifying properties</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 sm:ml-auto">
-                <button onClick={() => setShowLoanBanner(false)}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                  Dismiss
-                </button>
-                <a href={`/finance/home-loan${loanCtaParams}`}
-                  className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors">
-                  Just Click →
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Remove mobile bottom padding since sticky bar overlaps */}
-      {!showLoanBanner && <div className="h-20 lg:hidden" />}
+      <div className="h-20 lg:hidden" />
 
       <EnquiryModal open={enquiryOpen} onClose={() => setEnquiryOpen(false)} propertyTitle={property.title} />
     </div>
