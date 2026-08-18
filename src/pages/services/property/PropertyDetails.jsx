@@ -272,11 +272,7 @@ function PropertyDetails() {
                 <span className="text-4xl font-bold text-brand-charcoal">{property.price}</span>
                 {property.priceSuffix && <span className="text-gray-400 text-sm font-medium">{property.priceSuffix}</span>}
               </div>
-
-              <a href={`/finance/home-loan${loanCtaParams}`}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors">
-                <i className="fa-solid fa-calculator" /> Estimate EMI <i className="fa-solid fa-chevron-right text-xs" />
-              </a>
+              {property.priceNote && <p className="mt-1 text-[11px] text-gray-400">{property.priceNote}</p>}
 
               <div className="flex flex-wrap gap-2">
                 {property.bhk && property.bhk !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.bhk}</span>}
@@ -377,7 +373,11 @@ function PropertyDetails() {
                 {[
                   { label: 'Property Type', value: property.propertyType || property.bhk },
                   { label: 'Area', value: property.area },
+                  { label: 'Size', value: property.sizeRange },
                   { label: 'Bedrooms', value: property.bhk },
+                  { label: 'Unit Options', value: property.unitOptions?.join(', ') },
+                  { label: 'EOI Options', value: property.eoiOptions?.join(', ') },
+                  { label: 'Price Range', value: property.priceRange },
                   { label: 'Furnishing', value: property.furnishing },
                   { label: 'Possession', value: property.possession || (property.status === 'available' ? 'Ready to Move' : property.status) },
                   { label: 'Approval', value: property.approval },
