@@ -46,6 +46,7 @@ import urbanForest1 from '../assets/The Urban Forest/1.png';
 import urbanForest2 from '../assets/The Urban Forest/2.png';
 import urbanForest3 from '../assets/The Urban Forest/3.png';
 import urbanForest4 from '../assets/The Urban Forest/4.png';
+import sindhoor1 from '../assets/Sindhoor Nature Pearl/1.jpeg';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -120,6 +121,10 @@ export const URBAN_FOREST_IMAGES = [
   urbanForest2,
   urbanForest3,
   urbanForest4,
+];
+
+export const SINDHOOR_IMAGES = [
+  sindhoor1,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -412,7 +417,7 @@ export const dummyProperties = [
     approval: 'BMRDA Approved',
     contact: '90909 49482',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: SINDHOOR_IMAGES,
     loanApproved: false,
   },
   {
