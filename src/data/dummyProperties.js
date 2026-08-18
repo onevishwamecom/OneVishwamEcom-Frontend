@@ -34,6 +34,10 @@ import royalKadhambas6 from '../assets/Royal Kadhambas/6.png';
 import goldenCity1 from '../assets/Golden City/1.png';
 import goldenCity2 from '../assets/Golden City/2.png';
 import goldenCity3 from '../assets/Golden City/3.png';
+import nambiar1 from '../assets/Nambiar District 25/1.png';
+import nambiar2 from '../assets/Nambiar District 25/2.png';
+import nambiar3 from '../assets/Nambiar District 25/3.png';
+import nambiar4 from '../assets/Nambiar District 25/4.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -87,6 +91,13 @@ export const GOLDEN_CITY_IMAGES = [
   goldenCity1,
   goldenCity2,
   goldenCity3,
+];
+
+export const NAMBIAR_IMAGES = [
+  nambiar1,
+  nambiar2,
+  nambiar3,
+  nambiar4,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -328,7 +339,7 @@ export const dummyProperties = [
     possession: 'Under Construction',
     approval: 'RERA – PRM/KA/RERA/1251/308/PR/260526/008686',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: NAMBIAR_IMAGES,
     loanApproved: false,
   },
   {
