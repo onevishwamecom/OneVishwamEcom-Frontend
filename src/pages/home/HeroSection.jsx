@@ -88,18 +88,20 @@ function HeroSection({ searchQuery, setSearchQuery }) {
             </div>
           </div>
 
-          <div className="mt-10">
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-              {categoryCards.filter((cat) => !PROPERTIES_ONLY || cat.label === 'Real Estate').map((cat) => (
-                <Link key={cat.label} to={cat.href}
-                  className={`flex flex-col items-center gap-2 ${cat.bg} rounded-2xl px-3 py-5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer`}
-                >
-                  <i className={`${cat.icon} text-2xl ${cat.iconColor}`} />
-                  <span className="text-xs font-semibold text-center leading-tight text-gray-800">{cat.label}</span>
-                </Link>
-              ))}
+          {!PROPERTIES_ONLY && (
+            <div className="mt-10">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                {categoryCards.map((cat) => (
+                  <Link key={cat.label} to={cat.href}
+                    className={`flex flex-col items-center gap-2 ${cat.bg} rounded-2xl px-3 py-5 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer`}
+                  >
+                    <i className={`${cat.icon} text-2xl ${cat.iconColor}`} />
+                    <span className="text-xs font-semibold text-center leading-tight text-gray-800">{cat.label}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <p className="mt-10 text-sm text-white/70 max-w-xl mx-auto">
             <i className="fa-solid fa-shield-halved mr-1.5 text-yellow-400/80" />
