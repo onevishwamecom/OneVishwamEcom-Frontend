@@ -42,6 +42,10 @@ import dsMaxSamyak1 from '../assets/DS-MAX Samyak/1.png';
 import dsMaxSamyak2 from '../assets/DS-MAX Samyak/2.png';
 import dsMaxSamyak3 from '../assets/DS-MAX Samyak/3.png';
 import dsMaxSamyak4 from '../assets/DS-MAX Samyak/4.png';
+import urbanForest1 from '../assets/The Urban Forest/1.png';
+import urbanForest2 from '../assets/The Urban Forest/2.png';
+import urbanForest3 from '../assets/The Urban Forest/3.png';
+import urbanForest4 from '../assets/The Urban Forest/4.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -109,6 +113,13 @@ export const DS_MAX_SAMYAK_IMAGES = [
   dsMaxSamyak2,
   dsMaxSamyak3,
   dsMaxSamyak4,
+];
+
+export const URBAN_FOREST_IMAGES = [
+  urbanForest1,
+  urbanForest2,
+  urbanForest3,
+  urbanForest4,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -317,7 +328,7 @@ export const dummyProperties = [
     possession: 'Under Construction',
     approval: 'RERA – PRM/KA/RERA/1251/310/PR/200525/007759',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: URBAN_FOREST_IMAGES,
     loanApproved: false,
   },
   {
