@@ -10,6 +10,14 @@ import axisNiran1 from '../assets/Axis Niran/1.png';
 import axisNiran2 from '../assets/Axis Niran/2.png';
 import axisNiran3 from '../assets/Axis Niran/3.png';
 import axisNiran4 from '../assets/Axis Niran/4.png';
+import axisEktava1 from '../assets/Axis Ektava/1.png';
+import axisEktava2 from '../assets/Axis Ektava/2.png';
+import axisEktava3 from '../assets/Axis Ektava/3.png';
+import axisEktava4 from '../assets/Axis Ektava/4.png';
+import axisEktava5 from '../assets/Axis Ektava/5.png';
+import axisEktava6 from '../assets/Axis Ektava/6.png';
+import axisEktava7 from '../assets/Axis Ektava/7.png';
+import axisEktava8 from '../assets/Axis Ektava/8.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -27,6 +35,17 @@ export const AXIS_NIRAN_IMAGES = [
   axisNiran2,
   axisNiran3,
   axisNiran4,
+];
+
+export const AXIS_EKTAVA_IMAGES = [
+  axisEktava1,
+  axisEktava2,
+  axisEktava3,
+  axisEktava4,
+  axisEktava5,
+  axisEktava6,
+  axisEktava7,
+  axisEktava8,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -113,7 +132,7 @@ export const dummyProperties = [
     approval: 'RERA',
     videoUrl: 'WhatsApp Video 2026-08-11 at 12.48.29.mp4',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: AXIS_EKTAVA_IMAGES,
     loanApproved: false,
   },
   {
