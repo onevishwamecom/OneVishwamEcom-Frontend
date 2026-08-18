@@ -52,6 +52,7 @@ import uniqueEnclave1 from '../assets/Unique Enclave/1.png';
 import uniqueEnclave2 from '../assets/Unique Enclave/2.png';
 import uniqueEnclave3 from '../assets/Unique Enclave/3.png';
 import vinraAlora1 from '../assets/Vinra Alora/1.png';
+import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -144,6 +145,10 @@ export const UNIQUE_ENCLAVE_IMAGES = [
 
 export const VINRA_ALORA_IMAGES = [
   vinraAlora1,
+];
+
+export const VINRA_KBR_PRIME_IMAGES = [
+  vinraKbrPrime1,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -506,7 +511,7 @@ export const dummyProperties = [
     contact: '9663904852',
     contactName: 'Devraj',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: VINRA_KBR_PRIME_IMAGES,
     loanApproved: false,
   },
 ];
