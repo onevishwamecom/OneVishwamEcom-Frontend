@@ -63,7 +63,7 @@ function Home() {
   }, [searchQuery, dummyProperties]);
 
   return (
-    <div className='sm:pt-16'>
+    <div className='pt-16 lg:pt-14'>
       <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       {searchQuery && (

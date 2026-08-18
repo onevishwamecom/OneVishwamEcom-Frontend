@@ -18,7 +18,7 @@ function Navbar() {
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
 
   const visibleNavLinks = PROPERTIES_ONLY
-    ? navLinks.filter((l) => l.id === 'home' || l.id === 'properties')
+    ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties')
     : navLinks;
 
   const showDropdown = useCallback((name) => {
@@ -132,6 +132,8 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
+    if (link.id === 'about') return path.startsWith('/about-us/');
+    if (link.id === 'contact') return path.startsWith('/contact-us/');
     if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
     if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
     if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');

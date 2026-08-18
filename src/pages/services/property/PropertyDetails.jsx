@@ -134,7 +134,6 @@ function PropertyDetails() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
-  const [detailSearch, setDetailSearch] = useState('');
   const similarRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -158,12 +157,24 @@ function PropertyDetails() {
     else navigateTo('/our-services/real-estate-property');
   };
 
-  const submitSearch = (e) => {
-    e.preventDefault();
-    const q = detailSearch.trim();
-    navigateTo(q
-      ? `/our-services/real-estate-property?q=${encodeURIComponent(q)}`
-      : '/our-services/real-estate-property');
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = property?.title || 'OneVishwam Property';
+    const text = `Check out this property: ${title}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') console.warn('Share API failed:', err);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    } catch (e) {
+      prompt('Copy the link manually:', url);
+    }
   };
 
   const loanCtaParams = property
@@ -238,27 +249,12 @@ function PropertyDetails() {
 
       {/* ─── HERO SECTION ─── */}
       <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 sm:pt-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 pt-16 lg:pt-14">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
             <button onClick={goBack}
               className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors shrink-0">
               <i className="fa-solid fa-arrow-left" /> Back to Properties
             </button>
-
-            {/* Details page search bar — consistent with the listing/home experience */}
-            <form onSubmit={submitSearch} className="relative flex-1 w-full sm:max-w-md">
-              <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-              <input
-                type="text"
-                value={detailSearch}
-                onChange={(e) => setDetailSearch(e.target.value)}
-                placeholder="Search properties by name, location or type…"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-brand-blue focus:bg-white focus:ring-2 focus:ring-brand-blue/10 transition-all"
-              />
-              <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
-                Search
-              </button>
-            </form>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-12">
@@ -338,19 +334,22 @@ function PropertyDetails() {
                 <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                   <i className="fa-regular fa-heart" /> Save
                 </button>
-                <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                <button onClick={handleShare} className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                   <i className="fa-solid fa-share-nodes" /> Share
                 </button>
               </div>
 
               {/* Primary CTAs */}
               <div className="space-y-2 pt-2">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button onClick={() => setEnquiryOpen(true)} className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
                     <i className="fa-solid fa-paper-plane" /> Enquire Now
                   </button>
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
+                  </a>
+                  <a href="/contact-us/" className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                    <i className="fa-solid fa-headset" /> Contact Us
                   </a>
                 </div>
               </div>
@@ -477,25 +476,6 @@ function PropertyDetails() {
               </div>
             )}
 
-            {/* Home Loan Section */}
-            <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue p-5 sm:p-6 shadow-sm text-white">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <i className="fa-solid fa-building-columns" /> Need Home Loan?
-              </h2>
-              <p className="mt-1 text-sm text-white/70">Get pre-approved in minutes with our trusted partners.</p>
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <a href={`/finance/home-loan${loanCtaParams}`} className="rounded-xl bg-yellow-400 text-brand-navy px-3 py-2.5 text-xs font-bold text-center hover:bg-yellow-300 transition-colors">
-                  Check Eligibility
-                </a>
-                <a href="/finance/home-loan" className="rounded-xl bg-white/10 backdrop-blur-sm text-white px-3 py-2.5 text-xs font-semibold text-center hover:bg-white/20 transition-colors">
-                  Compare Loans
-                </a>
-                <a href="/contact-us" className="rounded-xl bg-white/10 backdrop-blur-sm text-white px-3 py-2.5 text-xs font-semibold text-center hover:bg-white/20 transition-colors">
-                  Talk to Expert
-                </a>
-              </div>
-            </div>
-
             {/* Brochure Download */}
             {property.brochure && (
               <a href={property.brochure} target="_blank" rel="noopener noreferrer"
@@ -578,13 +558,16 @@ function PropertyDetails() {
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
+                  <a href="/contact-us/" className="flex items-center justify-center gap-2 w-full rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                    <i className="fa-solid fa-headset" /> Contact Us
+                  </a>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3">
                   <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                     <i className="fa-regular fa-heart" /> Save
                   </button>
-                  <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                  <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                     <i className="fa-solid fa-share-nodes" /> Share
                   </button>
                 </div>
@@ -617,10 +600,16 @@ function PropertyDetails() {
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
             <i className="fa-brands fa-whatsapp" /> WhatsApp
           </a>
+          <a href="/contact-us/" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-white py-3 text-xs font-bold">
+            <i className="fa-solid fa-headset" /> Contact Us
+          </a>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
             <i className="fa-regular fa-heart" />
           </button>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
+            <i className="fa-regular fa-heart" />
+          </button>
+          <button onClick={handleShare} className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
             <i className="fa-solid fa-share-nodes" />
           </button>
         </div>

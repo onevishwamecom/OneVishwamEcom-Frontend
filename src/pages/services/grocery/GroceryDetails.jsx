@@ -52,7 +52,7 @@ function GroceryDetails() {
     <div className="pb-24 sm:pb-32">
       {/* ── Gradient Hero ── */}
       <div className="bg-gradient-to-br from-emerald-800 via-emerald-700 to-green-600 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/consumer-marketplace')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Groceries &amp; Daily Needs

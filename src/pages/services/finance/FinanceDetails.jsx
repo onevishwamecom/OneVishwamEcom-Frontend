@@ -73,7 +73,7 @@ function FinanceDetails() {
     <div className="pb-24 sm:pb-32">
       {/* ── Gradient Hero Banner ── */}
       <div className="bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <Link to="/our-services/finance-lending"
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Finance Services

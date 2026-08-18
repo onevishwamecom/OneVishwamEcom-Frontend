@@ -49,7 +49,7 @@ function VehicleDetails() {
   }
 
   return (
-    <div className="pb-24 pt-8 sm:pb-24">
+    <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Link to="/our-services/automobile"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:underline">

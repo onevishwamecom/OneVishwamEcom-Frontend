@@ -67,7 +67,7 @@ function FinanceGallery() {
   const noCityMessage = !filters.city;
 
   return (
-    <div className="pb-24 pt-6 sm:pt-10">
+    <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">

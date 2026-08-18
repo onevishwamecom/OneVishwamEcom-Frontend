@@ -69,9 +69,9 @@ function HeroSection({ searchQuery, setSearchQuery }) {
               <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="What are you looking for?"
-                className="w-full rounded-xl border-0 pl-11 pr-12 py-3.5 text-sm shadow-lg focus:ring-2 focus:ring-yellow-400 outline-none"
+                className="w-full rounded-xl border-0 pl-11 pr-10 py-3.5 text-sm shadow-lg focus:ring-2 focus:ring-yellow-400 outline-none"
               />
-              <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg bg-yellow-400 p-2 text-brand-navy hover:bg-yellow-300 transition-colors" aria-label="Search">
+              <button type="submit" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-brand-blue transition-colors" aria-label="Search">
                 <i className="fa-solid fa-magnifying-glass" />
               </button>
             </form>

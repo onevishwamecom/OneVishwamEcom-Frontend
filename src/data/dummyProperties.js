@@ -34,7 +34,6 @@ import royalKadhambas6 from '../assets/Royal Kadhambas/6.png';
 import goldenCity1 from '../assets/Golden City/1.png';
 import goldenCity2 from '../assets/Golden City/2.png';
 import goldenCity3 from '../assets/Golden City/3.png';
-import nambiar1 from '../assets/Nambiar District 25/1.png';
 import nambiar2 from '../assets/Nambiar District 25/2.png';
 import nambiar3 from '../assets/Nambiar District 25/3.png';
 import nambiar4 from '../assets/Nambiar District 25/4.png';
@@ -109,7 +108,6 @@ export const GOLDEN_CITY_IMAGES = [
 ];
 
 export const NAMBIAR_IMAGES = [
-  nambiar1,
   nambiar2,
   nambiar3,
   nambiar4,

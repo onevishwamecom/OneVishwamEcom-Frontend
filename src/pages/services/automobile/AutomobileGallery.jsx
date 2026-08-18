@@ -128,7 +128,7 @@ function AutomobileGallery() {
   const sidebarProps = { filters, updateFilter, openSections, toggleSection, activeChips, resetFilters, kmOpen: condition === 'old' };
 
   return (
-    <div className="pb-24 pt-6 sm:pt-10 relative">
+    <div className="pb-24 pt-16 lg:pt-14 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">

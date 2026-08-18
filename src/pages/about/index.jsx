@@ -1,10 +1,3 @@
-import {
-  aboutStats,
-  aboutTeam,
-  expansionRoadmap,
-  implementationPhases,
-  revenueModel,
-} from '../../data/aboutContent';
 import PageHero from '../../components/PageHero';
 import SectionHeader from '../../components/SectionHeader';
 import logoIcon from '../../assets/Logo_icon.png';
@@ -15,149 +8,159 @@ function AboutPage() {
       {/* Hero */}
       <PageHero
         eyebrow="About Us"
-        title="Driving Enterprise Excellence Across Verticals."
-        subtitle="OneVishwam is building a comprehensive ecosystem across financial services, real estate, marketplace, and enterprise solutions."
+        title="One Vishwam — A FinVerse for Everyday Life"
+        subtitle="One Stop Solution for finance and products to build your life. Lower prices, direct from manufacturers, backed by co-operative finance."
         logo={logoIcon}
         ctas={[
-          { label: 'Partner With Us', href: '/contact-us/', primary: true, icon: 'fa-solid fa-arrow-right' },
-          { label: 'Explore Services', href: '/our-services/', primary: false },
+          { label: 'Visit OneVishwam.com', href: 'https://onevishwam.com/', primary: true, icon: 'fa-solid fa-arrow-up-right-from-square', external: true },
+          { label: 'Contact Us', href: '/contact-us/', primary: false },
         ]}
       />
 
-      {/* Stats */}
-      <section className="border-b bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            {aboutStats.map((s) => (
-              <div
-                key={s.label}
-                className="bg-white rounded-xl border border-gray-100 px-5 py-5 text-center"
-              >
-                <p className="text-2xl font-bold text-brand-blue">{s.value}</p>
-                <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Phases */}
+      {/* CEO Message */}
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeader
-            eyebrow="Implementation Plan"
-            title="Phase-wise ecosystem rollout"
-            className="max-w-2xl"
+            eyebrow="Message from the CEO"
+            title="Building a Complete Ecosystem for Capital & Commodity"
+            className="max-w-3xl"
           />
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {implementationPhases.map((p) => (
-              <div
-                key={p.title}
-                className="rounded-xl border border-gray-100 bg-white p-6 hover:shadow-md transition-shadow"
-              >
-                <i className={`${p.icon} text-2xl text-brand-blue`} />
-                <h3 className="mt-4 font-bold text-brand-charcoal text-sm">
-                  {p.title}
-                </h3>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-                  {p.description}
-                </p>
-              </div>
-            ))}
+          <div className="mt-8 max-w-3xl space-y-6 text-gray-700 leading-relaxed">
+            <p>
+              One Vishwam is a <strong>FinVerse</strong> (finance + ecosystem for all digital needs), that addresses capital investments in useful, daily commodities required in day-to-day life. We offer a <strong>One Stop Solution</strong> for all those who are in need of a complete ecosystem to build their life, by providing them both finance and products to invest in.
+            </p>
+            <p>
+              We offer products at a price lower than any other market, directly from the manufacturer.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Roadmap */}
+      {/* What Makes Us Unique */}
       <section className="bg-gray-50 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeader
-            eyebrow="3-Year Vision"
-            title="Business Expansion Roadmap"
-            className="max-w-2xl"
+            eyebrow="What Makes Us Unique"
+            title="Finance, Value, and Transparency Combined"
+            className="max-w-3xl"
           />
-          <div className="mt-8 overflow-hidden rounded-xl border border-gray-100 bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-left">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold text-gray-600">Year</th>
-                    <th className="px-6 py-4 font-semibold text-gray-600">Coverage</th>
-                    <th className="px-6 py-4 font-semibold text-gray-600">Customers</th>
-                    <th className="px-6 py-4 font-semibold text-gray-600">Vendors</th>
-                    <th className="px-6 py-4 font-semibold text-gray-600">Franchises</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expansionRoadmap.map((r, i) => (
-                    <tr key={i} className="border-t border-gray-100 hover:bg-gray-50">
-                      <td className="px-6 py-4 font-bold text-brand-charcoal">{r.year}</td>
-                      <td className="px-6 py-4 text-gray-600">{r.coverage}</td>
-                      <td className="px-6 py-4 text-gray-600">{r.customers}</td>
-                      <td className="px-6 py-4 text-gray-600">{r.vendors}</td>
-                      <td className="px-6 py-4 text-gray-600">{r.franchises}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
+              <i className="fa-solid fa-landmark fa-2xl text-brand-blue" />
+              <h3 className="mt-4 font-bold text-brand-charcoal">Co-operative Finance</h3>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                We club with Co-operative societies for finance, hence loan provision on property or any other commodity happens at a lesser interest rate.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
+              <i className="fa-solid fa-chart-line fa-2xl text-brand-blue" />
+              <h3 className="mt-4 font-bold text-brand-charcoal">Value-Driven Investments</h3>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                We help people cautiously invest their money in commodities that will gain value over the years, helping them make the right choice.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
+              <i className="fa-solid fa-users fa-2xl text-brand-blue" />
+              <h3 className="mt-4 font-bold text-brand-charcoal">Customer-First</h3>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                We value our customers by making sure any intermediate parties are eliminated.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-shadow">
+              <i className="fa-solid fa-factory fa-2xl text-brand-blue" />
+              <h3 className="mt-4 font-bold text-brand-charcoal">Direct from Manufacturer</h3>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                We buy directly from manufacturers, sell products at a lesser price than any other marketplace.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Revenue */}
+      {/* One Vishwam Buy & Sell */}
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeader
-            eyebrow="Business Strategy"
-            title="Diversified Revenue Model"
-            className="max-w-2xl"
+            eyebrow="Our Core Platforms"
+            title="One Vishwam Buy · One Vishwam Sell"
+            className="max-w-3xl"
           />
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {revenueModel.map((r) => (
-              <div
-                key={r.question}
-                className="rounded-xl border border-gray-100 bg-white p-6 hover:shadow-md transition-shadow"
-              >
-                <h3 className="font-bold text-brand-charcoal">{r.question}</h3>
-                <p className="mt-3 text-sm text-gray-500 leading-relaxed">{r.answer}</p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="bg-brand-blue text-white rounded-2xl p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-400 flex items-center justify-center">
+                  <i className="fa-solid fa-hand-holding-dollar text-brand-navy text-xl" />
+                </div>
+                <h3 className="text-2xl font-bold">One Vishwam Buy</h3>
               </div>
-            ))}
+              <p className="text-white/90 leading-relaxed">
+                Facilitates provision of money as a commodity, helping vendors, manufacturers and other parties sell their commodities at a better price, establishing relationships for further projects.
+              </p>
+            </div>
+            <div className="bg-brand-navy text-white rounded-2xl p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-400 flex items-center justify-center">
+                  <i className="fa-solid fa-tag text-brand-navy text-xl" />
+                </div>
+                <h3 className="text-2xl font-bold">One Vishwam Sell</h3>
+              </div>
+              <p className="text-white/90 leading-relaxed">
+                Facilitates selling products on a digital platform, helping customers buy commodities of their choice, also provides financial support like home loan, vehicle loan, monthly EMI etc. — hence buying a big-budget commodity also feels easy.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Team / Core Capabilities */}
-      <section className="bg-brand-navy text-white py-16 sm:py-20">
+      {/* 5-Year Vision */}
+      <section className="bg-gray-50 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeader
-            eyebrow="Core Capabilities"
-            title="The infrastructure driving scale"
-            dark
-            className="max-w-2xl"
+            eyebrow="5-Year Vision"
+            title="Where We See Ourselves"
+            className="max-w-3xl"
           />
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {aboutTeam.map((m) => (
-              <div
-                key={m.title}
-                className="bg-white/5 border border-white/10 rounded-xl p-6"
-              >
-                <i className={`${m.icon} text-2xl text-yellow-400`} />
-                <h3 className="mt-4 font-bold text-white">{m.title}</h3>
-                <p className="mt-2 text-sm text-gray-400 leading-relaxed">{m.description}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 bg-yellow-400 text-brand-navy rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="font-semibold">
-              Want to join our franchise network or become a business associate?
+          <div className="mt-8 max-w-3xl space-y-4 text-gray-700 leading-relaxed">
+            <p>
+              <strong>Property Ecosystem:</strong> Establishing a Website to buy properties from, and provide listings for available properties.
             </p>
-            <a
-              href="/contact-us/"
-              className="bg-brand-navy text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-black transition-colors whitespace-nowrap"
-            >
-              Contact Us
-            </a>
+            <p>
+              <strong>Bengaluru Connectivity:</strong> Secure a connection throughout Bengaluru for major commodities like Properties, Automobile, Jewellery and Electronics.
+            </p>
+            <p>
+              <strong>Vendor Relations:</strong> Maintain good relations with vendors and manufacturers for consistent product listings, and ensure timely financial funding.
+            </p>
+            <p>
+              <strong>Karnataka Expansion:</strong> Build connections across the State of Karnataka and initiate a mass recruitment drive for needy and unemployed.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Website Handles */}
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <SectionHeader
+            eyebrow="Platform Scope"
+            title="Our Website Handles"
+            className="max-w-3xl"
+          />
+          <div className="mt-8 max-w-3xl space-y-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <p className="text-gray-700 leading-relaxed">
+                One Vishwam facilitates property, jewellery, automobile, electronics and other commodity listings, where consumers can visit the Webpage/App and view at their leisure.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://onevishwam.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-brand-blue text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-navy transition-colors"
+              >
+                <i className="fa-solid fa-globe" /> Visit onevishwam.com
+              </a>
+            </div>
           </div>
         </div>
       </section>
