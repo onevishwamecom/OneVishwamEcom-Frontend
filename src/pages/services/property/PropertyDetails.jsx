@@ -299,18 +299,22 @@ function PropertyDetails() {
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => setGalleryOpen(true)}>
-                <img src={resolveImage(property.images[currentImageIndex])} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => { if (property.images.length > 0) setGalleryOpen(true); }}>
+                <img src={property.images.length > 0 ? resolveImage(property.images[currentImageIndex]) : FALLBACK_IMG} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                  <i className="fa-solid fa-chevron-left" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                  <i className="fa-solid fa-chevron-right" />
-                </button>
-                <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
-                  <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
-                </div>
+                {property.images.length > 0 && (
+                  <>
+                    <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                      <i className="fa-solid fa-chevron-left" />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                      <i className="fa-solid fa-chevron-right" />
+                    </button>
+                    <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                      <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
+                    </div>
+                  </>
+                )}
               </div>
               {property.images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
@@ -356,7 +360,7 @@ function PropertyDetails() {
                 {property.area && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.area}</span>}
                 {property.furnishing && property.furnishing !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.furnishing}</span>}
                 <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${property.status === 'available' ? 'bg-emerald-100 text-emerald-700' : property.status === 'closed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {property.status === 'available' ? '✓ Ready to Move' : property.status}
+                  {property.status === 'available' ? (property.possession || '✓ Ready to Move') : property.status}
                 </span>
               </div>
 
@@ -468,7 +472,8 @@ function PropertyDetails() {
                   { label: 'Floor', value: property.floor || 'N/A' },
                   { label: 'Facing', value: 'East' },
                   { label: 'Furnishing', value: property.furnishing || 'N/A' },
-                  { label: 'Possession', value: property.status === 'available' ? 'Ready to Move' : property.status },
+                  { label: 'Possession', value: property.possession || (property.status === 'available' ? 'Ready to Move' : property.status) },
+                  { label: 'Approval', value: property.approval || 'N/A' },
                   { label: 'Property Age', value: 'New' },
                   { label: 'Pincode', value: property.pincode || 'N/A' },
                 ].filter(f => f.value && f.value !== 'N/A').map((f) => (
@@ -617,6 +622,20 @@ function PropertyDetails() {
                   <p className="text-xs text-gray-500">Get detailed information about this property</p>
                 </div>
                 <i className="fa-solid fa-download text-brand-blue" />
+              </a>
+            )}
+
+            {property.videoUrl && (
+              <a href={property.videoUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                  <i className="fa-solid fa-circle-play text-red-500 text-xl" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-brand-charcoal">Project Video</p>
+                  <p className="text-xs text-gray-500">Watch the walkthrough of this property</p>
+                </div>
+                <i className="fa-solid fa-arrow-up-right-from-square text-brand-blue" />
               </a>
             )}
 
