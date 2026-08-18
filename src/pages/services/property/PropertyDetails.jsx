@@ -12,6 +12,7 @@ const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
 function resolveImage(src) {
   if (!src) return '';
   if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) return src;
+  if (src.startsWith('/assets/') || src.startsWith('/src/assets/')) return src;
   return `${API_ORIGIN}${src.startsWith('/') ? '' : '/'}${src}`;
 }
 
@@ -220,7 +221,7 @@ function PropertyDetails() {
 
       {/* ─── HERO SECTION ─── */}
       <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 sm:pt-16">
           <button onClick={() => navigateTo('/our-services/real-estate-property')}
             className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Properties

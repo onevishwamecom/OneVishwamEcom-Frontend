@@ -1,3 +1,23 @@
+import nexonTravenza1 from '../assets/NexonTravenza/1.png';
+import nexonTravenza2 from '../assets/NexonTravenza/2.png';
+import nexonTravenza3 from '../assets/NexonTravenza/3.png';
+import nexonTravenza4 from '../assets/NexonTravenza/4.png';
+import nexonTravenza5 from '../assets/NexonTravenza/5.png';
+import nexonTravenza6 from '../assets/NexonTravenza/6.png';
+import nexonTravenza7 from '../assets/NexonTravenza/7.png';
+import nexonTravenza8 from '../assets/NexonTravenza/8.png';
+
+export const NEXON_TRAVENZA_IMAGES = [
+  nexonTravenza1,
+  nexonTravenza2,
+  nexonTravenza3,
+  nexonTravenza4,
+  nexonTravenza5,
+  nexonTravenza6,
+  nexonTravenza7,
+  nexonTravenza8,
+];
+
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f3f4f6"/><path fill="#9ca3af" d="M300 260h200v-30l-100-100-100 100v30zm-50 130h300v-150l-100-100-200 200v50z"/></svg>`
 );
@@ -33,7 +53,7 @@ export const dummyProperties = [
     approval: 'RERA',
     videoUrl: 'https://youtu.be/QWm0C_BkEcE?si=M_6GfcHrjVSJLotY',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: NEXON_TRAVENZA_IMAGES,
     loanApproved: false,
   },
   {
