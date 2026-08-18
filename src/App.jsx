@@ -31,6 +31,7 @@ const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
 const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
+const NotificationsPage = lazy(() => import('./pages/notifications'));
 
 function ScrollToTopAndNavHelper() {
   const location = useLocation();
@@ -56,11 +57,27 @@ function ScrollToTopAndNavHelper() {
     return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
   }, [navigate]);
   
-  // Handle /add-listing/ authorization check here, triggering modal if needed
+  // Authorization check for protected paths (add-listing and detail pages)
   useEffect(() => {
-      if (location.pathname === '/add-listing/' && !isLoggedIn) {
-          openAuthModal('login');
-      }
+    const isProtectedDetail = [
+      '/property/',
+      '/vehicle/',
+      '/garment/',
+      '/grocery/',
+      '/jewellery/',
+      '/finance-service/',
+      '/finance/',
+      '/add-listing/',
+    ].some((prefix) =>
+      location.pathname.startsWith(prefix) &&
+      location.pathname !== '/property/requirement/success' &&
+      location.pathname !== '/property/requirement' &&
+      location.pathname !== '/finance-service/success'
+    );
+
+    if (isProtectedDetail && !isLoggedIn) {
+      openAuthModal('login');
+    }
   }, [location.pathname, openAuthModal, isLoggedIn]);
 
   // Listen for forced logout from token refresh failure
@@ -117,6 +134,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-success" element={<ResetSuccess />} />
             <Route path="/profile/settings" element={<ProfileSettings />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>

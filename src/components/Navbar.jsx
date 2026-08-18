@@ -9,6 +9,7 @@ import { navigateTo } from '../config/navigation';
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import AuthModals from './auth/AuthModals';
 import UserDropdown from './auth/UserDropdown';
+import NotificationsDropdown from './auth/NotificationsDropdown';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -198,15 +199,18 @@ function Navbar() {
               </button>
             </div>
 
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
+            {/* <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); }}
               className="hidden lg:inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-4 py-2 text-xs font-bold rounded-lg hover:bg-yellow-300 hover:shadow-sm transition-all"
             >
               <i className="fa-solid fa-plus" />
               Post Your Listing
-            </a>
+            </a> */}
 
             {isLoggedIn ? (
-              <UserDropdown />
+              <>
+                <NotificationsDropdown />
+                <UserDropdown />
+              </>
             ) : (
               <button onClick={() => openAuthModal('login')}
                 className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
@@ -241,11 +245,11 @@ function Navbar() {
           </div>
 
           <div className="p-4 border-b">
-            <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); setMenuOpen(false); }}
+            {/* <a href="/add-listing/" onClick={(e) => { e.preventDefault(); navigateTo('/add-listing/'); setMenuOpen(false); }}
               className="flex items-center justify-center gap-2 bg-yellow-400 text-brand-navy px-5 py-3 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
             >
               <i className="fa-solid fa-plus" /> Post Your Listing
-            </a>
+            </a> */}
           </div>
 
           {/* Mobile User Profile Section */}

@@ -15,8 +15,8 @@ export function getPropertyType(property) {
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
   if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Lands';
   if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plots';
-  if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flats';
   if (s.includes('house')) return 'Houses';
+  if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flats';
   return 'Flats';
 }
 
@@ -28,10 +28,10 @@ export function getPropertyTypeLabel(property) {
   if (s.includes('penthouse'))   return 'Penthouse';
   if (b.includes('office'))      return 'Office';
   if (b.includes('shop') || s.includes('shop')) return 'Shop';
+  if (s.includes('house')) return 'House';
   if (s.includes('flat') || b.includes('bhk'))  return 'Flat';
   if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Land';
   if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plot';
-  if (s.includes('house')) return 'House';
   return 'Property';
 }
 

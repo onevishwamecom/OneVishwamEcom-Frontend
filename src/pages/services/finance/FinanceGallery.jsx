@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { financeAPI } from '../../../api';
+import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
 import { cities } from '../../../data/locations';
 import { ActiveChip } from '../GalleryComponents';
 import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';
 import { FINANCE_TABS, INITIAL_FILTERS, INITIAL_SECTIONS } from './financeConstants';
 import { useTabStats, useActiveChips, useFilteredServices } from './financeHooks';
+
+const FINANCE_ALL_KEY = 'finance:all';
 
 function FinanceGallery() {
   const [activeTab, setActiveTab] = useState('All');
@@ -15,30 +18,42 @@ function FinanceGallery() {
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const [openSections, setOpenSections] = useState({ ...INITIAL_SECTIONS });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState(
+    () => cache.get(PUBLIC_NAMESPACE, FINANCE_ALL_KEY)?.data ?? [],
+  );
+  const [loading, setLoading] = useState(() => !cache.get(PUBLIC_NAMESPACE, FINANCE_ALL_KEY));
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     setError(null);
-    financeAPI.getAll({ limit: 100 })
-      .then((res) => {
-        if (!cancelled) {
-          const raw = res.data?.data?.items || res.data?.items || [];
-          setServices(raw.map((s) => ({ ...s, id: s._id || s.id })));
-        }
+    cache
+      .fetch(
+        PUBLIC_NAMESPACE,
+        FINANCE_ALL_KEY,
+        () =>
+          financeAPI.getAll({ limit: 100 }).then((res) => {
+            const raw = res.data?.data?.items || res.data?.items || [];
+            return raw.map((s) => ({ ...s, id: s._id || s.id }));
+          }),
+        { ttl: CACHE_TTL.products },
+      )
+      .then(({ data }) => {
+        if (!cancelled) setServices(data);
       })
       .catch((err) => {
         if (!cancelled) {
           console.error('Finance fetch error:', err);
           const msg = err.response?.data?.message || err.message || 'Failed to load finance services';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Make sure the backend is running on port 5001.' : msg);
+          setError(msg.includes('Network Error') ? 'Cannot reach server. Please check your connection.' : msg);
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));

@@ -1,9 +1,12 @@
 import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   BUDGET_RANGES, SIZE_OPTIONS, BEDROOM_OPTIONS, FURNISHING_OPTIONS,
   POSTED_BY_OPTIONS, POSSESSION_OPTIONS, AMENITIES_LIST, FACING_OPTIONS,
-  AGE_OPTIONS, AVAILABILITY_OPTIONS, LISTED_WITHIN_OPTIONS,
+  AGE_OPTIONS, AVAILABILITY_OPTIONS,
+  TENANT_TYPE_OPTIONS, PETS_OPTIONS,
 } from './propertyConstants';
+import { getNumericPrice } from './propertyHelpers';
 
 /**
  * Reusable filter sidebar — used by both desktop aside and mobile drawer.
@@ -11,7 +14,80 @@ import {
 export default function PropertyFilterSidebar({
   filters, updateFilter, openSections, toggleSection,
   activeChips, resetFilters, cityAreas, noCityMessage,
+  properties = [],
 }) {
+  // Compute dynamic budget min/max from properties
+  const { budgetMin: dynamicMin, budgetMax: dynamicMax } = useMemo(() => {
+    const prices = properties
+      .map((p) => getNumericPrice(p.price))
+      .filter((p) => p > 0);
+    if (prices.length === 0) return { budgetMin: 0, budgetMax: 10000000 };
+    const min = Math.floor(Math.min(...prices) / 100000) * 100000;
+    const max = Math.ceil(Math.max(...prices) / 100000) * 100000;
+    return { budgetMin: min, budgetMax: max };
+  }, [properties]);
+
+  // Single source of truth for budget range
+  const [budgetRange, setBudgetRange] = useState({
+    min: filters.budgetMin ? +filters.budgetMin : dynamicMin,
+    max: filters.budgetMax ? +filters.budgetMax : dynamicMax,
+  });
+
+  // Sync with external filters (e.g., URL changes)
+  useEffect(() => {
+    if (filters.budgetMin !== undefined && +filters.budgetMin !== budgetRange.min) {
+      setBudgetRange(prev => ({ ...prev, min: +filters.budgetMin }));
+    }
+    if (filters.budgetMax !== undefined && +filters.budgetMax !== budgetRange.max) {
+      setBudgetRange(prev => ({ ...prev, max: +filters.budgetMax }));
+    }
+  }, [filters.budgetMin, filters.budgetMax]);
+
+  const handleBudgetChange = useCallback((min, max) => {
+    setBudgetRange({ min, max });
+    updateFilter('budgetMin', String(min));
+    updateFilter('budgetMax', String(max));
+  }, [updateFilter]);
+
+  // Format price for display (Indian numbering: Lakh/Crore)
+  const formatPrice = (value) => {
+    if (value >= 10000000) {
+      return `₹${(value / 10000000).toFixed(2)} Cr`;
+    }
+    return `₹${(value / 100000).toFixed(1)} L`;
+  };
+
+  // Parse user input (handles "25L", "1.5Cr", "2500000", etc.)
+  const parsePriceInput = (input) => {
+    const cleaned = input.replace(/[₹,\s]/g, '').toLowerCase();
+    if (!cleaned) return null;
+    if (cleaned.endsWith('cr')) {
+      return Math.round(parseFloat(cleaned) * 10000000);
+    }
+    if (cleaned.endsWith('l')) {
+      return Math.round(parseFloat(cleaned) * 100000);
+    }
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : Math.round(num);
+  };
+
+  // Handle manual input change
+  const handleInputChange = (type, value) => {
+    const parsed = parsePriceInput(value);
+    if (parsed === null) return;
+
+    const clampedMin = Math.max(dynamicMin, Math.min(parsed, dynamicMax));
+    const clampedMax = Math.max(dynamicMin, Math.min(parsed, dynamicMax));
+
+    if (type === 'min') {
+      const newMin = Math.min(clampedMin, budgetRange.max - 100000);
+      if (newMin >= dynamicMin) handleBudgetChange(newMin, budgetRange.max);
+    } else {
+      const newMax = Math.max(clampedMax, budgetRange.min + 100000);
+      if (newMax <= dynamicMax) handleBudgetChange(budgetRange.min, newMax);
+    }
+  };
+
   return (
     <div className="space-y-1">
       {/* Header */}
@@ -24,31 +100,84 @@ export default function PropertyFilterSidebar({
         )}
       </div>
 
-      {/* Budget */}
+      {/* Budget - Dual Range Slider */}
       <CollapsibleSection id="budget" label="Budget" open={openSections.budget} onToggle={toggleSection}>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {BUDGET_RANGES.map((r) => {
-            const active = +filters.budgetMin === r.min && +filters.budgetMax === r.max;
-            return (
-              <button key={r.label}
-                onClick={() => {
-                  if (active) { updateFilter('budgetMin', ''); updateFilter('budgetMax', ''); }
-                  else { updateFilter('budgetMin', String(r.min)); updateFilter('budgetMax', String(r.max)); }
-                }}
-                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  active ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}
-              >{r.label}</button>
-            );
-          })}
-        </div>
-        <div className="flex gap-2">
-          <input type="number" placeholder="Min" value={filters.budgetMin}
-            onChange={(e) => updateFilter('budgetMin', e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue" />
-          <input type="number" placeholder="Max" value={filters.budgetMax}
-            onChange={(e) => updateFilter('budgetMax', e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue" />
+        <div className="mb-3">
+          {/* Editable min/max inputs above slider */}
+          <div className="flex justify-between text-xs font-semibold text-gray-600 mb-2">
+            <div className="flex-1 pr-2">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Minimum Price</label>
+              <input
+                type="text"
+                value={formatPrice(budgetRange.min)}
+                onChange={(e) => handleInputChange('min', e.target.value)}
+                onBlur={(e) => handleInputChange('min', e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue bg-white text-brand-charcoal cursor-text"
+                placeholder="Min Price"
+              />
+            </div>
+            <div className="flex-1 pl-2">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Maximum Price</label>
+              <input
+                type="text"
+                value={formatPrice(budgetRange.max)}
+                onChange={(e) => handleInputChange('max', e.target.value)}
+                onBlur={(e) => handleInputChange('max', e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue bg-white text-brand-charcoal cursor-text"
+                placeholder="Max Price"
+              />
+            </div>
+          </div>
+
+          {/* Dual range slider */}
+          <div className="relative h-5 flex items-center">
+            {/* Track background */}
+            <div className="absolute left-0 right-0 h-1.5 bg-gray-200 rounded-full" />
+            {/* Active track fill */}
+            <div
+              className="absolute h-1.5 bg-brand-blue rounded-full"
+              style={{
+                left: `${((budgetRange.min - dynamicMin) / (dynamicMax - dynamicMin)) * 100}%`,
+                right: `${((dynamicMax - budgetRange.max) / (dynamicMax - dynamicMin)) * 100}%`,
+              }}
+            />
+            {/* Min slider — clickable only on left portion up to max thumb */}
+            <input
+              type="range"
+              min={dynamicMin}
+              max={dynamicMax}
+              step={100000}
+              value={budgetRange.min}
+              onChange={(e) => {
+                const val = +e.target.value;
+                if (val <= budgetRange.max - 100000) handleBudgetChange(val, budgetRange.max);
+              }}
+              className="absolute w-full h-5 appearance-none bg-transparent z-20 cursor-pointer range-thumb-blue"
+              style={{
+                pointerEvents: 'auto',
+                clipPath: `polygon(0 0, ${((budgetRange.max - dynamicMin) / (dynamicMax - dynamicMin)) * 100}% 0, ${((budgetRange.max - dynamicMin) / (dynamicMax - dynamicMin)) * 100}% 100%, 0 100%)`,
+              }}
+            />
+            {/* Max slider — clickable only on right portion from min thumb */}
+            <input
+              type="range"
+              min={dynamicMin}
+              max={dynamicMax}
+              step={100000}
+              value={budgetRange.max}
+              onChange={(e) => {
+                const val = +e.target.value;
+                if (val >= budgetRange.min + 100000) handleBudgetChange(budgetRange.min, val);
+              }}
+              className="absolute w-full h-5 appearance-none bg-transparent z-10 cursor-pointer range-thumb-blue"
+              style={{
+                pointerEvents: 'auto',
+                clipPath: `polygon(${((budgetRange.min - dynamicMin) / (dynamicMax - dynamicMin)) * 100}% 0, 100% 0, 100% 100%, ${((budgetRange.min - dynamicMin) / (dynamicMax - dynamicMin)) * 100}% 100%)`,
+              }}
+            />
+          </div>
         </div>
       </CollapsibleSection>
 
@@ -153,6 +282,18 @@ export default function PropertyFilterSidebar({
         </label>
       </CollapsibleSection>
 
+      {/* Tenant Type */}
+      <CollapsibleSection id="tenantType" label="Tenant Type" open={openSections.tenantType} onToggle={toggleSection}>
+        <CheckboxGroup options={TENANT_TYPE_OPTIONS} selected={filters.tenantType}
+          onChange={(v) => updateFilter('tenantType', v)} />
+      </CollapsibleSection>
+
+      {/* Pets */}
+      <CollapsibleSection id="pets" label="Pets" open={openSections.pets} onToggle={toggleSection}>
+        <CheckboxGroup options={PETS_OPTIONS} selected={filters.pets}
+          onChange={(v) => updateFilter('pets', v)} />
+      </CollapsibleSection>
+
       {/* Posted By */}
       <CollapsibleSection id="postedBy" label="Posted By" open={openSections.postedBy} onToggle={toggleSection}>
         <CheckboxGroup options={POSTED_BY_OPTIONS} selected={filters.postedBy}
@@ -201,21 +342,6 @@ export default function PropertyFilterSidebar({
       <CollapsibleSection id="availability" label="Availability" open={openSections.availability} onToggle={toggleSection}>
         <CheckboxGroup options={AVAILABILITY_OPTIONS} selected={filters.availability}
           onChange={(v) => updateFilter('availability', v)} />
-      </CollapsibleSection>
-
-      {/* Listed Within */}
-      <CollapsibleSection id="listedWithin" label="Listed Within" open={openSections.listedWithin} onToggle={toggleSection}>
-        <div className="space-y-1.5">
-          {LISTED_WITHIN_OPTIONS.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer group">
-              <input type="radio" name="listedWithin"
-                checked={filters.listedWithin === opt}
-                onChange={() => updateFilter('listedWithin', filters.listedWithin === opt ? '' : opt)}
-                className="border-gray-300 text-brand-blue focus:ring-brand-blue/30" />
-              <span className="text-sm text-gray-700">{opt}</span>
-            </label>
-          ))}
-        </div>
       </CollapsibleSection>
     </div>
   );
