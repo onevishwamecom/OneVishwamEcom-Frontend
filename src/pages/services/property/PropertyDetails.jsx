@@ -29,24 +29,6 @@ const AMENITY_ICONS = {
   'Attached Market': 'fa-store', 'Wi-Fi': 'fa-wifi',
 };
 
-const NEARBY_PLACES = [
-  { label: 'Metro', icon: 'fa-train-subway', distance: '600m' },
-  { label: 'Bus Stand', icon: 'fa-bus', distance: '350m' },
-  { label: 'School', icon: 'fa-school', distance: '850m' },
-  { label: 'Hospital', icon: 'fa-hospital', distance: '1.2 km' },
-  { label: 'Railway Station', icon: 'fa-train', distance: '3.5 km' },
-  { label: 'Airport', icon: 'fa-plane', distance: '12 km' },
-  { label: 'Shopping Mall', icon: 'fa-cart-shopping', distance: '1.5 km' },
-  { label: 'Temple', icon: 'fa-place-of-worship', distance: '400m' },
-  { label: 'ATM', icon: 'fa-credit-card', distance: '200m' },
-  { label: 'Petrol Pump', icon: 'fa-gas-pump', distance: '600m' },
-];
-
-const HIGHLIGHT_CHIPS = [
-  'Near Metro', 'Corner Property', 'Good Ventilation', 'East Facing',
-  'Family Friendly', 'Investment Opportunity',
-];
-
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Bedrooms', icon: 'fa-bed' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath' },
@@ -56,17 +38,6 @@ const PROPERTY_HIGHLIGHTS_META = [
   { key: 'furnishing', label: 'Furnishing', icon: 'fa-couch' },
   { key: 'extraRoom', label: 'Extra Room', icon: 'fa-door-open' },
   { key: 'status', label: 'Possession', icon: 'fa-key' },
-];
-
-const WHY_CHOOSE = [
-  { icon: 'fa-train-subway', title: 'Near Metro' },
-  { icon: 'fa-building-columns', title: 'Bank Approved' },
-  { icon: 'fa-location-dot', title: 'Premium Location' },
-  { icon: 'fa-key', title: 'Ready To Move' },
-  { icon: 'fa-coins', title: 'High Rental Yield' },
-  { icon: 'fa-shield-halved', title: 'Gated Community' },
-  { icon: 'fa-chart-line', title: 'Good Investment' },
-  { icon: 'fa-people-arrows', title: 'Family Friendly' },
 ];
 
 function GalleryModal({ images, index, onClose, onPrev, onNext }) {
@@ -92,47 +63,6 @@ function GalleryModal({ images, index, onClose, onPrev, onNext }) {
         {index + 1} / {images.length}
       </div>
       <img src={resolveImage(images[index])} alt="" className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl" onClick={(e) => e.stopPropagation()} />
-    </div>
-  );
-}
-
-function TrustBadges() {
-  const badges = [
-    { label: 'Verified Listing', icon: 'fa-circle-check', cls: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { label: 'Best Deal', icon: 'fa-tag', cls: 'text-amber-600 bg-amber-50 border-amber-200' },
-    { label: 'New Listing', icon: 'fa-star', cls: 'text-blue-600 bg-blue-50 border-blue-200' },
-    { label: 'Exclusive', icon: 'fa-crown', cls: 'text-purple-600 bg-purple-50 border-purple-200' },
-  ];
-  return (
-    <div className="flex flex-wrap gap-2">
-      {badges.map((b) => (
-        <span key={b.label} className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${b.cls}`}>
-          <i className={`fa-solid ${b.icon} text-[10px]`} /> {b.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function PropertyTimeline() {
-  const steps = [
-    { label: 'Listed', done: true }, { label: 'Updated', done: true },
-    { label: 'Visited', done: false }, { label: 'Negotiation', done: false },
-    { label: 'Sold', done: false },
-  ];
-  return (
-    <div className="flex items-center justify-between">
-      {steps.map((s, i) => (
-        <div key={s.label} className="flex items-center">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${s.done ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-400'}`}>
-              <i className={`fa-solid ${s.done ? 'fa-check' : 'fa-clock'}`} />
-            </div>
-            <span className={`mt-1 text-[10px] font-medium ${s.done ? 'text-brand-blue' : 'text-gray-400'}`}>{s.label}</span>
-          </div>
-          {i < steps.length - 1 && <div className={`h-0.5 w-8 sm:w-12 mx-1 rounded ${s.done ? 'bg-brand-blue' : 'bg-gray-200'}`} />}
-        </div>
-      ))}
     </div>
   );
 }
@@ -299,22 +229,18 @@ function PropertyDetails() {
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => { if (property.images.length > 0) setGalleryOpen(true); }}>
-                <img src={property.images.length > 0 ? resolveImage(property.images[currentImageIndex]) : FALLBACK_IMG} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => setGalleryOpen(true)}>
+                <img src={resolveImage(property.images[currentImageIndex])} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                {property.images.length > 0 && (
-                  <>
-                    <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                      <i className="fa-solid fa-chevron-left" />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                      <i className="fa-solid fa-chevron-right" />
-                    </button>
-                    <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
-                      <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
-                    </div>
-                  </>
-                )}
+                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                  <i className="fa-solid fa-chevron-left" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                  <i className="fa-solid fa-chevron-right" />
+                </button>
+                <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                  <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
+                </div>
               </div>
               {property.images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
@@ -333,9 +259,6 @@ function PropertyDetails() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="rounded-full bg-brand-blue/10 text-brand-blue text-[11px] font-bold px-3 py-0.5">{property.propertyType || 'Property'}</span>
-                  <span className="rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold px-3 py-0.5 flex items-center gap-1">
-                    <i className="fa-solid fa-circle-check text-[10px]" /> Verified
-                  </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-brand-charcoal leading-tight">{property.title}</h1>
                 {property.subtitle && <p className="mt-1 text-sm text-gray-500">{property.subtitle}</p>}
@@ -366,8 +289,6 @@ function PropertyDetails() {
 
               <div className="flex items-center gap-3 text-xs text-gray-500 pt-1">
                 <span><i className="fa-solid fa-hashtag mr-1 text-gray-300" /> ID: {property.id || property._id?.slice(-6)}</span>
-                <span><i className="fa-solid fa-eye mr-1 text-gray-300" /> 124 Views</span>
-                <span><i className="fa-regular fa-clock mr-1 text-gray-300" /> Posted 3 days ago</span>
               </div>
 
               <div className="flex gap-2">
@@ -411,9 +332,6 @@ function PropertyDetails() {
               </div>
             </div>
 
-            {/* Trust Badges */}
-            <TrustBadges />
-
             {/* Description */}
             <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -421,12 +339,6 @@ function PropertyDetails() {
                   <i className="fa-solid fa-info text-brand-blue text-xs" />
                 </div>
                 <h2 className="text-base font-bold text-brand-charcoal">Description</h2>
-              </div>
-              {/* Highlight Chips */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {HIGHLIGHT_CHIPS.map((chip) => (
-                  <span key={chip} className="rounded-full bg-brand-blue/5 border border-brand-blue/10 text-brand-blue text-[11px] font-semibold px-3 py-1">{chip}</span>
-                ))}
               </div>
               <p className="text-gray-600 leading-relaxed text-sm">
                 {showFullDesc || !property.description || property.description.length < 300
@@ -466,16 +378,10 @@ function PropertyDetails() {
                   { label: 'Property Type', value: property.propertyType || property.bhk },
                   { label: 'Area', value: property.area },
                   { label: 'Bedrooms', value: property.bhk },
-                  { label: 'Bathrooms', value: property.bathrooms },
-                  { label: 'Balcony', value: property.extraRoom || '1' },
-                  { label: 'Parking', value: property.parking || 'N/A' },
-                  { label: 'Floor', value: property.floor || 'N/A' },
-                  { label: 'Facing', value: 'East' },
-                  { label: 'Furnishing', value: property.furnishing || 'N/A' },
+                  { label: 'Furnishing', value: property.furnishing },
                   { label: 'Possession', value: property.possession || (property.status === 'available' ? 'Ready to Move' : property.status) },
-                  { label: 'Approval', value: property.approval || 'N/A' },
-                  { label: 'Property Age', value: 'New' },
-                  { label: 'Pincode', value: property.pincode || 'N/A' },
+                  { label: 'Approval', value: property.approval },
+                  { label: 'Pincode', value: property.pincode },
                 ].filter(f => f.value && f.value !== 'N/A').map((f) => (
                   <div key={f.label} className="flex justify-between border-b border-gray-50 pb-2">
                     <span className="text-gray-500">{f.label}</span>
@@ -483,65 +389,6 @@ function PropertyDetails() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Location & Nearby Places */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
-                  <i className="fa-solid fa-location-dot text-rose-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Location & Nearby Places</h2>
-              </div>
-              <div className="aspect-[21/9] rounded-xl bg-gray-100 mb-4 overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                  <i className="fa-solid fa-map mr-2" /> Map View — {property.location}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                {NEARBY_PLACES.map((place) => (
-                  <div key={place.label} className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-3 hover:shadow-sm transition-shadow">
-                    <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0">
-                      <i className={`fa-solid ${place.icon} text-brand-blue text-xs`} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700">{place.label}</p>
-                      <p className="text-[10px] text-gray-400">{place.distance}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Why Choose This Property */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <i className="fa-solid fa-thumbs-up text-emerald-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Why Choose This Property</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {WHY_CHOOSE.map((item) => (
-                  <div key={item.title} className="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center">
-                      <i className={`fa-solid ${item.icon} text-brand-blue text-sm`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 text-center">{item.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <i className="fa-solid fa-timeline text-blue-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Property Timeline</h2>
-              </div>
-              <PropertyTimeline />
             </div>
 
             {/* Listed By */}
@@ -589,14 +436,6 @@ function PropertyDetails() {
                 <i className="fa-solid fa-building-columns" /> Need Home Loan?
               </h2>
               <p className="mt-1 text-sm text-white/70">Get pre-approved in minutes with our trusted partners.</p>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {['SBI', 'HDFC', 'ICICI'].map((bank) => (
-                  <div key={bank} className="rounded-xl bg-white/10 backdrop-blur-sm p-3 text-center hover:bg-white/20 transition-colors">
-                    <p className="text-xs font-bold">{bank}</p>
-                    <p className="text-[10px] text-white/60">From 7.5%</p>
-                  </div>
-                ))}
-              </div>
               <div className="mt-4 grid grid-cols-3 gap-2">
                 <a href={`/finance/home-loan${loanCtaParams}`} className="rounded-xl bg-yellow-400 text-brand-navy px-3 py-2.5 text-xs font-bold text-center hover:bg-yellow-300 transition-colors">
                   Check Eligibility
@@ -704,18 +543,6 @@ function PropertyDetails() {
                 </div>
               </div>
 
-              {/* Loan Assistance Card */}
-              <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue p-5 shadow-sm text-white">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <i className="fa-solid fa-building-columns" /> Loan Assistance
-                </h3>
-                <p className="mt-1 text-xs text-white/70">Get pre-approved in minutes.</p>
-                <a href={`/finance/home-loan${loanCtaParams}`}
-                  className="mt-3 flex items-center justify-center gap-2 w-full rounded-xl bg-yellow-400 text-brand-navy px-4 py-2.5 text-sm font-bold hover:bg-yellow-300 transition-colors">
-                  Check Eligibility
-                </a>
-              </div>
-
               {/* Agent Mini Card */}
               {property.agent && (
                 <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
@@ -729,23 +556,6 @@ function PropertyDetails() {
                   </div>
                 </div>
               )}
-
-              {/* Finance Stats */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Loan Activity</h3>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {[
-                    { label: 'Enquiries', value: 5, cls: 'text-brand-blue' },
-                    { label: 'Enrolled', value: 6, cls: 'text-emerald-600' },
-                    { label: 'Slots', value: 25, cls: 'text-amber-600' },
-                  ].map((s) => (
-                    <div key={s.label} className="rounded-xl bg-gray-50 p-3">
-                      <p className={`text-lg font-bold ${s.cls}`}>{s.value}</p>
-                      <p className="text-[10px] text-gray-500 font-semibold">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
