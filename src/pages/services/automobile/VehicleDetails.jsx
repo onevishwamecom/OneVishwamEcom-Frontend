@@ -43,7 +43,7 @@ function VehicleDetails() {
       <div className="py-32 text-center">
         <i className="fa-solid fa-circle-exclamation text-3xl text-gray-400 mb-4" />
         <h1 className="text-2xl font-bold text-gray-400">{error || 'Vehicle not found'}</h1>
-        <a href="/our-services/automobile" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Vehicles</a>
+        <Link to="/our-services/automobile" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Vehicles</Link>
       </div>
     );
   }
@@ -155,10 +155,10 @@ function VehicleDetails() {
                   <span className="text-sm font-bold text-emerald-800">Pre-Approved Loan Available</span>
                 </div>
                 <p className="text-xs text-emerald-600 mb-3">Get instant loan approval for this vehicle.</p>
-                <a href="/finance/vehicle-loan"
+                <Link to="/finance/vehicle-loan"
                   className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors">
                   ⚡ Apply for Loan
-                </a>
+                </Link>
               </div>
             )}
 
@@ -166,10 +166,10 @@ function VehicleDetails() {
             <div className="rounded-xl bg-brand-navy text-white p-5">
               <h3 className="text-base font-bold">Interested?</h3>
               <p className="mt-1 text-xs text-gray-400">Contact our team for a test drive or more details.</p>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
                 <i className="fa-solid fa-headset" /> Contact Agent
-              </a>
+              </Link>
             </div>
           </div>
         </div>

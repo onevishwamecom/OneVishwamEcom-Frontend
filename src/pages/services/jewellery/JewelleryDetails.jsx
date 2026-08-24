@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
 
@@ -28,7 +28,7 @@ function JewelleryDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
-        <a href="/our-services/jewellery-gold" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Jewellery & Gold</a>
+        <Link to="/our-services/jewellery-gold" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Jewellery & Gold</Link>
       </div>
     );
   }
@@ -153,10 +153,10 @@ function JewelleryDetails() {
                   <h3 className="text-sm font-bold">Try at Home</h3>
                 </div>
                 <p className="text-xs text-white/70">Try this jewellery piece in the comfort of your home. Free trial, no obligation.</p>
-                <a href="/contact-us/"
+                <Link to="/contact-us/"
                   className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-blue-700 hover:bg-blue-50 transition-colors">
                   Schedule a Try at Home
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -211,10 +211,10 @@ function JewelleryDetails() {
                   <span className="font-bold text-brand-blue">{item.price}</span>
                 </div>
               </div>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
                 <i className="fa-solid fa-headset" /> Send Enquiry
-              </a>
+              </Link>
             </div>
 
             {/* AI Recommended */}

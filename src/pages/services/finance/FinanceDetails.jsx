@@ -53,7 +53,7 @@ function FinanceDetails() {
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Service not found</h1>
         <p className="mt-2 text-sm text-gray-500">{error}</p>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
+        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
       </div>
     );
   }
@@ -62,7 +62,7 @@ function FinanceDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Service not found</h1>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
+        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
       </div>
     );
   }
@@ -127,10 +127,10 @@ function FinanceDetails() {
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-white/20 px-4 py-3 text-sm font-semibold text-white hover:bg-white/30 transition-colors">
                     <i className="fa-solid fa-phone" /> Call Now
                   </a>
-                  <a href="/contact-us/"
+                  <Link to="/contact-us/"
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-4 py-3 text-sm font-bold text-brand-navy hover:bg-yellow-300 transition-colors shadow-sm">
                     <i className="fa-solid fa-bolt" /> Apply Now
-                  </a>
+                  </Link>
                 </div>
                 <button onClick={() => setSaved(!saved)}
                   className={`mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
@@ -317,10 +317,10 @@ function FinanceDetails() {
             <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue text-white p-6">
               <h3 className="text-lg font-bold">Ready to apply?</h3>
               <p className="mt-2 text-sm text-white/70">Get started with quick approval.</p>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-4 inline-flex w-full items-center justify-center bg-yellow-400 px-6 py-3 rounded-xl font-semibold text-sm text-brand-navy hover:bg-yellow-300 transition-colors">
                 Apply Now
-              </a>
+              </Link>
             </div>
           </div>
         </div>

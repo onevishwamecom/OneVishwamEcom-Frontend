@@ -1,4 +1,5 @@
 import { useEffect, lazy, Suspense } from 'react';
+import { Link } from 'react-router-dom';
 import PageSkeleton from '../../components/ui/PageSkeleton';
 
 const PropertyGallery = lazy(() => import('./property/PropertyGallery'));
@@ -80,11 +81,11 @@ function ServiceDetails({ service }) {
               <div className="rounded-xl bg-brand-navy text-white p-6">
                 <h3 className="text-lg font-bold">Ready to get started?</h3>
                 <p className="mt-2 text-sm text-gray-400">Contact our team to discuss your requirements.</p>
-                <a href="/contact-us/"
+                <Link to="/contact-us/"
                   className="mt-4 inline-flex w-full items-center justify-center bg-brand-blue px-6 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
                 >
                   Contact Us
-                </a>
+                </Link>
               </div>
             </div>
           </div>

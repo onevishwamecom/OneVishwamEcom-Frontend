@@ -203,7 +203,7 @@ function PropertyDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Property not found</h1>
-        <a href="/our-services/real-estate-property" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Real Estate</a>
+        <Link to="/our-services/real-estate-property" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Real Estate</Link>
       </div>
     );
   }
@@ -348,9 +348,9 @@ function PropertyDetails() {
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
-                  <a href="/contact-us/" className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                  <Link to="/contact-us/" className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
                     <i className="fa-solid fa-headset" /> Contact Us
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -558,9 +558,9 @@ function PropertyDetails() {
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
-                  <a href="/contact-us/" className="flex items-center justify-center gap-2 w-full rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                  <Link to="/contact-us/" className="flex items-center justify-center gap-2 w-full rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
                     <i className="fa-solid fa-headset" /> Contact Us
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3">
@@ -600,9 +600,9 @@ function PropertyDetails() {
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
             <i className="fa-brands fa-whatsapp" /> WhatsApp
           </a>
-          <a href="/contact-us/" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-white py-3 text-xs font-bold">
+          <Link to="/contact-us/" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-white py-3 text-xs font-bold">
             <i className="fa-solid fa-headset" /> Contact Us
-          </a>
+                  </Link>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
             <i className="fa-regular fa-heart" />
           </button>

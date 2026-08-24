@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
 import { cities } from "../../../data/locations";
 import { ActiveChip } from "../GalleryComponents";
@@ -377,7 +377,7 @@ function PropertyGallery() {
         )}
 
         {/* ── Post Requirement Banner ── */}
-        <a href="/property/requirement"
+        <Link to="/property/requirement"
           className="mt-5 rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 p-5 flex items-center justify-between gap-4 hover:bg-brand-blue/10 transition-colors group"
         >
           <div className="flex items-center gap-3">
@@ -387,7 +387,7 @@ function PropertyGallery() {
             <p className="text-sm font-bold text-brand-charcoal">Post Your Requirement</p>
           </div>
           <i className="fa-solid fa-arrow-right text-brand-blue text-sm" />
-        </a>
+        </Link>
 
         {/* ── Loading / Error states ── */}
         {loading && (
@@ -557,12 +557,12 @@ function PropertyGallery() {
                 <p className="text-sm mt-1 mb-6">
                   Try another category or location.
                 </p>
-                <a href="/property/requirement"
+                <Link to="/property/requirement"
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
                 >
                   <i className="fa-solid fa-circle-plus" />
                   Tell Us What You're Looking For
-                </a>
+                </Link>
               </div>
             )}
 

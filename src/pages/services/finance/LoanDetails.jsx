@@ -45,7 +45,7 @@ function LoanDetails() {
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
         <p className="mt-2 text-sm text-gray-500">{error}</p>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</a>
+        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</Link>
       </div>
     );
   }
@@ -54,7 +54,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</a>
+        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</Link>
       </div>
     );
   }
@@ -116,10 +116,10 @@ function LoanDetails() {
                     <p className="text-[11px] text-white/60 font-semibold">Open Slots</p>
                   </div>
                 </div>
-                <a href="/contact-us/"
+                <Link to="/contact-us/"
                   className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-4 py-3 text-sm font-bold text-brand-navy hover:bg-yellow-300 transition-colors shadow-sm">
                   <i className="fa-solid fa-bolt" /> Apply Now — Instant Approval
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -362,18 +362,18 @@ function LoanDetails() {
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <p className="text-sm font-bold text-brand-charcoal">Construction Loan</p>
                   <p className="text-xs text-gray-500">Disbursed in stages</p>
-                  <a href="/contact-us/"
+                  <Link to="/contact-us/"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
                     Enquire <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </a>
+                  </Link>
                 </div>
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <p className="text-sm font-bold text-brand-charcoal">NRI Loans</p>
                   <p className="text-xs text-gray-500">For non-resident Indians</p>
-                  <a href="/our-services/finance-lending"
+                  <Link to="/our-services/finance-lending"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
                     Explore <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -381,10 +381,10 @@ function LoanDetails() {
             <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue text-white p-6">
               <h3 className="text-lg font-bold">Ready to apply?</h3>
               <p className="mt-2 text-sm text-white/70">Get started with instant approval.</p>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-4 inline-flex w-full items-center justify-center bg-yellow-400 px-6 py-3 rounded-xl font-semibold text-sm text-brand-navy hover:bg-yellow-300 transition-colors">
                 Apply Now
-              </a>
+              </Link>
             </div>
           </div>
         </div>

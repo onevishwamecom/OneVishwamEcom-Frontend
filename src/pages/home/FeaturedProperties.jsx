@@ -1,4 +1,5 @@
 import { useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { cities } from '../../data/locations';
 import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
@@ -33,11 +34,11 @@ function FeaturedProperties() {
             </h2>
             <p className="mt-2 text-gray-500">{filtered.length} listing{filtered.length !== 1 ? 's' : ''} available</p>
           </div>
-          <a href="/our-services/real-estate-property"
+          <Link to="/our-services/real-estate-property"
             className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-brand-blue hover:gap-2 transition-all"
           >
             View All <i className="fa-solid fa-arrow-right text-xs" />
-          </a>
+          </Link>
         </div>
 
         {/* Area filter pills */}

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGarments } from '../../../data/dummyGarments';
 
@@ -15,7 +15,7 @@ function GarmentDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
-        <a href="/our-services/garments-fashion-lifestyle" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Garments &amp; Fashion</a>
+        <Link to="/our-services/garments-fashion-lifestyle" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Garments &amp; Fashion</Link>
       </div>
     );
   }
@@ -187,10 +187,10 @@ function GarmentDetails() {
                   <span className="font-bold text-brand-blue">{item.finalPrice}</span>
                 </div>
               </div>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
                 <i className="fa-solid fa-headset" /> Send Enquiry
-              </a>
+              </Link>
             </div>
           </div>
         </div>

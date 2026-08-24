@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGrocery } from '../../../data/dummyGrocery';
 import ProductCard from '../ProductCard';
@@ -26,7 +26,7 @@ function GroceryDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
-        <a href="/our-services/consumer-marketplace" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Groceries &amp; Daily Needs</a>
+        <Link to="/our-services/consumer-marketplace" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Groceries &amp; Daily Needs</Link>
       </div>
     );
   }
@@ -206,10 +206,10 @@ function GroceryDetails() {
                   <span className="font-bold text-brand-blue">₹{totalPrice}</span>
                 </div>
               </div>
-              <a href="/contact-us/"
+              <Link to="/contact-us/"
                 className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
                 <i className="fa-solid fa-headset" /> Contact Vendor
-              </a>
+              </Link>
             </div>
 
             {/* Recommended by AI */}
