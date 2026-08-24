@@ -55,7 +55,7 @@ function AutomobileGallery() {
   const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
   const cardTypeStats = useMemo(() => {
-    const pool = vehicles.filter((v) => v.condition === condition);
+    const pool = vehicles.filter((v) => !condition || v.condition === condition || (condition === 'new' && !v.condition));
     const stats = {};
     VEHICLE_TYPE_STRIP.forEach((ct) => {
       if (ct.id === 'All') stats.All = pool.length;
@@ -89,18 +89,21 @@ function AutomobileGallery() {
   const filteredVehicles = useMemo(() => {
     return vehicles
       .filter((v) => {
-        if (v.condition !== condition) return false;
+        if (condition && v.condition && v.condition !== condition) return false;
         if (selectedCardType !== 'All' && v.category !== selectedCardType) return false;
         if (preApprovedMode && !v.loanApproved) return false;
-        if (wheelerType !== 'All' && v.wheelerType !== wheelerType) return false;
+        if (wheelerType !== 'All' && v.wheelerType && v.wheelerType !== wheelerType) return false;
 
         const q = searchTerm.toLowerCase();
+        const brandStr = (v.brand || v.make || '').toLowerCase();
+        const modelStr = (v.model || '').toLowerCase();
+        const locStr = (v.location || v.city || '').toLowerCase();
         const matchSearch = !q ||
-          v.brand.toLowerCase().includes(q) ||
-          v.model.toLowerCase().includes(q) ||
-          v.location.toLowerCase().includes(q);
+          brandStr.includes(q) ||
+          modelStr.includes(q) ||
+          locStr.includes(q);
 
-        const np = getNumericPrice(v.price);
+        const np = getNumericPrice(v.price || v.priceValue);
         const matchBudget =
           (!filters.budgetMin || np >= +filters.budgetMin) &&
           (!filters.budgetMax || np <= +filters.budgetMax);
@@ -108,19 +111,19 @@ function AutomobileGallery() {
         const matchCategory =
           filters.categories.length === 0 || filters.categories.includes(v.category);
         const matchFuel =
-          filters.fuelTypes.length === 0 || filters.fuelTypes.includes(v.fuelType);
+          filters.fuelTypes.length === 0 || (v.fuelType && filters.fuelTypes.includes(v.fuelType));
         const matchLocation =
-          filters.locations.length === 0 || filters.locations.includes(v.location);
+          filters.locations.length === 0 || filters.locations.includes(v.location || v.city);
         const matchKm =
-          (!filters.kmMin || v.kmDriven >= +filters.kmMin) &&
-          (!filters.kmMax || v.kmDriven <= +filters.kmMax);
+          (!filters.kmMin || (v.kmDriven || 0) >= +filters.kmMin) &&
+          (!filters.kmMax || (v.kmDriven || 0) <= +filters.kmMax);
 
         return matchSearch && matchBudget && matchCategory && matchFuel && matchLocation && matchKm;
       })
       .sort((a, b) => {
-        if (sortBy === 'price-low') return getNumericPrice(a.price) - getNumericPrice(b.price);
-        if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
-        return new Date(b.createdAt) - new Date(a.createdAt);
+        if (sortBy === 'price-low') return getNumericPrice(a.price || a.priceValue) - getNumericPrice(b.price || b.priceValue);
+        if (sortBy === 'price-high') return getNumericPrice(b.price || b.priceValue) - getNumericPrice(a.price || a.priceValue);
+        return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
   }, [condition, selectedCardType, searchTerm, sortBy, filters, preApprovedMode, wheelerType, vehicles]);
 
@@ -360,19 +363,19 @@ function AutomobileGallery() {
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredVehicles.map((v) => (
                   <ProductCard
-                    key={v.id}
-                    link={`/vehicle/${v.id}`}
-                    image={v.images[0]}
-                    alt={`${v.brand} ${v.model}`}
-                    title={`${v.brand} ${v.model}`}
+                    key={v._id || v.id}
+                    link={`/vehicle/${v._id || v.id}`}
+                    image={v.images?.[0] || v.image}
+                    alt={`${v.brand || v.make || ''} ${v.model || ''}`}
+                    title={`${v.brand || v.make || ''} ${v.model || ''}`}
                     price={v.price}
-                    location={v.location}
+                    location={v.location || v.city}
                     pincode={v.pincode}
                     tags={[
                       v.fuelType,
                       v.year,
                       ...(v.condition === 'old' && v.kmDriven > 0 ? [`${v.kmDriven.toLocaleString()} km`] : []),
-                    ]}
+                    ].filter(Boolean)}
                     badges={[
                       ...(v.loanApproved ? [{ label: 'Pre-Approved Loan', className: 'bg-emerald-100 text-emerald-700' }] : []),
                       ...(v.condition === 'new' ? [{ label: 'New', className: 'bg-blue-100 text-blue-700' }] : []),

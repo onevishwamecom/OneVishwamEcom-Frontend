@@ -64,11 +64,14 @@ function GroceryGallery() {
   };
 
   const filteredItems = useMemo(() => {
-    return groceries
+    return (groceries || [])
       .filter((p) => {
         let matchCat = true;
-        if (activeCategory === 'Organic') matchCat = p.organic;
-        else if (activeCategory !== 'All') matchCat = p.category === activeCategory;
+        if (activeCategory === 'Organic') matchCat = Boolean(p.organic);
+        else if (activeCategory !== 'All') {
+          const lower = activeCategory.toLowerCase();
+          matchCat = p.category?.toLowerCase() === lower || p.category === activeCategory;
+        }
 
         const q = searchTerm.toLowerCase();
         const matchSearch = !q ||
@@ -92,11 +95,11 @@ function GroceryGallery() {
       .sort((a, b) => {
         if (sortBy === 'price-low') return getPriceValue(a.pricePerUnit || a.price) - getPriceValue(b.pricePerUnit || b.price);
         if (sortBy === 'price-high') return getPriceValue(b.pricePerUnit || b.price) - getPriceValue(a.pricePerUnit || a.price);
-        return String(b.id || b._id).localeCompare(String(a.id || a._id));
+        return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
   }, [groceries, activeCategory, searchTerm, sortBy, filters]);
 
-  const organicCount = groceries.filter((p) => p.organic).length;
+  const organicCount = (groceries || []).filter((p) => p.organic).length;
 
   const updateQty = (id, delta) => {
     setQuantities((prev) => {

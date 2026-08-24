@@ -23,10 +23,7 @@ const JewelleryDetails = lazy(() => import('./pages/services/jewellery/Jewellery
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
-const PostFinanceService = lazy(() => import('./pages/services/finance/PostFinanceService'));
-const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
-const AddListing = lazy(() => import('./pages/add-listing'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
@@ -58,7 +55,7 @@ function ScrollToTopAndNavHelper() {
     return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
   }, [navigate]);
 
-  // Authorization check for protected paths (add-listing and detail pages)
+  // Authorization check for protected paths (detail pages)
   useEffect(() => {
     const isProtectedDetail = [
       '/property/',
@@ -68,12 +65,10 @@ function ScrollToTopAndNavHelper() {
       '/jewellery/',
       '/finance-service/',
       '/finance/',
-      '/add-listing/',
     ].some((prefix) =>
       location.pathname.startsWith(prefix) &&
       location.pathname !== '/property/requirement/success' &&
-      location.pathname !== '/property/requirement' &&
-      location.pathname !== '/finance-service/success'
+      location.pathname !== '/property/requirement'
     );
 
     if (isProtectedDetail && !isLoggedIn) {
@@ -165,15 +160,12 @@ function App() {
             <Route path="/property/requirement" element={<PostRequirement />} />
             <Route path="/property/*" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
             <Route path="/finance/*" element={<RequireAuth><LoanDetails location={location} /></RequireAuth>} />
-            <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<RequireAuth><FinanceDetails location={location} /></RequireAuth>} />
-            <Route path="/add-finance-service" element={<RequireAuth><PostFinanceService /></RequireAuth>} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
             <Route path="/vehicle/*" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
             <Route path="/jewellery/*" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
             <Route path="/garment/*" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
-            <Route path="/add-listing/" element={<RequireAuth><AddListing /></RequireAuth>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/reset-password" element={<ResetPassword />} />

@@ -63,47 +63,50 @@ function GarmentGallery() {
   const isInWishlist = (id) => wishlist.some((i) => (i.id || i._id) === id);
 
   const filteredItems = useMemo(() => {
-    return garments
+    return (garments || [])
       .filter((p) => {
         let matchTab = true;
         if (activeTab !== 'All') {
           const lower = activeTab.toLowerCase();
-          if (['men', 'women', 'kids', 'unisex'].includes(lower)) matchTab = p.gender === lower;
-          else matchTab = p.category === activeTab;
+          if (['men', 'women', 'kids', 'unisex'].includes(lower)) {
+            matchTab = p.gender?.toLowerCase() === lower || p.category?.toLowerCase() === lower;
+          } else {
+            matchTab = p.category?.toLowerCase() === lower || p.category === activeTab;
+          }
         }
 
         const q = searchTerm.toLowerCase();
         const matchSearch = !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q);
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.brand && p.brand.toLowerCase().includes(q)) ||
+          (p.category && p.category.toLowerCase().includes(q));
 
-        const np = getNumericPrice(p.finalPrice);
+        const np = getNumericPrice(p.finalPrice || p.price);
         const matchBudget =
           (!filters.budgetMin || np >= +filters.budgetMin) &&
           (!filters.budgetMax || np <= +filters.budgetMax);
 
-        const matchSize = filters.sizes.length === 0 || filters.sizes.some((s) => p.sizes.includes(s));
-        const matchFabric = filters.fabrics.length === 0 || filters.fabrics.includes(p.fabric);
-        const matchOccasion = filters.occasions.length === 0 || filters.occasions.some((o) => p.occasion.includes(o));
+        const matchSize = filters.sizes.length === 0 || (Array.isArray(p.sizes) ? filters.sizes.some((s) => p.sizes.includes(s)) : (p.size && filters.sizes.includes(p.size)));
+        const matchFabric = filters.fabrics.length === 0 || (p.fabric && filters.fabrics.includes(p.fabric));
+        const matchOccasion = filters.occasions.length === 0 || (Array.isArray(p.occasion) ? filters.occasions.some((o) => p.occasion.includes(o)) : (p.occasion && filters.occasions.includes(p.occasion)));
 
         let matchDiscount = true;
         if (filters.discount) {
           const discVal = parseInt(filters.discount);
-          matchDiscount = p.discount >= discVal;
+          matchDiscount = (p.discount || 0) >= discVal;
         }
 
-        const matchDelivery = filters.delivery.length === 0 || filters.delivery.some((d) => p.delivery.includes(d));
+        const matchDelivery = filters.delivery.length === 0 || (Array.isArray(p.delivery) && filters.delivery.some((d) => p.delivery.includes(d)));
 
         return matchTab && matchSearch && matchBudget && matchSize &&
           matchFabric && matchOccasion && matchDiscount && matchDelivery;
       })
       .sort((a, b) => {
-        if (sortBy === 'price-low') return getNumericPrice(a.finalPrice) - getNumericPrice(b.finalPrice);
-        if (sortBy === 'price-high') return getNumericPrice(b.finalPrice) - getNumericPrice(a.finalPrice);
-        return b.id - a.id;
+        if (sortBy === 'price-low') return getNumericPrice(a.finalPrice || a.price) - getNumericPrice(b.finalPrice || b.price);
+        if (sortBy === 'price-high') return getNumericPrice(b.finalPrice || b.price) - getNumericPrice(a.finalPrice || a.price);
+        return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
-  }, [activeTab, searchTerm, sortBy, filters]);
+  }, [garments, activeTab, searchTerm, sortBy, filters]);
 
   /* ── Filter sidebar content ── */
   const filterContent = (

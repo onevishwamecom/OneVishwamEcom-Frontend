@@ -39,46 +39,36 @@ export default function useCachedData(
 
     const record = cache.get(namespace, key);
 
-    // Show whatever we have immediately — cached data (or the previous state
-    // when forced) keeps the page usable during any refetch.
+    // Show cached data immediately to avoid blank screen or flicker
     if (record) {
       setData(record.data);
-      setLoading(false);
       setError(null);
-    } else if (!force) {
+    } else {
       setLoading(true);
       setError(null);
     }
 
-    // Fresh and not a forced refresh → nothing to fetch.
-    if (record && !force && cache.isValid(namespace, key, ttl)) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    // No usable cache (or forced) → fetch. `force:true` bypasses freshness so
-    // `retry()` always pulls from the network. De-duplicated in cacheService.
+    // Always fetch fresh data from API on mount / refresh (SWR pattern)
     cache
-      .fetch(namespace, key, () => fetcherRef.current(), { force: Boolean(force), ttl })
+      .fetch(namespace, key, () => fetcherRef.current(), { force: true, ttl })
       .then(({ data: fresh }) => {
         if (cancelled) return;
         setData(fresh);
         setError(null);
       })
       .catch((err) => {
-        if (!cancelled) {
-          const msg = err?.response?.data?.message || err?.message || 'Failed to load data';
-          setError(
-            msg.includes('Network Error')
-              ? 'Cannot reach server. Please check your connection.'
-              : msg,
-          );
-        }
+        if (cancelled) return;
+        const msg = err?.response?.data?.message || err?.message || 'Failed to load data';
+        setError(
+          msg.includes('Network Error')
+            ? 'Cannot reach server. Please check your connection.'
+            : msg,
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };

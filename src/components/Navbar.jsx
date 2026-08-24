@@ -139,7 +139,7 @@ function Navbar() {
     if (link.id === 'contact') return path.startsWith('/contact-us/');
     if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
     if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
-    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/add-finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
+    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
     if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');
     if (link.id === 'garments') return path.startsWith('/our-services/garments-fashion-lifestyle') || path.startsWith('/garment/');
     return false;

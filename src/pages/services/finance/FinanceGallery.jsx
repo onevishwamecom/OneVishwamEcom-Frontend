@@ -189,14 +189,6 @@ function FinanceGallery() {
             )}
           </div>
         </div>
-
-        {/* ── Mobile CTA ── */}
-        <div className="mt-8 text-center sm:hidden">
-          <button onClick={() => navigateTo('/add-finance-service')}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-colors">
-            <i className="fa-solid fa-plus" /> Post a Financial Service
-          </button>
-        </div>
       </div>
 
       {/* Mobile Filter Drawer */}

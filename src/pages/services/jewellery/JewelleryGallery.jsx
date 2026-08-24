@@ -115,16 +115,16 @@ function JewelleryGallery() {
 
   const isInCart = (id) => enquiryCart.some((i) => (i._id || i.id) === id);
 
-  const filteredItems = jewellery;
+  const filteredItems = jewellery || [];
 
   const totalCartValue = useMemo(
     () => enquiryCart.reduce((sum, i) => sum + getNumericPrice(i.price), 0),
     [enquiryCart],
   );
 
-  const certifiedCount = jewellery.filter((p) => p.certified).length;
-  const tryAtHomeCount = jewellery.filter((p) => p.tryAtHome).length;
-  const aiPickCount = jewellery.filter((p) => p.aiRecommended).length;
+  const certifiedCount = (jewellery || []).filter((p) => p.certified).length;
+  const tryAtHomeCount = (jewellery || []).filter((p) => p.tryAtHome).length;
+  const aiPickCount = (jewellery || []).filter((p) => p.aiRecommended).length;
 
   const filterContent = (
     <FilterSidebar filters={filters} onReset={resetFilters}>
@@ -297,8 +297,8 @@ function JewelleryGallery() {
             const sel = activeCategory === ct.id;
             const count =
               ct.id === "All"
-                ? jewellery.length
-                : jewellery.filter((p) => p.category === ct.id).length;
+                ? (jewellery || []).length
+                : (jewellery || []).filter((p) => p.category?.toLowerCase() === ct.id.toLowerCase() || p.category === ct.id).length;
             return (
               <button
                 key={ct.id}

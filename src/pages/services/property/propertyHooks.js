@@ -126,7 +126,12 @@ export function useFilteredProperties({
         else if (filters.listedWithin === 'Last 7 Days') matchListedWithin = listedDays <= 7;
         else if (filters.listedWithin === 'Last 30 Days')matchListedWithin = listedDays <= 30;
 
-        const matchCity           = !selectedCity    || p.city === selectedCity;
+        const matchCity =
+          !selectedCity ||
+          !p.city ||
+          p.city.toLowerCase() === selectedCity.toLowerCase() ||
+          (selectedCity.toLowerCase() === 'bengaluru' && p.city.toLowerCase() === 'bangalore') ||
+          (selectedCity.toLowerCase() === 'bangalore' && p.city.toLowerCase() === 'bengaluru');
         const matchLocation       = !locationInput   || p.zone === locationInput;
         const matchPincode        = !pincodeInput    || (p.pincode && p.pincode.startsWith(pincodeInput));
         const matchFamilyLocation = !familyLocationsOnly || getBuildingType(p) === 'Residential';
@@ -146,7 +151,7 @@ export function useFilteredProperties({
       .sort((a, b) => {
         if (sortBy === 'price-low')  return getNumericPrice(a.price) - getNumericPrice(b.price);
         if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
-        return b.id - a.id;
+        return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
   }, [
     properties, selectedCardType, searchTerm, requirementText, sortBy, filters,

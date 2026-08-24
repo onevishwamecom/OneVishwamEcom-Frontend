@@ -5,9 +5,6 @@ import { navigateTo } from '../../config/navigation';
 
 const menuItems = [
   { label: 'My Profile', icon: 'fa-user', href: '/profile/settings' },
-  { label: 'My Listings', icon: 'fa-list', href: null },
-  { label: 'Saved Items', icon: 'fa-bookmark', href: null },
-  { label: 'Post New Listing', icon: 'fa-plus', href: '/add-listing/' },
   { label: 'Settings', icon: 'fa-gear', href: '/profile/settings' },
 ];
 

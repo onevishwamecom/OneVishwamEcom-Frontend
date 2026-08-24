@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { useProperties } from '../../../hooks/useProperties';
+import { useProperties, usePropertyById } from '../../../hooks/useProperties';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import { getNumericPrice } from '../GalleryComponents';
@@ -131,22 +131,26 @@ function PropertyCard({ property }) {
 }
 
 function PropertyDetails() {
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
+  const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
+
   const { properties, loading: listLoading } = useProperties();
+  const { property: directProperty, loading: directLoading, error: directError } = usePropertyById(propertySlug);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const similarRef = useRef(null);
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const pathParts = pathname.split('/').filter(Boolean);
-  const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
-  const property = properties.find(
+  const foundFromList = properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
   ) || null;
-  const loading = listLoading;
-  const error = !property && !listLoading ? new Error('Property not found') : null;
+  const property = directProperty || foundFromList;
+  const loading = !property && (listLoading || directLoading);
+  const error = !property && !listLoading && !directLoading ? (directError || new Error('Property not found')) : null;
 
   const similarProperties = property
     ? properties.filter((p) => p.city === property.city && (p._id || p.id) !== (property._id || property.id)).slice(0, 8)

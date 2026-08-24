@@ -16,15 +16,12 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 export function useHomepageData() {
   const [data, setData] = useState(() => {
     const record = cache.get(PUBLIC_NAMESPACE, CACHE_KEY);
-    if (record && (Date.now() - record.cachedAt < CACHE_TTL)) {
-      return record.data;
-    }
-    return null;
+    return record ? record.data : null;
   });
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState(null);
 
-  const fetch = useCallback(async (force = false) => {
+  const fetch = useCallback(async (force = true) => {
     try {
       const fetcher = async () => {
         const { data: res } = await homepageAPI.getHomepageData();
@@ -32,7 +29,7 @@ export function useHomepageData() {
       };
 
       const result = await cache.fetch(PUBLIC_NAMESPACE, CACHE_KEY, fetcher, {
-        force,
+        force: true,
         ttl: CACHE_TTL,
       });
 
@@ -48,7 +45,7 @@ export function useHomepageData() {
   }, [data]);
 
   useEffect(() => {
-    fetch();
+    fetch(true);
   }, [fetch]);
 
   const refresh = useCallback(() => {
