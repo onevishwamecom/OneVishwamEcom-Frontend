@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useVehicleById, useSimilarVehicles } from './automobileHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import ProductCard from '../ProductCard';
 
 function VehicleDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { isLoggedIn } = useAuth();
 
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
@@ -16,6 +19,16 @@ function VehicleDetails() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [vehicleId]);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Vehicle Details"
+        message="Please log in or create an account to view full vehicle specifications, pricing, seller contacts, and test drive booking options."
+        backUrl="/our-services/automobile"
+      />
+    );
+  }
 
   if (loading) {
     return (

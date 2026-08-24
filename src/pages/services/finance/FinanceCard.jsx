@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
+import { useAuth } from '../../../store/authSlice';
 import { formatFinanceAmount } from './financeConstants';
 
 const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
@@ -8,10 +9,22 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 
 export default function FinanceCard({ service }) {
   const [logoError, setLogoError] = useState(false);
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  const handleCardClick = (e) => {
+    const link = `/finance-service/${service._id || service.id}`;
+    if (!isLoggedIn) {
+      if (e && e.preventDefault) e.preventDefault();
+      sessionStorage.setItem('vishwam_auth_redirect', link);
+      openAuthModal('login');
+      return;
+    }
+    navigateTo(link);
+  };
 
   return (
     <div
-      onClick={() => navigateTo(`/finance-service/${service._id || service.id}`)}
+      onClick={handleCardClick}
       className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer flex flex-col"
     >
       {/* Banner area */}

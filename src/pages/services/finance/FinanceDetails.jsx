@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFinanceServiceById, useSimilarFinanceServices } from './financeHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import FinanceCard from './FinanceCard';
 import { formatFinanceAmount } from './financeConstants';
 
@@ -11,12 +13,23 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 function FinanceDetails() {
   const [currentImageIndex] = useState(0);
   const [saved, setSaved] = useState(false);
+  const { isLoggedIn } = useAuth();
 
   const { id: serviceId } = useParams();
   const { service, loading, error } = useFinanceServiceById(serviceId);
   const { similar: relatedServices } = useSimilarFinanceServices(serviceId);
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Finance Details"
+        message="Please log in or create an account to view interest rates, loan terms, eligibility criteria, and application assistance."
+        backUrl="/our-services/finance-lending"
+      />
+    );
+  }
 
   if (loading) {
     return (

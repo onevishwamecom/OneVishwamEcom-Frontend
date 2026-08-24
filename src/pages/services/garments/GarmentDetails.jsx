@@ -2,15 +2,28 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useGarmentById, useSimilarGarments } from './garmentHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 
 function GarmentDetails() {
   const { pathname } = useLocation();
+  const { isLoggedIn } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
   const garmentId = pathParts.length > 1 ? pathParts[1] : null;
   const { garment: item, loading, error } = useGarmentById(garmentId);
   const { similar: relatedItems } = useSimilarGarments(garmentId);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Garment Details"
+        message="Please log in or create an account to view available sizes, fabrics, pricing, colors, and order options."
+        backUrl="/our-services/garments-fashion-lifestyle"
+      />
+    );
+  }
 
   if (loading) {
     return (

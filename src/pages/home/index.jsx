@@ -151,19 +151,10 @@ function Home() {
 
         {/* ── Module 1: Dream Home ── */}
         <section className="relative overflow-hidden">
-          {heroProp && (
-            <div className="absolute inset-0">
-              <img
-                src={heroImage(heroProp.images?.[0] || heroProp.image)}
-                alt="Dream Home Hero"
-                fetchpriority="high"
-                width="1200"
-                height="600"
-                className="h-full w-full object-cover"
-              />
+          <div className="absolute inset-0">
+              
               <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/60" />
             </div>
-          )}
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-16">
             <div className="flex items-end justify-between">
               <div>

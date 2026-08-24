@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useGroceryById, useSimilarGroceries } from './groceryHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import ProductCard from '../ProductCard';
 
 function GroceryDetails() {
   const { pathname } = useLocation();
+  const { isLoggedIn } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
@@ -22,6 +25,16 @@ function GroceryDetails() {
     window.addEventListener('scroll', handle);
     return () => window.removeEventListener('scroll', handle);
   }, []);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Grocery Details"
+        message="Please log in or create an account to view fresh batch availability, nutritional info, pricing, and order options."
+        backUrl="/our-services/consumer-marketplace"
+      />
+    );
+  }
 
   if (loading) {
     return (

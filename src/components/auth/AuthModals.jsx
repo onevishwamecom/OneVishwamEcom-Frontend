@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
+import { navigateTo } from '../../config/navigation';
 import PasswordInput from '../ui/PasswordInput';
 
 const RULES = [
@@ -44,6 +45,11 @@ function LoginForm({ onSwitch, onClose }) {
       await login({ email: form.email, password: form.password }).unwrap();
       Swal.fire({ icon: 'success', title: 'Login Successful!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
       onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
     } catch {}
   };
 
@@ -188,6 +194,11 @@ function RegisterForm({ onSwitch, onClose }) {
       }).unwrap();
       Swal.fire({ icon: 'success', title: 'Account Created!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
       onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
     } catch (err) {
       if (err?.response?.data?.message) {
         setServerError(err.response.data.message);

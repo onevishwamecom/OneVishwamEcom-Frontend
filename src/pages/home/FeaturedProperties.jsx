@@ -3,11 +3,23 @@ import { cities } from '../../data/locations';
 import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
 import { useProperties } from '../../hooks/useProperties';
+import { useAuth } from '../../store/authSlice';
 
 function FeaturedProperties() {
   const scrollRef = useRef(null);
   const { selectedCity, selectedArea, setArea } = useLocation();
   const { properties } = useProperties();
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  const handlePropertyClick = (propertyId) => {
+    const link = `/property/${propertyId}`;
+    if (!isLoggedIn) {
+      sessionStorage.setItem('vishwam_auth_redirect', link);
+      openAuthModal('login');
+      return;
+    }
+    navigateTo(link);
+  };
 
   const cityAreas = cities[selectedCity]?.areas || [];
 
@@ -65,7 +77,7 @@ function FeaturedProperties() {
           <>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               {top2.map((p) => (
-                <div key={p.id} onClick={() => navigateTo(`/property/${p.id}`)}
+                <div key={p.id} onClick={() => handlePropertyClick(p.id)}
                   className="group cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
@@ -102,7 +114,7 @@ function FeaturedProperties() {
                 </div>
                 <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-3 snap-x" style={{ scrollbarWidth: 'none' }}>
                   {filtered.map((p, i) => (
-                    <div key={p.id} onClick={() => navigateTo(`/property/${p.id}`)}
+                    <div key={p.id} onClick={() => handlePropertyClick(p.id)}
                       className="w-64 shrink-0 snap-start cursor-pointer rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-md transition-all"
                     >
                       <div className="relative aspect-[4/3] bg-gray-100">
