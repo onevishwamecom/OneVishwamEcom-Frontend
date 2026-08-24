@@ -1,17 +1,27 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
-import { dummyGarments } from '../../../data/dummyGarments';
+import { useGarmentById, useSimilarGarments } from './garmentHooks';
 
 function GarmentDetails() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
-  const garmentId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const item = dummyGarments.find((g) => g.id === garmentId);
+  const garmentId = pathParts.length > 1 ? pathParts[1] : null;
+  const { garment: item, loading, error } = useGarmentById(garmentId);
+  const { similar: relatedItems } = useSimilarGarments(garmentId);
 
-  if (!item) {
+  if (loading) {
+    return (
+      <div className="py-32 text-center">
+        <i className="fa-solid fa-spinner fa-spin text-3xl text-gray-400 mb-4" />
+        <p className="text-lg font-medium text-gray-400">Loading garment details...</p>
+      </div>
+    );
+  }
+
+  if (!item || error) {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
@@ -19,10 +29,6 @@ function GarmentDetails() {
       </div>
     );
   }
-
-  const relatedItems = dummyGarments
-    .filter((g) => g.id !== item.id && g.category === item.category)
-    .slice(0, 4);
 
   return (
     <div className="pb-24 sm:pb-32">
@@ -37,52 +43,58 @@ function GarmentDetails() {
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-white/10 shadow-lg">
-                <img src={item.images[0]} alt={item.name}
+                <img src={item.images?.[0] || item.image || ''} alt={item.name}
                   className="h-full w-full object-cover" />
               </div>
             </div>
 
             <div className="lg:col-span-2 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.brand} · {item.store.city}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.brand || ''} {item.store?.city || item.city ? `· ${item.store?.city || item.city}` : ''}</p>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{item.name}</h1>
-              <p className="text-white/70 text-sm capitalize">{item.gender} · {item.fabric} · {item.category}</p>
+              <p className="text-white/70 text-sm capitalize">{item.gender || 'Unisex'} · {item.fabric || item.material || 'Cotton'} · {item.category || item.subcategory}</p>
 
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-yellow-400">{item.finalPrice}</span>
-                <span className="text-lg text-white/50 line-through">{item.originalPrice}</span>
+                <span className="text-4xl font-bold text-yellow-400">{item.finalPrice || item.price}</span>
+                {item.originalPrice && <span className="text-lg text-white/50 line-through">{item.originalPrice}</span>}
                 {item.discount > 0 && (
                   <span className="text-sm font-bold text-emerald-300">{item.discount}% OFF</span>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {item.sizes.map((s) => (
-                  <span key={s} className="rounded-lg bg-white/15 backdrop-blur-sm px-3 py-1 text-xs font-bold">
-                    {s}
-                  </span>
-                ))}
-              </div>
+              {Array.isArray(item.sizes) && item.sizes.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {item.sizes.map((s) => (
+                    <span key={s} className="rounded-lg bg-white/15 backdrop-blur-sm px-3 py-1 text-xs font-bold">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-              <div className="flex flex-wrap gap-2">
-                {item.occasion.map((o) => (
-                  <span key={o} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                    <i className="fa-solid fa-tag text-yellow-400" /> {o}
-                  </span>
-                ))}
-                {item.trending && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-rose-500/30 px-3 py-1.5 text-xs font-bold">
-                    <i className="fa-solid fa-fire text-yellow-400" /> Trending
-                  </span>
-                )}
-              </div>
+              {Array.isArray(item.occasion) && item.occasion.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {item.occasion.map((o) => (
+                    <span key={o} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
+                      <i className="fa-solid fa-tag text-yellow-400" /> {o}
+                    </span>
+                  ))}
+                  {item.trending && (
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-rose-500/30 px-3 py-1.5 text-xs font-bold">
+                      <i className="fa-solid fa-fire text-yellow-400" /> Trending
+                    </span>
+                  )}
+                </div>
+              )}
 
-              <div className="flex flex-wrap gap-2">
-                {item.delivery.map((d) => (
-                  <span key={d} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                    <i className="fa-solid fa-truck text-yellow-400" /> {d}
-                  </span>
-                ))}
-              </div>
+              {Array.isArray(item.delivery) && item.delivery.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {item.delivery.map((d) => (
+                    <span key={d} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
+                      <i className="fa-solid fa-truck text-yellow-400" /> {d}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

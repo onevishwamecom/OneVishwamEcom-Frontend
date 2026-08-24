@@ -1,32 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
+import { useVehicleById, useSimilarVehicles } from './automobileHooks';
 import ProductCard from '../ProductCard';
 
 function VehicleDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [vehicle, setVehicle] = useState(null);
-  const [relatedVehicles, setRelatedVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
   const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
 
+  const { vehicle, loading, error } = useVehicleById(vehicleId);
+  const { similar: relatedVehicles } = useSimilarVehicles(vehicleId);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (!vehicleId) { setLoading(false); setError('Invalid vehicle ID'); return; }
-
-    setLoading(true);
-    setError(null);
-
-    const item = dummyAutomobiles.find(v => String(v.id) === String(vehicleId));
-    setVehicle(item);
-    if (item) {
-      setRelatedVehicles(dummyAutomobiles.filter(v => v.category === item.category && v.id !== item.id).slice(0, 4));
-    }
-    setLoading(false);
   }, [vehicleId]);
 
   if (loading) {

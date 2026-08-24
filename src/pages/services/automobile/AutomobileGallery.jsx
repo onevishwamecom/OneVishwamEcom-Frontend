@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
+import { useVehicles } from './automobileHooks';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import VehicleTypeStrip from './VehicleTypeStrip';
@@ -48,8 +48,7 @@ function AutomobileGallery() {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
   const [showroomTarget, setShowroomTarget] = useState(null);
-  // Initialize directly from the in-memory data — no async loading needed.
-  const [vehicles] = useState(() => dummyAutomobiles.map(v => ({ ...v, id: v.id })));
+  const { vehicles, loading, error } = useVehicles();
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));

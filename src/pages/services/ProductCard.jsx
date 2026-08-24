@@ -20,6 +20,8 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
  * - badges: Array of { label: string, className: string } objects displayed in the top‑left overlay
  * - children: Optional JSX rendered at the bottom of the card (e.g., action buttons)
  */
+const EMPTY_ARRAY = [];
+
 export default React.memo(function ProductCard({
   link = "#",
   image,
@@ -31,8 +33,8 @@ export default React.memo(function ProductCard({
   priceOverride,
   location,
   pincode,
-  tags = [],
-  badges = [],
+  tags = EMPTY_ARRAY,
+  badges = EMPTY_ARRAY,
   showButton = true,
   children,
 }) {

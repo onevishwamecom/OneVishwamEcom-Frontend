@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
-import { dummyGrocery } from '../../../data/dummyGrocery';
+import { useGroceryById, useSimilarGroceries } from './groceryHooks';
 import ProductCard from '../ProductCard';
 
 function GroceryDetails() {
@@ -9,8 +9,9 @@ function GroceryDetails() {
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
-  const groceryId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
-  const item = dummyGrocery.find((g) => g.id === groceryId);
+  const groceryId = pathParts.length > 1 ? pathParts[1] : null;
+  const { grocery: item, loading, error } = useGroceryById(groceryId);
+  const { similar: relatedItems } = useSimilarGroceries(groceryId);
 
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -22,7 +23,16 @@ function GroceryDetails() {
     return () => window.removeEventListener('scroll', handle);
   }, []);
 
-  if (!item) {
+  if (loading) {
+    return (
+      <div className="py-32 text-center">
+        <i className="fa-solid fa-spinner fa-spin text-3xl text-gray-400 mb-4" />
+        <p className="text-lg font-medium text-gray-400">Loading grocery details...</p>
+      </div>
+    );
+  }
+
+  if (!item || error) {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
@@ -39,14 +49,14 @@ function GroceryDetails() {
   const badges = [];
   if (item.organic) badges.push({ label: 'Organic', className: 'bg-emerald-100 text-emerald-700' });
   if (item.freshToday) badges.push({ label: 'Fresh Today', className: 'bg-blue-100 text-blue-700' });
-  if (item.inStock) badges.push({ label: 'In Stock', className: 'bg-green-100 text-green-700' });
+  if (item.inStock !== false && item.stock !== 0) badges.push({ label: 'In Stock', className: 'bg-green-100 text-green-700' });
   else badges.push({ label: 'Out of Stock', className: 'bg-red-100 text-red-700' });
 
-  const relatedItems = dummyGrocery
-    .filter((g) => g.id !== item.id && g.category === item.category)
-    .slice(0, 4);
+  const unitPrice = typeof item.pricePerUnit === 'number'
+    ? item.pricePerUnit
+    : parseFloat(String(item.pricePerUnit || item.price || item.numericPrice || '0').replace(/[₹,\s]/g, '')) || 0;
 
-  const totalPrice = (qty * parseFloat(item.pricePerUnit.replace(/[₹,\s]/g, ''))).toLocaleString();
+  const totalPrice = (qty * unitPrice).toLocaleString();
 
   return (
     <div className="pb-24 sm:pb-32">
@@ -61,19 +71,19 @@ function GroceryDetails() {
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-white/10 shadow-lg">
-                <img src={item.images[0]} alt={item.name}
+                <img src={item.images?.[0] || item.image || ''} alt={item.name}
                   className="h-full w-full object-cover" />
               </div>
             </div>
 
             <div className="lg:col-span-2 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.vendorName} · {item.vendorType}</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-yellow-400">{item.vendorName || item.brand || 'OneVishwam'} {item.vendorType ? `· ${item.vendorType}` : ''}</p>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{item.name}</h1>
-              <p className="text-white/70 text-sm">{item.category} · {item.location.area}, {item.location.city}</p>
+              <p className="text-white/70 text-sm">{item.category} {item.location?.area || item.area ? `· ${item.location?.area || item.area}, ${item.location?.city || item.city || 'Bengaluru'}` : ''}</p>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-yellow-400">{item.pricePerUnit}</span>
-                <span className="text-white/60">/{item.unit}</span>
+                <span className="text-4xl font-bold text-yellow-400">{item.pricePerUnit || item.price || `₹ ${unitPrice}`}</span>
+                <span className="text-white/60">/{item.unit || 'kg'}</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -84,13 +94,15 @@ function GroceryDetails() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {item.deliveryType.map((d) => (
-                  <span key={d} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
-                    <i className="fa-solid fa-truck text-yellow-400" /> {d}
-                  </span>
-                ))}
-              </div>
+              {Array.isArray(item.deliveryType) && item.deliveryType.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {item.deliveryType.map((d) => (
+                    <span key={d} className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs">
+                      <i className="fa-solid fa-truck text-yellow-400" /> {d}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

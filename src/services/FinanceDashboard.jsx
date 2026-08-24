@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { navigateTo } from '../config/navigation';
 import { useLocation } from '../store/locationSlice';
-import { loanProducts } from '../data/dummyFinance';
+import useLoanProducts from '../pages/services/finance/useLoanProducts';
 
 const LOAN_TABS = ['All', 'Home Loan', 'Construction Loan', 'NRI Loan', 'Loan Against Property'];
 
@@ -21,12 +21,13 @@ const CONSTRUCTION_STAGES = [
 function FinanceDashboard() {
   const { selectCity } = useLocation();
   const [activeLoanTab, setActiveLoanTab] = useState('All');
+  const { loans = [] } = useLoanProducts();
 
   const [reqType, setReqType] = useState('');
   const [reqBudget, setReqBudget] = useState('');
   const [reqCity, setReqCity] = useState('');
 
-  const filteredLoans = loanProducts.filter(
+  const filteredLoans = (loans || []).filter(
     (l) => activeLoanTab === 'All' || l.type === activeLoanTab
   );
 

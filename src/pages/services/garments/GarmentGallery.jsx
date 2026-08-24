@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyGarments } from '../../../data/dummyGarments';
+import { useGarments } from './garmentHooks';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import SearchSortBar from '../../../components/SearchSortBar';
@@ -48,21 +48,22 @@ function GarmentGallery() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [wishlist, setWishlist] = useState([]);
   const [showWishlist, setShowWishlist] = useState(false);
+  const { garments, loading, error } = useGarments();
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
   const toggleWishlist = (item) => {
-    setWishlist((prev) => prev.find((i) => i.id === item.id)
-      ? prev.filter((i) => i.id !== item.id)
+    setWishlist((prev) => prev.find((i) => (i.id || i._id) === (item.id || item._id))
+      ? prev.filter((i) => (i.id || i._id) !== (item.id || item._id))
       : [...prev, item]);
   };
 
-  const isInWishlist = (id) => wishlist.some((i) => i.id === id);
+  const isInWishlist = (id) => wishlist.some((i) => (i.id || i._id) === id);
 
   const filteredItems = useMemo(() => {
-    return dummyGarments
+    return garments
       .filter((p) => {
         let matchTab = true;
         if (activeTab !== 'All') {

@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { financeServices } from '../../../data/dummyFinanceServices';
 import { cities } from '../../../data/locations';
 import { ActiveChip } from '../GalleryComponents';
 import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';
 import { FINANCE_TABS, INITIAL_FILTERS, INITIAL_SECTIONS } from './financeConstants';
-import { useTabStats, useActiveChips, useFilteredServices } from './financeHooks';
+import { useTabStats, useActiveChips, useFilteredServices, useFinanceServices } from './financeHooks';
 
 function FinanceGallery() {
   const [activeTab, setActiveTab] = useState('All');
@@ -15,17 +14,7 @@ function FinanceGallery() {
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const [openSections, setOpenSections] = useState({ ...INITIAL_SECTIONS });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    const raw = financeServices;
-    setServices(raw.map((s) => ({ ...s, id: s.id })));
-    setLoading(false);
-  }, []);
+  const { services, loading, error } = useFinanceServices();
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
