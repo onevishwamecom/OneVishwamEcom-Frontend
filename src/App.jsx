@@ -5,6 +5,7 @@ import { NAVIGATION_EVENT } from './config/navigation';
 import BrandLoader from './components/ui/BrandLoader';
 import { useAuth, forceLogout } from './store/authSlice';
 import store from './store';
+import AuthModals from './components/auth/AuthModals';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -56,7 +57,7 @@ function ScrollToTopAndNavHelper() {
     window.addEventListener(NAVIGATION_EVENT, handleCustomNav);
     return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
   }, [navigate]);
-  
+
   // Authorization check for protected paths (add-listing and detail pages)
   useEffect(() => {
     const isProtectedDetail = [
@@ -92,6 +93,50 @@ function ScrollToTopAndNavHelper() {
   return null;
 }
 
+/**
+ * RequireAuth - guards protected detail/listing pages.
+ * Unauthenticated users see a "please log in" placeholder and an auth modal
+ * is opened automatically so they can log in without losing context.
+ */
+function RequireAuth({ children }) {
+  const { isLoggedIn, openAuthModal } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      openAuthModal('login');
+    }
+  }, [isLoggedIn, openAuthModal]);
+
+  if (isLoggedIn) return children;
+
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center px-4 pt-16 lg:pt-14">
+      <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+        <div className="w-14 h-14 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue mx-auto mb-4">
+          <i className="fa-solid fa-lock text-2xl" />
+        </div>
+        <h2 className="text-2xl font-bold text-brand-charcoal">Login Required</h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Please log in to view this property. We&rsquo;ll keep everything ready so you can come right back here.
+        </p>
+        <button
+          onClick={() => openAuthModal('login')}
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-6 py-3 text-sm font-bold hover:bg-brand-navy transition-colors"
+        >
+          <i className="fa-solid fa-arrow-right-to-bracket" /> Log In to Continue
+        </button>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-3 block w-full text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const location = useLocation();
   const { isLoggedIn, fetchMe } = useAuth();
@@ -118,28 +163,29 @@ function App() {
             <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />
-            <Route path="/property/*" element={<PropertyDetails location={location} />} />
-            <Route path="/finance/*" element={<LoanDetails location={location} />} />
+            <Route path="/property/*" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
+            <Route path="/finance/*" element={<RequireAuth><LoanDetails location={location} /></RequireAuth>} />
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
-            <Route path="/finance-service/:id" element={<FinanceDetails location={location} />} />
-            <Route path="/add-finance-service" element={<PostFinanceService />} />
+            <Route path="/finance-service/:id" element={<RequireAuth><FinanceDetails location={location} /></RequireAuth>} />
+            <Route path="/add-finance-service" element={<RequireAuth><PostFinanceService /></RequireAuth>} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
-            <Route path="/grocery/*" element={<GroceryDetails location={location} />} />
-            <Route path="/vehicle/*" element={<VehicleDetails location={location} />} />
-            <Route path="/jewellery/*" element={<JewelleryDetails location={location} />} />
-            <Route path="/garment/*" element={<GarmentDetails location={location} />} />
-            <Route path="/add-listing/" element={<AddListing />} />
+            <Route path="/grocery/*" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
+            <Route path="/vehicle/*" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
+            <Route path="/jewellery/*" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
+            <Route path="/garment/*" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
+            <Route path="/add-listing/" element={<RequireAuth><AddListing /></RequireAuth>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-success" element={<ResetSuccess />} />
-            <Route path="/profile/settings" element={<ProfileSettings />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/profile/settings" element={<RequireAuth><ProfileSettings /></RequireAuth>} />
+            <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
       </main>
       <Footer />
+      <AuthModals />
     </>
   );
 }
