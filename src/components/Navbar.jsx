@@ -3,9 +3,11 @@ import logo from '../assets/logo.png';
 import { navLinks } from '../data/siteContent';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
+import { useAuth } from '../store/authSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
+import UserDropdown from './auth/UserDropdown';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +18,7 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
+  const { isLoggedIn, openAuthModal, user } = useAuth();
 
   const visibleNavLinks = PROPERTIES_ONLY
     ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties')
@@ -267,6 +270,16 @@ function Navbar() {
               >
                 <i className="fa-solid fa-phone" /> Enquire Now
               </Link>
+
+              {!isLoggedIn ? (
+                <button onClick={() => openAuthModal('login')}
+                  className="inline-flex items-center gap-2 border border-brand-blue text-brand-blue px-4 py-2 text-sm font-semibold rounded-lg hover:bg-brand-blue hover:text-white transition-colors"
+                >
+                  <i className="fa-solid fa-arrow-right-to-bracket" /> Login
+                </button>
+              ) : (
+                <UserDropdown />
+              )}
             </div>
 
             <button onClick={() => setMenuOpen(!menuOpen)}
@@ -341,6 +354,20 @@ function Navbar() {
           >
             <i className="fa-solid fa-phone" /> Enquire Now
           </Link>
+          {!isLoggedIn && (
+            <button
+              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              className="mt-2 w-full flex items-center justify-center gap-2 border border-brand-blue text-brand-blue px-5 py-3 text-sm font-semibold rounded-lg hover:bg-brand-blue hover:text-white transition-colors"
+            >
+              <i className="fa-solid fa-arrow-right-to-bracket" /> Login
+            </button>
+          )}
+          {isLoggedIn && (
+            <div className="mt-2 px-4 py-3 rounded-lg bg-brand-blue/5 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Logged in as</p>
+              <p className="mt-1 font-semibold text-brand-charcoal truncate">{user?.fullName || user?.name || user?.email || 'User'}</p>
+            </div>
+          )}
         </nav>
       </div>
     </div>
