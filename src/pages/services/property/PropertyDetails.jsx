@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { navigateTo } from '../../../config/navigation';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
+import { contactInfo } from '../../../data/footerContent';
+import { navigateTo } from '../../../config/navigation';
+import { getPropertyCoverImage } from './propertyHelpers';
+import EnquiryModal from '../../../components/EnquiryModal';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -10,6 +14,7 @@ const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
 function resolveImage(src) {
   if (!src) return '';
   if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) return src;
+  if (src.startsWith('/assets/') || src.startsWith('/src/assets/')) return src;
   return `${API_ORIGIN}${src.startsWith('/') ? '' : '/'}${src}`;
 }
 
@@ -27,24 +32,6 @@ const AMENITY_ICONS = {
   'Attached Market': 'fa-store', 'Wi-Fi': 'fa-wifi',
 };
 
-const NEARBY_PLACES = [
-  { label: 'Metro', icon: 'fa-train-subway', distance: '600m' },
-  { label: 'Bus Stand', icon: 'fa-bus', distance: '350m' },
-  { label: 'School', icon: 'fa-school', distance: '850m' },
-  { label: 'Hospital', icon: 'fa-hospital', distance: '1.2 km' },
-  { label: 'Railway Station', icon: 'fa-train', distance: '3.5 km' },
-  { label: 'Airport', icon: 'fa-plane', distance: '12 km' },
-  { label: 'Shopping Mall', icon: 'fa-cart-shopping', distance: '1.5 km' },
-  { label: 'Temple', icon: 'fa-place-of-worship', distance: '400m' },
-  { label: 'ATM', icon: 'fa-credit-card', distance: '200m' },
-  { label: 'Petrol Pump', icon: 'fa-gas-pump', distance: '600m' },
-];
-
-const HIGHLIGHT_CHIPS = [
-  'Near Metro', 'Corner Property', 'Good Ventilation', 'East Facing',
-  'Family Friendly', 'Investment Opportunity',
-];
-
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Bedrooms', icon: 'fa-bed' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath' },
@@ -54,17 +41,6 @@ const PROPERTY_HIGHLIGHTS_META = [
   { key: 'furnishing', label: 'Furnishing', icon: 'fa-couch' },
   { key: 'extraRoom', label: 'Extra Room', icon: 'fa-door-open' },
   { key: 'status', label: 'Possession', icon: 'fa-key' },
-];
-
-const WHY_CHOOSE = [
-  { icon: 'fa-train-subway', title: 'Near Metro' },
-  { icon: 'fa-building-columns', title: 'Bank Approved' },
-  { icon: 'fa-location-dot', title: 'Premium Location' },
-  { icon: 'fa-key', title: 'Ready To Move' },
-  { icon: 'fa-coins', title: 'High Rental Yield' },
-  { icon: 'fa-shield-halved', title: 'Gated Community' },
-  { icon: 'fa-chart-line', title: 'Good Investment' },
-  { icon: 'fa-people-arrows', title: 'Family Friendly' },
 ];
 
 function GalleryModal({ images, index, onClose, onPrev, onNext }) {
@@ -94,47 +70,6 @@ function GalleryModal({ images, index, onClose, onPrev, onNext }) {
   );
 }
 
-function TrustBadges() {
-  const badges = [
-    { label: 'Verified Listing', icon: 'fa-circle-check', cls: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { label: 'Best Deal', icon: 'fa-tag', cls: 'text-amber-600 bg-amber-50 border-amber-200' },
-    { label: 'New Listing', icon: 'fa-star', cls: 'text-blue-600 bg-blue-50 border-blue-200' },
-    { label: 'Exclusive', icon: 'fa-crown', cls: 'text-purple-600 bg-purple-50 border-purple-200' },
-  ];
-  return (
-    <div className="flex flex-wrap gap-2">
-      {badges.map((b) => (
-        <span key={b.label} className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${b.cls}`}>
-          <i className={`fa-solid ${b.icon} text-[10px]`} /> {b.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function PropertyTimeline() {
-  const steps = [
-    { label: 'Listed', done: true }, { label: 'Updated', done: true },
-    { label: 'Visited', done: false }, { label: 'Negotiation', done: false },
-    { label: 'Sold', done: false },
-  ];
-  return (
-    <div className="flex items-center justify-between">
-      {steps.map((s, i) => (
-        <div key={s.label} className="flex items-center">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${s.done ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-400'}`}>
-              <i className={`fa-solid ${s.done ? 'fa-check' : 'fa-clock'}`} />
-            </div>
-            <span className={`mt-1 text-[10px] font-medium ${s.done ? 'text-brand-blue' : 'text-gray-400'}`}>{s.label}</span>
-          </div>
-          {i < steps.length - 1 && <div className={`h-0.5 w-8 sm:w-12 mx-1 rounded ${s.done ? 'bg-brand-blue' : 'bg-gray-200'}`} />}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
 );
@@ -143,7 +78,7 @@ function PropertyCard({ property }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
   if (!property) return null;
-  const imgSrc = resolveImage(property.images?.[0] || property.image);
+  const imgSrc = resolveImage(getPropertyCoverImage(property));
   return (
     <div className="w-[190px] sm:w-[260px] lg:w-[280px] flex-shrink-0 snap-start">
       <div onClick={() => navigateTo(`/property/${property._id || property.id}`)}
@@ -193,14 +128,16 @@ function PropertyCard({ property }) {
   );
 }
 
-function PropertyDetails({ location }) {
+function PropertyDetails() {
   const { properties, loading: listLoading } = useProperties();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showLoanBanner, setShowLoanBanner] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
   const similarRef = useRef(null);
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
   const property = properties.find(
@@ -214,11 +151,31 @@ function PropertyDetails({ location }) {
     : [];
 
   useEffect(() => { window.scrollTo(0, 0); }, [propertySlug]);
-  useEffect(() => {
-    if (!property) return;
-    const timer = setTimeout(() => setShowLoanBanner(true), 2000);
-    return () => clearTimeout(timer);
-  }, [property]);
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigateTo('/our-services/real-estate-property');
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = property?.title || 'OneVishwam Property';
+    const text = `Check out this property: ${title}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') console.warn('Share API failed:', err);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    } catch (e) {
+      prompt('Copy the link manually:', url);
+    }
+  };
 
   const loanCtaParams = property
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
@@ -250,6 +207,8 @@ function PropertyDetails({ location }) {
       </div>
     );
   }
+
+  const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title}.`)}`;
 
   const renderAmenityCard = (amenity) => {
     const icon = AMENITY_ICONS[amenity] || 'fa-star';
@@ -290,34 +249,48 @@ function PropertyDetails({ location }) {
 
       {/* ─── HERO SECTION ─── */}
       <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <button onClick={() => navigateTo('/our-services/real-estate-property')}
-            className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors">
-            <i className="fa-solid fa-arrow-left" /> Back to Properties
-          </button>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 pt-16 lg:pt-14">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <button onClick={goBack}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors shrink-0">
+              <i className="fa-solid fa-arrow-left" /> Back to Properties
+            </button>
+          </div>
 
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100 group cursor-pointer" onClick={() => setGalleryOpen(true)}>
-                <img src={resolveImage(property.images[currentImageIndex])} alt={property.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group cursor-pointer" onClick={() => setGalleryOpen(true)}>
+                <img
+                  key={currentImageIndex}
+                  src={resolveImage(property.images[currentImageIndex])}
+                  alt={property.title}
+                  className="gallery-fade h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+                />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
                   <i className="fa-solid fa-chevron-left" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
                   <i className="fa-solid fa-chevron-right" />
                 </button>
-                <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
                   <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
+                </div>
+                <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                  <i className="fa-solid fa-magnifying-glass-plus mr-1" /> Click to view
                 </div>
               </div>
               {property.images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
+                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
                   {property.images.map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
-                      className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${idx === currentImageIndex ? 'border-brand-blue ring-2 ring-brand-blue/20' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                      <img src={resolveImage(img)} alt="" className="h-full w-full object-cover" />
+                      className={`relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all duration-200 ${
+                        idx === currentImageIndex
+                          ? 'border-brand-blue ring-2 ring-brand-blue/25 shadow-md scale-[1.02]'
+                          : 'border-transparent opacity-70 hover:opacity-100 hover:border-gray-300'
+                      }`}>
+                      <img src={resolveImage(img)} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -329,9 +302,6 @@ function PropertyDetails({ location }) {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="rounded-full bg-brand-blue/10 text-brand-blue text-[11px] font-bold px-3 py-0.5">{property.propertyType || 'Property'}</span>
-                  <span className="rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold px-3 py-0.5 flex items-center gap-1">
-                    <i className="fa-solid fa-circle-check text-[10px]" /> Verified
-                  </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-brand-charcoal leading-tight">{property.title}</h1>
                 {property.subtitle && <p className="mt-1 text-sm text-gray-500">{property.subtitle}</p>}
@@ -345,52 +315,41 @@ function PropertyDetails({ location }) {
                 <span className="text-4xl font-bold text-brand-charcoal">{property.price}</span>
                 {property.priceSuffix && <span className="text-gray-400 text-sm font-medium">{property.priceSuffix}</span>}
               </div>
-
-              <a href={`/finance/home-loan${loanCtaParams}`}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors">
-                <i className="fa-solid fa-calculator" /> Estimate EMI <i className="fa-solid fa-chevron-right text-xs" />
-              </a>
+              {property.priceNote && <p className="mt-1 text-[11px] text-gray-400">{property.priceNote}</p>}
 
               <div className="flex flex-wrap gap-2">
                 {property.bhk && property.bhk !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.bhk}</span>}
                 {property.area && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.area}</span>}
                 {property.furnishing && property.furnishing !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.furnishing}</span>}
                 <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${property.status === 'available' ? 'bg-emerald-100 text-emerald-700' : property.status === 'closed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {property.status === 'available' ? '✓ Ready to Move' : property.status}
+                  {property.status === 'available' ? (property.possession || '✓ Ready to Move') : property.status}
                 </span>
               </div>
 
               <div className="flex items-center gap-3 text-xs text-gray-500 pt-1">
                 <span><i className="fa-solid fa-hashtag mr-1 text-gray-300" /> ID: {property.id || property._id?.slice(-6)}</span>
-                <span><i className="fa-solid fa-eye mr-1 text-gray-300" /> 124 Views</span>
-                <span><i className="fa-regular fa-clock mr-1 text-gray-300" /> Posted 3 days ago</span>
               </div>
 
               <div className="flex gap-2">
                 <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                   <i className="fa-regular fa-heart" /> Save
                 </button>
-                <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                <button onClick={handleShare} className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                   <i className="fa-solid fa-share-nodes" /> Share
                 </button>
               </div>
 
               {/* Primary CTAs */}
               <div className="space-y-2 pt-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
-                    <i className="fa-solid fa-phone" /> Call Owner
-                  </a>
-                  <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => setEnquiryOpen(true)} className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
+                    <i className="fa-solid fa-paper-plane" /> Enquire Now
+                  </button>
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="flex items-center justify-center gap-2 rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-2.5 text-xs font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-calendar-check" /> Schedule Visit
-                  </button>
-                  <a href={`/contact-us/${loanCtaParams}`} className="flex items-center justify-center gap-2 rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-2.5 text-xs font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-paper-plane" /> Enquire Now
+                  <a href="/contact-us/" className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                    <i className="fa-solid fa-headset" /> Contact Us
                   </a>
                 </div>
               </div>
@@ -415,9 +374,6 @@ function PropertyDetails({ location }) {
               </div>
             </div>
 
-            {/* Trust Badges */}
-            <TrustBadges />
-
             {/* Description */}
             <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -425,12 +381,6 @@ function PropertyDetails({ location }) {
                   <i className="fa-solid fa-info text-brand-blue text-xs" />
                 </div>
                 <h2 className="text-base font-bold text-brand-charcoal">Description</h2>
-              </div>
-              {/* Highlight Chips */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {HIGHLIGHT_CHIPS.map((chip) => (
-                  <span key={chip} className="rounded-full bg-brand-blue/5 border border-brand-blue/10 text-brand-blue text-[11px] font-semibold px-3 py-1">{chip}</span>
-                ))}
               </div>
               <p className="text-gray-600 leading-relaxed text-sm">
                 {showFullDesc || !property.description || property.description.length < 300
@@ -469,16 +419,15 @@ function PropertyDetails({ location }) {
                 {[
                   { label: 'Property Type', value: property.propertyType || property.bhk },
                   { label: 'Area', value: property.area },
+                  { label: 'Size', value: property.sizeRange },
                   { label: 'Bedrooms', value: property.bhk },
-                  { label: 'Bathrooms', value: property.bathrooms },
-                  { label: 'Balcony', value: property.extraRoom || '1' },
-                  { label: 'Parking', value: property.parking || 'N/A' },
-                  { label: 'Floor', value: property.floor || 'N/A' },
-                  { label: 'Facing', value: 'East' },
-                  { label: 'Furnishing', value: property.furnishing || 'N/A' },
-                  { label: 'Possession', value: property.status === 'available' ? 'Ready to Move' : property.status },
-                  { label: 'Property Age', value: 'New' },
-                  { label: 'Pincode', value: property.pincode || 'N/A' },
+                  { label: 'Unit Options', value: property.unitOptions?.join(', ') },
+                  { label: 'EOI Options', value: property.eoiOptions?.join(', ') },
+                  { label: 'Price Range', value: property.priceRange },
+                  { label: 'Furnishing', value: property.furnishing },
+                  { label: 'Possession', value: property.possession || (property.status === 'available' ? 'Ready to Move' : property.status) },
+                  { label: 'Approval', value: property.approval },
+                  { label: 'Pincode', value: property.pincode },
                 ].filter(f => f.value && f.value !== 'N/A').map((f) => (
                   <div key={f.label} className="flex justify-between border-b border-gray-50 pb-2">
                     <span className="text-gray-500">{f.label}</span>
@@ -486,65 +435,6 @@ function PropertyDetails({ location }) {
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Location & Nearby Places */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
-                  <i className="fa-solid fa-location-dot text-rose-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Location & Nearby Places</h2>
-              </div>
-              <div className="aspect-[21/9] rounded-xl bg-gray-100 mb-4 overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                  <i className="fa-solid fa-map mr-2" /> Map View — {property.location}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                {NEARBY_PLACES.map((place) => (
-                  <div key={place.label} className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-3 hover:shadow-sm transition-shadow">
-                    <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0">
-                      <i className={`fa-solid ${place.icon} text-brand-blue text-xs`} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700">{place.label}</p>
-                      <p className="text-[10px] text-gray-400">{place.distance}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Why Choose This Property */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <i className="fa-solid fa-thumbs-up text-emerald-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Why Choose This Property</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {WHY_CHOOSE.map((item) => (
-                  <div key={item.title} className="flex flex-col items-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center">
-                      <i className={`fa-solid ${item.icon} text-brand-blue text-sm`} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 text-center">{item.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <i className="fa-solid fa-timeline text-blue-600 text-xs" />
-                </div>
-                <h2 className="text-base font-bold text-brand-charcoal">Property Timeline</h2>
-              </div>
-              <PropertyTimeline />
             </div>
 
             {/* Listed By */}
@@ -574,47 +464,17 @@ function PropertyDetails({ location }) {
                       <span><span className="font-bold text-emerald-600">&lt; 5 min</span> Response</span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center gap-1.5 rounded-lg bg-brand-blue text-white px-4 py-2 text-xs font-semibold hover:bg-brand-navy transition-colors">
-                        <i className="fa-solid fa-phone" /> Call
-                      </a>
-                      <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-xs font-semibold hover:bg-emerald-700 transition-colors">
+                      <button onClick={() => setEnquiryOpen(true)} className="flex items-center gap-1.5 rounded-lg bg-brand-blue text-white px-4 py-2 text-xs font-semibold hover:bg-brand-navy transition-colors">
+                        <i className="fa-solid fa-paper-plane" /> Enquire Now
+                      </button>
+                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-xs font-semibold hover:bg-emerald-700 transition-colors">
                         <i className="fa-brands fa-whatsapp" /> WhatsApp
                       </a>
-                      <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                        View Profile
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-
-            {/* Home Loan Section */}
-            <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue p-5 sm:p-6 shadow-sm text-white">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <i className="fa-solid fa-building-columns" /> Need Home Loan?
-              </h2>
-              <p className="mt-1 text-sm text-white/70">Get pre-approved in minutes with our trusted partners.</p>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {['SBI', 'HDFC', 'ICICI'].map((bank) => (
-                  <div key={bank} className="rounded-xl bg-white/10 backdrop-blur-sm p-3 text-center hover:bg-white/20 transition-colors">
-                    <p className="text-xs font-bold">{bank}</p>
-                    <p className="text-[10px] text-white/60">From 7.5%</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <a href={`/finance/home-loan${loanCtaParams}`} className="rounded-xl bg-yellow-400 text-brand-navy px-3 py-2.5 text-xs font-bold text-center hover:bg-yellow-300 transition-colors">
-                  Check Eligibility
-                </a>
-                <a href="/finance/home-loan" className="rounded-xl bg-white/10 backdrop-blur-sm text-white px-3 py-2.5 text-xs font-semibold text-center hover:bg-white/20 transition-colors">
-                  Compare Loans
-                </a>
-                <a href="/contact-us" className="rounded-xl bg-white/10 backdrop-blur-sm text-white px-3 py-2.5 text-xs font-semibold text-center hover:bg-white/20 transition-colors">
-                  Talk to Expert
-                </a>
-              </div>
-            </div>
 
             {/* Brochure Download */}
             {property.brochure && (
@@ -628,6 +488,20 @@ function PropertyDetails({ location }) {
                   <p className="text-xs text-gray-500">Get detailed information about this property</p>
                 </div>
                 <i className="fa-solid fa-download text-brand-blue" />
+              </a>
+            )}
+
+            {property.videoUrl && (
+              <a href={property.videoUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                  <i className="fa-solid fa-circle-play text-red-500 text-xl" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-brand-charcoal">Project Video</p>
+                  <p className="text-xs text-gray-500">Watch the walkthrough of this property</p>
+                </div>
+                <i className="fa-solid fa-arrow-up-right-from-square text-brand-blue" />
               </a>
             )}
 
@@ -678,40 +552,25 @@ function PropertyDetails({ location }) {
                 <p className="text-xs text-gray-500 mb-4">Take the next step towards your dream property.</p>
 
                 <div className="space-y-2">
-                  <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
-                    <i className="fa-solid fa-phone" /> Call Owner
-                  </a>
-                  <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
+                  <button onClick={() => setEnquiryOpen(true)} className="flex items-center justify-center gap-2 w-full rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors">
+                    <i className="fa-solid fa-paper-plane" /> Enquire Now
+                  </button>
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors">
                     <i className="fa-brands fa-whatsapp" /> WhatsApp
                   </a>
-                  <button className="flex items-center justify-center gap-2 w-full rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-3 text-sm font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-calendar-check" /> Book a Visit
-                  </button>
-                  <button className="flex items-center justify-center gap-2 w-full rounded-xl border border-brand-blue/30 text-brand-blue px-4 py-3 text-sm font-semibold hover:bg-brand-blue/5 transition-colors">
-                    <i className="fa-solid fa-phone-volume" /> Request Callback
-                  </button>
+                  <a href="/contact-us/" className="flex items-center justify-center gap-2 w-full rounded-xl bg-amber-500 text-white px-4 py-3 text-sm font-bold hover:bg-amber-600 transition-colors">
+                    <i className="fa-solid fa-headset" /> Contact Us
+                  </a>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3">
                   <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                     <i className="fa-regular fa-heart" /> Save
                   </button>
-                  <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                  <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
                     <i className="fa-solid fa-share-nodes" /> Share
                   </button>
                 </div>
-              </div>
-
-              {/* Loan Assistance Card */}
-              <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue p-5 shadow-sm text-white">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <i className="fa-solid fa-building-columns" /> Loan Assistance
-                </h3>
-                <p className="mt-1 text-xs text-white/70">Get pre-approved in minutes.</p>
-                <a href={`/finance/home-loan${loanCtaParams}`}
-                  className="mt-3 flex items-center justify-center gap-2 w-full rounded-xl bg-yellow-400 text-brand-navy px-4 py-2.5 text-sm font-bold hover:bg-yellow-300 transition-colors">
-                  Check Eligibility
-                </a>
               </div>
 
               {/* Agent Mini Card */}
@@ -727,23 +586,6 @@ function PropertyDetails({ location }) {
                   </div>
                 </div>
               )}
-
-              {/* Finance Stats */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Loan Activity</h3>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {[
-                    { label: 'Enquiries', value: 5, cls: 'text-brand-blue' },
-                    { label: 'Enrolled', value: 6, cls: 'text-emerald-600' },
-                    { label: 'Slots', value: 25, cls: 'text-amber-600' },
-                  ].map((s) => (
-                    <div key={s.label} className="rounded-xl bg-gray-50 p-3">
-                      <p className={`text-lg font-bold ${s.cls}`}>{s.value}</p>
-                      <p className="text-[10px] text-gray-500 font-semibold">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -752,50 +594,31 @@ function PropertyDetails({ location }) {
       {/* ─── MOBILE STICKY BOTTOM BAR ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
-          <a href={`tel:${property.contact || '1800-XXX-XXXX'}`} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue text-white py-3 text-xs font-bold">
-            <i className="fa-solid fa-phone" /> Call
-          </a>
-          <a href={`https://wa.me/91${(property.contact || '').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
+          <button onClick={() => setEnquiryOpen(true)} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue text-white py-3 text-xs font-bold">
+            <i className="fa-solid fa-paper-plane" /> Enquire Now
+          </button>
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white py-3 text-xs font-bold">
             <i className="fa-brands fa-whatsapp" /> WhatsApp
+          </a>
+          <a href="/contact-us/" className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-white py-3 text-xs font-bold">
+            <i className="fa-solid fa-headset" /> Contact Us
           </a>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
             <i className="fa-regular fa-heart" />
           </button>
           <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
+            <i className="fa-regular fa-heart" />
+          </button>
+          <button onClick={handleShare} className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 px-4 text-xs font-semibold text-gray-600">
             <i className="fa-solid fa-share-nodes" />
           </button>
         </div>
       </div>
 
-      {/* ─── FLOATING LOAN BANNER ─── */}
-      {showLoanBanner && property.loanApproved && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:bottom-4">
-          <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
-            <div className="rounded-xl border border-emerald-200 bg-white shadow-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-3">
-                <i className="fa-solid fa-circle-check text-emerald-500 text-lg" />
-                <div>
-                  <p className="text-sm font-bold text-brand-charcoal">100% Pre-Approved Home Loan at 7%+</p>
-                  <p className="text-xs text-gray-500">Just Click to see qualifying properties</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 sm:ml-auto">
-                <button onClick={() => setShowLoanBanner(false)}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                  Dismiss
-                </button>
-                <a href={`/finance/home-loan${loanCtaParams}`}
-                  className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors">
-                  Just Click →
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Remove mobile bottom padding since sticky bar overlaps */}
-      {!showLoanBanner && <div className="h-20 lg:hidden" />}
+      <div className="h-20 lg:hidden" />
+
+      <EnquiryModal open={enquiryOpen} onClose={() => setEnquiryOpen(false)} propertyTitle={property.title} />
     </div>
   );
 }

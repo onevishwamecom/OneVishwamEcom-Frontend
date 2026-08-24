@@ -9,40 +9,43 @@ export function getNumericArea(area) {
 
 export function getPropertyType(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (s.includes('villa') || s.includes('farmhouse')) return 'Villas';
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
   if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Lands';
   if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plots';
-  if (s.includes('house')) return 'Houses';
   if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flats';
+  if (s.includes('house')) return 'Houses';
   return 'Flats';
 }
 
 export function getPropertyTypeLabel(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (s.includes('villa'))       return 'Villa';
   if (s.includes('farmhouse'))   return 'Farmhouse';
   if (s.includes('penthouse'))   return 'Penthouse';
   if (b.includes('office'))      return 'Office';
   if (b.includes('shop') || s.includes('shop')) return 'Shop';
-  if (s.includes('house')) return 'House';
   if (s.includes('flat') || b.includes('bhk'))  return 'Flat';
   if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Land';
   if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plot';
+  if (s.includes('house')) return 'House';
   return 'Property';
 }
 
 export function getBedrooms(bhk) {
-  const match = bhk?.match(/(\d+(\.\d+)?)\s*BHK/i);
-  return match ? `${match[1]} BHK` : '';
+  const bhkStr = String(bhk || '');
+  const match = bhkStr.match(/(\d+(\.\d+)?)\s*BHK/i);
+  if (match) return `${match[1]} BHK`;
+  const num = parseFloat(bhkStr);
+  return !isNaN(num) ? `${num} BHK` : '';
 }
 
 export function getBuildingType(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const b = String(property.bhk || '').toLowerCase();
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
   return 'Residential';
@@ -50,7 +53,8 @@ export function getBuildingType(property) {
 
 export function getDetailTags(property) {
   const tags = [];
-  if (property.bhk && !property.bhk.toLowerCase().includes('office') && !property.bhk.toLowerCase().includes('shop')) {
+  const bhkStr = String(property.bhk || '').toLowerCase();
+  if (property.bhk && !bhkStr.includes('office') && !bhkStr.includes('shop')) {
     tags.push(property.bhk);
   }
   if (property.area)    tags.push(property.area);
@@ -79,4 +83,25 @@ export function getStatusBadge(property) {
 
 export function getListedWithinDays(property) {
   return property.recentlyAdded ? 0 : 30;
+}
+
+/**
+ * True when a property has at least one real (non-placeholder) image.
+ * Used to show properties-with-images first across listings.
+ */
+export function hasPropertyImages(property) {
+  return Array.isArray(property.images) &&
+    property.images.some((src) => src && !src.startsWith('data:'));
+}
+
+/**
+ * Best available cover image: prefers a real property/building image,
+ * falls back to the first entry, then to a legacy single `image` field.
+ */
+export function getPropertyCoverImage(property) {
+  if (Array.isArray(property.images)) {
+    return property.images.find((src) => src && !src.startsWith('data:')) ||
+      property.images[0] || '';
+  }
+  return property.image || '';
 }

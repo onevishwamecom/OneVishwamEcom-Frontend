@@ -107,7 +107,7 @@ function PostRequirement() {
   }
 
   return (
-    <div className="min-h-screen pb-24 pt-6 sm:pt-10">
+    <div className="min-h-screen pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         {/* Back link */}
         <Link to="/our-services/real-estate-property" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-blue transition-colors mb-6">

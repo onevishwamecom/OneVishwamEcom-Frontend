@@ -1,72 +1,33 @@
 import { useEffect, useState } from 'react';
-import { navigateTo } from '../../../config/navigation';
-import { vehicleAPI } from '../../../api';
-import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
+import { useLocation, Link } from 'react-router-dom';
+import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import ProductCard from '../ProductCard';
 
-function VehicleDetails({ location }) {
+function VehicleDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [vehicle, setVehicle] = useState(null);
   const [relatedVehicles, setRelatedVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const { pathname } = useLocation();
+  const pathParts = pathname.split('/').filter(Boolean);
   const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
-
-  const itemKey = `vehicle:item:${vehicleId}`;
-  const similarKey = `vehicle:similar:${vehicleId}`;
-
-  const [vehicle, setVehicle] = useState(() => {
-    if (!vehicleId) return null;
-    return cache.get(PUBLIC_NAMESPACE, itemKey)?.data ?? null;
-  });
-  const [loading, setLoading] = useState(() => (vehicleId ? !cache.get(PUBLIC_NAMESPACE, itemKey) : false));
 
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!vehicleId) { setLoading(false); setError('Invalid vehicle ID'); return; }
 
-    let cancelled = false;
+    setLoading(true);
     setError(null);
-    const cached = cache.get(PUBLIC_NAMESPACE, itemKey);
-    setLoading(!cached);
-    if (cached) setVehicle(cached.data);
 
-    cache
-      .fetch(
-        PUBLIC_NAMESPACE,
-        itemKey,
-        () => vehicleAPI.getById(vehicleId).then((res) => {
-          const item = res.data?.data?.item;
-          return item ? { ...item, id: item._id } : null;
-        }),
-        { ttl: CACHE_TTL.detail },
-      )
-      .then(({ data: item }) => {
-        if (cancelled) return;
-        setVehicle(item);
-        if (item) {
-          return cache
-            .fetch(
-              PUBLIC_NAMESPACE,
-              similarKey,
-              () => vehicleAPI.getSimilar(item._id).then((simRes) => {
-                const items = simRes.data?.data?.items || [];
-                return items.map((v) => ({ ...v, id: v._id }));
-              }),
-              { ttl: CACHE_TTL.similar },
-            )
-            .then(({ data: items }) => {
-              if (!cancelled) setRelatedVehicles(items);
-            });
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.response?.data?.message || 'Vehicle not found');
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-
-    return () => { cancelled = true; };
-  }, [vehicleId, itemKey, similarKey]);
+    const item = dummyAutomobiles.find(v => String(v.id) === String(vehicleId));
+    setVehicle(item);
+    if (item) {
+      setRelatedVehicles(dummyAutomobiles.filter(v => v.category === item.category && v.id !== item.id).slice(0, 4));
+    }
+    setLoading(false);
+  }, [vehicleId]);
 
   if (loading) {
     return (
@@ -88,12 +49,12 @@ function VehicleDetails({ location }) {
   }
 
   return (
-    <div className="pb-24 pt-8 sm:pb-24">
+    <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <button onClick={() => navigateTo('/our-services/automobile')}
+        <Link to="/our-services/automobile"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:underline">
           <i className="fa-solid fa-arrow-left" /> Back to Vehicles
-        </button>
+        </Link>
 
         <div className="grid gap-8 lg:grid-cols-5">
           {/* Images */}

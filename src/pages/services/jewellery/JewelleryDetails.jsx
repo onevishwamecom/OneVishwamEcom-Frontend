@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
 
-function JewelleryDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function JewelleryDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const jewelleryId = pathParts.length > 1 ? pathParts[1] : null;
 
   const { jewellery: item, loading, error } = useJewelleryById(jewelleryId);
@@ -37,7 +39,7 @@ function JewelleryDetails({ location }) {
     <div className="pb-24 sm:pb-32">
       {/* Gradient Hero */}
       <div className="bg-gradient-to-br from-amber-900 via-amber-800 to-yellow-700 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/jewellery-gold')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Jewellery & Gold

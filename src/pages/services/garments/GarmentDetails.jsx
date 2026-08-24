@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGarments } from '../../../data/dummyGarments';
 
-function GarmentDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function GarmentDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const garmentId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
   const item = dummyGarments.find((g) => g.id === garmentId);
 
@@ -26,7 +28,7 @@ function GarmentDetails({ location }) {
     <div className="pb-24 sm:pb-32">
       {/* Gradient Hero */}
       <div className="bg-gradient-to-br from-pink-700 via-pink-600 to-rose-500 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/garments-fashion-lifestyle')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Garments &amp; Fashion

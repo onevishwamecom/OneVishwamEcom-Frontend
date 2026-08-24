@@ -1,15 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { financeAPI } from '../../../api';
-import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
+import { financeServices } from '../../../data/dummyFinanceServices';
 import { cities } from '../../../data/locations';
 import { ActiveChip } from '../GalleryComponents';
 import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';
 import { FINANCE_TABS, INITIAL_FILTERS, INITIAL_SECTIONS } from './financeConstants';
 import { useTabStats, useActiveChips, useFilteredServices } from './financeHooks';
-
-const FINANCE_ALL_KEY = 'finance:all';
 
 function FinanceGallery() {
   const [activeTab, setActiveTab] = useState('All');
@@ -18,42 +15,16 @@ function FinanceGallery() {
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const [openSections, setOpenSections] = useState({ ...INITIAL_SECTIONS });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [services, setServices] = useState(
-    () => cache.get(PUBLIC_NAMESPACE, FINANCE_ALL_KEY)?.data ?? [],
-  );
-  const [loading, setLoading] = useState(() => !cache.get(PUBLIC_NAMESPACE, FINANCE_ALL_KEY));
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let cancelled = false;
+    setLoading(true);
     setError(null);
-    cache
-      .fetch(
-        PUBLIC_NAMESPACE,
-        FINANCE_ALL_KEY,
-        () =>
-          financeAPI.getAll({ limit: 100 }).then((res) => {
-            const raw = res.data?.data?.items || res.data?.items || [];
-            return raw.map((s) => ({ ...s, id: s._id || s.id }));
-          }),
-        { ttl: CACHE_TTL.products },
-      )
-      .then(({ data }) => {
-        if (!cancelled) setServices(data);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('Finance fetch error:', err);
-          const msg = err.response?.data?.message || err.message || 'Failed to load finance services';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Please check your connection.' : msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+    const raw = financeServices;
+    setServices(raw.map((s) => ({ ...s, id: s.id })));
+    setLoading(false);
   }, []);
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
@@ -96,7 +67,7 @@ function FinanceGallery() {
   const noCityMessage = !filters.city;
 
   return (
-    <div className="pb-24 pt-6 sm:pt-10">
+    <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">
@@ -111,10 +82,7 @@ function FinanceGallery() {
               Find trusted financial services, loans, insurance, and investment options near you.
             </p>
           </div>
-          <button onClick={() => navigateTo('/add-finance-service')}
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0">
-            <i className="fa-solid fa-plus" />Post a Service
-          </button>
+         
         </div>
 
         {/* ── Category Tabs ── */}
@@ -216,7 +184,7 @@ function FinanceGallery() {
             ) : filteredServices.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredServices.map((service) => (
-                  <FinanceCard key={service._id} service={service} />
+                  <FinanceCard key={service.id} service={service} />
                 ))}
               </div>
             ) : (

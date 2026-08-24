@@ -199,7 +199,7 @@ function GarmentGallery() {
   };
 
   return (
-    <div className="pb-24 pt-8 sm:pt-12">
+    <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">Fashion & Lifestyle</h1>
 

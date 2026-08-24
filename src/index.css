@@ -7,7 +7,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   scrollbar-gutter: stable;
   overflow-x: clip;
 }
@@ -45,37 +44,18 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .gallery-fade {
+    animation: gallery-fade 0.4s ease-out;
+  }
 }
 
-/* ── Dual Range Slider Thumb Styles ── */
-.range-thumb-blue::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #1a4b8c;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.range-thumb-blue::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 2px 8px rgba(26,75,140,0.4);
-}
-.range-thumb-blue::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #1a4b8c;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  cursor: pointer;
-}
-.range-thumb-blue::-webkit-slider-runnable-track {
-  background: transparent;
-}
-.range-thumb-blue::-moz-range-track {
-  background: transparent;
+@keyframes gallery-fade {
+  from {
+    opacity: 0.35;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
