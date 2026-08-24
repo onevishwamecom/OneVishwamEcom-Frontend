@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 
 function JewelleryDetails() {
   const { pathname } = useLocation();
+  const { isLoggedIn } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
@@ -14,6 +17,16 @@ function JewelleryDetails() {
   const { similar: relatedItems, loading: similarLoading } = useSimilarJewellery(jewelleryId);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Jewellery Details"
+        message="Please log in or create an account to view carat specifications, certification details, pricing, and certified jeweller info."
+        backUrl="/our-services/jewellery-gold"
+      />
+    );
+  }
 
   if (loading) {
     return (

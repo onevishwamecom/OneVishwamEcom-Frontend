@@ -1,7 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import Footer from './components/Footer';
 import { NAVIGATION_EVENT } from './config/navigation';
+const Footer = lazy(() => import('./components/Footer'));
 import BrandLoader from './components/ui/BrandLoader';
 import { useAuth, forceLogout } from './store/authSlice';
 import store from './store';
@@ -184,7 +184,9 @@ function App() {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <AuthModals />
     </>
   );

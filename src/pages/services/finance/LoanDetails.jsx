@@ -2,9 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import useLoanProducts from './useLoanProducts';
 import { resolveLoan } from './loanUtils';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 
 function LoanDetails() {
   const { pathname } = useLocation();
+  const { isLoggedIn } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
@@ -19,6 +22,16 @@ function LoanDetails() {
   const [emiAmount, setEmiAmount] = useState(5000000);
   const [emiRate, setEmiRate] = useState(8.5);
   const [emiTenure, setEmiTenure] = useState(20);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Loan Details"
+        message="Please log in or create an account to view loan terms, bank interest comparisons, EMI options, and apply online."
+        backUrl="/our-services/finance-lending"
+      />
+    );
+  }
 
   const emiResult = useMemo(() => {
     const P = emiAmount;

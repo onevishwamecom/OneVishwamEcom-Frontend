@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import { getNumericPrice } from '../GalleryComponents';
 import { contactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
@@ -189,6 +191,18 @@ function PropertyDetails() {
     if (!property) return;
     setCurrentImageIndex((i) => (i === property.images.length - 1 ? 0 : i + 1));
   }, [property]);
+
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Property Details"
+        message="Please log in or create an account to view full floor plans, pricing breakdowns, amenities, and owner contact details."
+        backUrl="/our-services/real-estate-property"
+      />
+    );
+  }
 
   if (loading) {
     return (

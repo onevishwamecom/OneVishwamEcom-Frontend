@@ -1,18 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
-import { dummyAutomobiles } from '../../data/dummyAutomobiles';
-import { dummyGrocery } from '../../data/dummyGrocery';
-import { dummyGarments } from '../../data/dummyGarments';
-import { dummyJewellery } from '../../data/dummyJewellery';
-import { useProperties } from '../../hooks/useProperties';
-import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
+import { useHomepageData } from '../../hooks/useHomepageData';
+import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
+import { heroImage } from '../../utils/imageOptimizer';
 
 const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Beverages', 'Packaged Foods', 'Spices'];
 
@@ -22,45 +19,62 @@ const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-x
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const { selectedCity } = useLocation();
-  const { properties: dummyProperties } = useProperties();
-  const [financeServices] = useState(() => rawFinanceServices.map(s => ({ ...s, id: s.id })));
+  const { data, loading } = useHomepageData();
 
-  const foodGrocery = dummyGrocery.filter((g) => FOOD_CATEGORIES.includes(g.category));
-  const heroProp = dummyProperties[0];
+  const latestProperties = data?.latestProperties || [];
+  const latestVehicles = data?.latestVehicles || [];
+  const latestGroceries = data?.latestGroceries || [];
+  const latestGarments = data?.latestGarments || [];
+  const latestJewellery = data?.latestJewellery || [];
+  const latestFinance = data?.latestFinance || [];
+  const financeOfferings = data?.financeOfferings || [];
+  const stats = data?.stats || {};
+  const featured = data?.featured || [];
+
+  const foodGrocery = useMemo(() => 
+    latestGroceries.filter((g) => FOOD_CATEGORIES.includes(g.category)),
+    [latestGroceries]
+  );
+  
+  const heroProp = featured[0] || latestProperties[0] || null;
   const locationName = selectedCity ? getCityLabel(selectedCity) : 'Your Area';
 
   /* ── Property helpers: images-first priority, best cover image ── */
-  const sortPropertiesImagesFirst = (list) =>
+  const sortPropertiesImagesFirst = useCallback((list) =>
     [...list].sort((a, b) => {
       const aImg = hasPropertyImages(a) ? 1 : 0;
       const bImg = hasPropertyImages(b) ? 1 : 0;
       if (aImg !== bImg) return bImg - aImg;
-      return b.id - a.id;
-    });
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    }), []);
 
   const todayListed = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties.filter((p) => p.recentlyAdded)).slice(0, 3),
-    [dummyProperties],
+    () => sortPropertiesImagesFirst(latestProperties).slice(0, 3),
+    [latestProperties, sortPropertiesImagesFirst],
   );
   const availableNearYou = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 6),
-    [dummyProperties],
+    () => sortPropertiesImagesFirst(latestProperties).slice(0, 6),
+    [latestProperties, sortPropertiesImagesFirst],
   );
   const dreamHomes = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 5),
-    [dummyProperties],
+    () => sortPropertiesImagesFirst(featured).slice(0, 5),
+    [featured, sortPropertiesImagesFirst],
   );
 
   const propertyResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
-    const matched = dummyProperties.filter((p) =>
+    const matched = latestProperties.filter((p) =>
       [p.title, p.subtitle, p.location, p.bhk, p.area, p.propertyType]
         .filter(Boolean)
         .some((f) => String(f).toLowerCase().includes(q)),
     );
     return sortPropertiesImagesFirst(matched).slice(0, 6);
-  }, [searchQuery, dummyProperties]);
+  }, [searchQuery, latestProperties, sortPropertiesImagesFirst]);
+
+  if (loading && !data) {
+    return <BrandLoader />;
+  }
 
   return (
     <div className='pt-16 lg:pt-14'>
@@ -83,14 +97,14 @@ function Home() {
             {propertyResults.length > 0 ? (
               <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
                 {propertyResults.map((p) => (
-                  <div key={p.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  <div key={p.id || p._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                     <ProductCard
-                      link={`/property/${p.id}`}
+                      link={`/property/${p.id || p._id}`}
                       image={getPropertyCoverImage(p)}
                       alt={p.title}
                       title={p.title}
                       price={p.price}
-                      location={p.location}
+                      location={p.location || p.city}
                       tags={[p.bhk || '', p.area || ''].filter(Boolean)}
                     />
                   </div>
@@ -113,18 +127,18 @@ function Home() {
             <div className="flex items-center justify-between gap-6 overflow-x-auto py-3.5 text-xs sm:text-sm flex-nowrap scrollbar-thin">
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                 <i className="fa-solid fa-house-chimney text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{dummyProperties.filter((p) => p.recentlyAdded).length}</span> properties added today
+                <span className="font-semibold text-brand-charcoal">{stats.totalProperties || latestProperties.length}</span> properties listed
               </span>
               {!PROPERTIES_ONLY && (
                 <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                   <i className="fa-solid fa-car text-brand-blue text-sm" />
-                  <span className="font-semibold text-brand-charcoal">{dummyAutomobiles.length}</span> vehicles added today
+                  <span className="font-semibold text-brand-charcoal">{stats.totalVehicles || latestVehicles.length}</span> vehicles listed
                 </span>
               )}
               {!PROPERTIES_ONLY && (
                 <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
                   <i className="fa-solid fa-box text-brand-blue text-sm" />
-                  <span className="font-semibold text-brand-charcoal">{foodGrocery.length + dummyGrocery.length}</span> products added today
+                  <span className="font-semibold text-brand-charcoal">{stats.totalGroceries || latestGroceries.length}</span> products listed
                 </span>
               )}
               <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
@@ -137,17 +151,15 @@ function Home() {
 
         {/* ── Module 1: Dream Home ── */}
         <section className="relative overflow-hidden">
-          {heroProp && (
-            <div className="absolute inset-0">
-              <img src={heroProp.images[0]} alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0">
+              
               <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/60" />
             </div>
-          )}
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-16">
             <div className="flex items-end justify-between">
               <div>
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm">
-                  <i className="fa-solid fa-house-chimney" /> {dummyProperties.length} Properties Available
+                  <i className="fa-solid fa-house-chimney" /> {stats.totalProperties || latestProperties.length} Properties Available
                 </p>
                 <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Your Dream Home May Be Just Around the Corner</h2>
                 <p className="mt-1.5 text-sm text-white/70">Houses, plots, apartments and rental homes near you.</p>
@@ -162,15 +174,15 @@ function Home() {
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
               {dreamHomes.map((p) => (
-                <div key={p.id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
+                <div key={p.id || p._id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/property/${p.id}`}
+                    link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}
                     alt={p.title}
                     title={p.title}
                     price={p.price}
                     priceSuffix={p.priceSuffix}
-                    location={p.location}
+                    location={p.location || p.city}
                     tags={[p.bhk || '', p.furnishing].filter(Boolean)}
                     badges={[
                       ...(p.recentlyAdded ? [{ label: 'New', className: 'bg-emerald-500 text-white' }] : []),
@@ -212,16 +224,16 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
-              {dummyAutomobiles.slice(0, 5).map((v) => (
-                <div key={v.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestVehicles.slice(0, 5).map((v) => (
+                <div key={v.id || v._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/vehicle/${v.id}`}
-                    image={v.images[0]}
+                    link={`/vehicle/${v.id || v._id}`}
+                    image={v.images?.[0] || v.image}
                     alt={`${v.brand} ${v.model}`}
                     title={`${v.brand} ${v.model}`}
                     price={v.price}
-                    location={v.location}
-                    tags={[v.fuelType, `${v.year}`]}
+                    location={v.location || v.city}
+                    tags={[v.fuelType, v.year ? `${v.year}` : ''].filter(Boolean)}
                     badges={[
                       ...(v.loanApproved ? [{ label: 'Loan OK', className: 'bg-blue-500 text-white' }] : []),
                       ...(v.condition === 'new' ? [{ label: 'New', className: 'bg-emerald-500 text-white' }] : []),
@@ -265,11 +277,11 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
-              {financeServices.slice(0, 5).map((s) => (
-                <div key={s.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestFinance.slice(0, 5).map((s) => (
+                <div key={s.id || s._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/finance-service/${s.id}`}
-                    image={s.banner}
+                    link={`/finance-service/${s.id || s._id}`}
+                    image={s.banner || s.logo}
                     alt={s.serviceName}
                     title={s.serviceName}
                     overline={s.companyName}
@@ -278,7 +290,7 @@ function Home() {
                     priceOverride={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? undefined : (
                       <p className="mt-0.5 text-sm font-bold text-brand-blue">{formatFinanceAmount(s.minAmount)} – {formatFinanceAmount(s.maxAmount)}</p>
                     )}
-                    location={s.location}
+                    location={s.location || s.city}
                     tags={[s.category, s.providerType].filter(Boolean)}
                     badges={[
                       ...(s.featured ? [{ label: 'Featured', className: 'bg-yellow-500 text-white' }] : []),
@@ -314,55 +326,55 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
-              {dummyGarments.slice(0, 2).map((g) => (
-                <div key={`pop-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestGarments.slice(0, 2).map((g) => (
+                <div key={`pop-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/garment/${g.id}`}
-                    image={g.images[0]}
+                    link={`/garment/${g.id || g._id}`}
+                    image={g.images?.[0] || g.image}
                     alt={g.name}
-                    title={`${g.brand} ${g.name}`}
-                    price={g.finalPrice}
-                    location={g.store?.city || ''}
+                    title={`${g.brand || ''} ${g.name || ''}`}
+                    price={g.finalPrice || g.price}
+                    location={g.store?.city || g.city || ''}
                     badges={[{ label: g.trending ? 'Trending' : 'Popular', className: g.trending ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
                   />
                 </div>
               ))}
               {foodGrocery.slice(0, 2).map((g) => (
-                <div key={`pop-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                <div key={`pop-groc-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
+                    link={`/grocery/${g.id || g._id}`}
+                    image={g.images?.[0] || g.image}
                     alt={g.name}
                     title={g.name}
-                    price={g.pricePerUnit}
-                    priceSuffix={`/ ${g.unit}`}
-                    location={`${g.location?.area || ''}, ${g.location?.city || ''}`}
+                    price={g.pricePerUnit || g.price}
+                    priceSuffix={g.unit ? `/ ${g.unit}` : ''}
+                    location={g.location || g.city || ''}
                     badges={[g.freshToday ? { label: 'Fresh', className: 'bg-green-500 text-white' } : { label: 'Popular', className: 'bg-amber-500 text-white' }]}
                   />
                 </div>
               ))}
-              {dummyJewellery.slice(0, 1).map((j) => (
-                <div key={`pop-jew-${j.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestJewellery.slice(0, 1).map((j) => (
+                <div key={`pop-jew-${j.id || j._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/jewellery/${j.id}`}
-                    image={j.images[0]}
+                    link={`/jewellery/${j.id || j._id}`}
+                    image={j.images?.[0] || j.image}
                     alt={j.name}
                     title={j.name}
                     price={j.price}
-                    location={j.store?.city || ''}
+                    location={j.store?.city || j.city || ''}
                     badges={[{ label: 'Popular', className: 'bg-amber-500 text-white' }]}
                   />
                 </div>
               ))}
-              {dummyGrocery.slice(0, 1).map((g) => (
-                <div key={`pop-elec-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestGroceries.slice(0, 1).map((g) => (
+                <div key={`pop-elec-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
+                    link={`/grocery/${g.id || g._id}`}
+                    image={g.images?.[0] || g.image}
                     alt={g.name}
                     title={g.name}
-                    price={g.pricePerUnit}
-                    location=""
+                    price={g.pricePerUnit || g.price}
+                    location={g.location || g.city || ''}
                     badges={[{ label: g.recentlyAdded ? 'New' : 'Trending', className: g.recentlyAdded ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white' }]}
                   />
                 </div>
@@ -387,28 +399,28 @@ function Home() {
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3">
               {todayListed.map((p) => (
-                <Link key={`fresh-prop-${p.id}`} to={`/property/${p.id}`}
+                <Link key={`fresh-prop-${p.id || p._id}`} to={`/property/${p.id || p._id}`}
                   className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
                   <div className="aspect-[16/9] overflow-hidden">
                     <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-3">
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      <i className="fa-solid fa-clock" /> Added Today
+                      <i className="fa-solid fa-clock" /> Added Recently
                     </span>
                     <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
                     <p className="text-sm font-semibold text-brand-blue">{p.price} {p.priceSuffix}</p>
-                    <p className="text-xs text-gray-500 mt-1">{p.location} · {p.bhk} · {p.area}</p>
+                    <p className="text-xs text-gray-500 mt-1">{p.location || p.city} · {p.bhk} · {p.area}</p>
                   </div>
                 </Link>
               ))}
               {!PROPERTIES_ONLY && (
                 <>
-                  {dummyAutomobiles.slice(5, 6).map((v) => (
-                    <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
+                  {latestVehicles.slice(5, 6).map((v) => (
+                    <Link key={`fresh-veh-${v.id || v._id}`} to={`/vehicle/${v.id || v._id}`}
                       className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
                       <div className="aspect-[16/9] overflow-hidden">
-                        <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={v.images?.[0] || v.image} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
@@ -416,15 +428,15 @@ function Home() {
                         </span>
                         <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
                         <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
-                        <p className="text-xs text-gray-500 mt-1">{v.location} · {v.fuelType} · {v.year}</p>
+                        <p className="text-xs text-gray-500 mt-1">{v.location || v.city} · {v.fuelType} · {v.year}</p>
                       </div>
                     </Link>
                   ))}
-                  {dummyGarments.slice(5, 6).map((g) => (
-                    <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
+                  {latestGarments.slice(5, 6).map((g) => (
+                    <Link key={`fresh-garm-${g.id || g._id}`} to={`/garment/${g.id || g._id}`}
                       className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
                       <div className="aspect-[16/9] overflow-hidden">
-                        <img src={g.images[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={g.images?.[0] || g.image} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                       <div className="p-3">
                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">
@@ -432,11 +444,11 @@ function Home() {
                         </span>
                         <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
                         <div className="mt-1 flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice}</span>
+                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice || g.price}</span>
                           <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
                           <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || ''} · {g.category}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || g.city || ''} · {g.category}</p>
                       </div>
                     </Link>
                   ))}
@@ -445,44 +457,6 @@ function Home() {
             </div>
           </div>
         </section>
-
-        {/* ── Module 5: Category Selection ── */}
-        {/* <section className="mt-14 sm:mt-16 bg-white py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                <i className="fa-solid fa-circle-info mr-1.5" /> Need Something?
-              </p>
-              <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">What Are You Looking For Today?</h2>
-              <p className="mt-1 text-sm text-gray-500">Choose a category to get started.</p>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-6">
-              {[
-                { icon: 'fa-house-chimney', label: 'Houses & Land', desc: 'Find houses, plots and rentals', href: '/our-services/real-estate-property' },
-                { icon: 'fa-car', label: 'Vehicles', desc: 'Cars, bikes and commercial', href: '/our-services/automobile' },
-                { icon: 'fa-shirt', label: 'Garments', desc: 'Clothes and fashion items', href: '/our-services/garments-fashion-lifestyle' },
-                { icon: 'fa-basket-shopping', label: 'Groceries', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
-                { icon: 'fa-building-columns', label: 'Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
-                { icon: 'fa-wrench', label: 'Services', desc: 'Find services near you', href: '/our-services/' },
-              ].filter((t) => !PROPERTIES_ONLY || t.label === 'Houses & Land').map((item) => (
-                <Link key={item.label}
-                  to={item.href}
-                  className="group rounded-xl border border-gray-100 bg-white p-3 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all w-[46vw] lg:w-auto shrink-0 snap-start block"
-                >
-                    <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 rounded-xl bg-brand-blue/5 flex items-center justify-center text-sm text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-colors">
-                      <i className={`fa-solid ${item.icon}`} />
-                    </div>
-                    <i className="fa-solid fa-arrow-right text-gray-300 text-xs group-hover:text-brand-blue transition-colors" />
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold text-brand-charcoal">{item.label}</h3>
-                  <p className="mt-1 text-xs text-gray-500">{item.desc}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section> */}
 
         {/* ── Module 6: Available Near You ── */}
         <section className="pt-14 sm:pt-16">
@@ -499,56 +473,56 @@ function Home() {
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
               {availableNearYou.map((item) => (
-                <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                <div key={`near-prop-${item.id || item._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/property/${item.id}`}
+                    link={`/property/${item.id || item._id}`}
                     image={getPropertyCoverImage(item)}
                     alt={item.title}
                     title={item.title}
                     price={item.price}
                     priceSuffix={item.priceSuffix}
-                    location={item.location}
+                    location={item.location || item.city}
                     tags={[item.bhk || '']}
                   />
                 </div>
               ))}
               {!PROPERTIES_ONLY && (
                 <>
-                  {dummyAutomobiles.slice(3, 5).map((v) => (
-                    <div key={`near-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestVehicles.slice(3, 5).map((v) => (
+                    <div key={`near-veh-${v.id || v._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/vehicle/${v.id}`}
-                        image={v.images[0]}
+                        link={`/vehicle/${v.id || v._id}`}
+                        image={v.images?.[0] || v.image}
                         alt={`${v.brand} ${v.model}`}
                         title={`${v.brand} ${v.model}`}
                         price={v.price}
-                        location={v.location}
+                        location={v.location || v.city}
                         tags={[v.fuelType]}
                       />
                     </div>
                   ))}
                   {foodGrocery.slice(2, 4).map((g) => (
-                    <div key={`near-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                    <div key={`near-groc-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/grocery/${g.id}`}
-                        image={g.images[0]}
+                        link={`/grocery/${g.id || g._id}`}
+                        image={g.images?.[0] || g.image}
                         alt={g.name}
                         title={g.name}
-                        price={g.pricePerUnit}
-                        priceSuffix={`/ ${g.unit}`}
-                        location={`${g.location?.area || ''}`}
+                        price={g.pricePerUnit || g.price}
+                        priceSuffix={g.unit ? `/ ${g.unit}` : ''}
+                        location={g.location || g.city || ''}
                       />
                     </div>
                   ))}
-                  {dummyGarments.slice(2, 3).map((g) => (
-                    <div key={`near-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestGarments.slice(2, 3).map((g) => (
+                    <div key={`near-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/garment/${g.id}`}
-                        image={g.images[0]}
+                        link={`/garment/${g.id || g._id}`}
+                        image={g.images?.[0] || g.image}
                         alt={g.name}
-                        title={`${g.brand} ${g.name}`}
-                        price={g.finalPrice}
-                        location={g.store?.city || ''}
+                        title={`${g.brand || ''} ${g.name || ''}`}
+                        price={g.finalPrice || g.price}
+                        location={g.store?.city || g.city || ''}
                         badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
                       />
                     </div>
@@ -558,81 +532,6 @@ function Home() {
             </div>
           </div>
         </section>
-
-        {/* ── Module 7: Best Deals ── */}
-        {/* <section className="mt-14 sm:mt-16 bg-gradient-to-br from-rose-50 to-orange-50 py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                <i className="fa-solid fa-tag mr-1.5" /> Don't Miss Out
-              </p>
-              <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Don't Miss These Deals</h2>
-              <p className="mt-1 text-sm text-gray-500">Great prices and top picks for you.</p>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-4">
-              {dummyProperties.slice(2, 4).map((p) => (
-                <div key={`deal-prop-${p.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/property/${p.id}`}
-                    image={p.images[0]}
-                    alt={p.title}
-                    title={p.title}
-                    price={p.price}
-                    priceSuffix={p.priceSuffix}
-                    location={p.location}
-                    badges={[{ label: 'Great Price', className: 'bg-red-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {dummyAutomobiles.slice(1, 3).map((v) => (
-                    <div key={`deal-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/vehicle/${v.id}`}
-                        image={v.images[0]}
-                        alt={`${v.brand} ${v.model}`}
-                        title={`${v.brand} ${v.model}`}
-                        price={v.price}
-                        location={v.location}
-                        badges={[{ label: v.id % 2 === 0 ? 'Hot Deal' : 'Recommended', className: v.id % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                  {dummyGarments.slice(0, 2).map((g) => (
-                    <div key={`deal-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/garment/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={`${g.brand} ${g.name}`}
-                        price={g.finalPrice}
-                        location={g.store?.city || ''}
-                        badges={[{ label: 'Recommended', className: 'bg-amber-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                  {foodGrocery.slice(0, 2).map((g) => (
-                    <div key={`deal-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/grocery/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={g.name}
-                        price={g.pricePerUnit}
-                        priceSuffix={`/ ${g.unit}`}
-                        location={`${g.location?.area || ''}`}
-                        badges={[{ label: g.organic ? 'Great Price' : 'Hot Deal', className: g.organic ? 'bg-red-500 text-white' : 'bg-rose-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-        </section> */}
-
       </div>
     </div>
   );

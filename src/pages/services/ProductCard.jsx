@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
+import { useAuth } from "../../store/authSlice";
 
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
@@ -20,6 +21,8 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
  * - badges: Array of { label: string, className: string } objects displayed in the top‑left overlay
  * - children: Optional JSX rendered at the bottom of the card (e.g., action buttons)
  */
+const EMPTY_ARRAY = [];
+
 export default React.memo(function ProductCard({
   link = "#",
   image,
@@ -31,15 +34,28 @@ export default React.memo(function ProductCard({
   priceOverride,
   location,
   pincode,
-  tags = [],
-  badges = [],
+  tags = EMPTY_ARRAY,
+  badges = EMPTY_ARRAY,
   showButton = true,
   children,
 }) {
   const [imgError, setImgError] = useState(false);
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  const handleCardClick = (e) => {
+    if (!link || link === '#') return;
+    if (!isLoggedIn) {
+      if (e && e.preventDefault) e.preventDefault();
+      sessionStorage.setItem('vishwam_auth_redirect', link);
+      openAuthModal('login');
+      return;
+    }
+    navigateTo(link);
+  };
+
   return (
     <div
-      onClick={link ? () => navigateTo(link) : undefined}
+      onClick={handleCardClick}
       className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
     >
       {/* Image */}

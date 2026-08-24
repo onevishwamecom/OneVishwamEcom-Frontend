@@ -4,6 +4,10 @@ import { navLinks } from '../data/siteContent';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
 import { useAuth } from '../store/authSlice';
+<<<<<<< HEAD
+=======
+import UserDropdown from './auth/UserDropdown';
+>>>>>>> feature/website-styling
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
@@ -18,7 +22,11 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
+<<<<<<< HEAD
   const { isLoggedIn, openAuthModal, user } = useAuth();
+=======
+  const { isLoggedIn, openAuthModal, user, logout } = useAuth();
+>>>>>>> feature/website-styling
 
   const visibleNavLinks = PROPERTIES_ONLY
     ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties')
@@ -271,14 +279,19 @@ function Navbar() {
                 <i className="fa-solid fa-phone" /> Enquire Now
               </Link>
 
-              {!isLoggedIn ? (
-                <button onClick={() => openAuthModal('login')}
-                  className="inline-flex items-center gap-2 border border-brand-blue text-brand-blue px-4 py-2 text-sm font-semibold rounded-lg hover:bg-brand-blue hover:text-white transition-colors"
-                >
-                  <i className="fa-solid fa-arrow-right-to-bracket" /> Login
-                </button>
-              ) : (
+              {/* Auth Login Button or User Dropdown */}
+              {isLoggedIn ? (
                 <UserDropdown />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
+                  data-testid="login-btn"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-brand-blue border border-brand-blue/30 rounded-lg hover:bg-brand-blue hover:text-white transition-all shadow-sm"
+                >
+                  <i className="fa-solid fa-arrow-right-to-bracket text-xs" />
+                  <span>Login</span>
+                </button>
               )}
             </div>
 
@@ -304,6 +317,48 @@ function Navbar() {
           <button onClick={() => setMenuOpen(false)} className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
             <i className="fa-solid fa-xmark" />
           </button>
+        </div>
+
+        {/* Mobile User Profile / Login */}
+        <div className="p-4 border-b">
+          {isLoggedIn ? (
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-9 w-9 rounded-full bg-brand-blue flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                  {user?.fullName?.charAt(0) || user?.name?.charAt(0) || 'U'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-brand-charcoal truncate">{user?.fullName || user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200/60">
+                <Link
+                  to="/profile/settings"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center py-1.5 px-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                >
+                  Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => { logout(); setMenuOpen(false); }}
+                  className="text-center py-1.5 px-2 text-xs font-semibold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              data-testid="mobile-login-btn"
+              className="flex w-full items-center justify-center gap-2 bg-brand-blue text-white px-4 py-2.5 text-sm font-semibold rounded-lg hover:bg-brand-navy transition-colors shadow-sm"
+            >
+              <i className="fa-solid fa-arrow-right-to-bracket text-xs" /> Login / Sign Up
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-b">

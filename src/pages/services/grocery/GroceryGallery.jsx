@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { dummyGrocery } from '../../../data/dummyGrocery';
+import { useGroceries } from './groceryHooks';
 import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../data/locations';
 import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
@@ -49,6 +49,7 @@ function GroceryGallery() {
   const [quantities, setQuantities] = useState({});
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const { groceries, loading, error } = useGroceries();
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -57,12 +58,13 @@ function GroceryGallery() {
   const cityAreas = selectedCity ? (cities[selectedCity]?.areas || []) : [];
 
   const getPriceValue = (priceStr) => {
-    const num = parseFloat(priceStr.replace(/[₹,\s]/g, ''));
+    if (typeof priceStr === 'number') return priceStr;
+    const num = parseFloat(String(priceStr || '').replace(/[₹,\s]/g, ''));
     return isNaN(num) ? 0 : num;
   };
 
   const filteredItems = useMemo(() => {
-    return dummyGrocery
+    return groceries
       .filter((p) => {
         let matchCat = true;
         if (activeCategory === 'Organic') matchCat = p.organic;
@@ -70,30 +72,31 @@ function GroceryGallery() {
 
         const q = searchTerm.toLowerCase();
         const matchSearch = !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.vendorName.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q);
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.vendorName && p.vendorName.toLowerCase().includes(q)) ||
+          (p.brand && p.brand.toLowerCase().includes(q)) ||
+          (p.category && p.category.toLowerCase().includes(q));
 
-        const pv = getPriceValue(p.pricePerUnit);
+        const pv = getPriceValue(p.pricePerUnit || p.price || p.numericPrice);
         const matchPrice = (!filters.priceMin || pv >= +filters.priceMin) && (!filters.priceMax || pv <= +filters.priceMax);
-        const matchVendor = filters.vendors.length === 0 || filters.vendors.includes(p.vendorType);
-        const matchDelivery = filters.delivery.length === 0 || filters.delivery.some((d) => p.deliveryType.includes(d));
+        const matchVendor = filters.vendors.length === 0 || filters.vendors.includes(p.vendorType || p.brand);
+        const matchDelivery = filters.delivery.length === 0 || (Array.isArray(p.deliveryType) && filters.delivery.some((d) => p.deliveryType.includes(d)));
 
         let matchAvailability = true;
-        if (filters.availability === 'In Stock') matchAvailability = p.inStock;
-        else if (filters.availability === 'Out of Stock') matchAvailability = !p.inStock;
+        if (filters.availability === 'In Stock') matchAvailability = p.inStock !== false && p.stock !== 0;
+        else if (filters.availability === 'Out of Stock') matchAvailability = p.inStock === false || p.stock === 0;
 
-        const matchLocality = !filters.locality || p.location.area === filters.locality;
+        const matchLocality = !filters.locality || (p.location && p.location.area === filters.locality) || p.area === filters.locality;
         return matchCat && matchSearch && matchPrice && matchVendor && matchDelivery && matchAvailability && matchLocality;
       })
       .sort((a, b) => {
-        if (sortBy === 'price-low') return getPriceValue(a.pricePerUnit) - getPriceValue(b.pricePerUnit);
-        if (sortBy === 'price-high') return getPriceValue(b.pricePerUnit) - getPriceValue(a.pricePerUnit);
-        return b.id - a.id;
+        if (sortBy === 'price-low') return getPriceValue(a.pricePerUnit || a.price) - getPriceValue(b.pricePerUnit || b.price);
+        if (sortBy === 'price-high') return getPriceValue(b.pricePerUnit || b.price) - getPriceValue(a.pricePerUnit || a.price);
+        return String(b.id || b._id).localeCompare(String(a.id || a._id));
       });
-  }, [activeCategory, searchTerm, sortBy, filters]);
+  }, [groceries, activeCategory, searchTerm, sortBy, filters]);
 
-  const organicCount = dummyGrocery.filter((p) => p.organic).length;
+  const organicCount = groceries.filter((p) => p.organic).length;
 
   const updateQty = (id, delta) => {
     setQuantities((prev) => {
@@ -104,10 +107,11 @@ function GroceryGallery() {
   };
 
   const addToCart = (item) => {
-    const qty = quantities[item.id] || 1;
+    const itemId = item.id || item._id;
+    const qty = quantities[itemId] || 1;
     setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) return prev.map((i) => i.id === item.id ? { ...i, qty: i.qty + qty } : i);
+      const existing = prev.find((i) => (i.id || i._id) === itemId);
+      if (existing) return prev.map((i) => (i.id || i._id) === itemId ? { ...i, qty: i.qty + qty } : i);
       return [...prev, { ...item, qty }];
     });
   };
@@ -200,9 +204,9 @@ function GroceryGallery() {
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {CATEGORIES.map((ct) => {
             const sel = activeCategory === ct.id;
-            const count = ct.id === 'All' ? dummyGrocery.length
+            const count = ct.id === 'All' ? groceries.length
               : ct.id === 'Organic' ? organicCount
-              : dummyGrocery.filter((p) => p.category === ct.id).length;
+              : groceries.filter((p) => p.category === ct.id).length;
             return (
               <button key={ct.id} onClick={() => setActiveCategory(ct.id)}
                 className={`flex-shrink-0 flex items-center gap-2.5 rounded-full border px-4 py-2 transition-all ${

@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+// Defer FontAwesome loading to improve FCP and TTI
+setTimeout(() => {
+  import('@fortawesome/fontawesome-free/css/all.min.css');
+}, 100);
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import store from './store';

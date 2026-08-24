@@ -160,12 +160,26 @@ export const vehicleAPI = {
 
 // ─── Grocery ─────────────────────────────────────────────────────────────────
 export const groceryAPI = {
+  getAll: (params) => client.get('/product/groceries', { params }),
+  getById: (id) => client.get(`/product/groceries/${id}`),
+  getSimilar: (id) => client.get(`/product/groceries/similar/${id}`),
+  getMy: () => client.get('/product/groceries/my'),
   create: (body) => client.post('/product/groceries', body),
+  update: (id, body) => client.put(`/product/groceries/${id}`, body),
+  remove: (id) => client.delete(`/product/groceries/${id}`),
+  toggleStatus: (id) => client.patch(`/product/groceries/${id}/status`),
 };
 
 // ─── Garment ─────────────────────────────────────────────────────────────────
 export const garmentAPI = {
+  getAll: (params) => client.get('/product/garments', { params }),
+  getById: (id) => client.get(`/product/garments/${id}`),
+  getSimilar: (id) => client.get(`/product/garments/similar/${id}`),
+  getMy: () => client.get('/product/garments/my'),
   create: (body) => client.post('/product/garments', body),
+  update: (id, body) => client.put(`/product/garments/${id}`, body),
+  remove: (id) => client.delete(`/product/garments/${id}`),
+  toggleStatus: (id) => client.patch(`/product/garments/${id}/status`),
 };
 
 // ─── Jewellery ───────────────────────────────────────────────────────────────
@@ -190,6 +204,23 @@ export const financeAPI = {
   update: (id, body) => client.put(`/product/finance/${id}`, body),
   remove: (id) => client.delete(`/product/finance/${id}`),
   toggleStatus: (id) => client.patch(`/product/finance/${id}/status`),
+};
+
+// ─── Finance Offerings ───────────────────────────────────────────────────────
+export const financeOfferingAPI = {
+  getAll: (params) => client.get('/product/finance-offerings', { params }),
+  getById: (id) => client.get(`/product/finance-offerings/${id}`),
+  getSimilar: (id) => client.get(`/product/finance-offerings/similar/${id}`),
+  getMy: () => client.get('/product/finance-offerings/my'),
+  create: (body) => client.post('/product/finance-offerings', body),
+  update: (id, body) => client.put(`/product/finance-offerings/${id}`, body),
+  remove: (id) => client.delete(`/product/finance-offerings/${id}`),
+  toggleStatus: (id) => client.patch(`/product/finance-offerings/${id}/status`),
+};
+
+// ─── Homepage ────────────────────────────────────────────────────────────────
+export const homepageAPI = {
+  getHomepageData: () => client.get('/homepage'),
 };
 
 export default client;

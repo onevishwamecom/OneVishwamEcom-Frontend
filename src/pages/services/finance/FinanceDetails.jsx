@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { financeServices } from '../../../data/dummyFinanceServices';
+import { useFinanceServiceById, useSimilarFinanceServices } from './financeHooks';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import FinanceCard from './FinanceCard';
 import { formatFinanceAmount } from './financeConstants';
 
@@ -11,33 +13,23 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 function FinanceDetails() {
   const [currentImageIndex] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [service, setService] = useState(null);
-  const [relatedServices, setRelatedServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { isLoggedIn } = useAuth();
 
   const { id: serviceId } = useParams();
+  const { service, loading, error } = useFinanceServiceById(serviceId);
+  const { similar: relatedServices } = useSimilarFinanceServices(serviceId);
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
 
-  useEffect(() => {
-    if (!serviceId) {
-      setService(null);
-      setLoading(false);
-      setError('Service not found');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const item = financeServices.find(s => String(s.id) === String(serviceId));
-    setService(item);
-    if (item) {
-      setRelatedServices(financeServices.filter(s => s.category === item.category && s.id !== item.id).slice(0, 4));
-    }
-    setLoading(false);
-  }, [serviceId]);
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Finance Details"
+        message="Please log in or create an account to view interest rates, loan terms, eligibility criteria, and application assistance."
+        backUrl="/our-services/finance-lending"
+      />
+    );
+  }
 
   if (loading) {
     return (

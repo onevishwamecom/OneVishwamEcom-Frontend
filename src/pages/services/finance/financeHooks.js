@@ -1,5 +1,47 @@
 import { useMemo } from 'react';
+import { financeAPI } from '../../../api';
+import useCachedData from '../../../hooks/useCachedData';
+import { CACHE_TTL, deterministicKey } from '../../../services/cache/cacheService';
 import { FINANCE_CATEGORIES } from './financeConstants';
+
+function extractFinance(res) {
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  if (Array.isArray(res?.data?.items)) return res.data.items;
+  if (Array.isArray(res?.data?.data?.items)) return res.data.data.items;
+  return [];
+}
+
+export function useFinanceServices(params = {}) {
+  const key = `finance:${deterministicKey(params)}`;
+  const { data, loading, error, retry } = useCachedData(
+    key,
+    () => financeAPI.getAll(params).then(extractFinance),
+    { ttl: CACHE_TTL.products, fallback: [] }
+  );
+
+  return { services: data || [], loading, error, retry };
+}
+
+export function useFinanceServiceById(id) {
+  const { data, loading, error, retry } = useCachedData(
+    `finance:item:${id}`,
+    () => financeAPI.getById(id).then((res) => res.data?.data?.service || res.data?.service || res.data?.data || res.data || null),
+    { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
+  );
+
+  return { service: data, loading, error, retry };
+}
+
+export function useSimilarFinanceServices(id) {
+  const { data, loading, error } = useCachedData(
+    `finance:similar:${id}`,
+    () => financeAPI.getSimilar(id).then(extractFinance),
+    { ttl: CACHE_TTL.similar, fallback: [], enabled: !!id }
+  );
+
+  return { similar: data || [], loading, error };
+}
 
 function parsePriceRange(amountStr) {
   const cleaned = amountStr.replace(/[₹,\s]/g, '');

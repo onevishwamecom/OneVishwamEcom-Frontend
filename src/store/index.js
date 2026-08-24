@@ -14,16 +14,19 @@ const store = configureStore({
   },
 });
 
-let prev;
+let prevLocation = null;
 store.subscribe(() => {
-  const { selectedCity, selectedArea } = store.getState().location;
-  if (selectedCity !== prev?.city) {
-    try { localStorage.setItem(LS_CITY, selectedCity); } catch {}
+  const currentLocation = store.getState().location;
+  if (currentLocation === prevLocation) return;
+
+  const { selectedCity, selectedArea } = currentLocation;
+  if (!prevLocation || selectedCity !== prevLocation.selectedCity) {
+    try { localStorage.setItem(LS_CITY, selectedCity || ''); } catch {}
   }
-  if (selectedArea !== prev?.area) {
-    try { localStorage.setItem(LS_AREA, selectedArea); } catch {}
+  if (!prevLocation || selectedArea !== prevLocation.selectedArea) {
+    try { localStorage.setItem(LS_AREA, selectedArea || ''); } catch {}
   }
-  prev = { city: selectedCity, area: selectedArea };
+  prevLocation = currentLocation;
 });
 
 export default store;
