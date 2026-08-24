@@ -4,14 +4,10 @@ import { navLinks } from '../data/siteContent';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
 import { useAuth } from '../store/authSlice';
-<<<<<<< HEAD
-=======
 import UserDropdown from './auth/UserDropdown';
->>>>>>> feature/website-styling
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
-import UserDropdown from './auth/UserDropdown';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,11 +18,7 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
-<<<<<<< HEAD
-  const { isLoggedIn, openAuthModal, user } = useAuth();
-=======
   const { isLoggedIn, openAuthModal, user, logout } = useAuth();
->>>>>>> feature/website-styling
 
   const visibleNavLinks = PROPERTIES_ONLY
     ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties')
