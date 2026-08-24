@@ -30,16 +30,16 @@ export const footerSocialLinks = [
 ];
 
 export const footerLocations = [
-  { label: 'Headquarters', value: 'No.38/2, Rama Krupa, N.A.T. Street, Basavanagudi behind Domino\'s Pizza, Bull Temple Road, Bangalore - 560 004', primary: true },
-  { label: 'Phone', value: '99005 74214' },
+  { label: 'Address', value: 'Basavanagudi Bangalore - 560 004', primary: true },
+  { label: 'Phone', value: '93648 62542' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
 
 export const contactInfo = {
   brandName: 'One Vishwam',
-  phoneDisplay: '+91 93648 62542',
-  phoneRaw: '9364862542',
-  phoneTel: '+919364862542',
-  whatsapp: '919364862542',
-  email: 'ceo@onevishwam.com',
+  phoneDisplay: '+91 74114 42760',
+  phoneRaw: '7411442760',
+  phoneTel: '+917411442760',
+  whatsapp: '917411442760',
+  email: 'sinchana@spwebtechnologies.in',
 };
