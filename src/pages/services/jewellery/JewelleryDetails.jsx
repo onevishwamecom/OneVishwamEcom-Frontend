@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
-import { useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
+import { useJewellery, useJewelleryById, useSimilarJewellery } from './jewelleryHooks';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 function JewelleryDetails() {
   const { pathname } = useLocation();
@@ -13,8 +14,16 @@ function JewelleryDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const jewelleryId = pathParts.length > 1 ? pathParts[1] : null;
 
-  const { jewellery: item, loading, error } = useJewelleryById(jewelleryId);
+  const { jewellery: jewelleryList, loading: listLoading } = useJewellery();
+  const { jewellery: directItem, loading: directLoading, error: directError } = useJewelleryById(jewelleryId);
   const { similar: relatedItems, loading: similarLoading } = useSimilarJewellery(jewelleryId);
+
+  const foundFromList = (jewelleryList || []).find(
+    (j) => String(j._id) === String(jewelleryId) || String(j.id) === String(jewelleryId)
+  ) || null;
+  const item = (directItem?.item || directItem) || (foundFromList?.item || foundFromList);
+  const loading = !item && (listLoading || directLoading);
+  const error = !item && !listLoading && !directLoading ? (directError || 'Item not found') : null;
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -40,7 +49,7 @@ function JewelleryDetails() {
   if (error || !item) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
+        <h1 className="text-2xl font-bold text-gray-400">{error || 'Item not found'}</h1>
         <Link to="/our-services/jewellery-gold" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Jewellery & Gold</Link>
       </div>
     );
@@ -86,7 +95,7 @@ function JewelleryDetails() {
               <p className="text-white/70 text-sm">{item.category} · {item.gender}</p>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-yellow-400">{item.price}</span>
+                <span className="text-4xl font-bold text-yellow-400">{withRupeeSymbol(item.price)}</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -213,7 +222,7 @@ function JewelleryDetails() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Item Price</span>
-                  <span className="font-medium">{item.price}</span>
+                  <span className="font-medium">{withRupeeSymbol(item.price)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Making Charges</span>
@@ -221,7 +230,7 @@ function JewelleryDetails() {
                 </div>
                 <div className="border-t border-gray-100 pt-2 flex justify-between">
                   <span className="font-bold text-brand-charcoal">Total</span>
-                  <span className="font-bold text-brand-blue">{item.price}</span>
+                  <span className="font-bold text-brand-blue">{withRupeeSymbol(item.price)}</span>
                 </div>
               </div>
               <Link to="/contact-us/"
@@ -271,7 +280,7 @@ function JewelleryDetails() {
                     </div>
                     <p className="text-sm font-bold text-brand-charcoal group-hover:text-brand-blue transition-colors">{r.name}</p>
                     <p className="text-xs text-gray-500">{r.metalType} {r.purity} · {r.weightGrams}g</p>
-                    <p className="text-sm font-bold text-brand-blue mt-0.5">{r.price}</p>
+                    <p className="text-sm font-bold text-brand-blue mt-0.5">{withRupeeSymbol(r.price)}</p>
                   </div>
                 ))}
               </div>

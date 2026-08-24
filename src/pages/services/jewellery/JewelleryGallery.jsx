@@ -11,6 +11,7 @@ import SearchSortBar from "../../../components/SearchSortBar";
 import FilterSidebar from "../../../components/FilterSidebar";
 import MobileFilterDrawer from "../../../components/MobileFilterDrawer";
 import SlideinPanel from "../../../components/SlideinPanel";
+import { withRupeeSymbol } from "../../../utils/priceUtils";
 
 const CATEGORIES = [
   { id: "All", icon: "fa-gem", label: "All" },
@@ -504,7 +505,7 @@ function JewelleryGallery() {
                 {item.weightGrams}g · {item.metalType}
               </p>
               <p className="text-xs font-bold text-brand-blue mt-0.5">
-                {item.price}
+                {withRupeeSymbol(item.price)}
               </p>
             </div>
             <button

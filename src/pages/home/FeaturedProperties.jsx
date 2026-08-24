@@ -5,6 +5,7 @@ import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
 import { useProperties } from '../../hooks/useProperties';
 import { useAuth } from '../../store/authSlice';
+import { withRupeeSymbol } from '../../utils/priceUtils';
 
 function FeaturedProperties() {
   const scrollRef = useRef(null);
@@ -92,7 +93,7 @@ function FeaturedProperties() {
                     <h3 className="font-semibold text-brand-charcoal group-hover:text-brand-blue transition-colors">{p.title}</h3>
                     <p className="mt-1 text-sm text-gray-500">{p.location}</p>
                     <div className="mt-3 flex items-center justify-between">
-                      <p className="text-lg font-bold text-brand-blue">{p.price} <span className="text-xs font-medium text-gray-400">{p.priceSuffix}</span></p>
+                      <p className="text-lg font-bold text-brand-blue">{withRupeeSymbol(p.price)} <span className="text-xs font-medium text-gray-400">{p.priceSuffix}</span></p>
                       <span className="text-xs text-gray-400">{p.bhk}</span>
                     </div>
                   </div>
@@ -125,7 +126,7 @@ function FeaturedProperties() {
                       <div className="p-4">
                         <h4 className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</h4>
                         <p className="text-xs text-gray-500 mt-0.5 truncate">{p.location}</p>
-                        <p className="mt-2 text-sm font-bold text-brand-blue">{p.price}</p>
+                        <p className="mt-2 text-sm font-bold text-brand-blue">{withRupeeSymbol(p.price)}</p>
                       </div>
                     </div>
                   ))}

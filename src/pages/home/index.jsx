@@ -7,6 +7,7 @@ import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
+import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
 import { heroImage } from '../../utils/imageOptimizer';
@@ -409,7 +410,7 @@ function Home() {
                       <i className="fa-solid fa-clock" /> Added Recently
                     </span>
                     <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
-                    <p className="text-sm font-semibold text-brand-blue">{p.price} {p.priceSuffix}</p>
+                    <p className="text-sm font-semibold text-brand-blue">{withRupeeSymbol(p.price)} {p.priceSuffix}</p>
                     <p className="text-xs text-gray-500 mt-1">{p.location || p.city} · {p.bhk} · {p.area}</p>
                   </div>
                 </Link>
@@ -427,7 +428,7 @@ function Home() {
                           <i className="fa-solid fa-clock" /> Added Today
                         </span>
                         <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
-                        <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
+                        <p className="text-sm font-semibold text-brand-blue">{withRupeeSymbol(v.price)}</p>
                         <p className="text-xs text-gray-500 mt-1">{v.location || v.city} · {v.fuelType} · {v.year}</p>
                       </div>
                     </Link>
@@ -444,8 +445,8 @@ function Home() {
                         </span>
                         <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
                         <div className="mt-1 flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice || g.price}</span>
-                          <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
+                          <span className="text-sm font-bold text-brand-blue">{withRupeeSymbol(g.finalPrice || g.price)}</span>
+                          <span className="text-xs text-gray-400 line-through">{withRupeeSymbol(g.originalPrice)}</span>
                           <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || g.city || ''} · {g.category}</p>

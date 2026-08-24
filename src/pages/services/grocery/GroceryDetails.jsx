@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
-import { useGroceryById, useSimilarGroceries } from './groceryHooks';
+import { useGroceries, useGroceryById, useSimilarGroceries } from './groceryHooks';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import ProductCard from '../ProductCard';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 function GroceryDetails() {
   const { pathname } = useLocation();
@@ -13,8 +14,17 @@ function GroceryDetails() {
 
   const pathParts = pathname.split('/').filter(Boolean);
   const groceryId = pathParts.length > 1 ? pathParts[1] : null;
-  const { grocery: item, loading, error } = useGroceryById(groceryId);
+
+  const { groceries, loading: listLoading } = useGroceries();
+  const { grocery: directItem, loading: directLoading, error: directError } = useGroceryById(groceryId);
   const { similar: relatedItems } = useSimilarGroceries(groceryId);
+
+  const foundFromList = (groceries || []).find(
+    (g) => String(g._id) === String(groceryId) || String(g.id) === String(groceryId)
+  ) || null;
+  const item = (directItem?.item || directItem) || (foundFromList?.item || foundFromList);
+  const loading = !item && (listLoading || directLoading);
+  const error = !item && !listLoading && !directLoading ? (directError || 'Item not found') : null;
 
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -45,10 +55,10 @@ function GroceryDetails() {
     );
   }
 
-  if (!item || error) {
+  if (error || !item) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
+        <h1 className="text-2xl font-bold text-gray-400">{error || 'Item not found'}</h1>
         <Link to="/our-services/consumer-marketplace" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Groceries &amp; Daily Needs</Link>
       </div>
     );
@@ -95,7 +105,7 @@ function GroceryDetails() {
               <p className="text-white/70 text-sm">{item.category} {item.location?.area || item.area ? `· ${item.location?.area || item.area}, ${item.location?.city || item.city || 'Bengaluru'}` : ''}</p>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-yellow-400">{item.pricePerUnit || item.price || `₹ ${unitPrice}`}</span>
+                <span className="text-4xl font-bold text-yellow-400">{withRupeeSymbol(item.pricePerUnit || item.price || `₹ ${unitPrice}`)}</span>
                 <span className="text-white/60">/{item.unit || 'kg'}</span>
               </div>
 
@@ -224,7 +234,7 @@ function GroceryDetails() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Price</span>
-                  <span className="font-medium">{item.pricePerUnit}/{item.unit}</span>
+                  <span className="font-medium">{withRupeeSymbol(item.pricePerUnit)}/{item.unit}</span>
                 </div>
                 <div className="border-t border-gray-100 pt-2 flex justify-between">
                   <span className="font-bold text-brand-charcoal">Total</span>
@@ -289,7 +299,7 @@ function GroceryDetails() {
               className="w-12 h-12 rounded-lg object-cover shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-brand-charcoal truncate">{item.name}</p>
-              <p className="text-xs text-gray-500">{qty} × {item.pricePerUnit}/{item.unit}</p>
+              <p className="text-xs text-gray-500">{qty} × {withRupeeSymbol(item.pricePerUnit)}/{item.unit}</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 rounded-xl border border-gray-200 px-2 py-1">

@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { useVehicleById, useSimilarVehicles } from './automobileHooks';
+import { useVehicles, useVehicleById, useSimilarVehicles } from './automobileHooks';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import ProductCard from '../ProductCard';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
+
+const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
+);
 
 function VehicleDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -13,8 +18,16 @@ function VehicleDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
 
-  const { vehicle, loading, error } = useVehicleById(vehicleId);
+  const { vehicles, loading: listLoading } = useVehicles();
+  const { vehicle: directVehicle, loading: directLoading, error: directError } = useVehicleById(vehicleId);
   const { similar: relatedVehicles } = useSimilarVehicles(vehicleId);
+
+  const foundFromList = (vehicles || []).find(
+    (v) => String(v._id) === String(vehicleId) || String(v.id) === String(vehicleId)
+  ) || null;
+  const vehicle = (directVehicle?.item || directVehicle) || (foundFromList?.item || foundFromList);
+  const loading = !vehicle && (listLoading || directLoading);
+  const error = !vehicle && !listLoading && !directLoading ? (directError || 'Vehicle not found') : null;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -49,6 +62,12 @@ function VehicleDetails() {
     );
   }
 
+  const vehicleImages = Array.isArray(vehicle.images) && vehicle.images.length > 0
+    ? vehicle.images
+    : vehicle.image
+      ? [vehicle.image]
+      : [];
+
   return (
     <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -61,12 +80,12 @@ function VehicleDetails() {
           {/* Images */}
           <div className="lg:col-span-3 space-y-3">
             <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100">
-              <img src={vehicle.images[currentImageIndex]} alt={`${vehicle.brand} ${vehicle.model}`}
+              <img src={vehicleImages[currentImageIndex] || vehicleImages[0] || FALLBACK_IMG} alt={`${vehicle.brand || vehicle.make || ''} ${vehicle.model || ''}`}
                 className="h-full w-full object-cover" />
             </div>
-            {vehicle.images.length > 1 && (
+            {vehicleImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {vehicle.images.map((img, idx) => (
+                {vehicleImages.map((img, idx) => (
                   <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                     className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                       idx === currentImageIndex ? 'border-brand-blue' : 'border-transparent opacity-60 hover:opacity-100'
@@ -104,7 +123,7 @@ function VehicleDetails() {
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-brand-charcoal">{vehicle.price}</span>
+              <span className="text-3xl font-bold text-brand-charcoal">{withRupeeSymbol(vehicle.price)}</span>
             </div>
 
             {/* Key Specs */}

@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
-import { useGarmentById, useSimilarGarments } from './garmentHooks';
+import { useGarments, useGarmentById, useSimilarGarments } from './garmentHooks';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 function GarmentDetails() {
   const { pathname } = useLocation();
@@ -12,8 +13,17 @@ function GarmentDetails() {
 
   const pathParts = pathname.split('/').filter(Boolean);
   const garmentId = pathParts.length > 1 ? pathParts[1] : null;
-  const { garment: item, loading, error } = useGarmentById(garmentId);
+
+  const { garments, loading: listLoading } = useGarments();
+  const { garment: directItem, loading: directLoading, error: directError } = useGarmentById(garmentId);
   const { similar: relatedItems } = useSimilarGarments(garmentId);
+
+  const foundFromList = (garments || []).find(
+    (g) => String(g._id) === String(garmentId) || String(g.id) === String(garmentId)
+  ) || null;
+  const item = (directItem?.item || directItem) || (foundFromList?.item || foundFromList);
+  const loading = !item && (listLoading || directLoading);
+  const error = !item && !listLoading && !directLoading ? (directError || 'Item not found') : null;
 
   if (!isLoggedIn) {
     return (
@@ -34,10 +44,10 @@ function GarmentDetails() {
     );
   }
 
-  if (!item || error) {
+  if (error || !item) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
+        <h1 className="text-2xl font-bold text-gray-400">{error || 'Item not found'}</h1>
         <Link to="/our-services/garments-fashion-lifestyle" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Garments &amp; Fashion</Link>
       </div>
     );
@@ -67,8 +77,8 @@ function GarmentDetails() {
               <p className="text-white/70 text-sm capitalize">{item.gender || 'Unisex'} · {item.fabric || item.material || 'Cotton'} · {item.category || item.subcategory}</p>
 
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-yellow-400">{item.finalPrice || item.price}</span>
-                {item.originalPrice && <span className="text-lg text-white/50 line-through">{item.originalPrice}</span>}
+                <span className="text-4xl font-bold text-yellow-400">{withRupeeSymbol(item.finalPrice || item.price)}</span>
+                {item.originalPrice && <span className="text-lg text-white/50 line-through">{withRupeeSymbol(item.originalPrice)}</span>}
                 {item.discount > 0 && (
                   <span className="text-sm font-bold text-emerald-300">{item.discount}% OFF</span>
                 )}

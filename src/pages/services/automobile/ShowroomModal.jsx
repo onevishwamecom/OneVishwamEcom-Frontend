@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, isEmailJSConfigured } from '../../../config/emailjs';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
   const [step, setStep] = useState(1);
@@ -32,7 +33,7 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
       from_phone: loanForm.phone,
       from_email: 'no-reply@vishwam.com',
       service: 'Vehicle Loan',
-      message: loanForm.message || `Interested in ${vehicle.brand} ${vehicle.model} (${vehicle.price}). Showroom: ${vehicle.showroom.name}.`,
+      message: loanForm.message || `Interested in ${vehicle.brand} ${vehicle.model} (${withRupeeSymbol(vehicle.price)}). Showroom: ${vehicle.showroom.name}.`,
       from_additional_phone: 'N/A',
       from_additional_phone_2: 'N/A',
       voice_message: '',
@@ -131,7 +132,7 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
           <form onSubmit={handleLoanSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
             <div className="rounded-xl bg-blue-50 px-4 py-3">
               <p className="text-sm font-semibold text-blue-800">{vehicle.brand} {vehicle.model}</p>
-              <p className="text-xs text-blue-600">{vehicle.price} · {vehicle.showroom.name}</p>
+              <p className="text-xs text-blue-600">{withRupeeSymbol(vehicle.price)} · {vehicle.showroom.name}</p>
             </div>
 
             <label className="grid gap-1.5">

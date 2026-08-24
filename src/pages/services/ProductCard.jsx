@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
 import { useAuth } from "../../store/authSlice";
+import { formatINR, getPriceTypeBadge, withRupeeSymbol } from "../../utils/priceUtils";
 
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
@@ -31,6 +32,7 @@ export default React.memo(function ProductCard({
   title,
   price,
   priceSuffix = "",
+  priceType,
   priceOverride,
   location,
   pincode,
@@ -108,14 +110,21 @@ export default React.memo(function ProductCard({
         {/* Price */}
         {priceOverride ? (
           <div className="mt-0.5">{priceOverride}</div>
+        ) : priceType === 'on-request' ? (
+          <p className="mt-0.5 text-sm font-bold text-brand-gold">Price on Request</p>
         ) : (
           price && (
             <p className="mt-0.5 text-sm font-bold text-brand-blue">
-              {price}
+              {typeof price === 'number' || (typeof price === 'string' && /^\d/.test(price.replace(/[₹,\s]/g, '')))
+                ? formatINR(price)
+                : withRupeeSymbol(price)}
               {priceSuffix && (
                 <span className="text-xs font-medium text-gray-400 ml-1">
                   {priceSuffix}
                 </span>
+              )}
+              {priceType === 'negotiable' && (
+                <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-1.5 py-0.5 rounded-md">Negotiable</span>
               )}
             </p>
           )

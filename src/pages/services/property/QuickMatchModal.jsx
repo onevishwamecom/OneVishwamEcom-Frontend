@@ -3,6 +3,7 @@ import { navigateTo } from '../../../config/navigation';
 import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
 import { getNumericPrice } from '../GalleryComponents';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 function getCardType(property) {
   const s = property.subtitle.toLowerCase();
@@ -223,7 +224,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
+                          <p className="text-xs font-bold text-brand-blue mt-0.5">{withRupeeSymbol(p.price)}</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
@@ -248,7 +249,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
+                          <p className="text-xs font-bold text-brand-blue mt-0.5">{withRupeeSymbol(p.price)}</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
@@ -273,7 +274,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
+                          <p className="text-xs font-bold text-brand-blue mt-0.5">{withRupeeSymbol(p.price)}</p>
                           <span className="mt-1 inline-block rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">Closed</span>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}

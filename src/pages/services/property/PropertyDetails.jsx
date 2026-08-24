@@ -8,6 +8,7 @@ import { contactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
 import { getPropertyCoverImage } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
+import { withRupeeSymbol } from '../../../utils/priceUtils';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -109,7 +110,7 @@ function PropertyCard({ property }) {
           <p className="text-[11px] text-gray-500 flex items-center gap-1 truncate">
             <i className="fa-solid fa-location-dot text-brand-blue text-[9px]" /> {property.location}
           </p>
-          <p className="text-sm font-bold text-brand-blue mt-auto">{property.price}</p>
+          <p className="text-sm font-bold text-brand-blue mt-auto">{withRupeeSymbol(property.price)}</p>
           <div className="flex items-center gap-2 text-[11px] text-gray-600 flex-wrap">
             {property.bhk && <span className="bg-gray-100 rounded-md px-2 py-0.5">{property.bhk}</span>}
             {property.area && <span className="bg-gray-100 rounded-md px-2 py-0.5">{property.area}</span>}
@@ -145,10 +146,16 @@ function PropertyDetails() {
   const similarRef = useRef(null);
   const navigate = useNavigate();
 
-  const foundFromList = properties.find(
-    (p) => p._id === propertySlug || String(p.id) === propertySlug
+  const foundFromList = (properties || []).find(
+    (p) =>
+      String(p._id) === String(propertySlug) ||
+      String(p.id) === String(propertySlug) ||
+      p.slug === propertySlug ||
+      (p.title && p.title.toLowerCase().replace(/\s+/g, '-') === propertySlug)
   ) || null;
-  const property = directProperty || foundFromList;
+  const resolvedDirect = directProperty?.item || directProperty;
+  const resolvedList = foundFromList?.item || foundFromList;
+  const property = resolvedDirect || resolvedList;
   const loading = !property && (listLoading || directLoading);
   const error = !property && !listLoading && !directLoading ? (directError || new Error('Property not found')) : null;
 
@@ -187,14 +194,21 @@ function PropertyDetails() {
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
     : '';
 
+  const propertyImages = Array.isArray(property?.images) && property.images.length > 0
+    ? property.images
+    : property?.image
+      ? [property.image]
+      : [];
+
   const goPrev = useCallback(() => {
-    if (!property) return;
-    setCurrentImageIndex((i) => (i === 0 ? property.images.length - 1 : i - 1));
-  }, [property]);
+    if (propertyImages.length === 0) return;
+    setCurrentImageIndex((i) => (i === 0 ? propertyImages.length - 1 : i - 1));
+  }, [propertyImages.length]);
+
   const goNext = useCallback(() => {
-    if (!property) return;
-    setCurrentImageIndex((i) => (i === property.images.length - 1 ? 0 : i + 1));
-  }, [property]);
+    if (propertyImages.length === 0) return;
+    setCurrentImageIndex((i) => (i === propertyImages.length - 1 ? 0 : i + 1));
+  }, [propertyImages.length]);
 
   const { isLoggedIn } = useAuth();
 
@@ -261,8 +275,8 @@ function PropertyDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {galleryOpen && (
-        <GalleryModal images={property.images} index={currentImageIndex} onClose={() => setGalleryOpen(false)} onPrev={goPrev} onNext={goNext} />
+      {galleryOpen && propertyImages.length > 0 && (
+        <GalleryModal images={propertyImages} index={currentImageIndex} onClose={() => setGalleryOpen(false)} onPrev={goPrev} onNext={goNext} />
       )}
 
       {/* ─── HERO SECTION ─── */}
@@ -278,30 +292,38 @@ function PropertyDetails() {
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group cursor-pointer" onClick={() => setGalleryOpen(true)}>
+              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group cursor-pointer" onClick={() => propertyImages.length > 0 && setGalleryOpen(true)}>
                 <img
                   key={currentImageIndex}
-                  src={resolveImage(property.images[currentImageIndex])}
+                  src={resolveImage(propertyImages[currentImageIndex]) || FALLBACK_IMG}
                   alt={property.title}
                   className="gallery-fade h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                  <i className="fa-solid fa-chevron-left" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
-                  <i className="fa-solid fa-chevron-right" />
-                </button>
-                <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
-                  <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
-                </div>
-                <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
-                  <i className="fa-solid fa-magnifying-glass-plus mr-1" /> Click to view
-                </div>
+                {propertyImages.length > 1 && (
+                  <>
+                    <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                      <i className="fa-solid fa-chevron-left" />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                      <i className="fa-solid fa-chevron-right" />
+                    </button>
+                  </>
+                )}
+                {propertyImages.length > 0 && (
+                  <>
+                    <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                      <i className="fa-solid fa-image mr-1" /> {propertyImages.length} Photo{propertyImages.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                      <i className="fa-solid fa-magnifying-glass-plus mr-1" /> Click to view
+                    </div>
+                  </>
+                )}
               </div>
-              {property.images.length > 1 && (
+              {propertyImages.length > 1 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-                  {property.images.map((img, idx) => (
+                  {propertyImages.map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                       className={`relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all duration-200 ${
                         idx === currentImageIndex
@@ -330,7 +352,7 @@ function PropertyDetails() {
               </div>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-brand-charcoal">{property.price}</span>
+                <span className="text-4xl font-bold text-brand-charcoal">{withRupeeSymbol(property.price)}</span>
                 {property.priceSuffix && <span className="text-gray-400 text-sm font-medium">{property.priceSuffix}</span>}
               </div>
               {property.priceNote && <p className="mt-1 text-[11px] text-gray-400">{property.priceNote}</p>}
