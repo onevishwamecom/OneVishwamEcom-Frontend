@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
 import { cities } from "../../../data/locations";
 import { ActiveChip } from "../GalleryComponents";
@@ -24,7 +25,12 @@ import {
   getPropertyTypeLabel,
   getDetailTags,
   getStatusBadge,
+  hasPropertyImages,
+  getPropertyCoverImage,
 } from "./propertyHelpers";
+
+const PER_PAGE = 9;
+const RESTORE_KEY = "vishwam.propertyGalleryState";
 
 function PropertyGallery() {
   const { selectedCity, selectCity } = useLocation();
@@ -33,6 +39,8 @@ function PropertyGallery() {
   /* ── Top-level state ── */
   const [selectedCardType, setSelectedCardType] = useState("All");
   const [locationInput, setLocationInput] = useState("");
+  const [pincodeInput, setPincodeInput] = useState("");
+  const [requirementText, setRequirementText] = useState("");
   const [showFinance, setShowFinance] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("latest");
@@ -42,16 +50,76 @@ function PropertyGallery() {
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
   const [familyLocationsOnly, setFamilyLocationsOnly] = useState(false);
   const [preApprovedMode, setPreApprovedMode] = useState(false);
+  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const restoredRef = useRef(false);
+
+  /* ── URL search (e.g. homepage/hero search → ?q=...) ── */
+  useEffect(() => {
+    const q = (searchParams.get("q") || "").trim();
+    if (q) {
+      setSearchTerm(q);
+      setPage(1);
+    }
+  }, [searchParams]);
+
+  /* ── Restore previous search/filter/pagination state (e.g. after Back) ── */
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const raw = sessionStorage.getItem(RESTORE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.searchTerm) setSearchTerm(s.searchTerm);
+        if (s.requirementText) setRequirementText(s.requirementText);
+        if (s.selectedCardType) setSelectedCardType(s.selectedCardType);
+        if (s.locationInput) setLocationInput(s.locationInput);
+        if (s.pincodeInput) setPincodeInput(s.pincodeInput);
+        if (s.sortBy) setSortBy(s.sortBy);
+        if (s.page) setPage(s.page);
+        if (s.filters) setFilters({ ...INITIAL_FILTERS, ...s.filters });
+      }
+    } catch (e) {
+      /* ignore corrupt storage */
+    }
+  }, []);
+
+  /* ── Persist state continuously so Back from a detail page restores it ── */
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    sessionStorage.setItem(RESTORE_KEY, JSON.stringify({
+      searchTerm,
+      requirementText,
+      selectedCardType,
+      locationInput,
+      pincodeInput,
+      sortBy,
+      page,
+      filters,
+    }));
+  }, [searchTerm, requirementText, selectedCardType, locationInput, pincodeInput, sortBy, page, filters]);
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
 
   /* ── Derived values ── */
   const cityAreas = selectedCity ? cities[selectedCity]?.areas || [] : [];
   const noCityMessage = !selectedCity;
 
-  const updateFilter = (key, value) =>
+  const updateFilter = (key, value) => {
+    setPage(1);
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
-  const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
+  const resetFilters = () => {
+    setPage(1);
+    setFilters({ ...INITIAL_FILTERS });
+  };
 
   /* ── Custom hooks ── */
   const cardTypeStats = useCardTypeStats(properties, PROPERTY_CARD_TYPES);
@@ -60,19 +128,45 @@ function PropertyGallery() {
     properties,
     selectedCardType,
     searchTerm,
+    requirementText,
     sortBy,
     filters,
     selectedCity,
     locationInput,
+    pincodeInput,
     familyLocationsOnly,
     preApprovedMode,
   });
+
+  /* ── Image-priority sort + pagination ── */
+  const sortedProperties = useMemo(() => {
+    return [...filteredProperties].sort((a, b) => {
+      const aImg = hasPropertyImages(a) ? 1 : 0;
+      const bImg = hasPropertyImages(b) ? 1 : 0;
+      if (aImg !== bImg) return bImg - aImg;
+      return b.id - a.id;
+    });
+  }, [filteredProperties]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedProperties.length / PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const pageProperties = sortedProperties.slice(
+    (currentPage - 1) * PER_PAGE,
+    currentPage * PER_PAGE,
+  );
+
+  const goToPage = (p) => {
+    setPage(Math.min(Math.max(1, p), totalPages));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   /* ── Chip removal ── */
   const removeChip = (chip) => {
     if (chip.key === "budget") {
       updateFilter("budgetMin", "");
       updateFilter("budgetMax", "");
+    } else if (chip.key === "listed") {
+      updateFilter("listedWithin", "");
     } else if (chip.key === "gated") {
       updateFilter("gatedCommunity", false);
     } else if (chip.key === "loan") {
@@ -111,16 +205,19 @@ function PropertyGallery() {
     resetFilters,
     cityAreas,
     noCityMessage,
-    properties,
   };
 
   /* ── Render ── */
   return (
-    <div className="pb-24 pt-6 sm:pt-10 relative">
+    <div className="pb-24 pt-16 lg:pt-14 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between gap-4">
           <div>
+            <button onClick={goBack}
+              className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors">
+              <i className="fa-solid fa-arrow-left" /> Back
+            </button>
             <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
               OneVishwam · Real Estate
             </p>
@@ -129,8 +226,8 @@ function PropertyGallery() {
             </h1>
           </div>
           <span className="hidden sm:block text-xs text-gray-400 pb-1">
-            {filteredProperties.length} listing
-            {filteredProperties.length !== 1 ? "s" : ""} available
+            {sortedProperties.length} listing
+            {sortedProperties.length !== 1 ? "s" : ""} available
           </span>
         </div>
 
@@ -139,7 +236,7 @@ function PropertyGallery() {
           types={PROPERTY_CARD_TYPES}
           selected={selectedCardType}
           stats={cardTypeStats}
-          onSelect={setSelectedCardType}
+          onSelect={(t) => { setPage(1); setSelectedCardType(t); }}
         />
 
         {/* ── Unified Search Card ── */}
@@ -177,7 +274,7 @@ function PropertyGallery() {
               </label>
               <select
                 value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
+                onChange={(e) => { setPage(1); setLocationInput(e.target.value); }}
                 disabled={!selectedCity}
                 className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer disabled:text-gray-300 disabled:cursor-not-allowed"
               >
@@ -190,6 +287,38 @@ function PropertyGallery() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Pincode */}
+            <div className="flex-1 flex flex-col px-4 py-3">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
+                Pincode
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={pincodeInput}
+                onChange={(e) => { setPage(1); setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
+                placeholder="6-digit code"
+                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
+              />
+            </div>
+
+            {/* Requirement text */}
+            <div className="flex-[2] flex flex-col px-4 py-3">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                <i className="fa-solid fa-pen mr-1 text-brand-blue/60" />
+                Requirement
+              </label>
+              <input
+                type="text"
+                value={requirementText}
+                onChange={(e) => { setPage(1); setRequirementText(e.target.value); }}
+                placeholder="e.g. 3 BHK ready to move, budget 50L"
+                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
+              />
             </div>
 
             {/* Search button */}
@@ -306,7 +435,7 @@ function PropertyGallery() {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
                 placeholder="Search properties..."
                 className="w-44 rounded-xl border border-gray-200 pl-9 pr-3 py-2 text-xs outline-none focus:border-brand-blue focus:w-56 transition-all"
               />
@@ -319,7 +448,7 @@ function PropertyGallery() {
             </button>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => { setPage(1); setSortBy(e.target.value); }}
               className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-brand-blue bg-white"
             >
               <option value="latest">Latest</option>
@@ -365,9 +494,9 @@ function PropertyGallery() {
 
           {/* Property Grid */}
           <div className="flex-1 min-w-0">
-            {filteredProperties.length > 0 ? (
+            {pageProperties.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProperties.map((p) => {
+                {pageProperties.map((p) => {
                   const typeLabel = getPropertyTypeLabel(p);
                   const tags = getDetailTags(p);
                   const badge = getStatusBadge(p);
@@ -375,7 +504,7 @@ function PropertyGallery() {
                     <ProductCard
                       key={p.id}
                       link={`/property/${p.id}`}
-                      image={p.images[0]}
+                      image={getPropertyCoverImage(p)}
                       alt={p.title}
                       title={p.title}
                       price={p.price}
@@ -434,6 +563,53 @@ function PropertyGallery() {
                   <i className="fa-solid fa-circle-plus" />
                   Tell Us What You're Looking For
                 </a>
+              </div>
+            )}
+
+            {/* ── Pagination ── */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <i className="fa-solid fa-chevron-left text-[10px]" /> Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => {
+                  const show =
+                    n === 1 || n === totalPages ||
+                    Math.abs(n - currentPage) <= 1;
+                  const prevShown = n === 1 || Math.abs(n - 1 - currentPage) <= 1;
+                  if (!show) {
+                    if (prevShown) {
+                      return <span key={n} className="px-1 text-gray-400 text-xs">…</span>;
+                    }
+                    return null;
+                  }
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => goToPage(n)}
+                      className={`min-w-9 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                        n === currentPage
+                          ? "bg-brand-blue text-white shadow-sm"
+                          : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next <i className="fa-solid fa-chevron-right text-[10px]" />
+                </button>
               </div>
             )}
           </div>

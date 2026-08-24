@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { vehicleAPI } from '../../../api';
-import cache, { PUBLIC_NAMESPACE, CACHE_TTL } from '../../../services/cache/cacheService';
+import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import VehicleTypeStrip from './VehicleTypeStrip';
@@ -49,41 +48,8 @@ function AutomobileGallery() {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
   const [showroomTarget, setShowroomTarget] = useState(null);
-  const [vehicles, setVehicles] = useState(
-    () => cache.get(PUBLIC_NAMESPACE, 'vehicles:all')?.data ?? [],
-  );
-  const [loading, setLoading] = useState(() => !cache.get(PUBLIC_NAMESPACE, 'vehicles:all'));
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setError(null);
-    cache
-      .fetch(
-        PUBLIC_NAMESPACE,
-        'vehicles:all',
-        () =>
-          vehicleAPI.getAll({ limit: 100 }).then((res) => {
-            const raw = res.data?.data?.items || res.data?.items || [];
-            return raw.map((v) => ({ ...v, id: v._id || v.id }));
-          }),
-        { ttl: CACHE_TTL.products },
-      )
-      .then(({ data }) => {
-        if (!cancelled) setVehicles(data);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error('Vehicle fetch error:', err);
-          const msg = err.response?.data?.message || err.message || 'Failed to load vehicles';
-          setError(msg.includes('Network Error') ? 'Cannot reach server. Please check your connection.' : msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, []);
+  // Initialize directly from the in-memory data — no async loading needed.
+  const [vehicles] = useState(() => dummyAutomobiles.map(v => ({ ...v, id: v.id })));
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -162,7 +128,7 @@ function AutomobileGallery() {
   const sidebarProps = { filters, updateFilter, openSections, toggleSection, activeChips, resetFilters, kmOpen: condition === 'old' };
 
   return (
-    <div className="pb-24 pt-6 sm:pt-10 relative">
+    <div className="pb-24 pt-16 lg:pt-14 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">
@@ -382,28 +348,8 @@ function AutomobileGallery() {
           </div>
         )}
 
-        {/* ── Loading State ── */}
-        {loading && (
-          <div className="mt-8 flex flex-col items-center justify-center py-20 text-gray-400">
-            <i className="fa-solid fa-spinner fa-spin text-3xl mb-4" />
-            <p className="text-sm font-medium">Loading vehicles...</p>
-          </div>
-        )}
-
-        {/* ── Error State ── */}
-        {error && !loading && (
-          <div className="mt-8 flex flex-col items-center justify-center py-20 text-red-400">
-            <i className="fa-solid fa-circle-exclamation text-3xl mb-4" />
-            <p className="text-sm font-medium">{error}</p>
-            <button onClick={() => window.location.reload()}
-              className="mt-4 rounded-xl bg-brand-blue px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-              Retry
-            </button>
-          </div>
-        )}
-
         {/* ── Main Layout: Sidebar + Grid ── */}
-        {!loading && !error && <div className="mt-5 flex gap-6">
+        <div className="mt-5 flex gap-6">
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4">
               <VehicleFilterSidebar {...sidebarProps} />
@@ -465,7 +411,7 @@ function AutomobileGallery() {
               </div>
             )}
           </div>
-        </div>}
+        </div>
 
       </div>
 

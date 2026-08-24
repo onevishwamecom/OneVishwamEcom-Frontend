@@ -1,10 +1,14 @@
-import { useEffect } from 'react';
-import PropertyGallery from './property/PropertyGallery';
-import JewelleryGallery from './jewellery/JewelleryGallery';
-import AutomobileGallery from './automobile/AutomobileGallery';
-import GroceryGallery from './grocery/GroceryGallery';
-import GarmentGallery from './garments/GarmentGallery';
-import FinanceLoanGallery from './finance/FinanceLoanGallery';
+import { useEffect, lazy, Suspense } from 'react';
+import PageSkeleton from '../../components/ui/PageSkeleton';
+
+const PropertyGallery = lazy(() => import('./property/PropertyGallery'));
+const JewelleryGallery = lazy(() => import('./jewellery/JewelleryGallery'));
+const AutomobileGallery = lazy(() => import('./automobile/AutomobileGallery'));
+const GroceryGallery = lazy(() => import('./grocery/GroceryGallery'));
+const GarmentGallery = lazy(() => import('./garments/GarmentGallery'));
+const FinanceLoanGallery = lazy(() => import('./finance/FinanceLoanGallery'));
+
+const galleryFallback = <PageSkeleton />;
 
 function ServiceDetails({ service }) {
   useEffect(() => { window.scrollTo(0, 0); }, [service?.id]);
@@ -17,12 +21,12 @@ function ServiceDetails({ service }) {
     );
   }
 
-  if (service.id === 'real-estate-property') return <PropertyGallery />;
-  if (service.id === 'jewellery-gold') return <JewelleryGallery />;
-  if (service.id === 'automobile') return <AutomobileGallery />;
-  if (service.id === 'consumer-marketplace') return <GroceryGallery />;
-  if (service.id === 'garments-fashion-lifestyle') return <GarmentGallery />;
-  if (service.id === 'finance-lending') return <FinanceLoanGallery />;
+  if (service.id === 'real-estate-property') return <Suspense fallback={galleryFallback}><PropertyGallery /></Suspense>;
+  if (service.id === 'jewellery-gold') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
+  if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
+  if (service.id === 'consumer-marketplace') return <Suspense fallback={galleryFallback}><GroceryGallery /></Suspense>;
+  if (service.id === 'garments-fashion-lifestyle') return <Suspense fallback={galleryFallback}><GarmentGallery /></Suspense>;
+  if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
 
   return (
     <div>

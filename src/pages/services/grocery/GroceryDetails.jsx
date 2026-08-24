@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGrocery } from '../../../data/dummyGrocery';
 import ProductCard from '../ProductCard';
 
-function GroceryDetails({ location }) {
-  useEffect(() => { window.scrollTo(0, 0); }, [location?.pathname]);
+function GroceryDetails() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const pathParts = location?.pathname?.split('/').filter(Boolean) || [];
+  const pathParts = pathname.split('/').filter(Boolean);
   const groceryId = pathParts.length > 1 ? parseInt(pathParts[1], 10) : null;
   const item = dummyGrocery.find((g) => g.id === groceryId);
 
@@ -50,7 +52,7 @@ function GroceryDetails({ location }) {
     <div className="pb-24 sm:pb-32">
       {/* ── Gradient Hero ── */}
       <div className="bg-gradient-to-br from-emerald-800 via-emerald-700 to-green-600 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/consumer-marketplace')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Groceries &amp; Daily Needs

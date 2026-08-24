@@ -1,0 +1,1 @@
+export const PROPERTIES_ONLY = true;

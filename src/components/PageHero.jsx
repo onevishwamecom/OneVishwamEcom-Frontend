@@ -18,23 +18,22 @@ export default function PageHero({ eyebrow, title, subtitle, ctas = [], children
   const align = centered ? 'text-center mx-auto' : '';
 
   return (
-    <section className="bg-gradient-to-br from-brand-navy via-[#102a52] to-brand-navy text-white relative overflow-hidden py-16 sm:py-20 lg:py-24">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50 pointer-events-none" />
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+    <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
           <div className={`max-w-3xl ${align} flex-1`}>
             {eyebrow && (
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-400 mb-2">
+              <p className="text-sm font-semibold uppercase tracking-widest text-yellow-400">
                 {eyebrow}
               </p>
             )}
             {title && (
-              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl leading-tight text-white">
+              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight">
                 {title}
               </h1>
             )}
             {subtitle && (
-              <p className="mt-4 text-base sm:text-lg text-white/90 max-w-xl font-normal leading-relaxed">
+              <p className="mt-4 text-lg text-white/80 max-w-xl">
                 {subtitle}
               </p>
             )}
