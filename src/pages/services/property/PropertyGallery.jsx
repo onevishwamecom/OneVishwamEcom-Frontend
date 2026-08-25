@@ -257,7 +257,6 @@ function PropertyGallery() {
                 {selectedCity
                   ? [getCityLabel(selectedCity), locationInput].filter(Boolean).join(' · ')
                   : 'Search & Location'}
-                {pincodeInput ? ` · PIN ${pincodeInput}` : ''}
                 {requirementText ? ` · "${requirementText}"` : ''}
               </span>
             </div>
@@ -328,23 +327,6 @@ function PropertyGallery() {
                     <option key={a} value={a}>{a}</option>
                   ))}
                 </select>
-              </div>
-
-              {/* Pincode */}
-              <div className="flex-1 flex flex-col px-4 py-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
-                  Pincode
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={pincodeInput}
-                  onChange={(e) => { setPage(1); setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
-                  placeholder="6-digit code"
-                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-                />
               </div>
 
               {/* Requirement */}
