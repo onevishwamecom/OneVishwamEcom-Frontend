@@ -512,6 +512,30 @@ export const dummyProperties = [
     images: VINRA_KBR_PRIME_IMAGES,
     loanApproved: false,
   },
+  {
+    id: 22,
+    title: 'Aditya Birla',
+    subtitle: 'A Grade Builder',
+    propertyType: 'Apartment',
+    price: '₹ 2.00 Cr',
+    location: 'Sarjapur, Bangalore',
+    city: 'bengaluru',
+    area: 'Residential',
+    bhk: '2 & 3 BHK',
+    possession: 'Ready To Move',
+    approval: 'A Grade Builder',
+    vendorName: 'Rajiv',
+    contact: '8884776171',
+    contactName: 'Niraj',
+    channelPartner: {
+      name: 'Niraj',
+      email: 'kj.culturecraft@gmail.com',
+      phone: '8884776171',
+    },
+    status: 'available',
+    images: [PLACEHOLDER_IMG],
+    loanApproved: true,
+  },
 ];
 
 dummyProperties.forEach((p) => {

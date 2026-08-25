@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
 import { cities, getCityLabel } from "../../../data/locations";
 import { ActiveChip } from "../GalleryComponents";
@@ -51,7 +51,6 @@ function PropertyGallery() {
   const [familyLocationsOnly, setFamilyLocationsOnly] = useState(false);
   const [preApprovedMode, setPreApprovedMode] = useState(false);
   const [page, setPage] = useState(1);
-  /* Mobile: search panel starts collapsed; always visible on md+ via CSS */
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -247,50 +246,33 @@ function PropertyGallery() {
           <button
             type="button"
             onClick={() => setIsSearchOpen((prev) => !prev)}
-            className="flex-1 flex items-center justify-between rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-xs px-3 py-2 sm:px-4 sm:py-3 text-left transition-all hover:border-brand-blue/40 active:scale-[0.99] min-w-0"
+            className="flex-1 flex items-center justify-between rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-xs px-3.5 py-2.5 sm:px-4 sm:py-3 text-left transition-all hover:border-brand-blue/40 active:scale-[0.99] min-w-0"
             aria-expanded={isSearchOpen}
           >
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                selectedCity || locationInput || pincodeInput || requirementText
-                  ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
-                <i className={`fa-solid ${
-                  selectedCity ? 'fa-location-dot' : 'fa-magnifying-glass'
-                } text-xs sm:text-sm`} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">
-                  Location & Search Filter
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-brand-charcoal truncate leading-tight">
-                  {selectedCity
-                    ? [getCityLabel(selectedCity), locationInput || 'All Areas'].join(' · ')
-                    : 'Search by Location & Keyword'}
-                  {pincodeInput ? ` · PIN ${pincodeInput}` : ''}
-                  {requirementText ? ` · "${requirementText}"` : ''}
-                </p>
-              </div>
+            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+              <i className={`fa-solid ${
+                selectedCity ? 'fa-location-dot text-brand-blue' : 'fa-magnifying-glass text-gray-400'
+              } text-xs sm:text-sm shrink-0`} />
+              <span className="text-xs sm:text-sm font-semibold text-brand-charcoal truncate">
+                {selectedCity
+                  ? [getCityLabel(selectedCity), locationInput].filter(Boolean).join(' · ')
+                  : 'Search & Location'}
+                {pincodeInput ? ` · PIN ${pincodeInput}` : ''}
+                {requirementText ? ` · "${requirementText}"` : ''}
+              </span>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 text-xs font-semibold text-brand-blue">
-              {(selectedCity || locationInput || pincodeInput || requirementText) && !isSearchOpen && (
-                <i className="fa-solid fa-pen-to-square text-xs text-brand-blue/70" />
-              )}
-              <span>{isSearchOpen ? 'Retract Filter' : (selectedCity || locationInput || pincodeInput || requirementText) ? 'Edit Filters' : 'Filter / Search'}</span>
-              <i className={`fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${isSearchOpen ? 'rotate-180' : ''}`} />
-            </div>
+            <i className={`fa-solid fa-chevron-down text-xs text-gray-400 transition-transform duration-200 shrink-0 ${isSearchOpen ? 'rotate-180 text-brand-blue' : ''}`} />
           </button>
 
           {/* Post Requirement Button (Compact, responsive button for all screens) */}
-          <a
-            href="/property/requirement"
-            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 hover:bg-brand-blue/10 px-3 py-2.5 sm:px-5 sm:py-3.5 text-xs sm:text-sm font-bold text-brand-blue transition-all shrink-0 shadow-xs active:scale-[0.98] whitespace-nowrap"
+          <Link
+            to="/property/requirement"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 hover:bg-brand-blue/10 px-3.5 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-bold text-brand-blue transition-all shrink-0 shadow-xs active:scale-[0.98] whitespace-nowrap"
           >
             <i className="fa-solid fa-circle-plus text-xs sm:text-sm" />
             <span className="hidden sm:inline">Post Requirement</span>
             <span className="sm:hidden">Post Req</span>
-          </a>
+          </Link>
         </div>
 
         {/* ── Retractable Search Panel (Smoothly expands across all screen sizes) ── */}
@@ -548,14 +530,15 @@ function PropertyGallery() {
                   const badge = getStatusBadge(p);
                   return (
                     <ProductCard
-                      key={p.id}
-                      link={`/property/${p.id}`}
+                      key={p._id || p.id}
+                      link={`/property/${p._id || p.id}`}
                       image={getPropertyCoverImage(p)}
-                      alt={p.title}
-                      title={p.title}
+                      alt={p.title || p.name || 'Property'}
+                      title={p.title || p.name}
                       price={p.price}
                       priceSuffix={p.priceSuffix}
-                      location={p.location}
+                      priceType={p.priceType}
+                      location={p.location || p.city}
                       tags={[typeLabel, ...tags.slice(0, 2)]}
                       badges={[
                         ...(p.recentlyAdded
@@ -598,16 +581,37 @@ function PropertyGallery() {
             ) : (
               <div className="text-center py-16 text-gray-400">
                 <i className="fa-solid fa-building text-4xl mb-4" />
-                <p className="text-lg font-medium">No properties found.</p>
-                <p className="text-sm mt-1 mb-6">
-                  Try another category or location.
+                <p className="text-lg font-medium text-brand-charcoal">No properties found.</p>
+                <p className="text-sm mt-1 mb-6 text-gray-500">
+                  Try adjusting your search criteria or reset all filters.
                 </p>
-                <a href="/property/requirement"
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
-                >
-                  <i className="fa-solid fa-circle-plus" />
-                  Tell Us What You're Looking For
-                </a>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setRequirementText("");
+                      setLocationInput("");
+                      setPincodeInput("");
+                      setSelectedCardType("All");
+                      setFamilyLocationsOnly(false);
+                      setPreApprovedMode(false);
+                      resetFilters();
+                      try { sessionStorage.removeItem(RESTORE_KEY); } catch (e) {}
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-xs"
+                  >
+                    <i className="fa-solid fa-rotate-left" />
+                    Reset All Filters
+                  </button>
+                  <Link
+                    to="/property/requirement"
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-xs"
+                  >
+                    <i className="fa-solid fa-circle-plus" />
+                    Post Requirement
+                  </Link>
+                </div>
               </div>
             )}
 

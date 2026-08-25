@@ -76,18 +76,15 @@ export function useFilteredProperties({
         const matchCardType =
           selectedCardType === 'All' || getCardType(p) === selectedCardType;
 
-        const q = searchTerm.toLowerCase();
-        const matchSearch = !q ||
-          p.title.toLowerCase().includes(q) ||
-          p.location.toLowerCase().includes(q) ||
-          p.subtitle.toLowerCase().includes(q);
+        const q = (searchTerm || '').toLowerCase().trim();
+        const titleStr = String(p.title || p.name || '').toLowerCase();
+        const locStr = String(p.location || p.city || '').toLowerCase();
+        const subStr = String(p.subtitle || p.propertyType || '').toLowerCase();
+        const matchSearch = !q || titleStr.includes(q) || locStr.includes(q) || subStr.includes(q);
 
-        const qReq = requirementText.toLowerCase();
-        const matchRequirement = !qReq ||
-          p.title.toLowerCase().includes(qReq) ||
-          p.location.toLowerCase().includes(qReq) ||
-          p.subtitle.toLowerCase().includes(qReq) ||
-          (p.description && p.description.toLowerCase().includes(qReq));
+        const qReq = (requirementText || '').toLowerCase().trim();
+        const descStr = String(p.description || '').toLowerCase();
+        const matchRequirement = !qReq || titleStr.includes(qReq) || locStr.includes(qReq) || subStr.includes(qReq) || descStr.includes(qReq);
 
         const matchBudget =
           (!filters.budgetMin || np >= +filters.budgetMin) &&
@@ -107,7 +104,11 @@ export function useFilteredProperties({
           filters.bedrooms.length === 0 || filters.bedrooms.includes(bedrooms);
 
         const matchLocality =
-          filters.localities.length === 0 || filters.localities.includes(p.zone);
+          filters.localities.length === 0 ||
+          filters.localities.some((loc) =>
+            (p.zone && String(p.zone).toLowerCase() === String(loc).toLowerCase()) ||
+            (p.location && String(p.location).toLowerCase().includes(String(loc).toLowerCase()))
+          );
 
         const matchFurnishing =
           filters.furnishing.length === 0 || filters.furnishing.includes(p.furnishing);
@@ -126,9 +127,24 @@ export function useFilteredProperties({
         else if (filters.listedWithin === 'Last 7 Days') matchListedWithin = listedDays <= 7;
         else if (filters.listedWithin === 'Last 30 Days')matchListedWithin = listedDays <= 30;
 
-        const matchCity           = !selectedCity    || p.city === selectedCity;
-        const matchLocation       = !locationInput   || p.zone === locationInput;
-        const matchPincode        = !pincodeInput    || (p.pincode && p.pincode.startsWith(pincodeInput));
+        const pCity = String(p.city || '').toLowerCase();
+        const sCity = String(selectedCity || '').toLowerCase();
+        const matchCity =
+          !sCity ||
+          !pCity ||
+          pCity === sCity ||
+          (sCity === 'bengaluru' && pCity === 'bangalore') ||
+          (sCity === 'bangalore' && pCity === 'bengaluru');
+
+        const locFilter = String(locationInput || '').toLowerCase().trim();
+        const matchLocation =
+          !locFilter ||
+          (p.zone && String(p.zone).toLowerCase().includes(locFilter)) ||
+          (p.location && String(p.location).toLowerCase().includes(locFilter)) ||
+          (p.area && String(p.area).toLowerCase().includes(locFilter));
+
+        const pinFilter = String(pincodeInput || '').trim();
+        const matchPincode        = !pinFilter || String(p.pincode || '').startsWith(pinFilter);
         const matchFamilyLocation = !familyLocationsOnly || getBuildingType(p) === 'Residential';
         const matchPreApproved    = !preApprovedMode || p.loanApproved === true;
         const matchLoanApproved   = !filters.loanApprovedOnly || p.loanApproved === true;
@@ -146,7 +162,7 @@ export function useFilteredProperties({
       .sort((a, b) => {
         if (sortBy === 'price-low')  return getNumericPrice(a.price) - getNumericPrice(b.price);
         if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
-        return b.id - a.id;
+        return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
   }, [
     properties, selectedCardType, searchTerm, requirementText, sortBy, filters,
