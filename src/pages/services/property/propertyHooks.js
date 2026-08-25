@@ -76,17 +76,21 @@ export function useFilteredProperties({
         const matchCardType =
           selectedCardType === 'All' || getCardType(p) === selectedCardType;
 
-        const q = searchTerm.toLowerCase();
+        const q = (searchTerm || '').trim().toLowerCase();
         const matchSearch = !q ||
-          p.title.toLowerCase().includes(q) ||
-          p.location.toLowerCase().includes(q) ||
-          p.subtitle.toLowerCase().includes(q);
+          (p.title && p.title.toLowerCase().includes(q)) ||
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.location && p.location.toLowerCase().includes(q)) ||
+          (p.city && p.city.toLowerCase().includes(q)) ||
+          (p.subtitle && p.subtitle.toLowerCase().includes(q));
 
-        const qReq = requirementText.toLowerCase();
+        const qReq = (requirementText || '').trim().toLowerCase();
         const matchRequirement = !qReq ||
-          p.title.toLowerCase().includes(qReq) ||
-          p.location.toLowerCase().includes(qReq) ||
-          p.subtitle.toLowerCase().includes(qReq) ||
+          (p.title && p.title.toLowerCase().includes(qReq)) ||
+          (p.name && p.name.toLowerCase().includes(qReq)) ||
+          (p.location && p.location.toLowerCase().includes(qReq)) ||
+          (p.city && p.city.toLowerCase().includes(qReq)) ||
+          (p.subtitle && p.subtitle.toLowerCase().includes(qReq)) ||
           (p.description && p.description.toLowerCase().includes(qReq));
 
         const matchBudget =
@@ -107,10 +111,14 @@ export function useFilteredProperties({
           filters.bedrooms.length === 0 || filters.bedrooms.includes(bedrooms);
 
         const matchLocality =
-          filters.localities.length === 0 || filters.localities.includes(p.zone);
+          filters.localities.length === 0 ||
+          filters.localities.some((l) =>
+            (p.zone && p.zone.toLowerCase().includes(l.toLowerCase())) ||
+            (p.location && p.location.toLowerCase().includes(l.toLowerCase()))
+          );
 
         const matchFurnishing =
-          filters.furnishing.length === 0 || filters.furnishing.includes(p.furnishing);
+          filters.furnishing.length === 0 || (p.furnishing && filters.furnishing.includes(p.furnishing));
 
         const matchGated            = !filters.gatedCommunity;
         const matchPostedBy         = filters.postedBy.length === 0;
@@ -126,14 +134,24 @@ export function useFilteredProperties({
         else if (filters.listedWithin === 'Last 7 Days') matchListedWithin = listedDays <= 7;
         else if (filters.listedWithin === 'Last 30 Days')matchListedWithin = listedDays <= 30;
 
+        const cityLower = (selectedCity || '').toLowerCase();
+        const pCityLower = (p.city || '').toLowerCase();
+        const pLocLower = (p.location || '').toLowerCase();
         const matchCity =
-          !selectedCity ||
-          !p.city ||
-          p.city.toLowerCase() === selectedCity.toLowerCase() ||
-          (selectedCity.toLowerCase() === 'bengaluru' && p.city.toLowerCase() === 'bangalore') ||
-          (selectedCity.toLowerCase() === 'bangalore' && p.city.toLowerCase() === 'bengaluru');
-        const matchLocation       = !locationInput   || p.zone === locationInput;
-        const matchPincode        = !pincodeInput    || (p.pincode && p.pincode.startsWith(pincodeInput));
+          !cityLower ||
+          !pCityLower ||
+          pCityLower.includes(cityLower) ||
+          pLocLower.includes(cityLower) ||
+          (cityLower === 'bengaluru' && (pCityLower.includes('bangalore') || pLocLower.includes('bangalore'))) ||
+          (cityLower === 'bangalore' && (pCityLower.includes('bengaluru') || pLocLower.includes('bengaluru')));
+
+        const locInputLower = (locationInput || '').toLowerCase();
+        const matchLocation =
+          !locInputLower ||
+          (p.zone && p.zone.toLowerCase() === locInputLower) ||
+          pLocLower.includes(locInputLower);
+
+        const matchPincode        = !pincodeInput    || (p.pincode && String(p.pincode).startsWith(pincodeInput));
         const matchFamilyLocation = !familyLocationsOnly || getBuildingType(p) === 'Residential';
         const matchPreApproved    = !preApprovedMode || p.loanApproved === true;
         const matchLoanApproved   = !filters.loanApprovedOnly || p.loanApproved === true;

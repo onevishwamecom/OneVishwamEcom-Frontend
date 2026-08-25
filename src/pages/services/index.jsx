@@ -17,7 +17,7 @@ function ServicesPage() {
     <div className='pt-16 lg:pt-14'>
       <PageHero
         eyebrow="Our Services"
-        title="A Comprehensive Multi-Business Ecosystem"
+        title="A Comprehensive Multi Business Ecosystem"
         subtitle="Explore our diverse divisions in one unified portal. From finance and real estate to consumer marketplaces and HR solutions — everything you need under a single ecosystem."
       />
 

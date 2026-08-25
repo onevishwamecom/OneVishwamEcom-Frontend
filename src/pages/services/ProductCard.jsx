@@ -58,10 +58,10 @@ export default React.memo(function ProductCard({
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
+      className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer h-full"
     >
-      {/* Image */}
-      <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
+      {/* Image — fixed 4:3 aspect ratio, consistent across all cards */}
+      <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative shrink-0">
         {image && !imgError ? (
           <img
             src={image}
@@ -91,78 +91,84 @@ export default React.memo(function ProductCard({
         </div>
       </div>
 
-      {/* Body */}
+      {/* Body — flex column so button is always at the bottom */}
       <div className="p-3 flex flex-col flex-1">
         {/* Overline */}
         {overline && (
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-0.5">
             {overline}
           </p>
         )}
 
-        {/* Title */}
-        {title && (
-          <h3 className="font-semibold text-brand-charcoal text-sm leading-snug line-clamp-2">
-            {title}
-          </h3>
-        )}
+        {/* Title — always reserves 2 lines, clamps overflow */}
+        <div className="min-h-[2.5rem] flex items-start">
+          {title && (
+            <h3 className="font-semibold text-brand-charcoal text-sm leading-snug line-clamp-2">
+              {title}
+            </h3>
+          )}
+        </div>
 
-        {/* Price */}
-        {priceOverride ? (
-          <div className="mt-0.5">{priceOverride}</div>
-        ) : priceType === 'on-request' ? (
-          <p className="mt-0.5 text-sm font-bold text-brand-gold">Price on Request</p>
-        ) : (
-          price && (
-            <p className="mt-0.5 text-sm font-bold text-brand-blue">
-              {typeof price === 'number' || (typeof price === 'string' && /^\d/.test(price.replace(/[₹,\s]/g, '')))
-                ? formatINR(price)
-                : withRupeeSymbol(price)}
-              {priceSuffix && (
-                <span className="text-xs font-medium text-gray-400 ml-1">
-                  {priceSuffix}
-                </span>
-              )}
-              {priceType === 'negotiable' && (
-                <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-1.5 py-0.5 rounded-md">Negotiable</span>
-              )}
-            </p>
-          )
-        )}
+        {/* Price — reserves 1.25rem so short/missing price doesn't collapse layout */}
+        <div className="min-h-[1.25rem]">
+          {priceOverride ? (
+            <div className="mt-0.5">{priceOverride}</div>
+          ) : priceType === 'on-request' ? (
+            <p className="mt-0.5 text-sm font-bold text-brand-gold">Price on Request</p>
+          ) : (
+            price && (
+              <p className="mt-0.5 text-sm font-bold text-brand-blue">
+                {typeof price === 'number' || (typeof price === 'string' && /^\d/.test(price.replace(/[₹,\s]/g, '')))
+                  ? formatINR(price)
+                  : withRupeeSymbol(price)}
+                {priceSuffix && (
+                  <span className="text-xs font-medium text-gray-400 ml-1">
+                    {priceSuffix}
+                  </span>
+                )}
+                {priceType === 'negotiable' && (
+                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-1.5 py-0.5 rounded-md">Negotiable</span>
+                )}
+              </p>
+            )
+          )}
+        </div>
 
-        {/* Location */}
+        {/* Location — single line, clipped */}
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" />
-            <span>
+          <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-[10px] shrink-0" />
+            <span className="truncate">
               {location}
-              {pincode ? ` - ${pincode}` : ""}
+              {pincode ? ` · ${pincode}` : ""}
             </span>
           </div>
         )}
 
-        {/* Tags */}
+        {/* Tags — wrappable but max 2 rows */}
         {tags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-gray-600">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-gray-600 overflow-hidden max-h-[3rem]">
             {tags.map((t, i) => (
-              <span key={i} className="bg-gray-100 rounded-lg px-2 py-0.5">
-                {t}
-              </span>
+              t && (
+                <span key={i} className="bg-gray-100 rounded-lg px-2 py-0.5 whitespace-nowrap">
+                  {t}
+                </span>
+              )
             ))}
           </div>
         )}
 
-        {/* View Details button */}
+        {/* Extra children (agent info, loan badges, etc.) */}
+        {children && <div className="mt-1.5 overflow-hidden">{children}</div>}
+
+        {/* View Details button — always pinned to the bottom */}
         {showButton !== false && (
-          <div className="mt-auto pt-1.5">
+          <div className="mt-auto pt-2">
             <div className="w-full rounded-lg bg-brand-blue/10 text-brand-blue text-center text-[11px] font-semibold py-1.5 hover:bg-brand-blue hover:text-white transition-colors">
               View Details
             </div>
           </div>
         )}
-
-        {/* Footer / extra actions */}
-        {children && <div className="mt-1.5">{children}</div>}
       </div>
     </div>
   );

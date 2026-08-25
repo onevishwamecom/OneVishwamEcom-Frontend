@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
-import { cities } from "../../../data/locations";
+import { cities, getCityLabel } from "../../../data/locations";
 import { ActiveChip } from "../GalleryComponents";
 import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";
@@ -51,6 +51,7 @@ function PropertyGallery() {
   const [familyLocationsOnly, setFamilyLocationsOnly] = useState(false);
   const [preApprovedMode, setPreApprovedMode] = useState(false);
   const [page, setPage] = useState(1);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const restoredRef = useRef(false);
@@ -239,127 +240,175 @@ function PropertyGallery() {
           onSelect={(t) => { setPage(1); setSelectedCardType(t); }}
         />
 
-        {/* ── Unified Search Card ── */}
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          {/* Row 1: Location selectors + Search button */}
-          <div className="flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-            {/* City */}
-            <div className="flex-1 flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-city mr-1 text-brand-blue/60" />
-                City
-              </label>
-              <select
-                value={selectedCity || ""}
-                onChange={(e) => {
-                  selectCity(e.target.value);
-                  setLocationInput("");
-                }}
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer"
-              >
-                <option value="">Select City</option>
-                {CITY_OPTIONS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
+        {/* ── Unified Search Trigger & Post Req Action Row (All screens) ── */}
+        <div className="mt-2.5 sm:mt-4 flex items-center gap-2 sm:gap-3">
+          {/* Retractable Search & Filter Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen((prev) => !prev)}
+            className="flex-1 flex items-center justify-between rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-xs px-3 py-2.5 sm:px-4 sm:py-3 text-left transition-all hover:border-brand-blue/40 active:scale-[0.99] min-w-0"
+            aria-expanded={isSearchOpen}
+          >
+            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                selectedCity || locationInput || pincodeInput || requirementText
+                  ? 'bg-brand-blue/10 text-brand-blue'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                <i className={`fa-solid ${
+                  selectedCity ? 'fa-location-dot' : 'fa-magnifying-glass'
+                } text-xs sm:text-sm`} />
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-brand-charcoal truncate">
+                {selectedCity
+                  ? [getCityLabel(selectedCity), locationInput].filter(Boolean).join(' · ')
+                  : 'Location & Search'}
+                {pincodeInput ? ` · ${pincodeInput}` : ''}
+                {requirementText ? ` · "${requirementText}"` : ''}
+              </p>
+            </div>
+            <div className="shrink-0 text-gray-400 pl-1">
+              <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-200 ${isSearchOpen ? 'rotate-180 text-brand-blue' : ''}`} />
+            </div>
+          </button>
+
+          {/* Post Requirement Button (Compact, responsive button for all screens) */}
+          <Link
+            to="/property/requirement"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 hover:bg-brand-blue/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold text-brand-blue transition-all shrink-0 shadow-xs active:scale-[0.98] whitespace-nowrap"
+          >
+            <i className="fa-solid fa-circle-plus text-xs sm:text-sm" />
+            <span className="hidden sm:inline">Post Requirement</span>
+            <span className="sm:hidden">Post Req</span>
+          </Link>
+        </div>
+
+        {/* ── Retractable Search Panel (Smoothly expands across all screen sizes) ── */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isSearchOpen
+              ? 'max-h-[700px] opacity-100 mt-2.5'
+              : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+
+            {/* Row 1: Location selectors + Search button */}
+            <div className="flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+
+              {/* City */}
+              <div className="flex-1 flex flex-col px-4 py-3">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  <i className="fa-solid fa-city mr-1 text-brand-blue/60" />
+                  City
+                </label>
+                <select
+                  value={selectedCity || ""}
+                  onChange={(e) => {
+                    selectCity(e.target.value);
+                    setLocationInput("");
+                  }}
+                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer"
+                >
+                  <option value="">Select City</option>
+                  {CITY_OPTIONS.map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Area */}
+              <div className="flex-1 flex flex-col px-4 py-3">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  <i className="fa-solid fa-location-dot mr-1 text-brand-blue/60" />
+                  Area
+                </label>
+                <select
+                  value={locationInput}
+                  onChange={(e) => { setPage(1); setLocationInput(e.target.value); }}
+                  disabled={!selectedCity}
+                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer disabled:text-gray-300 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {selectedCity ? "Select Area" : "Select city first"}
                   </option>
-                ))}
-              </select>
-            </div>
+                  {cityAreas.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Location / Area */}
-            <div className="flex-1 flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-location-dot mr-1 text-brand-blue/60" />
-                Area
-              </label>
-              <select
-                value={locationInput}
-                onChange={(e) => { setPage(1); setLocationInput(e.target.value); }}
-                disabled={!selectedCity}
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer disabled:text-gray-300 disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {selectedCity ? "Select Area" : "Select city first"}
-                </option>
-                {cityAreas.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Pincode */}
-            <div className="flex-1 flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
-                Pincode
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                value={pincodeInput}
-                onChange={(e) => { setPage(1); setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
-                placeholder="6-digit code"
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-              />
-            </div>
-
-            {/* Requirement text */}
-            <div className="flex-[2] flex flex-col px-4 py-3">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                <i className="fa-solid fa-pen mr-1 text-brand-blue/60" />
-                Requirement
-              </label>
-              <input
-                type="text"
-                value={requirementText}
-                onChange={(e) => { setPage(1); setRequirementText(e.target.value); }}
-                placeholder="e.g. 3 BHK ready to move, budget 50L"
-                className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-              />
-            </div>
-
-            {/* Search button */}
-            <div className="flex items-center px-3 py-2 sm:py-0">
-              <button
-                onClick={() => setQuickMatchOpen(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-              >
-                <i className="fa-solid fa-magnifying-glass" />
-                <span>Search</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Row 2: Toggles + Finance link */}
-          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-gray-100 bg-gray-50/60 px-4 py-2.5">
-            {/* Family Locations toggle */}
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <button
-                onClick={() => setFamilyLocationsOnly(!familyLocationsOnly)}
-                className={`relative w-8 h-4 rounded-full transition-colors ${familyLocationsOnly ? "bg-brand-blue" : "bg-gray-300"}`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${familyLocationsOnly ? "translate-x-4" : ""}`}
+              {/* Pincode */}
+              <div className="flex-1 flex flex-col px-4 py-3">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
+                  Pincode
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pincodeInput}
+                  onChange={(e) => { setPage(1); setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
+                  placeholder="6-digit code"
+                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
                 />
-              </button>
-              <span className="text-xs font-semibold text-gray-600">
-                Family Locations Only
-              </span>
-            </label>
+              </div>
 
-            {/* Finance Options link */}
-            <button
-              onClick={() => setShowFinance(!showFinance)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline"
-            >
-              <i
-                className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showFinance ? "rotate-180" : ""}`}
-              />
-              View Finance Options
-            </button>
+              {/* Requirement */}
+              <div className="flex-[2] flex flex-col px-4 py-3">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  <i className="fa-solid fa-pen mr-1 text-brand-blue/60" />
+                  Requirement
+                </label>
+                <input
+                  type="text"
+                  value={requirementText}
+                  onChange={(e) => { setPage(1); setRequirementText(e.target.value); }}
+                  placeholder="e.g. 3 BHK ready to move, budget 50L"
+                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
+                />
+              </div>
+
+              {/* Search / Apply button */}
+              <div className="flex items-center px-3 py-2 sm:py-0 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPage(1);
+                    setIsSearchOpen(false);
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <i className="fa-solid fa-magnifying-glass" />
+                  <span>Search Properties</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: Toggles + Finance */}
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-gray-100 bg-gray-50/60 px-4 py-2.5">
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <button
+                  type="button"
+                  onClick={() => setFamilyLocationsOnly(!familyLocationsOnly)}
+                  className={`relative w-8 h-4 rounded-full transition-colors ${familyLocationsOnly ? "bg-brand-blue" : "bg-gray-300"}`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${familyLocationsOnly ? "translate-x-4" : ""}`}
+                  />
+                </button>
+                <span className="text-xs font-semibold text-gray-600">Family Locations Only</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowFinance(!showFinance)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline"
+              >
+                <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showFinance ? "rotate-180" : ""}`} />
+                View Finance Options
+              </button>
+            </div>
           </div>
         </div>
 
@@ -375,19 +424,6 @@ function PropertyGallery() {
             panelOnly
           />
         )}
-
-        {/* ── Post Requirement Banner ── */}
-        <Link to="/property/requirement"
-          className="mt-5 rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 p-5 flex items-center justify-between gap-4 hover:bg-brand-blue/10 transition-colors group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0 group-hover:bg-brand-blue/20 transition-colors">
-              <i className="fa-solid fa-circle-plus text-brand-blue" />
-            </div>
-            <p className="text-sm font-bold text-brand-charcoal">Post Your Requirement</p>
-          </div>
-          <i className="fa-solid fa-arrow-right text-brand-blue text-sm" />
-        </Link>
 
         {/* ── Loading / Error states ── */}
         {loading && (
@@ -495,7 +531,7 @@ function PropertyGallery() {
           {/* Property Grid */}
           <div className="flex-1 min-w-0">
             {pageProperties.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
                 {pageProperties.map((p) => {
                   const typeLabel = getPropertyTypeLabel(p);
                   const tags = getDetailTags(p);
@@ -511,7 +547,6 @@ function PropertyGallery() {
                       priceSuffix={p.priceSuffix}
                       priceType={p.priceType}
                       location={p.location || p.city}
-                      pincode={p.pincode}
                       tags={[typeLabel, ...tags.slice(0, 2)]}
                       badges={[
                         ...(p.recentlyAdded
