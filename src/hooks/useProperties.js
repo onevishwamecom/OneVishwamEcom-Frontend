@@ -24,7 +24,19 @@ export function useProperties(params = {}) {
 export function usePropertyById(id) {
   const { data, loading, error, retry } = useCachedData(
     `property:item:${id}`,
-    () => propertyAPI.getById(id).then((res) => res.data?.data?.property || res.data?.property || res.data?.data || res.data || null),
+    () =>
+      propertyAPI
+        .getById(id)
+        .then(
+          (res) =>
+            res.data?.data?.item ||
+            res.data?.data?.property ||
+            res.data?.item ||
+            res.data?.property ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null
+        ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
   );
 

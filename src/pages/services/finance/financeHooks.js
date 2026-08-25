@@ -26,7 +26,19 @@ export function useFinanceServices(params = {}) {
 export function useFinanceServiceById(id) {
   const { data, loading, error, retry } = useCachedData(
     `finance:item:${id}`,
-    () => financeAPI.getById(id).then((res) => res.data?.data?.service || res.data?.service || res.data?.data || res.data || null),
+    () =>
+      financeAPI
+        .getById(id)
+        .then(
+          (res) =>
+            res.data?.data?.item ||
+            res.data?.data?.service ||
+            res.data?.item ||
+            res.data?.service ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null
+        ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
   );
 

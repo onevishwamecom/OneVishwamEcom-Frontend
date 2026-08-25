@@ -369,6 +369,8 @@ function AutomobileGallery() {
                     alt={`${v.brand || v.make || ''} ${v.model || ''}`}
                     title={`${v.brand || v.make || ''} ${v.model || ''}`}
                     price={v.price}
+                    priceSuffix={v.priceSuffix}
+                    priceType={v.priceType}
                     location={v.location || v.city}
                     pincode={v.pincode}
                     tags={[

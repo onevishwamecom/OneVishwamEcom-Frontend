@@ -24,7 +24,19 @@ export function useGarments(params = {}) {
 export function useGarmentById(id) {
   const { data, loading, error, retry } = useCachedData(
     `garment:item:${id}`,
-    () => garmentAPI.getById(id).then((res) => res.data?.data?.garment || res.data?.garment || res.data?.data || res.data || null),
+    () =>
+      garmentAPI
+        .getById(id)
+        .then(
+          (res) =>
+            res.data?.data?.item ||
+            res.data?.data?.garment ||
+            res.data?.item ||
+            res.data?.garment ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null
+        ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
   );
 

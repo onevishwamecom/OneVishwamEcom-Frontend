@@ -502,14 +502,15 @@ function PropertyGallery() {
                   const badge = getStatusBadge(p);
                   return (
                     <ProductCard
-                      key={p.id}
-                      link={`/property/${p.id}`}
+                      key={p._id || p.id}
+                      link={`/property/${p._id || p.id}`}
                       image={getPropertyCoverImage(p)}
-                      alt={p.title}
-                      title={p.title}
+                      alt={p.title || p.name || 'Property'}
+                      title={p.title || p.name}
                       price={p.price}
                       priceSuffix={p.priceSuffix}
-                      location={p.location}
+                      priceType={p.priceType}
+                      location={p.location || p.city}
                       pincode={p.pincode}
                       tags={[typeLabel, ...tags.slice(0, 2)]}
                       badges={[

@@ -26,7 +26,16 @@ export function useJewelleryById(id) {
     () =>
       jewelleryAPI
         .getById(id)
-        .then((res) => res.data?.data?.item || res.data?.item || res.data?.data || null),
+        .then(
+          (res) =>
+            res.data?.data?.item ||
+            res.data?.data?.jewellery ||
+            res.data?.item ||
+            res.data?.jewellery ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null
+        ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id },
   );
   return { jewellery: data, loading, error };

@@ -24,7 +24,19 @@ export function useVehicles(params = {}) {
 export function useVehicleById(id) {
   const { data, loading, error, retry } = useCachedData(
     `vehicle:item:${id}`,
-    () => vehicleAPI.getById(id).then((res) => res.data?.data?.vehicle || res.data?.vehicle || res.data?.data || res.data || null),
+    () =>
+      vehicleAPI
+        .getById(id)
+        .then(
+          (res) =>
+            res.data?.data?.item ||
+            res.data?.data?.vehicle ||
+            res.data?.item ||
+            res.data?.vehicle ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null
+        ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
   );
 

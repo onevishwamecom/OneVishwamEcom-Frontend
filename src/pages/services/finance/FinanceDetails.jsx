@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useFinanceServiceById, useSimilarFinanceServices } from './financeHooks';
+import { useFinanceServices, useFinanceServiceById, useSimilarFinanceServices } from './financeHooks';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import FinanceCard from './FinanceCard';
@@ -16,8 +16,16 @@ function FinanceDetails() {
   const { isLoggedIn } = useAuth();
 
   const { id: serviceId } = useParams();
-  const { service, loading, error } = useFinanceServiceById(serviceId);
+  const { services, loading: listLoading } = useFinanceServices();
+  const { service: directService, loading: directLoading, error: directError } = useFinanceServiceById(serviceId);
   const { similar: relatedServices } = useSimilarFinanceServices(serviceId);
+
+  const foundFromList = (services || []).find(
+    (s) => String(s._id) === String(serviceId) || String(s.id) === String(serviceId) || s.serviceName === serviceId
+  ) || null;
+  const service = (directService?.item || directService) || (foundFromList?.item || foundFromList);
+  const loading = !service && (listLoading || directLoading);
+  const error = !service && !listLoading && !directLoading ? (directError || 'Service not found') : null;
 
   useEffect(() => { window.scrollTo(0, 0); }, [serviceId]);
 
@@ -40,20 +48,10 @@ function FinanceDetails() {
     );
   }
 
-  if (error) {
+  if (error || !service) {
     return (
       <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Service not found</h1>
-        <p className="mt-2 text-sm text-gray-500">{error}</p>
-        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
-      </div>
-    );
-  }
-
-  if (!service) {
-    return (
-      <div className="py-32 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">Service not found</h1>
+        <h1 className="text-2xl font-bold text-gray-400">{error || 'Service not found'}</h1>
         <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
       </div>
     );

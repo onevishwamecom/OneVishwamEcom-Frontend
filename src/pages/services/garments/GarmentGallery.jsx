@@ -246,29 +246,29 @@ function GarmentGallery() {
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredItems.map((p) => (
                   <ProductCard
-                    key={p.id}
-                    link={`/garment/${p.id}`}
-                    image={p.images[0]}
+                    key={p._id || p.id}
+                    link={`/garment/${p._id || p.id}`}
+                    image={p.images?.[0] || p.image || ''}
                     alt={p.name}
                     overline={p.brand}
                     title={p.name}
-                    location={p.store.city}
-                    pincode={p.store.pincode}
+                    location={p.store?.city || p.city || 'Bengaluru'}
+                    pincode={p.store?.pincode || p.pincode}
                     priceOverride={
                       <div className="flex items-baseline gap-1.5">
-                        {p.discount > 0 ? (
+                        {(p.discount || 0) > 0 ? (
                           <>
-                            <span className="text-sm font-bold text-brand-blue">{p.finalPrice}</span>
-                            <span className="text-[10px] text-gray-400 line-through">{p.originalPrice}</span>
+                            <span className="text-sm font-bold text-brand-blue">{p.finalPrice || p.price}</span>
+                            {p.originalPrice && <span className="text-[10px] text-gray-400 line-through">{p.originalPrice}</span>}
                           </>
                         ) : (
-                          <span className="text-sm font-bold text-brand-blue">{p.finalPrice}</span>
+                          <span className="text-sm font-bold text-brand-blue">{p.finalPrice || p.price}</span>
                         )}
                       </div>
                     }
-                    tags={[p.fabric]}
+                    tags={[p.fabric || p.category].filter(Boolean)}
                     badges={[
-                      ...(p.discount > 0 ? [{ label: `${p.discount}% OFF`, className: 'bg-red-500 text-white' }] : []),
+                      ...((p.discount || 0) > 0 ? [{ label: `${p.discount}% OFF`, className: 'bg-red-500 text-white' }] : []),
                       ...(p.aiRecommended ? [{ label: 'AI Pick', className: 'bg-blue-100 text-blue-700' }] : []),
                       ...(p.trending ? [{ label: 'Trending', className: 'bg-pink-100 text-pink-700' }] : []),
                     ]}

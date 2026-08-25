@@ -253,17 +253,17 @@ function GroceryGallery() {
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredItems.map((p) => (
                   <ProductCard
-                    key={p.id}
-                    link={`/grocery/${p.id}`}
-                    image={p.images[0]}
+                    key={p._id || p.id}
+                    link={`/grocery/${p._id || p.id}`}
+                    image={p.images?.[0] || p.image || ''}
                     alt={p.name}
-                    overline={p.vendorName}
+                    overline={p.vendorName || p.brand}
                     title={p.name}
-                    price={p.pricePerUnit}
-                    priceSuffix={`/${p.unit}`}
-                    location={p.location.area}
-                    pincode={p.location.pincode}
-                    tags={[p.deliveryType[0]]}
+                    price={p.pricePerUnit || p.price}
+                    priceSuffix={p.unit ? `/${p.unit}` : ''}
+                    location={p.location?.area || p.area || p.city || 'Bengaluru'}
+                    pincode={p.location?.pincode || p.pincode}
+                    tags={Array.isArray(p.deliveryType) && p.deliveryType[0] ? [p.deliveryType[0]] : []}
                     badges={[
                       ...(p.organic ? [{ label: 'Organic', className: 'bg-emerald-100 text-emerald-700' }] : []),
                       ...(p.freshToday ? [{ label: 'Fresh Today', className: 'bg-blue-100 text-blue-700' }] : []),
