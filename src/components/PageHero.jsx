@@ -19,7 +19,7 @@ export default function PageHero({ eyebrow, title, subtitle, ctas = [], children
 
   return (
     <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:py-16">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
           <div className={`max-w-3xl ${align} flex-1`}>
             {eyebrow && (

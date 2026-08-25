@@ -1,7 +1,7 @@
 function ContactHero() {
   return (
     <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:py-16">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-widest text-yellow-400">Contact Us</p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight">

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { homepageAPI } from '../api';
 import cache, { PUBLIC_NAMESPACE } from '../services/cache/cacheService';
 
@@ -21,7 +21,10 @@ export function useHomepageData() {
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState(null);
 
-  const fetch = useCallback(async (force = true) => {
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  const fetch = useCallback(async (force = false) => {
     try {
       const fetcher = async () => {
         const { data: res } = await homepageAPI.getHomepageData();
@@ -29,23 +32,23 @@ export function useHomepageData() {
       };
 
       const result = await cache.fetch(PUBLIC_NAMESPACE, CACHE_KEY, fetcher, {
-        force: true,
+        force,
         ttl: CACHE_TTL,
       });
 
       setData(result.data);
       setError(null);
     } catch (err) {
-      if (!data) {
+      if (!dataRef.current) {
         setError(err.response?.data?.message || 'Failed to load homepage data');
       }
     } finally {
       setLoading(false);
     }
-  }, [data]);
+  }, []);
 
   useEffect(() => {
-    fetch(true);
+    fetch(false);
   }, [fetch]);
 
   const refresh = useCallback(() => {
