@@ -1,4 +1,4 @@
-import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
+import { CollapsibleSection, CheckboxGroup } from '../../../components/ui';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   BUDGET_RANGES, SIZE_OPTIONS, BEDROOM_OPTIONS, FURNISHING_OPTIONS,
@@ -6,7 +6,7 @@ import {
   AGE_OPTIONS, AVAILABILITY_OPTIONS,
   TENANT_TYPE_OPTIONS, PETS_OPTIONS,
 } from './propertyConstants';
-import { getNumericPrice } from './propertyHelpers';
+import { getNumericPrice, formatINR, parseIndianPrice } from '../shared';
 
 /**
  * Reusable filter sidebar — used by both desktop aside and mobile drawer.
@@ -49,27 +49,8 @@ export default function PropertyFilterSidebar({
     updateFilter('budgetMax', String(max));
   }, [updateFilter]);
 
-  // Format price for display (Indian numbering: Lakh/Crore)
-  const formatPrice = (value) => {
-    if (value >= 10000000) {
-      return `₹${(value / 10000000).toFixed(2)} Cr`;
-    }
-    return `₹${(value / 100000).toFixed(1)} L`;
-  };
-
-  // Parse user input (handles "25L", "1.5Cr", "2500000", etc.)
-  const parsePriceInput = (input) => {
-    const cleaned = input.replace(/[₹,\s]/g, '').toLowerCase();
-    if (!cleaned) return null;
-    if (cleaned.endsWith('cr')) {
-      return Math.round(parseFloat(cleaned) * 10000000);
-    }
-    if (cleaned.endsWith('l')) {
-      return Math.round(parseFloat(cleaned) * 100000);
-    }
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? null : Math.round(num);
-  };
+  const formatPrice = (value) => formatINR(value, { compact: true });
+  const parsePriceInput = (input) => parseIndianPrice(input);
 
   // Handle manual input change
   const handleInputChange = (type, value) => {

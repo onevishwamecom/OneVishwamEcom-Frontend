@@ -1,4 +1,4 @@
-import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
+import { CollapsibleSection, CheckboxGroup } from '../../../components/ui';
 import { LOAN_TYPE_OPTIONS, FINANCE_PROVIDER_TYPES, FINANCE_SERVICE_MODES, FINANCE_POSTED_BY, FINANCE_AVAILABILITY, FINANCE_TENURE_OPTIONS } from './financeConstants';
 import MobileFilterDrawer from '../../../components/MobileFilterDrawer';
 
@@ -128,9 +128,9 @@ export default function FinanceFilterSidebar({
 
   if (mobile) {
     return (
-      <MobileFilterDrawer open={open} onClose={onClose} resultCount={resultCount} resultLabel={resultLabel}>
+      <MobileFilterDrawerShell open={open} onClose={onClose} resultCount={resultCount} resultLabel={resultLabel}>
         {content}
-      </MobileFilterDrawer>
+      </MobileFilterDrawerShell>
     );
   }
 

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
+import { QuickMatchModalShell, getNumericPrice } from '../shared';
 import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
-import { getNumericPrice } from '../GalleryComponents';
 
 function getCardType(property) {
   const s = (property.subtitle || property.propertyType || '').toLowerCase();
@@ -94,29 +94,10 @@ function QuickMatchModal({ onClose }) {
   }, [properties, budgetMin, budgetMax, propertyType, city, location, bedrooms]);
 
   const totalResults = buckets.preApproved.length + buckets.matched.length;
+  const title = step === 1 ? 'Find Your Property' : step === 2 ? `${totalResults} Properties Found` : "You're All Set!";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-brand-charcoal">
-            {step === 1 && 'Find Your Property'}
-            {step === 2 && `${totalResults} Properties Found`}
-            {step === 3 && "You're All Set!"}
-          </h2>
-          <button onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-            <i className="fa-solid fa-xmark text-gray-500" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-
+    <QuickMatchModalShell title={title} onClose={handleClose}>
           {/* ═══ Step 1 — Browse first, optional filters ═══ */}
           {step === 1 && (
             <div className="space-y-4">
@@ -374,9 +355,7 @@ function QuickMatchModal({ onClose }) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+    </QuickMatchModalShell>
   );
 }
 

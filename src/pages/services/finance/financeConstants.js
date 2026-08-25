@@ -53,6 +53,10 @@ export const FINANCE_SERVICE_MODES = ['Online', 'Offline', 'Both'];
 export const FINANCE_POSTED_BY = ['Bank', 'Agent', 'Financial Consultant'];
 export const FINANCE_AVAILABILITY = ['Available Now', 'Appointment Required'];
 
+export const FINANCE_STATS = { enquiries: 5, enrolled: 6, slots: 25 };
+export const FINANCE_FOCUS_AREAS = ['NRI Loans', 'Loan Against Property', 'Construction Loans'];
+export const FINANCE_INCENTIVES = ['0% Processing Fee', 'Quick Approval', 'Flexible EMI'];
+
 export const FINANCE_CATEGORIES = [
   'Home Loans',
   'Personal Loans',

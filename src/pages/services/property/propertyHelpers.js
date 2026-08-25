@@ -1,4 +1,4 @@
-import { getNumericPrice } from '../GalleryComponents';
+import { getNumericPrice } from '../shared/priceUtils';
 
 export { getNumericPrice };
 

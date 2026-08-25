@@ -21,7 +21,7 @@ function Navbar() {
   const { isLoggedIn, openAuthModal, user, logout } = useAuth();
 
   const visibleNavLinks = PROPERTIES_ONLY
-    ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties')
+    ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties' || l.id === 'automobiles')
     : navLinks;
 
   const showDropdown = useCallback((name) => {

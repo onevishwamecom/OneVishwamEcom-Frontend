@@ -1,0 +1,154 @@
+/**
+ * Universal Listing Data Adapter
+ * Normalizes heterogeneous sector models from the backend into a standard
+ * frontend contract for MasterListingCard and gallery grids.
+ */
+
+export function normalizeListing(rawItem, sector = '') {
+  if (!rawItem) return null;
+
+  const id = rawItem._id || rawItem.id;
+  const s = String(sector).toLowerCase();
+
+  // Resolve link based on sector
+  let link = '#';
+  if (id) {
+    if (s.includes('property') || s.includes('real-estate')) {
+      link = `/property/${id}`;
+    } else if (s.includes('vehicle') || s.includes('automobile')) {
+      link = `/vehicle/${id}`;
+    } else if (s.includes('grocery') || s.includes('consumer') || s.includes('marketplace')) {
+      link = `/grocery/${id}`;
+    } else if (s.includes('garment') || s.includes('fashion') || s.includes('lifestyle')) {
+      link = `/garment/${id}`;
+    } else if (s.includes('jewellery') || s.includes('gold')) {
+      link = `/jewellery/${id}`;
+    } else if (s.includes('loan')) {
+      link = `/finance/${id}`;
+    } else if (s.includes('finance')) {
+      link = `/finance-service/${id}`;
+    } else {
+      link = `/${s}/${id}`;
+    }
+  }
+
+  // Resolve image
+  let image = '';
+  if (Array.isArray(rawItem.images) && rawItem.images.length > 0) {
+    image = rawItem.images[0];
+  } else if (rawItem.image) {
+    image = rawItem.image;
+  } else if (rawItem.coverImage) {
+    image = rawItem.coverImage;
+  } else if (rawItem.banner) {
+    image = rawItem.banner;
+  } else if (rawItem.logo) {
+    image = rawItem.logo;
+  }
+
+  // Resolve title
+  let title = rawItem.title || rawItem.name || '';
+  if (!title && rawItem.brand && rawItem.model) {
+    title = `${rawItem.brand} ${rawItem.model}`;
+  } else if (!title && rawItem.companyName) {
+    title = rawItem.companyName;
+  }
+
+  // Resolve overline
+  let overline = '';
+  if (s.includes('vehicle') || s.includes('automobile')) {
+    overline = rawItem.brand || rawItem.category || '';
+  } else if (s.includes('property') || s.includes('real-estate')) {
+    overline = rawItem.propertyType || rawItem.buildingType || '';
+  } else if (s.includes('garment') || s.includes('fashion')) {
+    overline = rawItem.brand || rawItem.store?.name || '';
+  } else if (s.includes('grocery') || s.includes('marketplace')) {
+    overline = rawItem.vendorName || rawItem.brand || '';
+  } else if (s.includes('jewellery') || s.includes('gold')) {
+    overline = rawItem.store?.name || rawItem.category || '';
+  } else if (s.includes('finance')) {
+    overline = rawItem.category || rawItem.bankName || '';
+  }
+
+  // Resolve price and suffix
+  const price = rawItem.finalPrice ?? rawItem.pricePerUnit ?? rawItem.price ?? rawItem.maxAmount ?? 0;
+  let priceSuffix = rawItem.priceSuffix || '';
+  if (!priceSuffix && rawItem.unit) {
+    priceSuffix = `/${rawItem.unit}`;
+  }
+
+  // Resolve location & pincode
+  let location = '';
+  let pincode = '';
+  if (typeof rawItem.location === 'string') {
+    location = rawItem.location;
+  } else if (rawItem.location && typeof rawItem.location === 'object') {
+    location = rawItem.location.area || rawItem.location.city || '';
+    pincode = rawItem.location.pincode || '';
+  }
+  if (!location) {
+    location = rawItem.city || rawItem.store?.city || rawItem.zone || '';
+  }
+  if (!pincode) {
+    pincode = rawItem.pincode || rawItem.store?.pincode || '';
+  }
+
+  // Resolve tag chips
+  const tags = [];
+  if (rawItem.bhk && rawItem.bhk !== 'N/A') tags.push(rawItem.bhk);
+  if (rawItem.area && typeof rawItem.area === 'string') tags.push(rawItem.area);
+  if (rawItem.fuelType) tags.push(rawItem.fuelType);
+  if (rawItem.year) tags.push(String(rawItem.year));
+  if (rawItem.fabric) tags.push(rawItem.fabric);
+  if (rawItem.gender && !tags.includes(rawItem.gender)) tags.push(rawItem.gender);
+  if (rawItem.metalType) tags.push(`${rawItem.metalType}${rawItem.purity ? ` · ${rawItem.purity}` : ''}`);
+  if (Array.isArray(rawItem.deliveryType) && rawItem.deliveryType[0]) tags.push(rawItem.deliveryType[0]);
+  if (rawItem.interestRate) tags.push(`${rawItem.interestRate}% p.a.`);
+  if (rawItem.maxTenureYears) tags.push(`Up to ${rawItem.maxTenureYears} yrs`);
+
+  // Resolve badges
+  const badges = [];
+  if (rawItem.loanApproved) {
+    badges.push({ label: 'Pre-Approved', className: 'bg-emerald-100 text-emerald-700' });
+  }
+  if (rawItem.condition === 'new') {
+    badges.push({ label: 'New', className: 'bg-blue-100 text-blue-700' });
+  }
+  if (rawItem.organic) {
+    badges.push({ label: 'Organic', className: 'bg-emerald-100 text-emerald-700' });
+  }
+  if (rawItem.freshToday) {
+    badges.push({ label: 'Fresh Today', className: 'bg-blue-100 text-blue-700' });
+  }
+  if (rawItem.certified) {
+    badges.push({ label: 'Certified', className: 'bg-emerald-100 text-emerald-700' });
+  }
+  if (rawItem.tryAtHome) {
+    badges.push({ label: 'Try At Home', className: 'bg-purple-100 text-purple-700' });
+  }
+  if (rawItem.trending) {
+    badges.push({ label: 'Trending', className: 'bg-rose-100 text-rose-700' });
+  }
+  if (rawItem.discount > 0) {
+    badges.push({ label: `${rawItem.discount}% OFF`, className: 'bg-emerald-600 text-white' });
+  }
+  if (rawItem.featured) {
+    badges.push({ label: 'Featured', className: 'bg-amber-400 text-brand-navy' });
+  }
+
+  return {
+    id,
+    link,
+    image,
+    title,
+    overline,
+    price,
+    priceSuffix,
+    priceType: rawItem.priceType || 'fixed',
+    location,
+    pincode,
+    tags: tags.filter(Boolean),
+    badges,
+    raw: rawItem,
+  };
+}

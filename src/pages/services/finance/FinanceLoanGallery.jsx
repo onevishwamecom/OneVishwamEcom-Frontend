@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { LOAN_TYPE_META } from './loanUtils';
 import useLoanProducts from './useLoanProducts';
-import { FINANCE_STATS, FINANCE_FOCUS_AREAS, FINANCE_INCENTIVES } from '../property/propertyConstants';
+import { FINANCE_STATS, FINANCE_FOCUS_AREAS, FINANCE_INCENTIVES } from './financeConstants';
 import LoanQuickMatchModal from './LoanQuickMatchModal';
 
 function FinanceLoanGallery() {

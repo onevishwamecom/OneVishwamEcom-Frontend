@@ -1,129 +1,96 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { useLocation } from "../../../store/locationSlice";
-import { cities, getCityLabel } from "../../../data/locations";
-import { ActiveChip } from "../GalleryComponents";
-import { useProperties } from "../../../hooks/useProperties";
-import QuickMatchModal from "./QuickMatchModal";
-
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation } from '../../../store/locationSlice';
+import { cities, getCityLabel } from '../../../data/locations';
+import { useProperties } from '../../../hooks/useProperties';
+import QuickMatchModal from './QuickMatchModal';
 import {
   PROPERTY_CARD_TYPES,
   CITY_OPTIONS,
   INITIAL_FILTERS,
   INITIAL_SECTIONS,
-} from "./propertyConstants";
+} from './propertyConstants';
 import {
   useCardTypeStats,
   useActiveChips,
   useFilteredProperties,
-} from "./propertyHooks";
-import PropertyTypeStrip from "./PropertyTypeStrip";
-import PropertyFinancePanel from "./PropertyFinancePanel";
-import PropertyFilterSidebar from "./PropertyFilterSidebar";
-import ProductCard from "../ProductCard";
+} from './propertyHooks';
+import PropertyFinancePanel from './PropertyFinancePanel';
+import PropertyFilterSidebar from './PropertyFilterSidebar';
+import { propertyListingConfig } from './propertyConfig';
 import {
-  getPropertyTypeLabel,
-  getDetailTags,
-  getStatusBadge,
-  hasPropertyImages,
-  getPropertyCoverImage,
-} from "./propertyHelpers";
+  MasterListingPage,
+  TopFilterBar,
+  FilterToggle,
+  loadSessionState,
+  saveSessionState,
+} from '../shared';
 
-const PER_PAGE = 9;
-const RESTORE_KEY = "vishwam.propertyGalleryState";
+const RESTORE_KEY = 'vishwam.propertyGalleryState';
 
-function PropertyGallery() {
+/**
+ * Real Estate & Properties Marketplace Gallery Page
+ * Powered by MasterListingPage & TopFilterBar.
+ */
+export default function PropertyGallery() {
   const { selectedCity, selectCity } = useLocation();
   const { properties, loading, error } = useProperties();
 
-  /* ── Top-level state ── */
-  const [selectedCardType, setSelectedCardType] = useState("All");
-  const [locationInput, setLocationInput] = useState("");
-  const [pincodeInput, setPincodeInput] = useState("");
-  const [requirementText, setRequirementText] = useState("");
+  const [selectedCardType, setSelectedCardType] = useState('All');
+  const [locationInput, setLocationInput] = useState('');
+  const [requirementText, setRequirementText] = useState('');
   const [showFinance, setShowFinance] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("latest");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
   const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const [openSections, setOpenSections] = useState({ ...INITIAL_SECTIONS });
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
   const [familyLocationsOnly, setFamilyLocationsOnly] = useState(false);
   const [preApprovedMode, setPreApprovedMode] = useState(false);
-  const [page, setPage] = useState(1);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const restoredRef = useRef(false);
 
-  /* ── URL search (e.g. homepage/hero search → ?q=...) ── */
   useEffect(() => {
-    const q = (searchParams.get("q") || "").trim();
-    if (q) {
-      setSearchTerm(q);
-      setPage(1);
-    }
+    const q = (searchParams.get('q') || '').trim();
+    if (q) setSearchTerm(q);
   }, [searchParams]);
 
-  /* ── Restore previous search/filter/pagination state (e.g. after Back) ── */
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
-    try {
-      const raw = sessionStorage.getItem(RESTORE_KEY);
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (s.searchTerm) setSearchTerm(s.searchTerm);
-        if (s.requirementText) setRequirementText(s.requirementText);
-        if (s.selectedCardType) setSelectedCardType(s.selectedCardType);
-        if (s.locationInput) setLocationInput(s.locationInput);
-        if (s.pincodeInput) setPincodeInput(s.pincodeInput);
-        if (s.sortBy) setSortBy(s.sortBy);
-        if (s.page) setPage(s.page);
-        if (s.filters) setFilters({ ...INITIAL_FILTERS, ...s.filters });
-      }
-    } catch (e) {
-      /* ignore corrupt storage */
-    }
+    const s = loadSessionState(RESTORE_KEY, {});
+    if (s.searchTerm) setSearchTerm(s.searchTerm);
+    if (s.requirementText) setRequirementText(s.requirementText);
+    if (s.selectedCardType) setSelectedCardType(s.selectedCardType);
+    if (s.locationInput) setLocationInput(s.locationInput);
+    if (s.sortBy) setSortBy(s.sortBy);
+    if (s.filters) setFilters({ ...INITIAL_FILTERS, ...s.filters });
   }, []);
 
-  /* ── Persist state continuously so Back from a detail page restores it ── */
   useEffect(() => {
     if (!restoredRef.current) return;
-    sessionStorage.setItem(RESTORE_KEY, JSON.stringify({
+    saveSessionState(RESTORE_KEY, {
       searchTerm,
       requirementText,
       selectedCardType,
       locationInput,
-      pincodeInput,
       sortBy,
-      page,
       filters,
-    }));
-  }, [searchTerm, requirementText, selectedCardType, locationInput, pincodeInput, sortBy, page, filters]);
+    });
+  }, [searchTerm, requirementText, selectedCardType, locationInput, sortBy, filters]);
 
-  const goBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate("/");
-  };
-
-  /* ── Derived values ── */
   const cityAreas = selectedCity ? cities[selectedCity]?.areas || [] : [];
   const noCityMessage = !selectedCity;
 
   const updateFilter = (key, value) => {
-    setPage(1);
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
-  const toggleSection = (id) =>
-    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
-  const resetFilters = () => {
-    setPage(1);
-    setFilters({ ...INITIAL_FILTERS });
-  };
+  const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  const resetFilters = () => setFilters({ ...INITIAL_FILTERS });
 
-  /* ── Custom hooks ── */
-  const cardTypeStats = useCardTypeStats(properties, PROPERTY_CARD_TYPES);
   const activeChips = useActiveChips(filters);
   const filteredProperties = useFilteredProperties({
     properties,
@@ -134,570 +101,93 @@ function PropertyGallery() {
     filters,
     selectedCity,
     locationInput,
-    pincodeInput,
     familyLocationsOnly,
     preApprovedMode,
   });
 
-  /* ── Image-priority sort + pagination ── */
-  const sortedProperties = useMemo(() => {
-    return [...filteredProperties].sort((a, b) => {
-      const aImg = hasPropertyImages(a) ? 1 : 0;
-      const bImg = hasPropertyImages(b) ? 1 : 0;
-      if (aImg !== bImg) return bImg - aImg;
-      return b.id - a.id;
-    });
-  }, [filteredProperties]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedProperties.length / PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const pageProperties = sortedProperties.slice(
-    (currentPage - 1) * PER_PAGE,
-    currentPage * PER_PAGE,
-  );
-
-  const goToPage = (p) => {
-    setPage(Math.min(Math.max(1, p), totalPages));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /* ── Chip removal ── */
-  const removeChip = (chip) => {
-    if (chip.key === "budget") {
-      updateFilter("budgetMin", "");
-      updateFilter("budgetMax", "");
-    } else if (chip.key === "listed") {
-      updateFilter("listedWithin", "");
-    } else if (chip.key === "gated") {
-      updateFilter("gatedCommunity", false);
-    } else if (chip.key === "loan") {
-      updateFilter("loanApprovedOnly", false);
-    } else {
-      const prefix = chip.key.split("-")[0];
-      const map = {
-        bt: "buildingType",
-        pt: "propertyType",
-        bed: "bedrooms",
-        loc: "localities",
-        furn: "furnishing",
-        pb: "postedBy",
-        poss: "possessionStatus",
-        amen: "amenities",
-        face: "facing",
-        age: "propertyAge",
-        avail: "availability",
-      };
-      const key = map[prefix];
-      if (key)
-        updateFilter(
-          key,
-          filters[key].filter((s) => s !== chip.label),
-        );
-    }
-  };
-
-  /* ── Shared filter sidebar props ── */
-  const sidebarProps = {
-    filters,
-    updateFilter,
-    openSections,
-    toggleSection,
-    activeChips,
-    resetFilters,
-    cityAreas,
-    noCityMessage,
-  };
-
-  /* ── Render ── */
   return (
-    <div className="pb-24 pt-16 lg:pt-14 relative">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* ── Page Header ── */}
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <button onClick={goBack}
-              className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors">
-              <i className="fa-solid fa-arrow-left" /> Back
-            </button>
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
-              OneVishwam · Real Estate
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight text-brand-charcoal sm:text-3xl">
-              Find Your Property
-            </h1>
-          </div>
-          <span className="hidden sm:block text-xs text-gray-400 pb-1">
-            {sortedProperties.length} listing
-            {sortedProperties.length !== 1 ? "s" : ""} available
-          </span>
-        </div>
-
-        {/* ── Property Type Pill Strip ── */}
-        <PropertyTypeStrip
-          types={PROPERTY_CARD_TYPES}
-          selected={selectedCardType}
-          stats={cardTypeStats}
-          onSelect={(t) => { setPage(1); setSelectedCardType(t); }}
-        />
-
-        {/* ── Unified Search Trigger & Post Req Action Row (All screens) ── */}
-        <div className="mt-2.5 sm:mt-4 flex items-center gap-2 sm:gap-3">
-          {/* Retractable Search & Filter Trigger */}
-          <button
-            type="button"
-            onClick={() => setIsSearchOpen((prev) => !prev)}
-            className="flex-1 flex items-center justify-between rounded-xl sm:rounded-2xl border border-gray-200 bg-white shadow-xs px-3 py-2.5 sm:px-4 sm:py-3 text-left transition-all hover:border-brand-blue/40 active:scale-[0.99] min-w-0"
-            aria-expanded={isSearchOpen}
-          >
-            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                selectedCity || locationInput || pincodeInput || requirementText
-                  ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
-                <i className={`fa-solid ${
-                  selectedCity ? 'fa-location-dot' : 'fa-magnifying-glass'
-                } text-xs sm:text-sm`} />
-              </div>
-              <p className="text-xs sm:text-sm font-semibold text-brand-charcoal truncate">
-                {selectedCity
-                  ? [getCityLabel(selectedCity), locationInput].filter(Boolean).join(' · ')
-                  : 'Location & Search'}
-                {pincodeInput ? ` · ${pincodeInput}` : ''}
-                {requirementText ? ` · "${requirementText}"` : ''}
-              </p>
-            </div>
-            <div className="shrink-0 text-gray-400 pl-1">
-              <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-200 ${isSearchOpen ? 'rotate-180 text-brand-blue' : ''}`} />
-            </div>
-          </button>
-
-          {/* Post Requirement Button (Compact, responsive button for all screens) */}
-          <Link
-            to="/property/requirement"
-            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 hover:bg-brand-blue/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold text-brand-blue transition-all shrink-0 shadow-xs active:scale-[0.98] whitespace-nowrap"
-          >
-            <i className="fa-solid fa-circle-plus text-xs sm:text-sm" />
-            <span className="hidden sm:inline">Post Requirement</span>
-            <span className="sm:hidden">Post Req</span>
-          </Link>
-        </div>
-
-        {/* ── Retractable Search Panel (Smoothly expands across all screen sizes) ── */}
-        <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isSearchOpen
-              ? 'max-h-[700px] opacity-100 mt-2.5'
-              : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-
-            {/* Row 1: Location selectors + Search button */}
-            <div className="flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-
-              {/* City */}
-              <div className="flex-1 flex flex-col px-4 py-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  <i className="fa-solid fa-city mr-1 text-brand-blue/60" />
-                  City
-                </label>
-                <select
-                  value={selectedCity || ""}
-                  onChange={(e) => {
-                    selectCity(e.target.value);
-                    setLocationInput("");
-                  }}
-                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer"
-                >
-                  <option value="">Select City</option>
-                  {CITY_OPTIONS.map((c) => (
-                    <option key={c.id} value={c.id}>{c.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Area */}
-              <div className="flex-1 flex flex-col px-4 py-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  <i className="fa-solid fa-location-dot mr-1 text-brand-blue/60" />
-                  Area
-                </label>
-                <select
-                  value={locationInput}
-                  onChange={(e) => { setPage(1); setLocationInput(e.target.value); }}
-                  disabled={!selectedCity}
-                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent cursor-pointer disabled:text-gray-300 disabled:cursor-not-allowed"
-                >
-                  <option value="">
-                    {selectedCity ? "Select Area" : "Select city first"}
-                  </option>
-                  {cityAreas.map((a) => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Pincode */}
-              <div className="flex-1 flex flex-col px-4 py-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  <i className="fa-solid fa-map-pin mr-1 text-brand-blue/60" />
-                  Pincode
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={pincodeInput}
-                  onChange={(e) => { setPage(1); setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6)); }}
-                  placeholder="6-digit code"
-                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-                />
-              </div>
-
-              {/* Requirement */}
-              <div className="flex-[2] flex flex-col px-4 py-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  <i className="fa-solid fa-pen mr-1 text-brand-blue/60" />
-                  Requirement
-                </label>
-                <input
-                  type="text"
-                  value={requirementText}
-                  onChange={(e) => { setPage(1); setRequirementText(e.target.value); }}
-                  placeholder="e.g. 3 BHK ready to move, budget 50L"
-                  className="flex-1 text-sm font-medium text-brand-charcoal outline-none bg-transparent placeholder:text-gray-300"
-                />
-              </div>
-
-              {/* Search / Apply button */}
-              <div className="flex items-center px-3 py-2 sm:py-0 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPage(1);
-                    setIsSearchOpen(false);
-                  }}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
-                >
-                  <i className="fa-solid fa-magnifying-glass" />
-                  <span>Search Properties</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Row 2: Toggles + Finance */}
-            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-gray-100 bg-gray-50/60 px-4 py-2.5">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <button
-                  type="button"
-                  onClick={() => setFamilyLocationsOnly(!familyLocationsOnly)}
-                  className={`relative w-8 h-4 rounded-full transition-colors ${familyLocationsOnly ? "bg-brand-blue" : "bg-gray-300"}`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${familyLocationsOnly ? "translate-x-4" : ""}`}
-                  />
-                </button>
-                <span className="text-xs font-semibold text-gray-600">Family Locations Only</span>
-              </label>
+    <MasterListingPage
+      sector="property"
+      config={propertyListingConfig}
+      hooks={{
+        useItems: () => ({ items: filteredProperties, loading, error }),
+      }}
+      topBarSlot={() => (
+        <div className="space-y-4">
+          <TopFilterBar
+            cityValue={selectedCity || 'bengaluru'}
+            onCityChange={(c) => selectCity(c)}
+            citiesList={CITY_OPTIONS}
+            areaValue={locationInput}
+            onAreaChange={setLocationInput}
+            areasList={cityAreas}
+            requirementValue={requirementText}
+            onRequirementChange={setRequirementText}
+            requirementPlaceholder="e.g. 3 BHK ready to move, budget 50L"
+            onSearch={() => setQuickMatchOpen(true)}
+            searchButtonText="Search Properties"
+            postRequirementLink="/post-requirement"
+            postRequirementLabel="Post Requirement"
+            isExpanded={isSearchOpen}
+            onToggleExpanded={() => setIsSearchOpen((prev) => !prev)}
+            customSwitchSlot={
+              <FilterToggle
+                checked={familyLocationsOnly}
+                onChange={setFamilyLocationsOnly}
+                label="Family Locations Only"
+              />
+            }
+            financeSlot={
               <button
                 type="button"
                 onClick={() => setShowFinance(!showFinance)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline"
+                className="text-xs font-semibold text-brand-blue hover:underline inline-flex items-center gap-1.5"
               >
-                <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showFinance ? "rotate-180" : ""}`} />
+                <i
+                  className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
+                    showFinance ? 'rotate-180' : ''
+                  }`}
+                />
                 View Finance Options
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Finance Panel (expands below the card) */}
-        {showFinance && (
-          <PropertyFinancePanel
-            show={showFinance}
-            onToggle={() => setShowFinance(!showFinance)}
-            onPreApproved={() => {
-              setPreApprovedMode(true);
-              setShowFinance(false);
-            }}
-            panelOnly
+            }
           />
-        )}
 
-        {/* ── Loading / Error states ── */}
-        {loading && (
-          <div className="mt-5 flex items-center justify-center gap-2 py-10 text-gray-400">
-            <i className="fa-solid fa-spinner fa-spin text-lg" />
-            <span className="text-sm">Loading properties...</span>
-          </div>
-        )}
-        {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-center">
-            <i className="fa-solid fa-circle-exclamation text-red-400 text-lg mb-1" />
-            <p className="text-sm text-red-600">Failed to load properties. Please try again later.</p>
-          </div>
-        )}
-
-        {/* ── Results Bar: Count + Active chips + Search + Sort ── */}
-        <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
-          {/* Left: count + chips */}
-          <div className="flex-1 flex flex-wrap items-center gap-2 min-w-0">
-            <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">
-              {filteredProperties.length} propert
-              {filteredProperties.length !== 1 ? "ies" : "y"}
-            </span>
-            {activeChips.map((chip) => (
-              <ActiveChip
-                key={chip.key}
-                label={chip.label}
-                onRemove={() => removeChip(chip)}
-              />
-            ))}
-            {activeChips.length > 0 && (
-              <button
-                onClick={resetFilters}
-                className="text-xs text-red-500 font-semibold hover:underline"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-
-          {/* Right: search + mobile filter toggle + sort */}
-          <div className="flex gap-2 shrink-0">
-            <div className="relative">
-              <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
-                placeholder="Search properties..."
-                className="w-44 rounded-xl border border-gray-200 pl-9 pr-3 py-2 text-xs outline-none focus:border-brand-blue focus:w-56 transition-all"
-              />
-            </div>
-            <button
-              onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <i className="fa-solid fa-sliders text-brand-blue" /> Filters
-            </button>
-            <select
-              value={sortBy}
-              onChange={(e) => { setPage(1); setSortBy(e.target.value); }}
-              className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-brand-blue bg-white"
-            >
-              <option value="latest">Latest</option>
-              <option value="price-low">Price ↑</option>
-              <option value="price-high">Price ↓</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Pre-Approved Mode Banner */}
-        {preApprovedMode && (
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3">
-            <div className="flex items-center gap-3">
-              <i className="fa-solid fa-circle-check text-emerald-600 text-lg" />
-              <div>
-                <p className="text-sm font-bold text-emerald-800">
-                  100% Pre-Approved Home Loan at 7%+
-                </p>
-                <p className="text-xs text-emerald-600">
-                  Showing {filteredProperties.length} qualifying propert
-                  {filteredProperties.length === 1 ? "y" : "ies"} — all with
-                  loan approval
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setPreApprovedMode(false)}
-              className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
-            >
-              Browse All
-            </button>
-          </div>
-        )}
-
-        {/* ── Main Layout: Sidebar + Grid ── */}
-        <div className="mt-5 flex gap-6">
-          {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4">
-              <PropertyFilterSidebar {...sidebarProps} />
-            </div>
-          </aside>
-
-          {/* Property Grid */}
-          <div className="flex-1 min-w-0">
-            {pageProperties.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-                {pageProperties.map((p) => {
-                  const typeLabel = getPropertyTypeLabel(p);
-                  const tags = getDetailTags(p);
-                  const badge = getStatusBadge(p);
-                  return (
-                    <ProductCard
-                      key={p._id || p.id}
-                      link={`/property/${p._id || p.id}`}
-                      image={getPropertyCoverImage(p)}
-                      alt={p.title || p.name || 'Property'}
-                      title={p.title || p.name}
-                      price={p.price}
-                      priceSuffix={p.priceSuffix}
-                      priceType={p.priceType}
-                      location={p.location || p.city}
-                      tags={[typeLabel, ...tags.slice(0, 2)]}
-                      badges={[
-                        ...(p.recentlyAdded
-                          ? [
-                              {
-                                label: "New",
-                                className: "bg-emerald-500 text-white",
-                              },
-                            ]
-                          : []),
-                        ...(badge
-                          ? [{ label: badge.label, className: badge.cls }]
-                          : []),
-                      ]}
-                    >
-                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500">
-                        {p.agent && (
-                          <span>
-                            <i className="fa-solid fa-user mr-1 text-gray-400" />
-                            {p.agent.name}
-                          </span>
-                        )}
-                        {p.extraRoom && (
-                          <span>
-                            <i className="fa-solid fa-star mr-1 text-gray-400" />
-                            {p.extraRoom}
-                          </span>
-                        )}
-                      </div>
-                      {p.loanApproved && (
-                        <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1">
-                          <i className="fa-solid fa-circle-check text-[10px] text-emerald-600" />
-                          <span className="text-[10px] font-semibold text-emerald-700">100% Pre‑Approved Loan</span>
-                        </div>
-                      )}
-                    </ProductCard>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-16 text-gray-400">
-                <i className="fa-solid fa-building text-4xl mb-4" />
-                <p className="text-lg font-medium">No properties found.</p>
-                <p className="text-sm mt-1 mb-6">
-                  Try another category or location.
-                </p>
-                <Link to="/property/requirement"
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
-                >
-                  <i className="fa-solid fa-circle-plus" />
-                  Tell Us What You're Looking For
-                </Link>
-              </div>
-            )}
-
-            {/* ── Pagination ── */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <i className="fa-solid fa-chevron-left text-[10px]" /> Prev
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => {
-                  const show =
-                    n === 1 || n === totalPages ||
-                    Math.abs(n - currentPage) <= 1;
-                  const prevShown = n === 1 || Math.abs(n - 1 - currentPage) <= 1;
-                  if (!show) {
-                    if (prevShown) {
-                      return <span key={n} className="px-1 text-gray-400 text-xs">…</span>;
-                    }
-                    return null;
-                  }
-                  return (
-                    <button
-                      key={n}
-                      onClick={() => goToPage(n)}
-                      className={`min-w-9 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-                        n === currentPage
-                          ? "bg-brand-blue text-white shadow-sm"
-                          : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next <i className="fa-solid fa-chevron-right text-[10px]" />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filter Drawer */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setShowMobileFilters(false)}
-          />
-          <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
-              <span className="font-bold text-brand-charcoal">Filters</span>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <i className="fa-solid fa-xmark text-gray-500" />
-              </button>
-            </div>
-            <div className="px-5 py-4">
-              <PropertyFilterSidebar {...sidebarProps} />
-            </div>
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-4">
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="w-full bg-brand-blue text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Show {filteredProperties.length} Properties
-              </button>
-            </div>
-          </div>
+          {showFinance && (
+            <PropertyFinancePanel
+              show={showFinance}
+              onToggle={() => setShowFinance(!showFinance)}
+              onPreApproved={() => {
+                setPreApprovedMode(true);
+                setShowFinance(false);
+              }}
+              panelOnly
+            />
+          )}
         </div>
       )}
-
-      {/* Quick Match Floating Button */}
-      <button
-        onClick={() => setQuickMatchOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-blue-700 transition-all"
-      >
-        <i className="fa-solid fa-bolt" /> Find My Property
-      </button>
-
-      {/* Quick Match Modal */}
-      {quickMatchOpen && (
-        <QuickMatchModal onClose={() => setQuickMatchOpen(false)} />
+      sidebarComponent={() => (
+        <PropertyFilterSidebar
+          filters={filters}
+          updateFilter={updateFilter}
+          openSections={openSections}
+          toggleSection={toggleSection}
+          activeChips={activeChips}
+          resetFilters={resetFilters}
+          cityAreas={cityAreas}
+          noCityMessage={noCityMessage}
+        />
       )}
-    </div>
+      modalsSlot={() => (
+        <>
+          {quickMatchOpen && (
+            <QuickMatchModal
+              isOpen={quickMatchOpen}
+              onClose={() => setQuickMatchOpen(false)}
+            />
+          )}
+        </>
+      )}
+    />
   );
 }
-
-export default PropertyGallery;

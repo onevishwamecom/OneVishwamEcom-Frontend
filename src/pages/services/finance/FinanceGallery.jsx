@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { cities } from '../../../data/locations';
-import { ActiveChip } from '../GalleryComponents';
+import { ActiveChip } from '../../../components/ui';
 import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';
 import { FINANCE_TABS, INITIAL_FILTERS, INITIAL_SECTIONS } from './financeConstants';

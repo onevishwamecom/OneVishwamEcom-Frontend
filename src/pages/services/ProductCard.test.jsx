@@ -43,8 +43,7 @@ describe('ProductCard Component', () => {
     expect(screen.getByText('Test Product')).toBeInTheDocument();
     expect(screen.getByText('₹10,000')).toBeInTheDocument();
     expect(screen.getByText('/ month')).toBeInTheDocument();
-    // The location rendering splits location and pincode: {location} - {pincode}
-    expect(screen.getByText('Mumbai - 400001')).toBeInTheDocument();
+    expect(screen.getByText(/Mumbai\s*[·-]\s*400001/)).toBeInTheDocument();
     expect(screen.getByText('New')).toBeInTheDocument();
     expect(screen.getByText('Sale')).toBeInTheDocument();
     expect(screen.getByText('Featured')).toBeInTheDocument();

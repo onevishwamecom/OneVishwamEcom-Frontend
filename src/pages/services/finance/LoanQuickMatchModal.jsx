@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import useLoanProducts from './useLoanProducts';
+import { QuickMatchModalShell } from '../shared';
 
 const LOAN_TYPES = ['home', 'vehicle'];
 const EMPLOYMENT_TYPES = ['Salaried', 'Self-employed', 'Business Owner', 'Freelancer'];
@@ -51,24 +52,10 @@ export default function LoanQuickMatchModal({ onClose }) {
 
   const hasAnyResults = buckets.preApproved.length > 0 || buckets.shortlisted.length > 0;
 
+  const title = step === 1 ? 'Find My Loan' : step === 2 ? 'Matching Loans' : "You're All Set!";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-brand-charcoal">
-            {step === 1 && 'Find My Loan'}
-            {step === 2 && 'Matching Loans'}
-            {step === 3 && "You're All Set!"}
-          </h2>
-          <button onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-            <i className="fa-solid fa-xmark text-gray-500" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+    <QuickMatchModalShell title={title} onClose={handleClose}>
           {step === 1 && (
             <div className="space-y-5">
               <div>
@@ -217,8 +204,6 @@ export default function LoanQuickMatchModal({ onClose }) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+    </QuickMatchModalShell>
   );
 }

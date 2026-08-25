@@ -1,227 +1,41 @@
-import { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import React from 'react';
 import { useVehicles, useVehicleById, useSimilarVehicles } from './automobileHooks';
-import { useAuth } from '../../../store/authSlice';
-import AuthRequiredView from '../../../components/auth/AuthRequiredView';
-import ProductCard from '../ProductCard';
-import { withRupeeSymbol } from '../../../utils/priceUtils';
+import { MasterDetailPage } from '../shared';
+import VehicleSpecsGrid from './components/VehicleSpecsGrid';
+import VehicleShowroomCard from './components/VehicleShowroomCard';
+import VehicleLoanCard from './components/VehicleLoanCard';
+import VehicleContactCard from './components/VehicleContactCard';
 
-const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
-);
-
-function VehicleDetails() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { isLoggedIn } = useAuth();
-
-  const { pathname } = useLocation();
-  const pathParts = pathname.split('/').filter(Boolean);
-  const vehicleId = pathParts.length > 1 ? pathParts[1] : null;
-
-  const { vehicles, loading: listLoading } = useVehicles();
-  const { vehicle: directVehicle, loading: directLoading, error: directError } = useVehicleById(vehicleId);
-  const { similar: relatedVehicles } = useSimilarVehicles(vehicleId);
-
-  const foundFromList = (vehicles || []).find(
-    (v) => String(v._id) === String(vehicleId) || String(v.id) === String(vehicleId)
-  ) || null;
-  const vehicle = (directVehicle?.item || directVehicle) || (foundFromList?.item || foundFromList);
-  const loading = !vehicle && (listLoading || directLoading);
-  const error = !vehicle && !listLoading && !directLoading ? (directError || 'Vehicle not found') : null;
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [vehicleId]);
-
-  if (!isLoggedIn) {
-    return (
-      <AuthRequiredView
-        title="Login to View Vehicle Details"
-        message="Please log in or create an account to view full vehicle specifications, pricing, seller contacts, and test drive booking options."
-        backUrl="/our-services/automobile"
-      />
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="py-32 text-center">
-        <i className="fa-solid fa-spinner fa-spin text-3xl text-gray-400 mb-4" />
-        <p className="text-lg font-medium text-gray-400">Loading vehicle details...</p>
-      </div>
-    );
-  }
-
-  if (error || !vehicle) {
-    return (
-      <div className="py-32 text-center">
-        <i className="fa-solid fa-circle-exclamation text-3xl text-gray-400 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-400">{error || 'Vehicle not found'}</h1>
-        <Link to="/our-services/automobile" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Vehicles</Link>
-      </div>
-    );
-  }
-
-  const vehicleImages = Array.isArray(vehicle.images) && vehicle.images.length > 0
-    ? vehicle.images
-    : vehicle.image
-      ? [vehicle.image]
-      : [];
-
+/**
+ * Automobile / Vehicle Detail Page
+ * Thin declarative wrapper powered by MasterDetailPage.
+ */
+export default function VehicleDetails() {
   return (
-    <div className="pb-24 pt-16 lg:pt-14">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Link to="/our-services/automobile"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:underline">
-          <i className="fa-solid fa-arrow-left" /> Back to Vehicles
-        </Link>
-
-        <div className="grid gap-8 lg:grid-cols-5">
-          {/* Images */}
-          <div className="lg:col-span-3 space-y-3">
-            <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100">
-              <img src={vehicleImages[currentImageIndex] || vehicleImages[0] || FALLBACK_IMG} alt={`${vehicle.brand || vehicle.make || ''} ${vehicle.model || ''}`}
-                className="h-full w-full object-cover" />
-            </div>
-            {vehicleImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {vehicleImages.map((img, idx) => (
-                  <button key={idx} onClick={() => setCurrentImageIndex(idx)}
-                    className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                      idx === currentImageIndex ? 'border-brand-blue' : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt={`View ${idx + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`rounded-lg px-2.5 py-0.5 text-[11px] font-bold ${
-                  vehicle.condition === 'new' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {vehicle.condition === 'new' ? 'New' : 'Pre-Owned'}
-                </span>
-                {vehicle.loanApproved && (
-                  <span className="rounded-lg bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
-                    Pre-Approved Loan
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal">
-                {vehicle.brand} {vehicle.model}
-              </h1>
-              <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                <i className="fa-solid fa-location-dot text-brand-blue" />
-                {vehicle.location}{vehicle.pincode ? ` — ${vehicle.pincode}` : ''}
-              </p>
-            </div>
-
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-brand-charcoal">{withRupeeSymbol(vehicle.price)}</span>
-            </div>
-
-            {/* Key Specs */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Fuel Type</p>
-                <p className="text-sm font-bold text-brand-charcoal mt-0.5">{vehicle.fuelType}</p>
-              </div>
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Year</p>
-                <p className="text-sm font-bold text-brand-charcoal mt-0.5">{vehicle.year}</p>
-              </div>
-              {vehicle.condition === 'old' && vehicle.kmDriven > 0 && (
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">KM Driven</p>
-                  <p className="text-sm font-bold text-brand-charcoal mt-0.5">{vehicle.kmDriven.toLocaleString()} km</p>
-                </div>
-              )}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Category</p>
-                <p className="text-sm font-bold text-brand-charcoal mt-0.5 capitalize">{vehicle.category}</p>
-              </div>
-            </div>
-
-            {/* Showroom */}
-            {vehicle.showroom && (
-              <div className="rounded-xl border border-gray-100 p-4">
-                <p className="text-xs font-semibold text-gray-500 mb-1">Showroom</p>
-                <p className="text-sm font-bold text-brand-charcoal">{vehicle.showroom.name}</p>
-                <p className="mt-1 text-xs text-gray-500">{vehicle.showroom.address}</p>
-                <div className="mt-3 flex gap-2">
-                  <a href={vehicle.showroom.mapsLink} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i className="fa-solid fa-map-location-dot text-brand-blue" /> View on Map
-                  </a>
-                  <a href={`tel:${vehicle.showroom.phone}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
-                    <i className="fa-solid fa-phone" /> Call
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {/* Loan CTA */}
-            {vehicle.loanApproved && (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <i className="fa-solid fa-circle-check text-emerald-600" />
-                  <span className="text-sm font-bold text-emerald-800">Pre-Approved Loan Available</span>
-                </div>
-                <p className="text-xs text-emerald-600 mb-3">Get instant loan approval for this vehicle.</p>
-                <Link to="/finance/vehicle-loan"
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors">
-                  ⚡ Apply for Loan
-                </Link>
-              </div>
-            )}
-
-            {/* Contact */}
-            <div className="rounded-xl bg-brand-navy text-white p-5">
-              <h3 className="text-base font-bold">Interested?</h3>
-              <p className="mt-1 text-xs text-gray-400">Contact our team for a test drive or more details.</p>
-              <Link to="/contact-us/"
-                className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
-                <i className="fa-solid fa-headset" /> Contact Agent
-              </Link>
-            </div>
-          </div>
+    <MasterDetailPage
+      sector="automobile"
+      hooks={{
+        useItems: useVehicles,
+        useItemById: useVehicleById,
+        useSimilarItems: useSimilarVehicles,
+      }}
+      authTitle="Login to View Vehicle Details"
+      authMessage="Please log in or create an account to view full vehicle specifications, pricing, seller contacts, and test drive booking options."
+      backUrl="/our-services/automobile"
+      backLabel="Back to Vehicles"
+      notFoundMessage="Vehicle not found"
+      sidebarSlot={({ item }) => (
+        <div className="space-y-4">
+          <VehicleShowroomCard showroom={item.showroom} />
+          <VehicleLoanCard loanApproved={item.loanApproved} />
+          <VehicleContactCard />
         </div>
-
-        {/* Related Vehicles */}
-        {relatedVehicles.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-xl font-bold text-brand-charcoal mb-6">More {vehicle.category}s</h2>
-            <div className="grid gap-5 grid-cols-2 md:grid-cols-4">
-              {relatedVehicles.map((v) => (
-                <ProductCard
-                  key={v.id}
-                  link={`/vehicle/${v.id}`}
-                  image={v.images[0]}
-                  alt={`${v.brand} ${v.model}`}
-                  title={`${v.brand} ${v.model}`}
-                  price={v.price}
-                  location={v.location}
-                  pincode={v.pincode}
-                  tags={[v.fuelType, v.year]}
-                  badges={[
-                    ...(v.loanApproved ? [{ label: 'Pre-Approved', className: 'bg-emerald-100 text-emerald-700' }] : []),
-                    ...(v.condition === 'new' ? [{ label: 'New', className: 'bg-blue-100 text-blue-700' }] : []),
-                  ]}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+      specsSlot={({ item }) => (
+        <div className="space-y-6">
+          <VehicleSpecsGrid vehicle={item} />
+        </div>
+      )}
+    />
   );
 }
-
-export default VehicleDetails;
