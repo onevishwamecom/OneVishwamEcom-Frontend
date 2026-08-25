@@ -9,7 +9,7 @@ function ContactPage({ location }) {
     : null;
 
   return (
-    <div>
+    <div className='pt-16 lg:pt-14'>
       <ContactHero />
       {loanContext && (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-4">

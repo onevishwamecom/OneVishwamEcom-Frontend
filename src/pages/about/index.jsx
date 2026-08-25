@@ -4,7 +4,7 @@ import logoIcon from '../../assets/Logo_icon.png';
 
 function AboutPage() {
   return (
-    <div>
+    <div className='pt-16 lg:pt-14'>
       {/* Hero */}
       <PageHero
         eyebrow="About Us"
