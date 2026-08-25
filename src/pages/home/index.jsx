@@ -385,20 +385,20 @@ function Home() {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 auto-rows-fr">
               {todayListed.map((p) => (
                 <Link key={`fresh-prop-${p.id}`} to={`/property/${p.id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
-                  <div className="aspect-[16/9] overflow-hidden">
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
+                  <div className="aspect-[16/9] overflow-hidden shrink-0">
                     <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
-                  <div className="p-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      <i className="fa-solid fa-clock" /> Added Today
+                  <div className="p-3 flex flex-col flex-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 self-start">
+                      <i className="fa-solid fa-clock" /> Added Recently
                     </span>
-                    <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
+                    <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{p.title}</h3>
                     <p className="text-sm font-semibold text-brand-blue">{p.price} {p.priceSuffix}</p>
-                    <p className="text-xs text-gray-500 mt-1">{p.location} · {p.bhk} · {p.area}</p>
+                    <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{p.location} · {p.bhk}</p>
                   </div>
                 </Link>
               ))}
@@ -406,37 +406,37 @@ function Home() {
                 <>
                   {dummyAutomobiles.slice(5, 6).map((v) => (
                     <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img src={v.images[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
+                      <div className="aspect-[16/9] overflow-hidden shrink-0">
+                        <img src={v.images?.[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <div className="p-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
+                      <div className="p-3 flex flex-col flex-1">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 self-start">
                           <i className="fa-solid fa-clock" /> Added Today
                         </span>
-                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
+                        <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{v.brand} {v.model}</h3>
                         <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
-                        <p className="text-xs text-gray-500 mt-1">{v.location} · {v.fuelType} · {v.year}</p>
+                        <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{v.location} · {v.fuelType}</p>
                       </div>
                     </Link>
                   ))}
                   {dummyGarments.slice(5, 6).map((g) => (
                     <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img src={g.images[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
+                      <div className="aspect-[16/9] overflow-hidden shrink-0">
+                        <img src={g.images?.[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <div className="p-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">
+                      <div className="p-3 flex flex-col flex-1">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 self-start">
                           <i className="fa-solid fa-clock" /> Added Yesterday
                         </span>
-                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice}</span>
+                        <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{g.brand} {g.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice || g.price}</span>
                           <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
                           <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || ''} · {g.category}</p>
+                        <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{g.store?.city || g.city || ''} · {g.category}</p>
                       </div>
                     </Link>
                   ))}

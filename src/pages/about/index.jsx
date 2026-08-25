@@ -8,7 +8,7 @@ function AboutPage() {
       {/* Hero */}
       <PageHero
         eyebrow="About Us"
-        title="One Vishwam — A FinVerse for Everyday Life"
+        title="One Vishwam A FinVerse for Everyday Life"
         subtitle="One Stop Solution for finance and products to build your life. Lower prices, direct from manufacturers, backed by co-operative finance."
         logo={logoIcon}
         ctas={[
