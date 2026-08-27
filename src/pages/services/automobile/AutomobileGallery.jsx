@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useVehicles } from './automobileHooks';
 import { vehicleListingConfig, VEHICLE_TYPE_STRIP } from './vehicleConfig';
 import VehicleFilterSidebar from './VehicleFilterSidebar';
@@ -114,83 +115,34 @@ export default function AutomobileGallery() {
         useItems: () => ({ items: filteredVehicles, loading, error }),
       }}
       topBarSlot={() => (
-        <div className="space-y-4">
-          <TopFilterBar
-            cityValue={selectedCity || 'bengaluru'}
-            onCityChange={(c) => selectCity(c)}
-            areaValue={locationInput}
-            onAreaChange={setLocationInput}
-            areasList={cityAreas}
-            requirementValue={requirementText}
-            onRequirementChange={setRequirementText}
-            requirementPlaceholder="e.g. 2-wheeler under 1L, new model"
-            onSearch={() => setQuickMatchOpen(true)}
-            searchButtonText="Search Vehicles"
-            postRequirementLink="/post-requirement"
-            postRequirementLabel="Post Requirement"
-            isExpanded={isSearchOpen}
-            onToggleExpanded={() => setIsSearchOpen((prev) => !prev)}
-            customSwitchSlot={
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg">
-                  <button
-                    type="button"
-                    onClick={() => setCondition('new')}
-                    className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
-                      condition === 'new'
-                        ? 'bg-brand-blue text-white shadow-xs'
-                        : 'text-gray-600 hover:text-brand-navy'
-                    }`}
-                  >
-                    New
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCondition('old')}
-                    className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
-                      condition === 'old'
-                        ? 'bg-brand-blue text-white shadow-xs'
-                        : 'text-gray-600 hover:text-brand-navy'
-                    }`}
-                  >
-                    Pre-Owned
-                  </button>
-                </div>
-
-                <FilterToggle
-                  checked={preApprovedMode}
-                  onChange={setPreApprovedMode}
-                  label="Pre-Approved Loans Only"
-                />
-              </div>
-            }
-            financeSlot={
+        <div className="flex flex-col sm:flex-row items-center gap-3 my-4">
+          <div className="relative flex-1 w-full">
+            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+            <input
+              type="text"
+              value={requirementText}
+              onChange={(e) => setRequirementText(e.target.value)}
+              placeholder="Search vehicles by brand or model (e.g. Verna, Nexon, Altroz)..."
+              className="w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-10 py-3 text-sm font-semibold text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-2xs hover:shadow-xs"
+            />
+            {requirementText && (
               <button
                 type="button"
-                onClick={() => setShowFinance(!showFinance)}
-                className="text-xs font-semibold text-brand-blue hover:underline inline-flex items-center gap-1.5"
+                onClick={() => setRequirementText('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal hover:bg-gray-100 transition-colors"
+                aria-label="Clear search"
               >
-                <i
-                  className={`fa-solid fa-chevron-down text-[10px] transition-transform ${
-                    showFinance ? 'rotate-180' : ''
-                  }`}
-                />
-                View Finance Options
+                <i className="fa-solid fa-xmark text-xs" />
               </button>
-            }
-          />
-
-          {showFinance && (
-            <VehicleFinancePanel
-              show={showFinance}
-              onToggle={() => setShowFinance(!showFinance)}
-              onPreApproved={() => {
-                setPreApprovedMode(true);
-                setShowFinance(false);
-              }}
-              panelOnly
-            />
-          )}
+            )}
+          </div>
+          <Link
+            to="/post-requirement"
+            className="rounded-2xl bg-brand-blue hover:bg-brand-navy text-white font-bold px-5 py-3 text-xs sm:text-sm flex items-center justify-center gap-2 shrink-0 whitespace-nowrap shadow-xs hover:shadow transition-colors duration-200"
+          >
+            <i className="fa-solid fa-circle-plus text-xs" />
+            <span>Post Requirement</span>
+          </Link>
         </div>
       )}
       sidebarComponent={() => (
@@ -202,6 +154,10 @@ export default function AutomobileGallery() {
           onUpdateFilter={updateFilter}
           onToggleSection={toggleSection}
           onResetFilters={resetFilters}
+          condition={condition}
+          setCondition={setCondition}
+          preApprovedMode={preApprovedMode}
+          setPreApprovedMode={setPreApprovedMode}
         />
       )}
       cardActionsSlot={(v) => (

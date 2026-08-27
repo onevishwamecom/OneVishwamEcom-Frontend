@@ -36,9 +36,28 @@ export default function JewelleryFilterSidebar({
   updateFilter,
   toggleSection,
   resetFilters,
+  certifiedOnly = false,
+  setCertifiedOnly,
 }) {
   return (
     <FilterShell filters={filters} onReset={resetFilters}>
+      {/* Certification */}
+      <CollapsibleSection
+        title="Certification"
+        isOpen={openSections.certified}
+        onToggle={() => toggleSection('certified')}
+      >
+        <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-semibold text-brand-charcoal pt-1">
+          <input
+            type="checkbox"
+            checked={certifiedOnly}
+            onChange={(e) => setCertifiedOnly && setCertifiedOnly(e.target.checked)}
+            className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue/30"
+          />
+          <span>Certified / Hallmarked Only</span>
+        </label>
+      </CollapsibleSection>
+
       {/* Budget */}
       <CollapsibleSection
         title="Budget"

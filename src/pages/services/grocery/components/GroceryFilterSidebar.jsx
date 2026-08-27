@@ -66,6 +66,34 @@ export default function GroceryFilterSidebar({
         />
       </CollapsibleSection>
 
+      {/* Special Preferences */}
+      <CollapsibleSection
+        title="Special Preferences"
+        isOpen={openSections.availability}
+        onToggle={() => toggleSection('availability')}
+      >
+        <div className="space-y-2 pt-1">
+          <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-semibold text-brand-charcoal">
+            <input
+              type="checkbox"
+              checked={filters.organicOnly || false}
+              onChange={(e) => updateFilter('organicOnly', e.target.checked)}
+              className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue/30"
+            />
+            <span>Organic Certified Only</span>
+          </label>
+          <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-semibold text-brand-charcoal">
+            <input
+              type="checkbox"
+              checked={filters.availability === 'In Stock'}
+              onChange={(e) => updateFilter('availability', e.target.checked ? 'In Stock' : '')}
+              className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue/30"
+            />
+            <span>In Stock Only</span>
+          </label>
+        </div>
+      </CollapsibleSection>
+
       {/* Locality */}
       {cityAreas.length > 0 && (
         <CollapsibleSection

@@ -96,38 +96,34 @@ export default function GarmentGallery() {
         useItems: () => ({ items: filteredGarments, loading, error }),
       }}
       topBarSlot={() => (
-        <div className="space-y-4">
-          <TopFilterBar
-            cityValue={selectedCity || 'bengaluru'}
-            onCityChange={(c) => selectCity(c)}
-            areaValue={locationInput}
-            onAreaChange={setLocationInput}
-            areasList={cityAreas}
-            requirementValue={searchTerm}
-            onRequirementChange={setSearchTerm}
-            requirementPlaceholder="e.g. Silk Saree, Cotton Kurta, Formal Shirt"
-            searchButtonText="Search Fashion"
-            postRequirementLink="/post-requirement"
-            postRequirementLabel="Post Requirement"
-            isExpanded={isSearchOpen}
-            onToggleExpanded={() => setIsSearchOpen((prev) => !prev)}
-            customSwitchSlot={
-              <div className="flex flex-wrap items-center gap-4">
-                <FilterToggle
-                  checked={filters.discount === '20'}
-                  onChange={(v) => updateFilter('discount', v ? '20' : '')}
-                  label="On Sale (20%+ OFF)"
-                  icon="fa-solid fa-tag"
-                />
-                <FilterToggle
-                  checked={trendingOnly}
-                  onChange={setTrendingOnly}
-                  label="Trending Styles Only"
-                  icon="fa-solid fa-fire"
-                />
-              </div>
-            }
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 my-4">
+          <div className="relative flex-1 w-full">
+            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search garments (e.g. Silk Saree, Cotton Kurta, Formal Shirt)..."
+              className="w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-10 py-3 text-sm font-semibold text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-2xs hover:shadow-xs"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal hover:bg-gray-100 transition-colors"
+                aria-label="Clear search"
+              >
+                <i className="fa-solid fa-xmark text-xs" />
+              </button>
+            )}
+          </div>
+          <Link
+            to="/post-requirement"
+            className="rounded-2xl bg-brand-blue hover:bg-brand-navy text-white font-bold px-5 py-3 text-xs sm:text-sm flex items-center justify-center gap-2 shrink-0 whitespace-nowrap shadow-xs hover:shadow transition-colors duration-200"
+          >
+            <i className="fa-solid fa-circle-plus text-xs" />
+            <span>Post Requirement</span>
+          </Link>
         </div>
       )}
       sidebarComponent={() => (
@@ -137,6 +133,8 @@ export default function GarmentGallery() {
           updateFilter={updateFilter}
           toggleSection={toggleSection}
           resetFilters={resetFilters}
+          trendingOnly={trendingOnly}
+          setTrendingOnly={setTrendingOnly}
         />
       )}
     />

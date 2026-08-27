@@ -59,3 +59,37 @@ body {
     transform: scale(1);
   }
 }
+
+/* ── Dual-range slider thumb styling ─────────────────────────────────────── */
+input[type='range'].appearance-none {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type='range'].appearance-none::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1a4b8c; /* brand-blue */
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  position: relative;
+}
+input[type='range'].appearance-none::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1a4b8c;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+input[type='range'].appearance-none::-webkit-slider-runnable-track {
+  background: transparent;
+}
+input[type='range'].appearance-none::-moz-range-track {
+  background: transparent;
+}
+

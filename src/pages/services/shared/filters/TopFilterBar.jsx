@@ -60,28 +60,50 @@ export function TopFilterBar({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Top Capsule Row */}
-      <div className="flex items-center gap-3">
+      {/* Top Capsule Row: Location Dropdown + Search Bar + Companion Action */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Blue Border Location Capsule */}
         <button
           type="button"
           onClick={toggleExpanded}
-          className="flex-1 flex items-center justify-between rounded-full border-2 border-brand-blue bg-white px-5 py-2.5 text-left transition-all hover:bg-blue-50/20 active:scale-[0.99] shadow-xs"
+          className="flex items-center justify-between gap-2.5 rounded-full border-2 border-brand-blue bg-white px-4 py-2.5 text-left transition-all hover:bg-blue-50/20 active:scale-[0.99] shadow-xs shrink-0"
           aria-expanded={isExpanded}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             <i className="fa-solid fa-location-dot text-brand-navy text-sm shrink-0" />
-            <span className="font-bold text-brand-navy text-sm sm:text-base truncate">
+            <span className="font-bold text-brand-navy text-sm truncate">
               {areaValue ? `${areaValue}, ${formattedCity}` : formattedCity}
             </span>
           </div>
 
           <i
-            className={`fa-solid fa-chevron-down text-brand-navy text-xs transition-transform duration-200 shrink-0 ml-2 ${
+            className={`fa-solid fa-chevron-down text-brand-navy text-xs transition-transform duration-200 shrink-0 ml-1 ${
               isExpanded ? 'rotate-180' : ''
             }`}
           />
         </button>
+
+        {/* Visible Search Input Bar */}
+        <div className="relative flex-1">
+          <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+          <input
+            type="text"
+            value={requirementValue}
+            onChange={(e) => onRequirementChange && onRequirementChange(e.target.value)}
+            placeholder={requirementPlaceholder || 'Search...'}
+            className="w-full rounded-full border-2 border-brand-blue bg-white pl-10 pr-10 py-2.5 text-sm font-medium text-brand-charcoal outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-xs"
+          />
+          {requirementValue && (
+            <button
+              type="button"
+              onClick={() => onRequirementChange && onRequirementChange('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal transition-colors"
+              aria-label="Clear search"
+            >
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
+          )}
+        </div>
 
         {/* Right Companion Action (Post Requirement / Action Button) */}
         {rightActionSlot ? (
@@ -90,7 +112,7 @@ export function TopFilterBar({
           <Link
             to={postRequirementLink}
             onClick={onPostRequirementClick}
-            className="rounded-full border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-brand-navy font-bold px-4 sm:px-5 py-2.5 text-xs sm:text-sm flex items-center gap-2 transition-colors shrink-0 shadow-xs active:scale-[0.98]"
+            className="rounded-full border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-brand-navy font-bold px-4 sm:px-5 py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shrink-0 shadow-xs active:scale-[0.98]"
           >
             {postRequirementIcon && <i className={postRequirementIcon} />}
             <span>{postRequirementLabel}</span>
@@ -170,21 +192,8 @@ export function TopFilterBar({
                 className="w-full text-xs sm:text-sm font-semibold text-brand-charcoal bg-transparent outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
               />
             </div>
-
-            {/* 4. SEARCH BUTTON */}
-            <div className="sm:col-span-2 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={onSearch}
-                className="w-full h-11 rounded-xl bg-brand-navy hover:bg-blue-900 text-white font-bold px-4 text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors shrink-0 whitespace-nowrap active:scale-[0.98]"
-              >
-                <i className="fa-solid fa-magnifying-glass text-xs" />
-                <span>{searchButtonText}</span>
-              </button>
-            </div>
           </div>
 
-          {/* Bottom Toolbar: Custom Sector Switch + Finance Action */}
           {(customSwitchSlot || financeSlot) && (
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
               <div className="flex items-center gap-3">

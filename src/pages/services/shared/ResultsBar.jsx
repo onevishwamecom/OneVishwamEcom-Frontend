@@ -13,6 +13,7 @@ export default function ResultsBar({
   activeChips = [],
   onRemoveChip,
   onResetChips,
+  showSearch = true,
   searchValue = '',
   onSearchChange,
   searchPlaceholder = 'Search...',
@@ -26,6 +27,7 @@ export default function ResultsBar({
     <div className={`space-y-3 ${className}`}>
       {/* Top row: Search input + mobile filter trigger + sort selector */}
       <SearchSortBar
+        showSearch={showSearch}
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         searchPlaceholder={searchPlaceholder}

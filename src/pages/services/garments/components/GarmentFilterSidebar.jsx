@@ -27,6 +27,8 @@ export default function GarmentFilterSidebar({
   updateFilter,
   toggleSection,
   resetFilters,
+  trendingOnly = false,
+  setTrendingOnly,
 }) {
   return (
     <FilterShell filters={filters} onReset={resetFilters}>
@@ -47,6 +49,23 @@ export default function GarmentFilterSidebar({
           onMinChange={(v) => updateFilter('budgetMin', v)}
           onMaxChange={(v) => updateFilter('budgetMax', v)}
         />
+      </CollapsibleSection>
+
+      {/* Special Highlights */}
+      <CollapsibleSection
+        title="Highlights"
+        isOpen={openSections.trending}
+        onToggle={() => toggleSection('trending')}
+      >
+        <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-semibold text-brand-charcoal pt-1">
+          <input
+            type="checkbox"
+            checked={trendingOnly}
+            onChange={(e) => setTrendingOnly && setTrendingOnly(e.target.checked)}
+            className="rounded border-gray-300 text-brand-blue focus:ring-brand-blue/30"
+          />
+          <span>Trending Styles Only</span>
+        </label>
       </CollapsibleSection>
 
       {/* Brand Types */}

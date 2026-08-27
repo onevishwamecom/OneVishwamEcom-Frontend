@@ -95,38 +95,34 @@ export default function JewelleryGallery() {
         useItems: () => ({ items: filteredJewellery, loading, error }),
       }}
       topBarSlot={() => (
-        <div className="space-y-4">
-          <TopFilterBar
-            cityValue={selectedCity || 'bengaluru'}
-            onCityChange={(c) => selectCity(c)}
-            areaValue={locationInput}
-            onAreaChange={setLocationInput}
-            areasList={cityAreas}
-            requirementValue={searchTerm}
-            onRequirementChange={setSearchTerm}
-            requirementPlaceholder="e.g. 22K Gold Necklace, Diamond Solitaire, Silver Coins"
-            searchButtonText="Search Jewellery"
-            postRequirementLink="/post-requirement"
-            postRequirementLabel="Post Requirement"
-            isExpanded={isSearchOpen}
-            onToggleExpanded={() => setIsSearchOpen((prev) => !prev)}
-            customSwitchSlot={
-              <div className="flex flex-wrap items-center gap-4">
-                <FilterToggle
-                  checked={certifiedOnly}
-                  onChange={setCertifiedOnly}
-                  label="Certified Hallmarked Only"
-                  icon="fa-solid fa-certificate"
-                />
-                <FilterToggle
-                  checked={filters.availability.includes('Try At Home')}
-                  onChange={(v) => updateFilter('availability', v ? ['Try At Home'] : [])}
-                  label="Try At Home Available"
-                  icon="fa-solid fa-house"
-                />
-              </div>
-            }
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 my-4">
+          <div className="relative flex-1 w-full">
+            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search jewellery (e.g. 22K Gold Necklace, Diamond Solitaire, Silver Coins)..."
+              className="w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-10 py-3 text-sm font-semibold text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-2xs hover:shadow-xs"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal hover:bg-gray-100 transition-colors"
+                aria-label="Clear search"
+              >
+                <i className="fa-solid fa-xmark text-xs" />
+              </button>
+            )}
+          </div>
+          <Link
+            to="/post-requirement"
+            className="rounded-2xl bg-brand-blue hover:bg-brand-navy text-white font-bold px-5 py-3 text-xs sm:text-sm flex items-center justify-center gap-2 shrink-0 whitespace-nowrap shadow-xs hover:shadow transition-colors duration-200"
+          >
+            <i className="fa-solid fa-circle-plus text-xs" />
+            <span>Post Requirement</span>
+          </Link>
         </div>
       )}
       sidebarComponent={() => (
@@ -136,6 +132,8 @@ export default function JewelleryGallery() {
           updateFilter={updateFilter}
           toggleSection={toggleSection}
           resetFilters={resetFilters}
+          certifiedOnly={certifiedOnly}
+          setCertifiedOnly={setCertifiedOnly}
         />
       )}
     />

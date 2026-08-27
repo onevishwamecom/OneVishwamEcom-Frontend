@@ -1,7 +1,14 @@
 // Shared UI Primitives
 export { default as CategoryPillStrip } from './CategoryPillStrip';
 export { default as ResultsBar } from './ResultsBar';
+export { GallerySearchBar } from './GallerySearchBar';
+export { GalleryHeader } from './GalleryHeader';
 export { default as PageHero } from './PageHero';
+
+// Canonical Design-System Components (single source of truth)
+export { SectorPageTemplate } from '../../../components/templates/SectorPageTemplate';
+export { SectorTabs } from '../../../components/ui/SectorTabs';
+export { SectorPageHeader } from '../../../components/ui/SectorPageHeader';
 export { default as LoadingError, LoadingSpinner, ErrorState } from './LoadingError';
 export { default as EmptyState } from './EmptyState';
 export { default as Fab } from './Fab';
@@ -20,6 +27,9 @@ export { default as RelatedListings } from './detail/RelatedListings';
 
 // Shared Filters
 export { default as FilterShell } from './filters/FilterShell';
+export { FilterSection } from './filters/FilterSection';
+export { PillGroup } from './filters/PillGroup';
+export { BudgetRangeSlider } from './filters/BudgetRangeSlider';
 export { default as BudgetChipGroup } from './filters/BudgetChipGroup';
 export { default as TopFilterBar, FilterToggle } from './filters/TopFilterBar';
 

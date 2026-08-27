@@ -68,10 +68,10 @@ export const ListingCard = React.memo(function ListingCard({
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer h-full"
+      className="group bg-white rounded-2xl border border-gray-200/80 overflow-hidden hover:border-brand-blue/40 shadow-xs hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col cursor-pointer h-full"
     >
       {/* 4:3 Aspect Ratio Image Stage */}
-      <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative shrink-0">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 shrink-0">
         {cardImage && !imgError ? (
           <img
             src={cardImage}
@@ -79,13 +79,13 @@ export const ListingCard = React.memo(function ListingCard({
             loading="lazy"
             decoding="async"
             onError={() => setImgError(true)}
-            className="h-full w-full object-cover hover:scale-105 transition-transform duration-500"
+            className="absolute inset-0 h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
           <img
             src={FALLBACK_IMG}
             alt=""
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
         )}
 
@@ -95,7 +95,7 @@ export const ListingCard = React.memo(function ListingCard({
             {cardBadges.map((b, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2 py-0.5 text-[10px] font-bold shadow-2xs ${b.className}`}
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm backdrop-blur-xs ${b.className}`}
               >
                 {b.label}
               </span>
@@ -105,10 +105,10 @@ export const ListingCard = React.memo(function ListingCard({
       </div>
 
       {/* Body Content */}
-      <div className="p-3 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1">
         {/* Overline */}
         {cardOverline && (
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-0.5 truncate">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 truncate">
             {cardOverline}
           </p>
         )}
@@ -116,31 +116,31 @@ export const ListingCard = React.memo(function ListingCard({
         {/* Title — Fixed height line clamp */}
         <div className="min-h-[2.5rem] flex items-start">
           {cardTitle && (
-            <h3 className="font-semibold text-brand-charcoal text-sm leading-snug line-clamp-2">
+            <h3 className="font-bold text-brand-charcoal text-sm leading-snug group-hover:text-brand-blue transition-colors line-clamp-2">
               {cardTitle}
             </h3>
           )}
         </div>
 
         {/* Price Row */}
-        <div className="min-h-[1.25rem]">
+        <div className="min-h-[1.5rem] my-1">
           {priceOverride ? (
             <div className="mt-0.5">{priceOverride}</div>
           ) : cardPriceType === 'on-request' ? (
-            <p className="mt-0.5 text-sm font-bold text-brand-gold">Price on Request</p>
+            <p className="text-sm font-bold text-brand-gold">Price on Request</p>
           ) : (
             cardPrice != null && cardPrice !== '' && (
-              <p className="mt-0.5 text-sm font-bold text-brand-blue">
+              <p className="text-base font-extrabold text-brand-blue">
                 {typeof cardPrice === 'number' || (typeof cardPrice === 'string' && /^\d/.test(cardPrice.replace(/[₹,\s]/g, '')))
                   ? formatINR(cardPrice)
                   : withRupeeSymbol(cardPrice)}
                 {cardPriceSuffix && (
-                  <span className="text-xs font-medium text-gray-400 ml-1">
+                  <span className="text-xs font-normal text-gray-400 ml-1">
                     {cardPriceSuffix}
                   </span>
                 )}
                 {cardPriceType === 'negotiable' && (
-                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-1.5 py-0.5 rounded-md">
+                  <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
                     Negotiable
                   </span>
                 )}
@@ -151,9 +151,9 @@ export const ListingCard = React.memo(function ListingCard({
 
         {/* Location Row */}
         {cardLocation && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[10px] shrink-0" />
-            <span className="truncate">
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
+            <span className="truncate font-medium">
               {cardLocation}
               {cardPincode ? ` · ${cardPincode}` : ''}
             </span>
@@ -162,10 +162,10 @@ export const ListingCard = React.memo(function ListingCard({
 
         {/* Tags Row */}
         {cardTags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-gray-600 overflow-hidden max-h-[3rem]">
+          <div className="mt-2 flex flex-wrap items-center gap-1 text-[11px] text-gray-600 overflow-hidden max-h-[3rem]">
             {cardTags.map((t, i) => (
               t && (
-                <span key={i} className="bg-gray-100 rounded-lg px-2 py-0.5 whitespace-nowrap">
+                <span key={i} className="bg-gray-100/80 rounded-md px-2 py-0.5 font-medium whitespace-nowrap">
                   {t}
                 </span>
               )
@@ -174,13 +174,14 @@ export const ListingCard = React.memo(function ListingCard({
         )}
 
         {/* Sector-specific action children slot */}
-        {children && <div className="mt-1.5 overflow-hidden">{children}</div>}
+        {children && <div className="mt-2 overflow-hidden">{children}</div>}
 
         {/* Details button pinned to bottom */}
         {showButton !== false && (
-          <div className="mt-auto pt-2">
-            <div className="w-full rounded-lg bg-brand-blue/10 text-brand-blue text-center text-[11px] font-semibold py-1.5 hover:bg-brand-blue hover:text-white transition-colors">
-              {buttonText}
+          <div className="mt-auto pt-3">
+            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
+              <span>{buttonText}</span>
+              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
         )}
