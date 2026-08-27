@@ -161,8 +161,23 @@ export default function PropertyFilterSidebar({
 
       {/* Possession Status */}
       <CollapsibleSection id="possessionStatus" label="Possession Status" open={openSections.possessionStatus} onToggle={toggleSection}>
-        <CheckboxGroup options={POSSESSION_OPTIONS} selected={filters.possessionStatus}
-          onChange={(v) => updateFilter('possessionStatus', v)} />
+        {(() => {
+          const propertyTypes = filters.propertyType || [];
+          const isAll = propertyTypes.length === 0;
+          const hasSitesPlots = propertyTypes.some(t => ['Sites', 'Plots', 'Lands'].includes(t));
+          const hasFlatsVillas = propertyTypes.some(t => ['Flats', 'Flat', 'Villas', 'Villa', 'Commercial', 'Houses'].includes(t));
+
+          let dynamicPossessionOptions = [];
+          if (isAll || hasSitesPlots) dynamicPossessionOptions.push('Ready for Registration');
+          if (isAll || hasFlatsVillas) {
+            dynamicPossessionOptions.push('Ready for Occupy');
+          }
+
+          return (
+            <CheckboxGroup options={dynamicPossessionOptions} selected={filters.possessionStatus}
+              onChange={(v) => updateFilter('possessionStatus', v)} />
+          );
+        })()}
       </CollapsibleSection>
 
       {/* Amenities */}

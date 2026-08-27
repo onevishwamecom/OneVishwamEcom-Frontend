@@ -37,9 +37,9 @@ export const footerLocations = [
 
 export const contactInfo = {
   brandName: 'One Vishwam',
-  phoneDisplay: '+91 74114 42760',
-  phoneRaw: '7411442760',
-  phoneTel: '+917411442760',
-  whatsapp: '917411442760',
+  phoneDisplay: '+91 85469 96655',
+  phoneRaw: '8546996655',
+  phoneTel: '+918546996655',
+  whatsapp: '918546996655',
   email: 'sinchana@spwebtechnologies.in',
 };

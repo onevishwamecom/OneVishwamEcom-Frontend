@@ -114,12 +114,15 @@ export function useFilteredProperties({
           filters.furnishing.length === 0 || filters.furnishing.includes(p.furnishing);
 
         const matchGated            = !filters.gatedCommunity;
-        const matchPostedBy         = filters.postedBy.length === 0;
-        const matchPossession       = filters.possessionStatus.length === 0;
-        const matchAmenities        = filters.amenities.length === 0;
-        const matchFacing           = filters.facing.length === 0;
-        const matchAge              = filters.propertyAge.length === 0;
-        const matchAvailability     = filters.availability.length === 0;
+        const matchPostedBy         = filters.postedBy.length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
+        const matchPossession       = filters.possessionStatus.length === 0 || (p.possessionStatus && filters.possessionStatus.includes(p.possessionStatus));
+        
+        // Handle Amenities (property amenities should contain ALL selected amenities)
+        const matchAmenities        = filters.amenities.length === 0 || filters.amenities.every(a => p.amenities && p.amenities.includes(a));
+        
+        const matchFacing           = filters.facing.length === 0 || (p.facing && filters.facing.includes(p.facing));
+        const matchAge              = filters.propertyAge.length === 0 || (p.propertyAge && filters.propertyAge.includes(p.propertyAge));
+        const matchAvailability     = filters.availability.length === 0 || (p.availability && filters.availability.includes(p.availability));
 
         let matchListedWithin = true;
         if      (filters.listedWithin === 'Today')       matchListedWithin = listedDays === 0;

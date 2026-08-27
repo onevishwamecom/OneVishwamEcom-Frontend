@@ -15,7 +15,7 @@ function ContactSidebar() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Call Us</p>
-              <p className="font-semibold text-brand-charcoal">+91 93648 62542</p>
+              <p className="font-semibold text-brand-charcoal">+91 85469 96655</p>
             </div>
           </a>
         </div>
