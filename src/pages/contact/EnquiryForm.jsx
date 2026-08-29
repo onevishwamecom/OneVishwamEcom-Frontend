@@ -93,10 +93,23 @@ function EnquiryForm({ loanContext }) {
     }
 
     const templateParams = {
-      title: `Enquiry for ${selectedService}`, from_name: formData.name, from_email: 'no-reply@vishwam.com',
-      from_phone: formData.phone, from_additional_phone: formData.additionalPhone || 'N/A',
-      from_additional_phone_2: formData.additionalPhone2 || 'N/A', service: selectedService,
-      message: activeTab === 'text' ? formData.message : '[Voice Message Recorded]', voice_message: voicePublicUrl,
+      name: formData.name,
+      from_name: formData.name,
+      user_name: formData.name,
+      phone: formData.phone,
+      from_phone: formData.phone,
+      additional_phone: formData.additionalPhone || 'N/A',
+      additional_phone_2: formData.additionalPhone2 || 'N/A',
+      from_additional_phone: formData.additionalPhone || 'N/A',
+      from_additional_phone_2: formData.additionalPhone2 || 'N/A',
+      service: selectedService,
+      service_name: selectedService,
+      title: `Enquiry for ${selectedService}`,
+      subject: `Enquiry for ${selectedService}`,
+      message: activeTab === 'text' ? formData.message : '[Voice Message Recorded]',
+      voice_message: voicePublicUrl,
+      from_email: 'no-reply@onevishwam.com',
+      reply_to: 'no-reply@onevishwam.com',
     };
 
     if (!isEmailJSConfigured()) {
@@ -109,8 +122,9 @@ function EnquiryForm({ loanContext }) {
       Swal.fire({ title: 'Success!', text: 'Your enquiry has been submitted.', icon: 'success', confirmButtonColor: '#1a4b8c' });
       setFormData({ name: '', phone: '', additionalPhone: '', additionalPhone2: '', service: '', message: '' });
       deleteRecording(); setErrors({});
-    } catch {
-      Swal.fire({ title: 'Oops!', text: 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#1a4b8c' });
+    } catch (err) {
+      console.error('EmailJS send error:', err);
+      Swal.fire({ title: 'Oops!', text: err?.text || 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#1a4b8c' });
     } finally { setIsSending(false); }
   };
 
