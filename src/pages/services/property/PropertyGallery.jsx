@@ -200,7 +200,6 @@ function PropertyGallery() {
       const prefix = chip.key.split("-")[0];
       const map = {
         bt: "buildingType",
-        pt: "propertyType",
         bed: "bedrooms",
         loc: "localities",
         furn: "furnishing",

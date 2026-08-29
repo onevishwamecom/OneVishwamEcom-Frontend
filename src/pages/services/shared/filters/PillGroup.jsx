@@ -18,9 +18,9 @@ import React from 'react';
  * Example
  * ───────
  * <PillGroup
- *   options={['Flats', 'Houses', 'Villas', 'Plots']}
- *   selected={filters.propertyType}
- *   onChange={(v) => updateFilter('propertyType', v)}
+ *   options={['Flat', 'Houses', 'Villa', 'Plot']}
+ *   selected={filters.buildingType}
+ *   onChange={(v) => updateFilter('buildingType', v)}
  * />
  */
 export function PillGroup({ options = [], selected, onChange, multi = true, size = 'sm' }) {

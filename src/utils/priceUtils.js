@@ -18,11 +18,11 @@ export function formatINR(value, { compact = true } = {}) {
 
   let num = typeof value === 'number' ? value : parseIndianPrice(value);
   if (isNaN(num) || num === 0) {
-    // If it's a non-numeric string that already has ₹, return as-is
+    if (value === 0 || value === '0') return '₹0';
     const s = String(value).trim();
     if (s.startsWith('₹')) return s;
-    if (s) return `₹${s}`;
-    return '';
+    if (s && !isNaN(parseFloat(s))) return `₹${s}`;
+    return s ? `₹${s}` : '';
   }
 
   const sign = num < 0 ? '-' : '';
@@ -31,11 +31,13 @@ export function formatINR(value, { compact = true } = {}) {
   if (compact) {
     if (abs >= CRORE) {
       const cr = abs / CRORE;
-      return `${sign}₹${cr % 1 === 0 ? cr : cr.toFixed(1).replace(/\.0$/, '')} Cr`;
+      const formattedCr = Number.isInteger(cr) ? cr : parseFloat(cr.toFixed(2));
+      return `${sign}₹${formattedCr} Cr`;
     }
     if (abs >= LAKH) {
       const l = abs / LAKH;
-      return `${sign}₹${l % 1 === 0 ? l : l.toFixed(1).replace(/\.0$/, '')} L`;
+      const formattedL = Number.isInteger(l) ? l : parseFloat(l.toFixed(2));
+      return `${sign}₹${formattedL} L`;
     }
   }
 
@@ -54,28 +56,31 @@ export function formatINR(value, { compact = true } = {}) {
 }
 
 /**
- * Parse an Indian price string into a numeric value.
+ * Parse an Indian price string into a numeric value in Rupees.
  * Handles: "₹4.5 L", "2.5Cr", "50,00,000", "5 Lakh", "500000", "25K", etc.
  */
 export function parseIndianPrice(s) {
-  if (!s && s !== 0) return 0;
-  if (typeof s === 'number') return s;
+  if (s === null || s === undefined || s === '') return 0;
+  if (typeof s === 'number') return isNaN(s) ? 0 : Math.max(0, Math.round(s));
 
   const raw = String(s).replace(/[₹,\s]/g, '').trim();
   if (!raw) return 0;
 
   const match = raw.match(/^([+-]?\d+\.?\d*)\s*(.*)/i);
-  if (!match) return parseFloat(raw) || 0;
+  if (!match) {
+    const parsed = parseFloat(raw);
+    return isNaN(parsed) ? 0 : Math.max(0, Math.round(parsed));
+  }
 
   const num = parseFloat(match[1]);
   if (isNaN(num)) return 0;
 
   const suffix = (match[2] || '').toLowerCase().trim();
-  if (suffix.startsWith('cr') || suffix.startsWith('crore')) return num * CRORE;
-  if (suffix.startsWith('l') || suffix.startsWith('lakh')) return num * LAKH;
-  if (suffix.startsWith('k') || suffix.startsWith('thousand')) return num * 1000;
+  if (suffix.startsWith('cr') || suffix.startsWith('crore')) return Math.max(0, Math.round(num * CRORE));
+  if (suffix.startsWith('l') || suffix.startsWith('lakh')) return Math.max(0, Math.round(num * LAKH));
+  if (suffix.startsWith('k') || suffix.startsWith('thousand')) return Math.max(0, Math.round(num * 1000));
 
-  return num;
+  return Math.max(0, Math.round(num));
 }
 
 /**
@@ -124,6 +129,9 @@ export function withRupeeSymbol(value) {
   }
   return `₹${s}`;
 }
+
+export const formatPriceDisplay = (value) => formatINR(value, { compact: true });
+export const parsePriceInput = (value) => parseIndianPrice(value);
 
 /**
  * Get badge text for price type (if applicable).

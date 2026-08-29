@@ -9,6 +9,18 @@ import Pagination from '../Pagination';
 import MobileFilterDrawer from '../../../../components/MobileFilterDrawer';
 import { LoadingSpinner, ErrorState } from '../LoadingError';
 
+const STATUS_KEYS = new Set(['loading', 'error', 'retry']);
+
+function extractListPayload(result) {
+  if (!result || typeof result !== 'object') return [];
+  if (Array.isArray(result.items)) return result.items;
+  for (const key of Object.keys(result)) {
+    if (key === 'items' || STATUS_KEYS.has(key)) continue;
+    if (Array.isArray(result[key])) return result[key];
+  }
+  return [];
+}
+
 /**
  * Universal Master Listing Page Engine
  * ─────────────────────────────────────
@@ -50,7 +62,10 @@ export default function MasterListingPage({
   } = config;
 
   // Data fetching
-  const { items = [], loading = false, error = null } = hooks.useItems ? hooks.useItems() : {};
+  const listResult = hooks.useItems ? hooks.useItems() : {};
+  const items = extractListPayload(listResult);
+  const loading = !!listResult.loading;
+  const error = listResult.error || null;
 
   // Local UI State
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -65,7 +80,7 @@ export default function MasterListingPage({
 
     if (selectedCategory && selectedCategory !== 'All') {
       list = list.filter((item) => {
-        const cat = (item.category || item.cardType || item.type || item.propertyType || '').toLowerCase();
+        const cat = (item.category || item.cardType || item.type || '').toLowerCase();
         return cat.includes(selectedCategory.toLowerCase());
       });
     }

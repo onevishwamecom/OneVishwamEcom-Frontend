@@ -1,6 +1,7 @@
 import React from 'react';
 import { CollapsibleSection, CheckboxGroup } from '../../../../components/ui';
-import { FilterShell, BudgetChipGroup } from '../../shared';
+import { FilterShell, getNumericPrice } from '../../shared';
+import BudgetRangeSlider from '../../shared/filters/BudgetRangeSlider';
 
 const PRICE_CHIPS = [
   { label: 'Under ₹100', min: 0, max: 100 },
@@ -17,6 +18,7 @@ export default function GroceryFilterSidebar({
   updateFilter,
   toggleSection,
   resetFilters,
+  items = [],
   cityAreas = [],
 }) {
   return (
@@ -27,16 +29,18 @@ export default function GroceryFilterSidebar({
         isOpen={openSections.price}
         onToggle={() => toggleSection('price')}
       >
-        <BudgetChipGroup
-          presets={PRICE_CHIPS}
-          minVal={filters.priceMin}
-          maxVal={filters.priceMax}
-          onSelectPreset={(min, max) => {
-            updateFilter('priceMin', min !== null ? String(min) : '');
-            updateFilter('priceMax', max !== null && max !== Infinity ? String(max) : '');
+        <BudgetRangeSlider
+          filters={filters}
+          updateFilter={(key, val) => {
+            const mappedKey = key === 'budgetMin' ? 'priceMin' : key === 'budgetMax' ? 'priceMax' : key;
+            updateFilter(mappedKey, val);
           }}
-          onMinChange={(v) => updateFilter('priceMin', v)}
-          onMaxChange={(v) => updateFilter('priceMax', v)}
+          items={items}
+          getPrice={(item) => getNumericPrice(item?.finalPrice || item?.pricePerUnit || item?.price)}
+          defaultMin={0}
+          defaultMax={2_000}
+          step={50}
+          chips={PRICE_CHIPS}
         />
       </CollapsibleSection>
 

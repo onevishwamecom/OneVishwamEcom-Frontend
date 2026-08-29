@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { useAuth } from '../../../store/authSlice';
 import { formatINR, withRupeeSymbol } from '../../../utils/priceUtils';
+import SoldOutRibbon from '../../../components/ui/SoldOutRibbon';
 import {
   getPropertyTypeLabel,
   getDetailTags,
@@ -23,6 +24,10 @@ function PropertyCardImpl({ property }) {
 
   if (!property) return null;
 
+  const availabilityStatus = property.availabilityStatus || 'available';
+  const isSoldOut = availabilityStatus === 'sold_out' || property.isSoldOut === true;
+  const isInactive = availabilityStatus === 'inactive' || property.isInactive === true;
+
   const id = property._id || property.id;
   const link = id ? `/property/${id}` : '#';
   const image = getPropertyCoverImage(property);
@@ -39,6 +44,11 @@ function PropertyCardImpl({ property }) {
   ];
 
   const handleCardClick = (e) => {
+    if (isSoldOut || isInactive) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      return;
+    }
     if (!link || link === '#') return;
     if (!isLoggedIn) {
       if (e && e.preventDefault) e.preventDefault();
@@ -54,7 +64,13 @@ function PropertyCardImpl({ property }) {
   return (
     <div
       onClick={handleCardClick}
-      className="group bg-white rounded-2xl border border-gray-200/80 overflow-hidden hover:border-brand-blue/40 shadow-xs hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col cursor-pointer h-full"
+      className={`group bg-white rounded-2xl border border-gray-200/80 overflow-hidden transition-all duration-300 flex flex-col h-full relative ${
+        isSoldOut
+          ? 'cursor-not-allowed select-none'
+          : isInactive
+          ? 'opacity-50 cursor-not-allowed'
+          : 'hover:border-brand-blue/40 shadow-xs hover:shadow-xl transform hover:-translate-y-1 cursor-pointer'
+      }`}
     >
       {/* 4:3 Image Stage */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 shrink-0">
@@ -65,17 +81,26 @@ function PropertyCardImpl({ property }) {
             loading="lazy"
             decoding="async"
             onError={() => setImgError(true)}
-            className="absolute inset-0 h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 ease-out ${
+              isSoldOut ? 'filter grayscale contrast-100' : 'group-hover:scale-105'
+            }`}
+            style={isSoldOut ? { filter: 'grayscale(100%)' } : {}}
           />
         ) : (
           <img
             src={FALLBACK_IMG}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className={`absolute inset-0 h-full w-full object-cover object-center ${
+              isSoldOut ? 'filter grayscale contrast-100' : ''
+            }`}
+            style={isSoldOut ? { filter: 'grayscale(100%)' } : {}}
           />
         )}
 
-        {badges.length > 0 && (
+        {/* Diagonal Red Ribbon for Sold Out */}
+        {isSoldOut && <SoldOutRibbon />}
+
+        {badges.length > 0 && !isSoldOut && !isInactive && (
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
             {badges.map((b, i) => (
               <span
@@ -93,14 +118,18 @@ function PropertyCardImpl({ property }) {
       <div className="p-4 flex flex-col flex-1">
         {/* Title */}
         <div className="min-h-[2.5rem] flex items-start">
-          <h3 className="font-bold text-brand-charcoal text-sm leading-snug group-hover:text-brand-blue transition-colors line-clamp-2">
+          <h3 className={`font-bold text-sm leading-snug line-clamp-2 ${
+            isSoldOut ? ' text-gray-400' : 'text-brand-charcoal group-hover:text-brand-blue transition-colors'
+          }`}>
             {title}
           </h3>
         </div>
 
         {/* Price */}
         <div className="min-h-[1.5rem] my-1">
-          {property.priceType === 'on-request' ? (
+          {isSoldOut ? (
+            <p className="text-sm font-bold text-red-600">Sold Out</p>
+          ) : property.priceType === 'on-request' ? (
             <p className="text-base font-extrabold text-brand-gold">Price on Request</p>
           ) : (
             property.price != null && property.price !== '' && (
@@ -126,7 +155,7 @@ function PropertyCardImpl({ property }) {
         </div>
 
         {/* Location */}
-        {(property.location || property.city) && (
+        {(property.location || property.city) && !isSoldOut && !isInactive && (
           <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
             <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate font-medium">
@@ -137,7 +166,7 @@ function PropertyCardImpl({ property }) {
         )}
 
         {/* Tags */}
-        {cardTags.length > 0 && (
+        {cardTags.length > 0 && !isSoldOut && !isInactive && (
           <div className="mt-2 flex flex-wrap items-center gap-1 text-[11px] text-gray-600 overflow-hidden max-h-[3rem]">
             {cardTags.map((t, i) => (
               <span
@@ -151,7 +180,7 @@ function PropertyCardImpl({ property }) {
         )}
 
         {/* Agent / extras */}
-        {(property.agent || property.extraRoom) && (
+        {(property.agent || property.extraRoom) && !isSoldOut && !isInactive && (
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500">
             {property.agent && (
               <span>
@@ -169,7 +198,7 @@ function PropertyCardImpl({ property }) {
         )}
 
         {/* Loan badge */}
-        {property.loanApproved && (
+        {property.loanApproved && !isSoldOut && !isInactive && (
           <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 w-fit">
             <i className="fa-solid fa-circle-check text-[10px] text-emerald-600" />
             <span className="text-[10px] font-semibold text-emerald-700">
@@ -178,13 +207,21 @@ function PropertyCardImpl({ property }) {
           </div>
         )}
 
-        {/* View Details */}
-        <div className="mt-auto pt-3">
-          <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
-            <span>View Details</span>
-            <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+        {/* View Details / Status */}
+        {!isSoldOut && !isInactive ? (
+          <div className="mt-auto pt-3">
+            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue text-brand-charcoal text-center text-xs font-bold py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 shadow-xs">
+              <span>View Details</span>
+              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-auto pt-3 text-center">
+            <p className={`text-xs font-medium ${isSoldOut ? 'text-red-600' : 'text-amber-600'}`}>
+              {isSoldOut ? 'This item is no longer available' : 'This item is currently inactive'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

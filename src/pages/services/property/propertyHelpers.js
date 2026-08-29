@@ -8,31 +8,43 @@ export function getNumericArea(area) {
 }
 
 export function getPropertyType(property) {
-  const s = (property.subtitle || property.propertyType || '').toLowerCase();
+  const s = (property.subtitle || '').toLowerCase();
   const b = String(property.bhk || '').toLowerCase();
-  if (s.includes('villa') || s.includes('farmhouse')) return 'Villas';
+  if (s.includes('villa') || s.includes('farmhouse')) return 'Villa';
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
   if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Lands';
-  if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plots';
-  if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flats';
+  if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plot';
+  if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flat';
   if (s.includes('house')) return 'Houses';
-  return 'Flats';
+  return 'Flat';
 }
 
 export function getPropertyTypeLabel(property) {
-  const s = (property.subtitle || property.propertyType || '').toLowerCase();
-  const b = String(property.bhk || '').toLowerCase();
-  if (s.includes('villa'))       return 'Villa';
-  if (s.includes('farmhouse'))   return 'Farmhouse';
-  if (s.includes('penthouse'))   return 'Penthouse';
-  if (b.includes('office'))      return 'Office';
-  if (b.includes('shop') || s.includes('shop')) return 'Shop';
-  if (s.includes('flat') || b.includes('bhk'))  return 'Flat';
-  if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Land';
-  if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plot';
-  if (s.includes('house')) return 'House';
-  return 'Property';
+  if (!property) return 'Flat';
+  const sub = String(property.subcategory || property.subCategory || property.category || '').toLowerCase();
+  if (sub.includes('plot') || sub.includes('site') || sub.includes('land')) return 'Plot';
+  if (sub.includes('villa')) return 'Villa';
+  if (sub.includes('flat') || sub.includes('apartment') || sub.includes('house') || !sub) return 'Flat';
+  return property.subcategory || property.subCategory || 'Flat';
+}
+
+export function getPropertyStatusPill(property) {
+  if (!property) return null;
+  const s = String(
+    property.subcategory ||
+    property.subCategory ||
+    property.category ||
+    property.buildingType ||
+    property.subtitle ||
+    property.title ||
+    ''
+  ).toLowerCase();
+
+  if (s.includes('plot') || s.includes('site') || s.includes('land')) {
+    return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700 font-bold' };
+  }
+  return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700 font-bold' };
 }
 
 export function getBedrooms(bhk) {
@@ -44,7 +56,7 @@ export function getBedrooms(bhk) {
 }
 
 export function getBuildingType(property) {
-  const s = (property.subtitle || property.propertyType || '').toLowerCase();
+  const s = (property.subtitle || property.category || '').toLowerCase();
   const b = String(property.bhk || '').toLowerCase();
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
@@ -67,14 +79,16 @@ export function getDetailTags(property) {
 export function getCardType(property) {
   const t = getPropertyType(property);
   if (t === 'Lands')   return 'Lands';
-  if (t === 'Plots')   return 'Sites';
-  if (t === 'Flats')   return 'Flat';
-  if (t === 'Villas')  return 'Villa';
+  if (t === 'Plot')   return 'Sites';
+  if (t === 'Flat')   return 'Flat';
+  if (t === 'Villa')  return 'Villa';
   if (t === 'Houses')  return 'Independent House';
   return 'Flat';
 }
 
 export function getStatusBadge(property) {
+  const statusPill = getPropertyStatusPill(property);
+  if (statusPill)                     return { label: statusPill.label, cls: statusPill.cls };
   if (property.loanApproved)          return { label: 'Pre-Approved Loan', cls: 'bg-emerald-100 text-emerald-700' };
   if (property.status === 'closed')   return { label: 'Closed',            cls: 'bg-red-100 text-red-700' };
   if (property.shortlisted)           return { label: 'Shortlisted',       cls: 'bg-amber-100 text-amber-700' };

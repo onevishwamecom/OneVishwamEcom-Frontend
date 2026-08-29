@@ -52,7 +52,7 @@ function HeroSection({ searchQuery, setSearchQuery }) {
 
           <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
             {PROPERTIES_ONLY
-              ? 'Houses, plots, apartments and rental homes near you. See what is available or share your property.'
+              ? 'Houses, Plot, apartments and rental homes near you. See what is available or share your property.'
               : 'Find houses, cars, jewellery, jobs, services, and more near you. See what is available or share your item.'}
           </p>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CollapsibleSection, CheckboxGroup } from '../../../../components/ui';
-import { FilterShell, BudgetChipGroup } from '../../shared';
+import { FilterShell, getNumericPrice } from '../../shared';
+import BudgetRangeSlider from '../../shared/filters/BudgetRangeSlider';
 
 const BUDGET_CHIPS = [
   { label: 'Under ₹500', min: 0, max: 500 },
@@ -27,6 +28,7 @@ export default function GarmentFilterSidebar({
   updateFilter,
   toggleSection,
   resetFilters,
+  items = [],
   trendingOnly = false,
   setTrendingOnly,
 }) {
@@ -38,16 +40,15 @@ export default function GarmentFilterSidebar({
         isOpen={openSections.budget}
         onToggle={() => toggleSection('budget')}
       >
-        <BudgetChipGroup
-          presets={BUDGET_CHIPS}
-          minVal={filters.budgetMin}
-          maxVal={filters.budgetMax}
-          onSelectPreset={(min, max) => {
-            updateFilter('budgetMin', min !== null ? String(min) : '');
-            updateFilter('budgetMax', max !== null && max !== Infinity ? String(max) : '');
-          }}
-          onMinChange={(v) => updateFilter('budgetMin', v)}
-          onMaxChange={(v) => updateFilter('budgetMax', v)}
+        <BudgetRangeSlider
+          filters={filters}
+          updateFilter={updateFilter}
+          items={items}
+          getPrice={(g) => getNumericPrice(g?.finalPrice || g?.price)}
+          defaultMin={0}
+          defaultMax={10_000}
+          step={100}
+          chips={BUDGET_CHIPS}
         />
       </CollapsibleSection>
 

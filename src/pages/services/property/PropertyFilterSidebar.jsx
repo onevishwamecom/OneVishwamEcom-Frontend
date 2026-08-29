@@ -128,19 +128,6 @@ export default function PropertyFilterSidebar({
         />
       </FilterSection>
 
-      {/* ── Property Type ── */}
-      <FilterSection
-        label="Property Type"
-        active={filters.propertyType.length > 0}
-        onClear={() => updateFilter('propertyType', [])}
-      >
-        <PillGroup
-          options={['Flats', 'Houses', 'Villas', 'Plots', 'Commercial']}
-          selected={filters.propertyType}
-          onChange={(v) => updateFilter('propertyType', v)}
-        />
-      </FilterSection>
-
       {/* ── Bedrooms ── */}
       <FilterSection
         label="Bedrooms"

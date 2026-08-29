@@ -87,7 +87,6 @@ describe('Shared Utilities', () => {
         price: '₹2.5 Cr',
         location: 'Indiranagar',
         pincode: '560038',
-        propertyType: 'Flat',
         bhk: '3 BHK',
         loanApproved: true,
         images: ['https://images.com/prop.jpg'],

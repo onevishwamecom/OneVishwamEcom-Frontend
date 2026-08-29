@@ -32,6 +32,11 @@ export function normalizeListing(rawItem, sector = '') {
     }
   }
 
+  // Resolve availability status
+  const availabilityStatus = rawItem.availabilityStatus || 'available';
+  const isSoldOut = availabilityStatus === 'sold_out';
+  const isInactive = availabilityStatus === 'inactive';
+
   // Resolve image
   let image = '';
   if (Array.isArray(rawItem.images) && rawItem.images.length > 0) {
@@ -59,7 +64,14 @@ export function normalizeListing(rawItem, sector = '') {
   if (s.includes('vehicle') || s.includes('automobile')) {
     overline = rawItem.brand || rawItem.category || '';
   } else if (s.includes('property') || s.includes('real-estate')) {
-    overline = rawItem.propertyType || rawItem.buildingType || '';
+    const rawType = rawItem.subCategory || rawItem.category || rawItem.buildingType || '';
+    if (/apartment/i.test(rawType)) {
+      overline = 'Flat';
+    } else if (/plot|site/i.test(rawType)) {
+      overline = 'Site & Plot';
+    } else {
+      overline = rawType;
+    }
   } else if (s.includes('garment') || s.includes('fashion')) {
     overline = rawItem.brand || rawItem.store?.name || '';
   } else if (s.includes('grocery') || s.includes('marketplace')) {
@@ -108,6 +120,23 @@ export function normalizeListing(rawItem, sector = '') {
 
   // Resolve badges
   const badges = [];
+  if (s.includes('property') || s.includes('real-estate')) {
+    const sub = String(
+      rawItem.subcategory ||
+      rawItem.subCategory ||
+      rawItem.category ||
+      rawItem.buildingType ||
+      rawItem.subtitle ||
+      rawItem.title ||
+      ''
+    ).toLowerCase();
+
+    if (sub.includes('site') || sub.includes('plot') || sub.includes('land')) {
+      badges.push({ label: 'Ready for Registration', className: 'bg-emerald-100 text-emerald-700 font-bold' });
+    } else {
+      badges.push({ label: 'Ready for Occupy', className: 'bg-emerald-100 text-emerald-700 font-bold' });
+    }
+  }
   if (rawItem.loanApproved) {
     badges.push({ label: 'Pre-Approved', className: 'bg-emerald-100 text-emerald-700' });
   }
@@ -149,6 +178,9 @@ export function normalizeListing(rawItem, sector = '') {
     pincode,
     tags: tags.filter(Boolean),
     badges,
+    availabilityStatus,
+    isSoldOut,
+    isInactive,
     raw: rawItem,
   };
 }

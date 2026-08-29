@@ -38,7 +38,6 @@ export function useActiveChips(filters) {
       chips.push({ key: 'budget', label: `Budget: ${label}` });
     }
     filters.buildingType.forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
-    filters.propertyType.forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
     filters.bedrooms.forEach((b)         => chips.push({ key: `bed-${b}`,   label: b }));
     filters.localities.forEach((l)       => chips.push({ key: `loc-${l}`,   label: l }));
     filters.furnishing.forEach((f)       => chips.push({ key: `furn-${f}`,  label: f }));
@@ -66,7 +65,6 @@ export function useFilteredProperties({
   return useMemo(() => {
     return properties
       .filter((p) => {
-        const type        = getPropertyType(p);
         const np          = getNumericPrice(p.price);
         const area        = getNumericArea(p.area);
         const bedrooms    = getBedrooms(p.bhk);
@@ -101,32 +99,46 @@ export function useFilteredProperties({
           (!filters.sizeMin || area >= +filters.sizeMin) &&
           (!filters.sizeMax || area <= +filters.sizeMax);
 
+        const buildingTypes = filters?.buildingType || [];
         const matchBuildingType =
-          filters.buildingType.length === 0 || filters.buildingType.includes(buildingType);
+          buildingTypes.length === 0 || buildingTypes.includes(buildingType);
 
+        const subcategoryLabel = (p.subcategory || p.subCategory || getPropertyTypeLabel(p) || 'Flats');
+        const propTypes = filters?.propertyType || filters?.subcategory || [];
         const matchPropertyType =
-          filters.propertyType.length === 0 || filters.propertyType.includes(type);
+          propTypes.length === 0 ||
+          propTypes.some((t) => {
+            const tLower = t.toLowerCase();
+            const pSubLower = String(p.subcategory || p.subCategory || subcategoryLabel).toLowerCase();
+            if (tLower.includes('plot') || tLower.includes('site')) return pSubLower.includes('plot') || pSubLower.includes('site') || pSubLower.includes('land');
+            if (tLower.includes('villa')) return pSubLower.includes('villa');
+            if (tLower.includes('flat') || tLower.includes('apartment')) return pSubLower.includes('flat') || pSubLower.includes('apartment') || pSubLower.includes('house');
+            return pSubLower.includes(tLower);
+          });
 
+        const bedroomsList = filters?.bedrooms || [];
         const matchBedrooms =
-          filters.bedrooms.length === 0 || filters.bedrooms.includes(bedrooms);
+          bedroomsList.length === 0 || bedroomsList.includes(bedrooms);
 
+        const localitiesList = filters?.localities || [];
         const matchLocality =
-          filters.localities.length === 0 ||
-          filters.localities.some((l) =>
+          localitiesList.length === 0 ||
+          localitiesList.some((l) =>
             (p.zone && p.zone.toLowerCase().includes(l.toLowerCase())) ||
             (p.location && p.location.toLowerCase().includes(l.toLowerCase()))
           );
 
+        const furnishingList = filters?.furnishing || [];
         const matchFurnishing =
-          filters.furnishing.length === 0 || (p.furnishing && filters.furnishing.includes(p.furnishing));
+          furnishingList.length === 0 || (p.furnishing && furnishingList.includes(p.furnishing));
 
-        const matchGated            = !filters.gatedCommunity;
-        const matchPostedBy         = filters.postedBy.length === 0;
-        const matchPossession       = filters.possessionStatus.length === 0;
-        const matchAmenities        = filters.amenities.length === 0;
-        const matchFacing           = filters.facing.length === 0;
-        const matchAge              = filters.propertyAge.length === 0;
-        const matchAvailability     = filters.availability.length === 0;
+        const matchGated            = !filters?.gatedCommunity;
+        const matchPostedBy         = (filters?.postedBy || []).length === 0;
+        const matchPossession       = (filters?.possessionStatus || []).length === 0;
+        const matchAmenities        = (filters?.amenities || []).length === 0;
+        const matchFacing           = (filters?.facing || []).length === 0;
+        const matchAge              = (filters?.propertyAge || []).length === 0;
+        const matchAvailability     = (filters?.availability || []).length === 0;
 
         let matchListedWithin = true;
         if      (filters.listedWithin === 'Today')       matchListedWithin = listedDays === 0;

@@ -2,7 +2,7 @@ export const serviceItems = [
   {
     id: 'real-estate-property',
     title: 'Houses & Land',
-    description: 'Find houses, flats, lands, plots, and commercial properties for sale or rent.',
+    description: 'Find houses, Flat, lands, Plot, and commercial properties for sale or rent.',
     image: 'https://images.pexels.com/photos/8470806/pexels-photo-8470806.jpeg?cs=srgb&dl=pexels-thirdman-8470806.jpg&fm=jpg',
     details: {
       overviewText: 'We help you buy, sell, or rent houses, lands, and shops. We also help with home loans and legal checks.',

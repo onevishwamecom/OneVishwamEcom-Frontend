@@ -5,7 +5,7 @@ import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
 
 function getCardType(property) {
-  const s = (property.subtitle || property.propertyType || '').toLowerCase();
+  const s = (property.subtitle || '').toLowerCase();
   const b = (property.bhk || '').toLowerCase();
   if (s.includes('villa') || s.includes('farmhouse')) return 'Villa';
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
@@ -28,7 +28,6 @@ function matchesBedroom(bhk, selected) {
 }
 
 const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
-const PROPERTY_TYPES = ['Sites', 'Flat', 'Villa', 'Independent House'];
 const BEDROOM_OPTIONS = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', '4BHK+'];
 
 /* ── Component ── */
@@ -41,13 +40,12 @@ function QuickMatchModal({ onClose }) {
   /* All filter fields are optional */
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
-  const [propertyType, setPropertyType] = useState('');
   const [city, setCity] = useState('');
   const [location, setLocation] = useState('');
   const [bedrooms, setBedrooms] = useState('');
 
   const areas = city ? (cities[city]?.areas || []) : [];
-  const hasAnyFilter = budgetMin || budgetMax || propertyType || city || location || bedrooms;
+  const hasAnyFilter = budgetMin || budgetMax || city || location || bedrooms;
   const availableCount = properties.filter((p) => p.status !== 'closed').length;
 
   const handleFindMatch = () => setStep(2);
@@ -75,11 +73,11 @@ function QuickMatchModal({ onClose }) {
 
       const budgetMatch = (!budgetMin || price >= +budgetMin * 100000) &&
         (!budgetMax || price <= +budgetMax * 100000);
-      const typeMatch = !propertyType || cardType === propertyType;
+      
       const cityMatch = !city || p.city === city;
       const locationMatch = !location || p.zone === location;
       const bedroomMatch = matchesBedroom(p.bhk, bedrooms);
-      const allMatch = budgetMatch && typeMatch && cityMatch && locationMatch && bedroomMatch;
+      const allMatch = budgetMatch && cityMatch && locationMatch && bedroomMatch;
 
       if (p.status === 'closed') {
         if (allMatch) closed.push(p);
@@ -91,7 +89,7 @@ function QuickMatchModal({ onClose }) {
     });
 
     return { preApproved, matched, closed };
-  }, [properties, budgetMin, budgetMax, propertyType, city, location, bedrooms]);
+  }, [properties, budgetMin, budgetMax, city, location, bedrooms]);
 
   const totalResults = buckets.preApproved.length + buckets.matched.length;
   const title = step === 1 ? 'Find Your Property' : step === 2 ? `${totalResults} Properties Found` : "You're All Set!";
@@ -153,28 +151,6 @@ function QuickMatchModal({ onClose }) {
                       <input type="number" placeholder="Max" value={budgetMax}
                         onChange={(e) => setBudgetMax(e.target.value)}
                         className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-blue" />
-                    </div>
-                  </div>
-
-                  {/* Property Type */}
-                  <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-brand-charcoal">
-                      Property Type
-                      <span className="text-xs font-normal text-gray-400 ml-1">(optional)</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {PROPERTY_TYPES.map((pt) => (
-                        <label key={pt} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm cursor-pointer transition-colors ${
-                          propertyType === pt
-                            ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold'
-                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                        }`}>
-                          <input type="radio" name="qmPropertyType" checked={propertyType === pt}
-                            onChange={() => setPropertyType(propertyType === pt ? '' : pt)}
-                            className="sr-only" />
-                          {pt}
-                        </label>
-                      ))}
                     </div>
                   </div>
 

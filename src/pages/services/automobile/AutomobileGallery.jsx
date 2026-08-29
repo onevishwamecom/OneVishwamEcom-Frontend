@@ -148,6 +148,7 @@ export default function AutomobileGallery() {
       sidebarComponent={() => (
         <VehicleFilterSidebar
           filters={filters}
+          vehicles={vehicles}
           openSections={openSections}
           fuelTypeOptions={fuelTypeOptions}
           locationOptions={locationOptions}

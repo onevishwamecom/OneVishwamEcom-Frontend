@@ -1,11 +1,13 @@
 import { CollapsibleSection, CheckboxGroup } from '../../../components/ui';
-import { FilterShell, FilterSection, PillGroup, BudgetChipGroup } from '../shared';
+import { FilterShell, FilterSection, PillGroup, getNumericPrice } from '../shared';
+import BudgetRangeSlider from '../shared/filters/BudgetRangeSlider';
 
 const BUDGET_PRESETS = [
   { label: 'Under ₹1L',  min: 0,        max: 100_000  },
   { label: '₹1L – ₹3L',  min: 100_000,  max: 300_000  },
   { label: '₹3L – ₹10L', min: 300_000,  max: 1_000_000 },
-  { label: '₹10L+',       min: 1_000_000,max: Infinity  },
+  { label: '₹10L – ₹30L',min: 1_000_000,max: 3_000_000 },
+  { label: '₹30L+',      min: 3_000_000,max: Infinity  },
 ];
 
 const KM_PRESETS = [
@@ -28,6 +30,7 @@ export default function VehicleFilterSidebar({
   activeChips = [],
   resetFilters,
   onResetFilters,
+  vehicles = [],
   fuelTypeOptions,
   locationOptions,
   kmOpen,
@@ -73,7 +76,7 @@ export default function VehicleFilterSidebar({
         </label>
       </FilterSection>
 
-      {/* Budget */}
+      {/* Budget Slider */}
       <FilterSection
         label="Budget"
         active={!!(filters.budgetMin || filters.budgetMax)}
@@ -82,14 +85,15 @@ export default function VehicleFilterSidebar({
           updFilter('budgetMax', '');
         }}
       >
-        <BudgetChipGroup
+        <BudgetRangeSlider
+          filters={filters}
+          updateFilter={updFilter}
+          items={vehicles}
+          getPrice={(v) => getNumericPrice(v?.price)}
+          defaultMin={0}
+          defaultMax={3_000_000}
+          step={50_000}
           chips={BUDGET_PRESETS}
-          budgetMin={filters.budgetMin}
-          budgetMax={filters.budgetMax}
-          onBudgetChange={(min, max) => {
-            updFilter('budgetMin', min ? String(min) : '');
-            updFilter('budgetMax', max ? String(max) : '');
-          }}
         />
       </FilterSection>
 

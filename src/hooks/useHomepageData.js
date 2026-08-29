@@ -3,20 +3,33 @@ import { homepageAPI } from '../api';
 import cache, { PUBLIC_NAMESPACE } from '../services/cache/cacheService';
 
 const CACHE_KEY = 'homepage_data';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 10 * 1000; // 10 seconds for fresh availability updates
 
-/**
- * Homepage data hook with central cacheService strategy.
- *
- * Flow:
- * 1. Check cacheService namespace → if valid, render immediately
- * 2. Fetch fresh data or use deduplicated concurrent request
- * 3. Update cacheService + UI
- */
+function stripSoldOut(items) {
+  if (!Array.isArray(items)) return [];
+  return items.filter((item) => item && item.availabilityStatus !== 'sold_out' && item.isSoldOut !== true);
+}
+
+function sanitizeHomepageData(raw) {
+  if (!raw || typeof raw !== 'object') return raw;
+  return {
+    ...raw,
+    latestProperties: stripSoldOut(raw.latestProperties),
+    featuredProperties: stripSoldOut(raw.featuredProperties),
+    latestVehicles: stripSoldOut(raw.latestVehicles),
+    latestGroceries: stripSoldOut(raw.latestGroceries),
+    latestGarments: stripSoldOut(raw.latestGarments),
+    latestJewellery: stripSoldOut(raw.latestJewellery),
+    latestFinance: stripSoldOut(raw.latestFinance),
+    financeOfferings: stripSoldOut(raw.financeOfferings),
+    featured: stripSoldOut(raw.featured),
+  };
+}
+
 export function useHomepageData() {
   const [data, setData] = useState(() => {
     const record = cache.get(PUBLIC_NAMESPACE, CACHE_KEY);
-    return record ? record.data : null;
+    return record ? sanitizeHomepageData(record.data) : null;
   });
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState(null);
@@ -28,15 +41,15 @@ export function useHomepageData() {
     try {
       const fetcher = async () => {
         const { data: res } = await homepageAPI.getHomepageData();
-        return res.data;
+        return sanitizeHomepageData(res.data);
       };
 
       const result = await cache.fetch(PUBLIC_NAMESPACE, CACHE_KEY, fetcher, {
-        force,
+        force: true,
         ttl: CACHE_TTL,
       });
 
-      setData(result.data);
+      setData(sanitizeHomepageData(result.data));
       setError(null);
     } catch (err) {
       if (!dataRef.current) {

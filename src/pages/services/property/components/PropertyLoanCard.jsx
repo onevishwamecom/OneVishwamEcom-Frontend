@@ -17,12 +17,13 @@ export default function PropertyLoanCard({ property }) {
       <p className="text-xs text-emerald-700 mb-3">
         Check your loan eligibility and compute EMI with our banking partners.
       </p>
-      <Link
-        to={`/our-services/finance-lending${loanCtaParams}`}
-        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors w-full"
+      <button
+        type="button"
+        disabled
+        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gray-200 px-4 py-2.5 text-xs font-bold text-gray-400 cursor-not-allowed w-full select-none"
       >
         ⚡ Check Home Loan Options
-      </Link>
+      </button>
     </div>
   );
 }

@@ -22,15 +22,21 @@ function Home() {
   const { selectedCity } = useLocation();
   const { data, loading } = useHomepageData();
 
-  const latestProperties = data?.latestProperties || [];
-  const latestVehicles = data?.latestVehicles || [];
-  const latestGroceries = data?.latestGroceries || [];
-  const latestGarments = data?.latestGarments || [];
-  const latestJewellery = data?.latestJewellery || [];
-  const latestFinance = data?.latestFinance || [];
-  const financeOfferings = data?.financeOfferings || [];
+  const filterAvailable = useCallback(
+    (list) => (list || []).filter((item) => item && item.availabilityStatus !== 'sold_out' && item.isSoldOut !== true),
+    [],
+  );
+
+  const rawProperties = useMemo(() => filterAvailable(data?.latestProperties), [data?.latestProperties, filterAvailable]);
+  const latestProperties = rawProperties;
+  const latestVehicles = useMemo(() => filterAvailable(data?.latestVehicles), [data?.latestVehicles, filterAvailable]);
+  const latestGroceries = useMemo(() => filterAvailable(data?.latestGroceries), [data?.latestGroceries, filterAvailable]);
+  const latestGarments = useMemo(() => filterAvailable(data?.latestGarments), [data?.latestGarments, filterAvailable]);
+  const latestJewellery = useMemo(() => filterAvailable(data?.latestJewellery), [data?.latestJewellery, filterAvailable]);
+  const latestFinance = useMemo(() => filterAvailable(data?.latestFinance), [data?.latestFinance, filterAvailable]);
+  const financeOfferings = useMemo(() => filterAvailable(data?.financeOfferings), [data?.financeOfferings, filterAvailable]);
   const stats = data?.stats || {};
-  const featured = data?.featured || [];
+  const featured = useMemo(() => filterAvailable(data?.featured), [data?.featured, filterAvailable]);
 
   const foodGrocery = useMemo(() => 
     latestGroceries.filter((g) => FOOD_CATEGORIES.includes(g.category)),
@@ -66,7 +72,7 @@ function Home() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
     const matched = latestProperties.filter((p) =>
-      [p.title, p.subtitle, p.location, p.bhk, p.area, p.propertyType]
+      [p.title, p.subtitle, p.location, p.bhk, p.area]
         .filter(Boolean)
         .some((f) => String(f).toLowerCase().includes(q)),
     );
@@ -163,7 +169,7 @@ function Home() {
                   <i className="fa-solid fa-house-chimney" /> {stats.totalProperties || latestProperties.length} Properties Available
                 </p>
                 <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Your Dream Home May Be Just Around the Corner</h2>
-                <p className="mt-1.5 text-sm text-white/70">Houses, plots, apartments and rental homes near you.</p>
+                <p className="mt-1.5 text-sm text-white/70">Houses, Plot, apartments and rental homes near you.</p>
               </div>
               <Link
                 to="/our-services/real-estate-property"

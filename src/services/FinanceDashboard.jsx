@@ -224,7 +224,7 @@ function FinanceDashboard() {
                 Apply Now <i className="fa-solid fa-arrow-right" />
               </a>
               <p className="mt-1.5 text-xs text-blue-200 opacity-75">
-                Once clicked, we match you with pre-approved flats and sites. Loop back to search anytime.
+                Once clicked, we match you with pre-approved Flat and sites. Loop back to search anytime.
               </p>
             </div>
           </div>

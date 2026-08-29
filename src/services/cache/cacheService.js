@@ -22,7 +22,7 @@ const CACHE_VERSION = 1;
 export const CACHE_TTL = {
   user: 30 * 60 * 1000, // 30 min — profile, revalidated after login
   products: 10 * 60 * 1000, // 10 min — listing collections / lists
-  detail: 10 * 60 * 1000, // 10 min — single listing detail
+  detail: 30 * 1000, // 30 sec — single listing detail (short TTL for fresh data)
   similar: 10 * 60 * 1000, // 10 min — "similar items"
 };
 

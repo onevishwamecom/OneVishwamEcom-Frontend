@@ -7,6 +7,7 @@ export { SectorPageHeader } from './SectorPageHeader';
 export { default as BrandLoader } from './BrandLoader';
 export { default as PageSkeleton } from './PageSkeleton';
 export { default as PasswordInput } from './PasswordInput';
+export { DualRangeSlider } from './DualRangeSlider';
 
 // Templates
 export { SectorPageTemplate } from '../templates/SectorPageTemplate';

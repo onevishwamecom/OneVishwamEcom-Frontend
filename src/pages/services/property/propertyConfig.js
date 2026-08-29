@@ -25,7 +25,7 @@ export const propertyListingConfig = {
   sector: 'property',
   eyebrow: 'OneVishwam · Real Estate',
   title: 'Find Your Property',
-  subtitle: 'Verified apartments, villas, plots, and commercial spaces across top Indian cities.',
+  subtitle: 'Verified apartments, Villa, Plot, and commercial spaces across top Indian cities.',
   categories: PROPERTY_CARD_TYPES,
   cities: CITY_OPTIONS,
   bedrooms: BEDROOM_OPTIONS,

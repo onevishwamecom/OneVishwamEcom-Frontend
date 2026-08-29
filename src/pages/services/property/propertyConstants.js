@@ -1,11 +1,9 @@
 /* ── Property Type Card Definitions ── */
 export const PROPERTY_CARD_TYPES = [
-  { id: 'All',              icon: 'fa-layer-group',    label: 'All' },
-  { id: 'Lands',            icon: 'fa-tree',            label: 'Lands' },
-  { id: 'Sites',            icon: 'fa-map',             label: 'Sites' },
-  { id: 'Flat',             icon: 'fa-building',        label: 'Flat' },
-  { id: 'Villa',            icon: 'fa-house-chimney',   label: 'Villa' },
-  { id: 'Independent House',icon: 'fa-home',            label: 'Independent House' },
+  { id: 'All',   icon: 'fa-layer-group',    label: 'All' },
+  { id: 'Plot', icon: 'fa-map',             label: 'Plot' },
+  { id: 'Flat',  icon: 'fa-building',        label: 'Flat' },
+  { id: 'Villa', icon: 'fa-house-chimney',   label: 'Villa' },
 ];
 
 export const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
@@ -46,7 +44,7 @@ export const FINANCE_INCENTIVES   = ['0% Processing Fee','Quick Approval','Flexi
 export const INITIAL_FILTERS = {
   budgetMin: '', budgetMax: '',
   sizeMin: '', sizeMax: '',
-  buildingType: [], propertyType: [], bedrooms: [], localities: [],
+  buildingType: [], bedrooms: [], localities: [],
   furnishing: [], gatedCommunity: false, postedBy: [], possessionStatus: [],
   amenities: [], facing: [], propertyAge: [], availability: [],
   loanApprovedOnly: false,
@@ -54,7 +52,7 @@ export const INITIAL_FILTERS = {
 };
 
 export const INITIAL_SECTIONS = {
-  budget: true, size: true, buildingType: true, propertyType: true,
+  budget: true, size: true, buildingType: true,
   bedrooms: true, localities: true, furnishing: true, gatedCommunity: true,
   loanAvailability: true,
   postedBy: true, possessionStatus: true, amenities: false, facing: false,

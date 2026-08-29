@@ -1,6 +1,7 @@
 import React from 'react';
 import { CollapsibleSection, CheckboxGroup } from '../../../../components/ui';
-import { FilterShell, BudgetChipGroup } from '../../shared';
+import { FilterShell, getNumericPrice } from '../../shared';
+import BudgetRangeSlider from '../../shared/filters/BudgetRangeSlider';
 
 const BUDGET_CHIPS = [
   { label: 'Under ₹25K', min: 0, max: 25000 },
@@ -36,6 +37,7 @@ export default function JewelleryFilterSidebar({
   updateFilter,
   toggleSection,
   resetFilters,
+  items = [],
   certifiedOnly = false,
   setCertifiedOnly,
 }) {
@@ -64,16 +66,15 @@ export default function JewelleryFilterSidebar({
         isOpen={openSections.budget}
         onToggle={() => toggleSection('budget')}
       >
-        <BudgetChipGroup
-          presets={BUDGET_CHIPS}
-          minVal={filters.budgetMin}
-          maxVal={filters.budgetMax}
-          onSelectPreset={(min, max) => {
-            updateFilter('budgetMin', min !== null ? String(min) : '');
-            updateFilter('budgetMax', max !== null && max !== Infinity ? String(max) : '');
-          }}
-          onMinChange={(v) => updateFilter('budgetMin', v)}
-          onMaxChange={(v) => updateFilter('budgetMax', v)}
+        <BudgetRangeSlider
+          filters={filters}
+          updateFilter={updateFilter}
+          items={items}
+          getPrice={(j) => getNumericPrice(j?.price)}
+          defaultMin={0}
+          defaultMax={500_000}
+          step={5_000}
+          chips={BUDGET_CHIPS}
         />
       </CollapsibleSection>
 
