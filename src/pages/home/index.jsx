@@ -38,16 +38,24 @@ function Home() {
       return b.id - a.id;
     });
 
-  const todayListed = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties.filter((p) => p.recentlyAdded)).slice(0, 3),
-    [dummyProperties],
-  );
-  const availableNearYou = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 6),
-    [dummyProperties],
-  );
+  const todayListed = useMemo(() => {
+    const sorted = sortPropertiesImagesFirst(dummyProperties);
+    const recent = sorted.filter((p) => p.recentlyAdded);
+    return (recent.length > 0 ? recent : sorted).slice(0, 6);
+  }, [dummyProperties]);
+
+  const availableNearYou = useMemo(() => {
+    const cityName = (selectedCity || 'bengaluru').toLowerCase();
+    const matched = dummyProperties.filter((p) =>
+      (p.city && p.city.toLowerCase() === cityName) ||
+      (p.location && p.location.toLowerCase().includes(cityName))
+    );
+    const listToUse = matched.length > 0 ? matched : dummyProperties;
+    return sortPropertiesImagesFirst(listToUse).slice(0, 6);
+  }, [dummyProperties, selectedCity]);
+
   const dreamHomes = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 5),
+    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 6),
     [dummyProperties],
   );
 

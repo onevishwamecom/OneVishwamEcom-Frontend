@@ -51,6 +51,16 @@ import uniqueEnclave1 from '../assets/Unique Enclave/1.png';
 import uniqueEnclave2 from '../assets/Unique Enclave/2.png';
 import uniqueEnclave3 from '../assets/Unique Enclave/3.png';
 import vinraAlora1 from '../assets/Vinra Alora/1.png';
+import northEast1 from '../assets/North East Properties/1.png';
+import northEast2 from '../assets/North East Properties/2.png';
+import northEastVideo from '../assets/North East Properties/North East Properties Video.mp4';
+import swasthik1 from '../assets/SWASTHIK VENTURES/1.png';
+import swasthik2 from '../assets/SWASTHIK VENTURES/2.png';
+import swasthik3 from '../assets/SWASTHIK VENTURES/3.png';
+import swasthikVideo from '../assets/SWASTHIK VENTURES/SWASTHIK VENTURES Video.mp4';
+import ramkyFortuna1 from '../assets/Ramky Fortuna/1.png';
+import ramkyFortuna2 from '../assets/Ramky Fortuna/2.png';
+import ramkyFortunaVideo from '../assets/Ramky Fortuna/Ramky Fortuna Video.mp4';
 import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
 
 export const NEXON_TRAVENZA_IMAGES = [
@@ -90,6 +100,11 @@ export const ZEN_INDRAPRASTHA_IMAGES = [
   zenIndraprastha5,
   zenIndraprastha6,
   zenIndraprastha7,
+];
+
+export const RAMKY_FORTUNA_IMAGES = [
+  ramkyFortuna1,
+  ramkyFortuna2,
 ];
 
 export const ROYAL_KADHAMBAS_IMAGES = [
@@ -149,6 +164,17 @@ export const VINRA_KBR_PRIME_IMAGES = [
   vinraKbrPrime1,
 ];
 
+export const NORTH_EAST_PROPERTIES_IMAGES = [
+  northEast1,
+  northEast2,
+];
+
+export const SWASTHIK_VENTURES_IMAGES = [
+  swasthik1,
+  swasthik2,
+  swasthik3,
+];
+
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f3f4f6"/><path fill="#9ca3af" d="M300 260h200v-30l-100-100-100 100v30zm-50 130h300v-150l-100-100-200 200v50z"/></svg>`
 );
@@ -199,8 +225,9 @@ export const dummyProperties = [
     bhk: '1, 2, 3, 4 BHK',
     possession: 'Ready for Occupy',
     approval: 'RERA',
+    videoUrl: ramkyFortunaVideo,
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: RAMKY_FORTUNA_IMAGES,
     loanApproved: false,
   },
   {
@@ -248,14 +275,14 @@ export const dummyProperties = [
     bhk: '30x40, odd',
     possession: 'Ready for Registration',
     approval: 'DTCP',
-    videoUrl: 'WhatsApp Video 2026-08-12 at 16.26.49.mp4',
+    videoUrl: northEastVideo,
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: NORTH_EAST_PROPERTIES_IMAGES,
     loanApproved: false,
   },
   {
     id: 7,
-    title: 'Swastik Ventures',
+    title: 'SWASTHIK VENTURES',
     subtitle: 'Plots',
     propertyType: 'Plot',
     price: '₹ 2200/Sq.ft',
@@ -265,9 +292,9 @@ export const dummyProperties = [
     bhk: '1200-1800 Sq.ft',
     possession: 'Ready for Registration',
     approval: 'DTCP',
-    videoUrl: 'WhatsApp Video 2026-08-12 at 16.03.51.mp4',
+    videoUrl: swasthikVideo,
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: SWASTHIK_VENTURES_IMAGES,
     loanApproved: false,
   },
   {

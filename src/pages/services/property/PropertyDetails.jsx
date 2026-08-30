@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
@@ -43,13 +43,15 @@ const PROPERTY_HIGHLIGHTS_META = [
   { key: 'status', label: 'Possession', icon: 'fa-key' },
 ];
 
-function GalleryModal({ images, index, onClose, onPrev, onNext }) {
+function GalleryModal({ items = [], index, onClose, onPrev, onNext }) {
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowLeft') onPrev(); if (e.key === 'ArrowRight') onNext(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
   }, [onClose, onPrev, onNext]);
+
+  const current = items[index] || items[0];
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center" onClick={onClose}>
@@ -63,9 +65,22 @@ function GalleryModal({ images, index, onClose, onPrev, onNext }) {
         <i className="fa-solid fa-chevron-right text-xl" />
       </button>
       <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium z-10">
-        {index + 1} / {images.length}
+        {index + 1} / {items.length}
       </div>
-      <img src={resolveImage(images[index])} alt="" className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl" onClick={(e) => e.stopPropagation()} />
+      {current?.type === 'video' ? (
+        <video
+          src={current.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          controls
+          className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <img src={resolveImage(current?.url || current)} alt="" className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl" onClick={(e) => e.stopPropagation()} />
+      )}
     </div>
   );
 }
@@ -134,6 +149,7 @@ function PropertyDetails() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const similarRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -146,9 +162,47 @@ function PropertyDetails() {
   const loading = listLoading;
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
-  const similarProperties = property
-    ? properties.filter((p) => p.city === property.city && (p._id || p.id) !== (property._id || property.id)).slice(0, 8)
-    : [];
+  const activeId = property ? (property._id || property.id) : null;
+  const currentSubcat = property ? (property.subcategory || property.subCategory || property.propertyType || '') : '';
+
+  const similarProperties = useMemo(() => {
+    if (!property) return [];
+    const matched = properties.filter((p) => {
+      const pId = p._id || p.id;
+      if (String(pId) === String(activeId)) return false;
+      const pSubcat = p.subcategory || p.subCategory || p.propertyType || '';
+      return (
+        pSubcat.toLowerCase() === currentSubcat.toLowerCase() ||
+        (p.city && property.city && p.city.toLowerCase() === property.city.toLowerCase())
+      );
+    });
+    if (matched.length < 4) {
+      const rest = properties.filter((p) => {
+        const pId = p._id || p.id;
+        return String(pId) !== String(activeId) && !matched.some((m) => String(m._id || m.id) === String(pId));
+      });
+      return [...matched, ...rest].slice(0, 8);
+    }
+    return matched.slice(0, 8);
+  }, [property, properties, activeId, currentSubcat]);
+
+  useEffect(() => {
+    if (!property) return;
+    try {
+      const STORAGE_KEY = 'vishwam_recently_viewed_properties';
+      const storedJson = localStorage.getItem(STORAGE_KEY);
+      let storedList = storedJson ? JSON.parse(storedJson) : [];
+      if (!Array.isArray(storedList)) storedList = [];
+
+      const filtered = storedList.filter((item) => String(item._id || item.id) !== String(activeId));
+      const updated = [property, ...filtered].slice(0, 10);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      setRecentlyViewed(filtered.slice(0, 8));
+    } catch (e) {
+      console.warn('Recently viewed storage notice:', e);
+    }
+  }, [property, activeId]);
 
   useEffect(() => { window.scrollTo(0, 0); }, [propertySlug]);
 
@@ -181,14 +235,21 @@ function PropertyDetails() {
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
     : '';
 
+  const mediaItems = property
+    ? [
+        ...(property.images || []).map((img) => ({ type: 'image', url: img })),
+        ...(property.videoUrl ? [{ type: 'video', url: property.videoUrl }] : []),
+      ]
+    : [];
+
   const goPrev = useCallback(() => {
-    if (!property) return;
-    setCurrentImageIndex((i) => (i === 0 ? property.images.length - 1 : i - 1));
-  }, [property]);
+    if (!mediaItems.length) return;
+    setCurrentImageIndex((i) => (i === 0 ? mediaItems.length - 1 : i - 1));
+  }, [mediaItems.length]);
   const goNext = useCallback(() => {
-    if (!property) return;
-    setCurrentImageIndex((i) => (i === property.images.length - 1 ? 0 : i + 1));
-  }, [property]);
+    if (!mediaItems.length) return;
+    setCurrentImageIndex((i) => (i === mediaItems.length - 1 ? 0 : i + 1));
+  }, [mediaItems.length]);
 
   if (loading) {
     return (
@@ -210,6 +271,7 @@ function PropertyDetails() {
 
   const activeContact = getPropertyContactInfo(property);
   const whatsappUrl = `https://wa.me/${activeContact.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title}.`)}`;
+  const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
 
   const renderAmenityCard = (amenity) => {
     const icon = AMENITY_ICONS[amenity] || 'fa-star';
@@ -245,7 +307,7 @@ function PropertyDetails() {
   return (
     <div className="min-h-screen bg-gray-50">
       {galleryOpen && (
-        <GalleryModal images={property.images} index={currentImageIndex} onClose={() => setGalleryOpen(false)} onPrev={goPrev} onNext={goNext} />
+        <GalleryModal items={mediaItems} index={currentImageIndex} onClose={() => setGalleryOpen(false)} onPrev={goPrev} onNext={goNext} />
       )}
 
       {/* ─── HERO SECTION ─── */}
@@ -261,37 +323,62 @@ function PropertyDetails() {
           <div className="grid gap-6 lg:grid-cols-12">
             {/* Left — Gallery */}
             <div className="lg:col-span-7 space-y-3">
-              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-gray-100 shadow-sm group cursor-pointer" onClick={() => setGalleryOpen(true)}>
-                <img
-                  key={currentImageIndex}
-                  src={resolveImage(property.images[currentImageIndex])}
-                  alt={property.title}
-                  className="gallery-fade h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-                />
+              <div className="relative h-[300px] sm:h-[420px] lg:h-[520px] overflow-hidden rounded-2xl bg-black shadow-sm group cursor-pointer" onClick={() => setGalleryOpen(true)}>
+                {currentMedia?.type === 'video' ? (
+                  <video
+                    key={currentImageIndex}
+                    src={currentMedia.url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                  />
+                ) : (
+                  <img
+                    key={currentImageIndex}
+                    src={resolveImage(currentMedia?.url || currentMedia)}
+                    alt={property.title}
+                    className="gallery-fade h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100 z-10">
                   <i className="fa-solid fa-chevron-left" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100">
+                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100 z-10">
                   <i className="fa-solid fa-chevron-right" />
                 </button>
-                <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
-                  <i className="fa-solid fa-image mr-1" /> {property.images.length} Photos
+                <div className="absolute bottom-4 right-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium z-10">
+                  {currentMedia?.type === 'video' ? (
+                    <span><i className="fa-solid fa-video mr-1 text-emerald-400" /> Looping Video</span>
+                  ) : (
+                    <span><i className="fa-solid fa-image mr-1" /> {mediaItems.length} Media</span>
+                  )}
                 </div>
-                <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium">
+                <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-sm px-3 py-1 text-xs text-white font-medium z-10">
                   <i className="fa-solid fa-magnifying-glass-plus mr-1" /> Click to view
                 </div>
               </div>
-              {property.images.length > 1 && (
+              {mediaItems.length > 1 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
-                  {property.images.map((img, idx) => (
+                  {mediaItems.map((item, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
-                      className={`relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all duration-200 ${
+                      className={`relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all duration-200 bg-black ${
                         idx === currentImageIndex
                           ? 'border-brand-blue ring-2 ring-brand-blue/25 shadow-md scale-[1.02]'
                           : 'border-transparent opacity-70 hover:opacity-100 hover:border-gray-300'
                       }`}>
-                      <img src={resolveImage(img)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      {item.type === 'video' ? (
+                        <div className="relative h-full w-full flex items-center justify-center">
+                          <video src={item.url} autoPlay loop muted playsInline className="h-full w-full object-cover opacity-80" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <i className="fa-solid fa-play text-white text-xs bg-black/60 p-1.5 rounded-full" />
+                          </div>
+                        </div>
+                      ) : (
+                        <img src={resolveImage(item.url)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -531,18 +618,20 @@ function PropertyDetails() {
             )}
 
             {/* Recently Viewed */}
-            <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-brand-charcoal flex items-center gap-2">
-                  <i className="fa-solid fa-clock-rotate-left text-gray-400 text-sm" /> Recently Viewed
-                </h2>
+            {recentlyViewed.length > 0 && (
+              <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-brand-charcoal flex items-center gap-2">
+                    <i className="fa-solid fa-clock-rotate-left text-gray-400 text-sm" /> Recently Viewed
+                  </h2>
+                </div>
+                <div className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 scrollbar-hide">
+                  {recentlyViewed.map((sp, i) => (
+                    <PropertyCard key={(sp._id || sp.id) + '-recent-' + i} property={sp} />
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 scrollbar-hide">
-                {[property, ...similarProperties.slice(0, 4)].filter(Boolean).map((sp, i) => (
-                  <PropertyCard key={(sp._id || sp.id) + '-recent-' + i} property={sp} />
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* RIGHT — Sticky Sidebar (30%) */}

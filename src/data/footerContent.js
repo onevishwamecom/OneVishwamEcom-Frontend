@@ -66,7 +66,7 @@ export const GROUP_B_PROPERTY_TITLES = [
   'Nexon',
   'TRU Aquapolis',
   'North East Properties',
-  'Swastik Ventures',
+  'SWASTHIK VENTURES',
 ];
 
 export function getPropertyContactInfo(item) {
