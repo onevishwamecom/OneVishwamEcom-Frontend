@@ -305,7 +305,7 @@ export const dummyProperties = [
   },
   {
     id: 10,
-    title: 'Purva Northern Lights',
+    title: 'Purvankar Northern Lights',
     subtitle: 'New 1 BHK Launch',
     propertyType: 'Flats',
     price: '₹ 10250/Sq.ft',

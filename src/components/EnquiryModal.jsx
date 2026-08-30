@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { contactInfo } from '../data/footerContent';
+import { getPropertyContactInfo } from '../data/footerContent';
 
 function EnquiryModal({ open, onClose, propertyTitle }) {
   const [copied, setCopied] = useState(false);
+  const activeContact = getPropertyContactInfo(propertyTitle);
 
   useEffect(() => {
     if (!open) return;
@@ -23,7 +24,7 @@ function EnquiryModal({ open, onClose, propertyTitle }) {
 
   const copyPhone = async () => {
     try {
-      await navigator.clipboard.writeText(contactInfo.phoneRaw);
+      await navigator.clipboard.writeText(activeContact.phoneRaw);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -58,7 +59,7 @@ function EnquiryModal({ open, onClose, propertyTitle }) {
 
         <div className="px-6 py-5 space-y-4">
           <p className="text-sm text-gray-600">
-            Our {contactInfo.brandName} team will help you with this property. Reach us on the official contact number below.
+            Our {activeContact.brandName} team will help you with this property. Reach us on the official contact number below.
           </p>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
@@ -69,8 +70,8 @@ function EnquiryModal({ open, onClose, propertyTitle }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</p>
-                  <a href={`tel:${contactInfo.phoneTel}`} className="text-base font-bold text-brand-charcoal hover:text-brand-blue transition-colors">
-                    {contactInfo.phoneDisplay}
+                  <a href={`tel:${activeContact.phoneTel}`} className="text-base font-bold text-brand-charcoal hover:text-brand-blue transition-colors">
+                    {activeContact.phoneDisplay}
                   </a>
                 </div>
               </div>
@@ -91,15 +92,15 @@ function EnquiryModal({ open, onClose, propertyTitle }) {
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</p>
-                <a href={`mailto:${contactInfo.email}`} className="text-sm font-bold text-brand-charcoal hover:text-brand-blue transition-colors break-all">
-                  {contactInfo.email}
+                <a href={`mailto:${activeContact.email}`} className="text-sm font-bold text-brand-charcoal hover:text-brand-blue transition-colors break-all">
+                  {activeContact.email}
                 </a>
               </div>
             </div>
           </div>
 
           <a
-            href={`https://wa.me/${contactInfo.whatsapp}${propertyTitle ? `?text=${encodeURIComponent(`Hi, I would like to enquire about ${propertyTitle}.`)}` : ''}`}
+            href={`https://wa.me/${activeContact.whatsapp}${propertyTitle ? `?text=${encodeURIComponent(`Hi, I would like to enquire about ${propertyTitle}.`)}` : ''}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors"

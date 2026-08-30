@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
-import { contactInfo } from '../../../data/footerContent';
+import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
 import { getPropertyCoverImage } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
@@ -208,7 +208,8 @@ function PropertyDetails() {
     );
   }
 
-  const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title}.`)}`;
+  const activeContact = getPropertyContactInfo(property);
+  const whatsappUrl = `https://wa.me/${activeContact.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title}.`)}`;
 
   const renderAmenityCard = (amenity) => {
     const icon = AMENITY_ICONS[amenity] || 'fa-star';

@@ -31,7 +31,7 @@ export const footerSocialLinks = [
 
 export const footerLocations = [
   { label: 'Address', value: 'Basavanagudi Bangalore - 560 004', primary: true },
-  { label: 'Phone', value: '93648 62542' },
+  { label: 'Phone', value: '8546996611' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
 
@@ -43,3 +43,39 @@ export const contactInfo = {
   whatsapp: '918546996655',
   email: 'sinchana@spwebtechnologies.in',
 };
+
+export const contactInfoGroupB = {
+  brandName: 'One Vishwam',
+  phoneDisplay: '+91 85469 96655',
+  phoneRaw: '8546996655',
+  phoneTel: '+918546996655',
+  whatsapp: '918546996655',
+  email: 'Kj.culturecraft@gmail.com',
+};
+
+export const GROUP_B_PROPERTY_TITLES = [
+  'Nexon Travenza',
+  'Axis Niran',
+  'Axis Ektava',
+  'Zen Indraprastha',
+  'Ramky Fortuna',
+  'Purva Northern Lights',
+  'Purvankar Northern Lights',
+  'Vasundhanra Farms',
+  'Vasundhara Farms',
+  'Nexon',
+  'TRU Aquapolis',
+  'North East Properties',
+  'Swastik Ventures',
+];
+
+export function getPropertyContactInfo(item) {
+  if (!item) return contactInfo;
+  const title = typeof item === 'string' ? item : (item.title || item.name || '');
+  const tLower = title.toLowerCase().trim();
+  const isGroupB = GROUP_B_PROPERTY_TITLES.some((gt) => {
+    const gLower = gt.toLowerCase();
+    return tLower.includes(gLower) || gLower.includes(tLower);
+  });
+  return isGroupB ? contactInfoGroupB : contactInfo;
+}
