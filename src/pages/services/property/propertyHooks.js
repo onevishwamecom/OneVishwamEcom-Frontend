@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
+  getCanonicalPossession,
 } from './propertyHelpers';
 
 /**
@@ -147,34 +148,28 @@ export function useFilteredProperties({
               return pFurn === fNorm;
             }
 
-            const pPoss = String(p.possession || p.possessionStatus || '').toLowerCase();
-            const isReady = pPoss.includes('registration') || pPoss.includes('occupy') || pPoss.includes('ready');
-
             if (fNorm === 'unfurnished' && isPlotOrLand(p)) return true;
-            if (isReady) return true;
-
             return false;
           });
 
         const matchGated = !filters.gatedCommunity || p.gatedCommunity === true || p.gated === true;
         const matchPostedBy = filters.postedBy.length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
 
+        const pPossession = getCanonicalPossession(p);
         const matchPossession =
           filters.possessionStatus.length === 0 ||
           filters.possessionStatus.some((status) => {
             const statusNorm = String(status).toLowerCase().trim();
-            const pStatus = String(p.possession || p.possessionStatus || '').toLowerCase().trim();
-
-            if (!pStatus) {
-              if (statusNorm.includes('registration') && isPlotOrLand(p)) return true;
-              if (statusNorm.includes('occupy')) return true;
-              return false;
+            let targetCanonical = '';
+            if (statusNorm.includes('registration') || statusNorm.includes('register')) {
+              targetCanonical = 'ready_for_registration';
+            } else if (statusNorm.includes('occupy') || statusNorm.includes('move')) {
+              targetCanonical = 'ready_for_occupy';
+            } else if (statusNorm.includes('construction')) {
+              targetCanonical = 'under_construction';
             }
 
-            if (pStatus === statusNorm) return true;
-            if (statusNorm.includes('registration') && (pStatus.includes('registration') || pStatus.includes('register') || isPlotOrLand(p))) return true;
-            if (statusNorm.includes('occupy') && (pStatus.includes('occupy') || pStatus.includes('ready to move') || pStatus.includes('ready') || pStatus.includes('construction'))) return true;
-            return false;
+            return pPossession === targetCanonical;
           });
         
         // Handle Amenities (property amenities should contain ALL selected amenities)

@@ -107,31 +107,20 @@ export function isPlotOrLand(property) {
 
 export function getPropertyStatusPill(property) {
   if (!property) return null;
+  const canonical = getCanonicalPossession(property);
 
-  const isPlot = isPlotOrLand(property);
-
-  if (property.possession) {
-    const p = String(property.possession).trim();
-    if (p.toLowerCase().includes('registration')) {
-      return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700' };
-    }
-    if (p.toLowerCase().includes('occupy') || p.toLowerCase().includes('move')) {
-      return {
-        label: isPlot ? 'Ready for Registration' : 'Ready for Occupy',
-        cls: 'bg-emerald-100 text-emerald-700',
-      };
-    }
-    if (p.toLowerCase().includes('construction')) {
-      return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
-    }
-    return { label: p, cls: 'bg-emerald-100 text-emerald-700' };
-  }
-
-  if (isPlot) {
+  if (canonical === 'ready_for_registration') {
     return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700' };
   }
+  if (canonical === 'ready_for_occupy') {
+    return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+  }
+  if (canonical === 'under_construction') {
+    return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
+  }
 
-  return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+  const raw = String(property.possession || property.possessionStatus || '').trim();
+  return { label: raw || 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
 }
 
 export function getBedrooms(bhk, property) {
@@ -249,6 +238,26 @@ export function getStatusBadge(property) {
   if (property.status === 'closed')   return { label: 'Closed',            cls: 'bg-red-100 text-red-700' };
   if (property.shortlisted)           return { label: 'Shortlisted',       cls: 'bg-amber-100 text-amber-700' };
   return null;
+}
+
+export function getCanonicalPossession(property) {
+  if (!property) return '';
+  if (isPlotOrLand(property)) {
+    return 'ready_for_registration';
+  }
+
+  const val = String(property.possession || property.possessionStatus || '').toLowerCase().trim();
+
+  if (val.includes('registration') || val.includes('register')) {
+    return 'ready_for_registration';
+  }
+  if (val.includes('occupy') || val.includes('move')) {
+    return 'ready_for_occupy';
+  }
+  if (val.includes('construction')) {
+    return 'under_construction';
+  }
+  return 'ready_for_occupy';
 }
 
 export function getListedWithinDays(property) {
