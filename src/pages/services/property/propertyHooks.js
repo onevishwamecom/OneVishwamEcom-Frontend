@@ -31,6 +31,8 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
 export function useActiveChips(filters) {
   return useMemo(() => {
     const chips = [];
+    if (!filters) return chips;
+
     if (filters.budgetMin || filters.budgetMax) {
       const label = [
         filters.budgetMin && `Min ₹${(+filters.budgetMin / 100000).toFixed(1)}L`,
@@ -38,17 +40,18 @@ export function useActiveChips(filters) {
       ].filter(Boolean).join(' – ');
       chips.push({ key: 'budget', label: `Budget: ${label}` });
     }
-    filters.buildingType.forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
-    filters.propertyType.forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
-    filters.bedrooms.forEach((b)         => chips.push({ key: `bed-${b}`,   label: b }));
-    filters.localities.forEach((l)       => chips.push({ key: `loc-${l}`,   label: l }));
-    filters.furnishing.forEach((f)       => chips.push({ key: `furn-${f}`,  label: f }));
-    filters.postedBy.forEach((p)         => chips.push({ key: `pb-${p}`,    label: p }));
-    filters.possessionStatus.forEach((p) => chips.push({ key: `poss-${p}`,  label: p }));
-    filters.amenities.forEach((a)        => chips.push({ key: `amen-${a}`,  label: a }));
-    filters.facing.forEach((f)           => chips.push({ key: `face-${f}`,  label: f }));
-    filters.propertyAge.forEach((a)      => chips.push({ key: `age-${a}`,   label: a }));
-    filters.availability.forEach((a)     => chips.push({ key: `avail-${a}`, label: a }));
+    (filters.buildingType || []).forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
+    (filters.propertyType || []).forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
+    (filters.subcategory || []).forEach((t)      => chips.push({ key: `sub-${t}`,   label: t }));
+    (filters.bedrooms || []).forEach((b)         => chips.push({ key: `bed-${b}`,   label: b }));
+    (filters.localities || []).forEach((l)       => chips.push({ key: `loc-${l}`,   label: l }));
+    (filters.furnishing || []).forEach((f)       => chips.push({ key: `furn-${f}`,  label: f }));
+    (filters.postedBy || []).forEach((p)         => chips.push({ key: `pb-${p}`,    label: p }));
+    (filters.possessionStatus || []).forEach((p) => chips.push({ key: `poss-${p}`,  label: p }));
+    (filters.amenities || []).forEach((a)        => chips.push({ key: `amen-${a}`,  label: a }));
+    (filters.facing || []).forEach((f)           => chips.push({ key: `face-${f}`,  label: f }));
+    (filters.propertyAge || []).forEach((a)      => chips.push({ key: `age-${a}`,   label: a }));
+    (filters.availability || []).forEach((a)     => chips.push({ key: `avail-${a}`, label: a }));
     if (filters.listedWithin) chips.push({ key: 'listed', label: `Listed: ${filters.listedWithin}` });
     if (filters.gatedCommunity) chips.push({ key: 'gated', label: 'Gated Community' });
     if (filters.loanApprovedOnly) chips.push({ key: 'loan', label: 'Pre‑approved loan only' });

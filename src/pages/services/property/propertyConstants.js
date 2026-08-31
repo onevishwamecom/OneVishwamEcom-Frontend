@@ -44,10 +44,10 @@ export const FINANCE_INCENTIVES   = ['0% Processing Fee','Quick Approval','Flexi
 export const INITIAL_FILTERS = {
   budgetMin: '', budgetMax: '',
   sizeMin: '', sizeMax: '',
-  buildingType: [], bedrooms: [], localities: [],
+  buildingType: [], propertyType: [], subcategory: [], bedrooms: [], localities: [],
   furnishing: [], gatedCommunity: false, postedBy: [], possessionStatus: [],
   amenities: [], facing: [], propertyAge: [], availability: [],
-  loanApprovedOnly: false,
+  listedWithin: '', loanApprovedOnly: false,
   tenantType: [], pets: [],
 };
 
