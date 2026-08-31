@@ -190,7 +190,7 @@ function Home() {
                     price={p.price}
                     priceSuffix={p.priceSuffix}
                     location={p.location || p.city}
-                    tags={[p.bhk || '', p.furnishing].filter(Boolean)}
+                    tags={getDetailTags(p)}
                     badges={[
                       ...(p.recentlyAdded ? [{ label: 'New', className: 'bg-emerald-500 text-white' }] : []),
                       ...(p.loanApproved ? [{ label: 'Loan OK', className: 'bg-blue-500 text-white' }] : []),
