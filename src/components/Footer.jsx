@@ -56,11 +56,6 @@ function Footer() {
                   <span className="text-gray-300 font-medium">{loc.label}:</span> {loc.value}
                 </li>
               ))}
-              <li className="pt-2">
-                <a href="tel:+918546996622" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
-                  <i className="fa-solid fa-phone mr-1.5" />+91 85469 96622
-                </a>
-              </li>
             </ul>
           </div>
         </div>
