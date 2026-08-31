@@ -8,16 +8,68 @@ export function getNumericArea(area) {
 }
 
 export function getPropertyType(property) {
-  const s = (property.subtitle || '').toLowerCase();
-  const b = String(property.bhk || '').toLowerCase();
-  if (s.includes('villa') || s.includes('farmhouse')) return 'Villa';
-  if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
-      s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
-  if (s.includes('agricultural') || s.includes('raw land') || s.includes('development plot')) return 'Lands';
-  if (s.includes('plot') || s.includes('site') || s.includes('land')) return 'Plot';
-  if (s.includes('flat') || s.includes('apartment') || s.includes('penthouse') || b.includes('bhk')) return 'Flat';
-  if (s.includes('house')) return 'Houses';
-  return 'Flat';
+  if (!property) return 'Flats';
+
+  const type = String(
+    property.propertyType ||
+    property.subcategory ||
+    property.subCategory ||
+    property.category ||
+    property.buildingType ||
+    ''
+  ).toLowerCase().trim();
+
+  const sub = String(property.subtitle || '').toLowerCase();
+  const title = String(property.title || property.name || '').toLowerCase();
+  const bhk = String(property.bhk || '').toLowerCase();
+  const fullText = `${type} ${sub} ${title} ${bhk}`;
+
+  if (
+    type.includes('commercial') ||
+    type.includes('industrial') ||
+    type.includes('showroom') ||
+    type.includes('office') ||
+    type.includes('shop') ||
+    fullText.includes('commercial') ||
+    fullText.includes('industrial') ||
+    fullText.includes('showroom') ||
+    fullText.includes('office space') ||
+    fullText.includes('shop')
+  ) {
+    return 'Commercial';
+  }
+
+  if (
+    type.includes('plot') ||
+    type.includes('site') ||
+    type.includes('land') ||
+    fullText.includes('plot') ||
+    fullText.includes('site') ||
+    fullText.includes('land') ||
+    fullText.includes('layout') ||
+    fullText.includes('enclave')
+  ) {
+    return 'Plots';
+  }
+
+  if (
+    type.includes('villa') ||
+    type.includes('farmhouse') ||
+    fullText.includes('villa') ||
+    fullText.includes('farmhouse')
+  ) {
+    return 'Villas';
+  }
+
+  if (
+    type.includes('house') ||
+    fullText.includes('house') ||
+    fullText.includes('independent house')
+  ) {
+    return 'Houses';
+  }
+
+  return 'Flats';
 }
 
 export function getPropertyTypeLabel(property) {
@@ -29,73 +81,164 @@ export function getPropertyTypeLabel(property) {
   return property.subcategory || property.subCategory || 'Flat';
 }
 
-export function getPropertyStatusPill(property) {
-  if (!property) return null;
-  const s = (
+export function isPlotOrLand(property) {
+  if (!property) return false;
+  const sub = String(
+    property.subcategory ||
     property.subCategory ||
+    property.propertyType ||
     property.category ||
     property.buildingType ||
     property.subtitle ||
     property.title ||
     ''
   ).toLowerCase();
-
   const bhk = String(property.bhk || '').toLowerCase();
+  return (
+    sub.includes('plot') ||
+    sub.includes('site') ||
+    sub.includes('land') ||
+    sub.includes('farm plot') ||
+    bhk.includes('plot') ||
+    bhk.includes('site') ||
+    bhk.includes('guntas')
+  );
+}
 
-  if (s.includes('site') || s.includes('plot') || s.includes('land')) {
+export function getPropertyStatusPill(property) {
+  if (!property) return null;
+
+  const isPlot = isPlotOrLand(property);
+
+  if (property.possession) {
+    const p = String(property.possession).trim();
+    if (p.toLowerCase().includes('registration')) {
+      return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700' };
+    }
+    if (p.toLowerCase().includes('occupy') || p.toLowerCase().includes('move')) {
+      return {
+        label: isPlot ? 'Ready for Registration' : 'Ready for Occupy',
+        cls: 'bg-emerald-100 text-emerald-700',
+      };
+    }
+    if (p.toLowerCase().includes('construction')) {
+      return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
+    }
+    return { label: p, cls: 'bg-emerald-100 text-emerald-700' };
+  }
+
+  if (isPlot) {
     return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700' };
   }
-  if (
-    s.includes('flat') ||
-    s.includes('apartment') ||
-    s.includes('villa') ||
-    s.includes('house') ||
-    s.includes('residential') ||
-    bhk.includes('bhk') ||
-    bhk.includes('rk') ||
-    !s.includes('commercial')
-  ) {
-    return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
-  }
+
   return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
 }
 
-export function getBedrooms(bhk) {
-  const bhkStr = String(bhk || '');
+export function getBedrooms(bhk, property) {
+  if (property && isPlotOrLand(property)) return '';
+  const bhkStr = String(bhk || '').trim();
+  if (
+    !bhkStr ||
+    bhkStr === 'N/A' ||
+    bhkStr.toLowerCase().includes('plot') ||
+    bhkStr.toLowerCase().includes('site') ||
+    bhkStr.toLowerCase().includes('land')
+  ) {
+    return '';
+  }
   const match = bhkStr.match(/(\d+(\.\d+)?)\s*BHK/i);
   if (match) return `${match[1]} BHK`;
   const num = parseFloat(bhkStr);
-  return !isNaN(num) ? `${num} BHK` : '';
+  return !isNaN(num) ? `${num} BHK` : bhkStr;
 }
 
 export function getBuildingType(property) {
-  const s = (property.subtitle || property.category || '').toLowerCase();
-  const b = String(property.bhk || '').toLowerCase();
-  if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
-      s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Commercial';
+  if (!property) return 'Residential';
+
+  const type = String(
+    property.buildingType ||
+    property.propertyType ||
+    property.subcategory ||
+    property.subCategory ||
+    property.category ||
+    ''
+  ).toLowerCase().trim();
+
+  const sub = String(property.subtitle || '').toLowerCase();
+  const title = String(property.title || property.name || '').toLowerCase();
+  const bhk = String(property.bhk || '').toLowerCase();
+  const area = String(property.area || '').toLowerCase();
+  const fullText = `${type} ${sub} ${title} ${bhk} ${area}`;
+
+  if (
+    type.includes('commercial') ||
+    type.includes('industrial') ||
+    type.includes('showroom') ||
+    type.includes('office') ||
+    type.includes('shop') ||
+    fullText.includes('commercial') ||
+    fullText.includes('industrial') ||
+    fullText.includes('showroom') ||
+    fullText.includes('office space') ||
+    fullText.includes('shop')
+  ) {
+    return 'Commercial';
+  }
+
   return 'Residential';
 }
 
 export function getDetailTags(property) {
+  if (!property) return [];
   const tags = [];
-  const bhkStr = String(property.bhk || '').toLowerCase();
-  if (property.bhk && !bhkStr.includes('office') && !bhkStr.includes('shop')) {
+  const isPlot = isPlotOrLand(property);
+  const bhkStr = String(property.bhk || '').trim();
+  const bhkLower = bhkStr.toLowerCase();
+
+  const isBhkValid =
+    property.bhk &&
+    property.bhk !== 'N/A' &&
+    !bhkLower.includes('office') &&
+    !bhkLower.includes('shop') &&
+    !bhkLower.includes('plot') &&
+    !bhkLower.includes('site') &&
+    !bhkLower.includes('land') &&
+    !isPlot;
+
+  if (isBhkValid) {
+    tags.push(property.bhk);
+  } else if (isPlot && property.bhk && !bhkLower.includes('plot') && !bhkLower.includes('site') && !bhkLower.includes('land')) {
     tags.push(property.bhk);
   }
-  if (property.area)    tags.push(property.area);
-  if (property.furnishing) tags.push(property.furnishing);
-  if (property.floor)   tags.push(property.floor);
-  if (property.parking && property.parking !== 'N/A') tags.push(property.parking);
+
+  if (property.area) tags.push(property.area);
+  if (property.furnishing && property.furnishing !== 'NA' && property.furnishing !== 'N/A' && !isPlot) {
+    tags.push(property.furnishing);
+  }
+  if (property.floor && !isPlot) tags.push(property.floor);
+  if (property.parking && property.parking !== 'N/A' && !isPlot) tags.push(property.parking);
   return tags.slice(0, 3);
 }
 
 export function getCardType(property) {
-  const t = getPropertyType(property);
-  if (t === 'Lands')   return 'Lands';
-  if (t === 'Plot')   return 'Sites';
-  if (t === 'Flat')   return 'Flat';
-  if (t === 'Villa')  return 'Villa';
-  if (t === 'Houses')  return 'Independent House';
+  if (!property) return 'Flat';
+
+  const type = getPropertyType(property);
+  const sub = String(property.subcategory || property.subCategory || property.category || property.title || '').toLowerCase();
+  const subtitle = String(property.subtitle || '').toLowerCase();
+
+  if (sub.includes('agricultural') || sub.includes('raw land') || subtitle.includes('agricultural')) {
+    return 'Lands';
+  }
+  if (type === 'Plots' || sub.includes('plot') || sub.includes('site') || sub.includes('land')) {
+    return 'Sites';
+  }
+  if (type === 'Villas' || sub.includes('villa') || sub.includes('farmhouse')) {
+    return 'Villa';
+  }
+  if (type === 'Houses' || sub.includes('house') || sub.includes('independent house')) {
+    return 'Independent House';
+  }
   return 'Flat';
 }
 

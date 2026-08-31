@@ -4,7 +4,7 @@ import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
@@ -235,10 +235,18 @@ function PropertyDetails() {
     ? `?type=property&id=${property.id}&title=${encodeURIComponent(property.title)}&price=${encodeURIComponent(property.price)}`
     : '';
 
+  const hasVideo = Boolean(
+    property?.videoUrl &&
+    typeof property.videoUrl === 'string' &&
+    property.videoUrl.trim() !== '' &&
+    !property.videoUrl.startsWith('WhatsApp') &&
+    !property.videoUrl.includes('youtu')
+  );
+
   const mediaItems = property
     ? [
-        ...(property.images || []).map((img) => ({ type: 'image', url: img })),
-        ...(property.videoUrl ? [{ type: 'video', url: property.videoUrl }] : []),
+        ...(property.images || []).filter(Boolean).map((img) => ({ type: 'image', url: img })),
+        ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
       ]
     : [];
 
@@ -286,10 +294,12 @@ function PropertyDetails() {
   };
 
   const renderHighlightCard = (meta) => {
+    const isPlot = isPlotOrLand(property);
+    if (meta.key === 'bhk' && isPlot) return null;
     const value = property[meta.key];
     if (!value || value === 'N/A' || value === '') return null;
     const displayValue = meta.key === 'status'
-      ? (value === 'available' ? 'Ready to Move' : value === 'closed' ? 'Closed' : value)
+      ? (getPropertyStatusPill(property)?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Move') : value))
       : value;
     return (
       <div key={meta.key} className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -406,11 +416,15 @@ function PropertyDetails() {
               {property.priceNote && <p className="mt-1 text-[11px] text-gray-400">{property.priceNote}</p>}
 
               <div className="flex flex-wrap gap-2">
-                {property.bhk && property.bhk !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.bhk}</span>}
+                {!isPlotOrLand(property) && property.bhk && property.bhk !== 'N/A' && !String(property.bhk).toLowerCase().includes('plot') && (
+                  <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.bhk}</span>
+                )}
                 {property.area && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.area}</span>}
-                {property.furnishing && property.furnishing !== 'N/A' && <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.furnishing}</span>}
-                <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${property.status === 'available' ? 'bg-emerald-100 text-emerald-700' : property.status === 'closed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {property.status === 'available' ? (property.possession || '✓ Ready to Move') : property.status}
+                {!isPlotOrLand(property) && property.furnishing && property.furnishing !== 'N/A' && property.furnishing !== 'NA' && (
+                  <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{property.furnishing}</span>
+                )}
+                <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${getPropertyStatusPill(property)?.cls || 'bg-emerald-100 text-emerald-700'}`}>
+                  {getPropertyStatusPill(property)?.label || property.possession || 'Ready to Occupy'}
                 </span>
               </div>
 
@@ -482,6 +496,47 @@ function PropertyDetails() {
               )}
             </div>
 
+            {/* ── Floor Map PDF Viewer Module (Renders ONLY when PDF exists) ── */}
+            {(property.pdfUrl || property.floorPlanPdf || property.pdf) && (
+              <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                      <i className="fa-solid fa-file-pdf text-red-600 text-sm" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-brand-charcoal">Unit Floor Maps & Layout Plans</h2>
+                      <p className="text-xs text-gray-500">Interactive PDF floor plans & unit dimensions</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={property.pdfUrl || property.floorPlanPdf || property.pdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <i className="fa-solid fa-up-right-from-square text-[10px]" /> Fullscreen
+                    </a>
+                    <a
+                      href={property.pdfUrl || property.floorPlanPdf || property.pdf}
+                      download
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                    >
+                      <i className="fa-solid fa-download text-[10px]" /> Download PDF
+                    </a>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                  <iframe
+                    src={property.pdfUrl || property.floorPlanPdf || property.pdf}
+                    className="w-full h-[450px] sm:h-[550px] border-0"
+                    title={`${property.title} Floor Maps PDF`}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Amenities */}
             <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -505,16 +560,17 @@ function PropertyDetails() {
               </div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 {[
-                  { label: 'Property Type', value: property.propertyType || property.bhk },
+                  { label: 'Property Type', value: property.propertyType },
                   { label: 'Area', value: property.area },
                   { label: 'Size', value: property.sizeRange },
-                  { label: 'Bedrooms', value: property.bhk },
+                  { label: 'Bedrooms', value: isPlotOrLand(property) ? null : (property.bhk !== 'N/A' ? property.bhk : null) },
                   { label: 'Unit Options', value: property.unitOptions?.join(', ') },
                   { label: 'EOI Options', value: property.eoiOptions?.join(', ') },
                   { label: 'Price Range', value: property.priceRange },
-                  { label: 'Furnishing', value: property.furnishing },
-                  { label: 'Possession', value: property.possession || (property.status === 'available' ? 'Ready to Move' : property.status) },
+                  { label: 'Furnishing', value: isPlotOrLand(property) ? null : property.furnishing },
+                  { label: 'Possession', value: getPropertyStatusPill(property)?.label || property.possession || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Move') },
                   { label: 'Approval', value: property.approval },
+                  { label: 'Bank Loan Approval', value: property.bankLoan },
                   { label: 'Pincode', value: property.pincode },
                 ].filter(f => f.value && f.value !== 'N/A').map((f) => (
                   <div key={f.label} className="flex justify-between border-b border-gray-50 pb-2">

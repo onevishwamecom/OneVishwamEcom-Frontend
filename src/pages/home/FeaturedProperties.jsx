@@ -3,6 +3,7 @@ import { cities } from '../../data/locations';
 import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
 import { useProperties } from '../../hooks/useProperties';
+import { isPlotOrLand } from '../services/property/propertyHelpers';
 
 function FeaturedProperties() {
   const scrollRef = useRef(null);
@@ -80,7 +81,7 @@ function FeaturedProperties() {
                     <p className="mt-1 text-sm text-gray-500">{p.location}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <p className="text-lg font-bold text-brand-blue">{p.price} <span className="text-xs font-medium text-gray-400">{p.priceSuffix}</span></p>
-                      <span className="text-xs text-gray-400">{p.bhk}</span>
+                      <span className="text-xs text-gray-400">{isPlotOrLand(p) ? (p.area || 'Plot') : (p.bhk || '')}</span>
                     </div>
                   </div>
                 </div>

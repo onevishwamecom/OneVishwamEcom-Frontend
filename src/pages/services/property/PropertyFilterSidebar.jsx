@@ -1,9 +1,78 @@
 import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
 import {
-  BUDGET_RANGES, SIZE_OPTIONS, BEDROOM_OPTIONS, FURNISHING_OPTIONS,
+  SIZE_OPTIONS, BEDROOM_OPTIONS, FURNISHING_OPTIONS,
   POSTED_BY_OPTIONS, POSSESSION_OPTIONS, AMENITIES_LIST, FACING_OPTIONS,
   AGE_OPTIONS, AVAILABILITY_OPTIONS, LISTED_WITHIN_OPTIONS,
 } from './propertyConstants';
+
+function formatPriceLabel(val) {
+  const num = Number(val);
+  if (!num || isNaN(num) || num <= 0) return '₹ 0';
+  if (num >= 10000000) {
+    const cr = (num / 10000000).toFixed(1).replace(/\.0$/, '');
+    return `₹ ${cr} Cr`;
+  }
+  if (num >= 100000) {
+    const lakh = (num / 100000).toFixed(1).replace(/\.0$/, '');
+    return `₹ ${lakh} L`;
+  }
+  return `₹ ${num.toLocaleString('en-IN')}`;
+}
+
+function DualRangeSlider({ min = 0, max = 50000000, step = 500000, minVal, maxVal, onChange }) {
+  const currentMin = minVal !== '' && !isNaN(minVal) ? Number(minVal) : min;
+  const currentMax = maxVal !== '' && !isNaN(maxVal) ? Number(maxVal) : max;
+
+  const minPercent = Math.max(0, Math.min(100, ((currentMin - min) / (max - min)) * 100));
+  const maxPercent = Math.max(0, Math.min(100, ((currentMax - min) / (max - min)) * 100));
+
+  return (
+    <div className="my-3 px-1">
+      <div className="flex items-center justify-between text-xs font-semibold text-brand-blue mb-2">
+        <span>{formatPriceLabel(currentMin)}</span>
+        <span>{currentMax >= max ? '₹ 5 Cr+' : formatPriceLabel(currentMax)}</span>
+      </div>
+
+      <div className="relative w-full h-5 flex items-center">
+        <div className="h-2 w-full rounded-full bg-gray-200 relative">
+          <div
+            className="absolute h-2 rounded-full bg-brand-blue"
+            style={{
+              left: `${minPercent}%`,
+              width: `${Math.max(0, maxPercent - minPercent)}%`,
+            }}
+          />
+        </div>
+
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={currentMin}
+          onChange={(e) => {
+            const val = Math.min(Number(e.target.value), currentMax - step);
+            onChange(val === min ? '' : String(val), maxVal);
+          }}
+          className="pointer-events-none absolute left-0 w-full h-2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-blue [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-blue [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+        />
+
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={currentMax}
+          onChange={(e) => {
+            const val = Math.max(Number(e.target.value), currentMin + step);
+            onChange(minVal, val === max ? '' : String(val));
+          }}
+          className="pointer-events-none absolute left-0 w-full h-2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-blue [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-blue [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+        />
+      </div>
+    </div>
+  );
+}
 
 /**
  * Reusable filter sidebar — used by both desktop aside and mobile drawer.
@@ -26,27 +95,24 @@ export default function PropertyFilterSidebar({
 
       {/* Budget */}
       <CollapsibleSection id="budget" label="Budget" open={openSections.budget} onToggle={toggleSection}>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {BUDGET_RANGES.map((r) => {
-            const active = +filters.budgetMin === r.min && +filters.budgetMax === r.max;
-            return (
-              <button key={r.label}
-                onClick={() => {
-                  if (active) { updateFilter('budgetMin', ''); updateFilter('budgetMax', ''); }
-                  else { updateFilter('budgetMin', String(r.min)); updateFilter('budgetMax', String(r.max)); }
-                }}
-                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  active ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}
-              >{r.label}</button>
-            );
-          })}
-        </div>
+        {/* Dual Range Budget Slider */}
+        <DualRangeSlider
+          min={0}
+          max={50000000}
+          step={500000}
+          minVal={filters.budgetMin}
+          maxVal={filters.budgetMax}
+          onChange={(minVal, maxVal) => {
+            updateFilter('budgetMin', minVal);
+            updateFilter('budgetMax', maxVal);
+          }}
+        />
+
         <div className="flex gap-2">
-          <input type="number" placeholder="Min" value={filters.budgetMin}
+          <input type="number" placeholder="Min (₹)" value={filters.budgetMin}
             onChange={(e) => updateFilter('budgetMin', e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue" />
-          <input type="number" placeholder="Max" value={filters.budgetMax}
+          <input type="number" placeholder="Max (₹)" value={filters.budgetMax}
             onChange={(e) => updateFilter('budgetMax', e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-brand-blue" />
         </div>
@@ -161,23 +227,8 @@ export default function PropertyFilterSidebar({
 
       {/* Possession Status */}
       <CollapsibleSection id="possessionStatus" label="Possession Status" open={openSections.possessionStatus} onToggle={toggleSection}>
-        {(() => {
-          const propertyTypes = filters.propertyType || [];
-          const isAll = propertyTypes.length === 0;
-          const hasSitesPlots = propertyTypes.some(t => ['Sites', 'Plots', 'Lands'].includes(t));
-          const hasFlatsVillas = propertyTypes.some(t => ['Flats', 'Flat', 'Villas', 'Villa', 'Commercial', 'Houses'].includes(t));
-
-          let dynamicPossessionOptions = [];
-          if (isAll || hasSitesPlots) dynamicPossessionOptions.push('Ready for Registration');
-          if (isAll || hasFlatsVillas) {
-            dynamicPossessionOptions.push('Ready for Occupy');
-          }
-
-          return (
-            <CheckboxGroup options={dynamicPossessionOptions} selected={filters.possessionStatus}
-              onChange={(v) => updateFilter('possessionStatus', v)} />
-          );
-        })()}
+        <CheckboxGroup options={POSSESSION_OPTIONS} selected={filters.possessionStatus}
+          onChange={(v) => updateFilter('possessionStatus', v)} />
       </CollapsibleSection>
 
       {/* Amenities */}

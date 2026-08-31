@@ -15,11 +15,16 @@ function Footer() {
             <p className="text-sm leading-6 text-gray-400">{footerSummary}</p>
             <div className="flex gap-3">
               {footerSocialLinks.map((s) => (
-                <button key={s.label} aria-label={s.label}
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
                   className="h-9 w-9 rounded-lg border border-gray-600 text-gray-400 hover:border-yellow-400 hover:text-yellow-400 transition-colors flex items-center justify-center"
                 >
                   <i className={s.icon} />
-                </button>
+                </a>
               ))}
             </div>
           </div>
@@ -51,11 +56,7 @@ function Footer() {
                   <span className="text-gray-300 font-medium">{loc.label}:</span> {loc.value}
                 </li>
               ))}
-              <li className="pt-2">
-                <a href="tel:+919364862542" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
-                  <i className="fa-solid fa-phone mr-1.5" />+91 93648 62542
-                </a>
-              </li>
+
             </ul>
           </div>
         </div>

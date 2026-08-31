@@ -124,7 +124,7 @@ export default React.memo(function ProductCard({
         {tags.length > 0 && (
           <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-gray-600 overflow-hidden max-h-[3rem]">
             {tags.map((t, i) => (
-              t && (
+              t && String(t).trim().toLowerCase() !== 'plots' && String(t).trim().toLowerCase() !== 'plot' && (
                 <span key={i} className="bg-gray-100 rounded-lg px-2 py-0.5 whitespace-nowrap">
                   {t}
                 </span>

@@ -1,3 +1,5 @@
+import { dummyProperties } from './dummyProperties';
+
 export const footerBrandName = 'Vishwam';
 
 export const footerSummary =
@@ -12,21 +14,12 @@ export const footerQuickLinks = [
 
 export const footerServiceLinks = [
   { label: 'Properties', href: '/our-services/real-estate-property' },
-  // { label: 'Automobiles', href: '/our-services/automobile' },
-  // { label: 'Finance & Lending', href: '/our-services/finance-lending' },
-  // { label: 'Groceries & Daily Needs', href: '/our-services/consumer-marketplace' },
-  // { label: 'Garments & Fashion', href: '/our-services/garments-fashion-lifestyle' },
-  // { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
-  // { label: 'Open Marketplace', href: '/our-services/open-marketplace' },
-  // { label: 'HR & Staffing', href: '/our-services/hr-staffing' },
-  // { label: 'Investment & Business', href: '/our-services/investment-venture-capital' },
 ];
 
 export const footerSocialLinks = [
-  { label: 'X', icon: 'fa-brands fa-x-twitter' },
-  { label: 'Facebook', icon: 'fa-brands fa-facebook-f' },
-  { label: 'Instagram', icon: 'fa-brands fa-instagram' },
-  { label: 'LinkedIn', icon: 'fa-brands fa-linkedin-in' },
+  { label: 'Instagram', icon: 'fa-brands fa-instagram', href: 'https://www.instagram.com/onevishwam/' },
+  { label: 'Facebook', icon: 'fa-brands fa-facebook-f', href: 'https://www.facebook.com/profile.php?id=61593017245527' },
+  { label: 'LinkedIn', icon: 'fa-brands fa-linkedin-in', href: 'https://www.linkedin.com/in/onevishwam' },
 ];
 
 export const footerLocations = [
@@ -37,20 +30,29 @@ export const footerLocations = [
 
 export const contactInfo = {
   brandName: 'One Vishwam',
-  phoneDisplay: '+91 85469 96655',
-  phoneRaw: '8546996655',
-  phoneTel: '+918546996655',
-  whatsapp: '918546996655',
-  email: 'sinchana@spwebtechnologies.in',
+  phoneDisplay: '+91 85469 96622',
+  phoneRaw: '8546996622',
+  phoneTel: '+918546996622',
+  whatsapp: '918546996622',
+  email: 'ceo@onevishwam.com',
 };
 
 export const contactInfoGroupB = {
   brandName: 'One Vishwam',
-  phoneDisplay: '+91 85469 96655',
-  phoneRaw: '8546996655',
-  phoneTel: '+918546996655',
-  whatsapp: '918546996655',
+  phoneDisplay: '+91 85469 96644',
+  phoneRaw: '8546996644',
+  phoneTel: '+918546996644',
+  whatsapp: '918546996644',
   email: 'Kj.culturecraft@gmail.com',
+};
+
+export const contactInfoVedantSuraksha = {
+  brandName: 'One Vishwam',
+  phoneDisplay: '+91 85469 96622',
+  phoneRaw: '8546996622',
+  phoneTel: '+918546996622',
+  whatsapp: '918546996622',
+  email: 'ceo@onevishwam.com',
 };
 
 export const GROUP_B_PROPERTY_TITLES = [
@@ -71,8 +73,66 @@ export const GROUP_B_PROPERTY_TITLES = [
 
 export function getPropertyContactInfo(item) {
   if (!item) return contactInfo;
+
+  let propObj = typeof item === 'object' ? item : null;
   const title = typeof item === 'string' ? item : (item.title || item.name || '');
   const tLower = title.toLowerCase().trim();
+
+  if (!propObj && tLower) {
+    propObj = dummyProperties.find((p) => {
+      const pTitle = (p.title || p.name || '').toLowerCase().trim();
+      return pTitle === tLower || pTitle.includes(tLower) || tLower.includes(pTitle);
+    }) || null;
+  }
+
+  // 1. Channel Partner Override (Highest Priority)
+  const cp = propObj ? (
+    Array.isArray(propObj.channelPartner)
+      ? propObj.channelPartner[0]
+      : (propObj.channelPartner || (Array.isArray(propObj.channelPartners) ? propObj.channelPartners[0] : propObj.channelPartners))
+  ) : null;
+
+  if (cp && (cp.phone || cp.email || cp.name)) {
+    const rawPhone = String(cp.phone || cp.contact || '').replace(/\D/g, '');
+    const cleanPhone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
+    const formattedPhone = cleanPhone
+      ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`
+      : contactInfo.phoneDisplay;
+
+    return {
+      brandName: cp.name || propObj?.vendorName || contactInfo.brandName,
+      phoneDisplay: formattedPhone,
+      phoneRaw: cleanPhone || contactInfo.phoneRaw,
+      phoneTel: cleanPhone ? `+91${cleanPhone}` : contactInfo.phoneTel,
+      whatsapp: cleanPhone ? `91${cleanPhone}` : contactInfo.whatsapp,
+      email: cp.email || contactInfo.email,
+    };
+  }
+
+  // 2. Property-level contact/email override
+  if (propObj && (propObj.contact || propObj.email)) {
+    const rawPhone = String(propObj.contact || '').replace(/\D/g, '');
+    const cleanPhone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
+    const formattedPhone = cleanPhone
+      ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`
+      : contactInfo.phoneDisplay;
+
+    return {
+      brandName: propObj.vendorName || contactInfo.brandName,
+      phoneDisplay: cleanPhone ? formattedPhone : contactInfo.phoneDisplay,
+      phoneRaw: cleanPhone || contactInfo.phoneRaw,
+      phoneTel: cleanPhone ? `+91${cleanPhone}` : contactInfo.phoneTel,
+      whatsapp: cleanPhone ? `91${cleanPhone}` : contactInfo.whatsapp,
+      email: propObj.email || contactInfo.email,
+    };
+  }
+
+  // 3. VEDANT SURAKSHA Rule
+  if (tLower.includes('vedant suraksha') || tLower.includes('vedantsuraksha')) {
+    return contactInfoVedantSuraksha;
+  }
+
+  // 4. Group B Rule
   const isGroupB = GROUP_B_PROPERTY_TITLES.some((gt) => {
     const gLower = gt.toLowerCase();
     return tLower.includes(gLower) || gLower.includes(tLower);

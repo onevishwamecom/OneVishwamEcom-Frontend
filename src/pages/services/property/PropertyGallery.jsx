@@ -107,9 +107,31 @@ function PropertyGallery() {
     else navigate("/");
   };
 
-  /* ── Derived values ── */
-  const cityAreas = selectedCity ? cities[selectedCity]?.areas || [] : [];
-  const noCityMessage = !selectedCity;
+  /* ── Dynamic available localities derived from loaded properties + city dataset ── */
+  const cityAreas = useMemo(() => {
+    const areaSet = new Set();
+
+    const baseAreas = (selectedCity && cities[selectedCity]?.areas)
+      ? cities[selectedCity].areas
+      : (cities['bengaluru']?.areas || []);
+    baseAreas.forEach((a) => areaSet.add(a));
+
+    (properties || []).forEach((p) => {
+      if (p.zone) areaSet.add(p.zone);
+      if (p.location) {
+        const parts = p.location.split(',');
+        parts.forEach((part) => {
+          const clean = part.replace(/\(.*\)/g, '').replace(/-\s*\d+$/g, '').replace(/Bangalore|Bengaluru/gi, '').trim();
+          if (clean && clean.length > 2 && clean.length < 30) {
+            areaSet.add(clean);
+          }
+        });
+      }
+    });
+
+    return Array.from(areaSet).sort((a, b) => a.localeCompare(b));
+  }, [properties, selectedCity]);
+  const noCityMessage = false;
 
   const updateFilter = (key, value) => {
     setPage(1);
@@ -240,8 +262,8 @@ function PropertyGallery() {
           onSelect={(t) => { setPage(1); setSelectedCardType(t); }}
         />
 
-        {/* ── Unified Search Trigger & Post Req Action Row (All screens) ── */}
-        <div className="mt-2.5 sm:mt-4 flex items-center gap-2.5 sm:gap-3">
+        {/* ── Unified Search Trigger Row (All screens) ── */}
+        <div className="mt-2.5 sm:mt-4 flex items-center">
           {/* Retractable Search & Filter Trigger */}
           <button
             type="button"
@@ -262,16 +284,6 @@ function PropertyGallery() {
             </div>
             <i className={`fa-solid fa-chevron-down text-xs text-gray-400 transition-transform duration-200 shrink-0 ${isSearchOpen ? 'rotate-180 text-brand-blue' : ''}`} />
           </button>
-
-          {/* Post Requirement Button (Compact, responsive button for all screens) */}
-          <Link
-            to="/property/requirement"
-            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-dashed border-brand-blue/30 bg-brand-blue/5 hover:bg-brand-blue/10 px-3.5 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-bold text-brand-blue transition-all shrink-0 shadow-xs active:scale-[0.98] whitespace-nowrap"
-          >
-            <i className="fa-solid fa-circle-plus text-xs sm:text-sm" />
-            <span className="hidden sm:inline">Post Requirement</span>
-            <span className="sm:hidden">Post Req</span>
-          </Link>
         </div>
 
         {/* ── Retractable Search Panel (Smoothly expands across all screen sizes) ── */}

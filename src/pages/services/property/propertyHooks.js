@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
-  getBedrooms, getBuildingType, getListedWithinDays,
+  getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
 } from './propertyHelpers';
 
 /**
@@ -15,9 +15,9 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
         ? properties
         : properties.filter((p) => getCardType(p) === ct.id);
       stats[ct.id] = {
-        projects: items.reduce((sum, p) => sum + (p.projectCount || 0), 0),
-        keys:     items.reduce((sum, p) => sum + (p.totalUnits   || 0), 0),
-        sites:    items.reduce((sum, p) => sum + (p.availableUnits || 0), 0),
+        projects: items.reduce((sum, p) => sum + (p.projectCount || 1), 0),
+        keys:     items.reduce((sum, p) => sum + (p.totalUnits || 1), 0),
+        sites:    items.reduce((sum, p) => sum + (p.availableUnits || p.units || 1), 0),
       };
     });
     return stats;
@@ -69,7 +69,7 @@ export function useFilteredProperties({
         const type        = getPropertyType(p);
         const np          = getNumericPrice(p.price);
         const area        = getNumericArea(p.area);
-        const bedrooms    = getBedrooms(p.bhk);
+        const bedrooms    = getBedrooms(p.bhk, p);
         const buildingType= getBuildingType(p);
         const listedDays  = getListedWithinDays(p);
 
@@ -95,27 +95,87 @@ export function useFilteredProperties({
           (!filters.sizeMax || area <= +filters.sizeMax);
 
         const matchBuildingType =
-          filters.buildingType.length === 0 || filters.buildingType.includes(buildingType);
+          filters.buildingType.length === 0 ||
+          filters.buildingType.some((bt) => String(bt).toLowerCase().trim() === String(buildingType).toLowerCase().trim());
 
         const matchPropertyType =
-          filters.propertyType.length === 0 || filters.propertyType.includes(type);
+          filters.propertyType.length === 0 ||
+          filters.propertyType.some((ft) => {
+            const ftNorm = String(ft).toLowerCase().trim();
+            const typeNorm = String(type).toLowerCase().trim();
+
+            if (typeNorm === ftNorm) return true;
+            if ((ftNorm === 'plots' || ftNorm === 'plot') && (typeNorm.includes('plot') || typeNorm.includes('site') || typeNorm.includes('land'))) return true;
+            if ((ftNorm === 'flats' || ftNorm === 'flat') && (typeNorm.includes('flat') || typeNorm.includes('apartment'))) return true;
+            if ((ftNorm === 'villas' || ftNorm === 'villa') && typeNorm.includes('villa')) return true;
+            if ((ftNorm === 'houses' || ftNorm === 'house') && typeNorm.includes('house')) return true;
+            if (ftNorm === 'commercial' && (typeNorm.includes('commercial') || typeNorm.includes('industrial') || typeNorm.includes('showroom') || typeNorm.includes('office'))) return true;
+            return false;
+          });
 
         const matchBedrooms =
           filters.bedrooms.length === 0 || filters.bedrooms.includes(bedrooms);
 
         const matchLocality =
           filters.localities.length === 0 ||
-          filters.localities.some((loc) =>
-            (p.zone && String(p.zone).toLowerCase() === String(loc).toLowerCase()) ||
-            (p.location && String(p.location).toLowerCase().includes(String(loc).toLowerCase()))
-          );
+          filters.localities.some((loc) => {
+            const l = String(loc).toLowerCase().trim();
+            const pLoc = String(p.location || '').toLowerCase();
+            const pZone = String(p.zone || '').toLowerCase();
+            const pTitle = String(p.title || '').toLowerCase();
+            const pSub = String(p.subtitle || '').toLowerCase();
+            const pAddr = String(p.address || '').toLowerCase();
+            const pArea = String(p.area || '').toLowerCase();
+
+            return (
+              pLoc.includes(l) ||
+              pZone.includes(l) ||
+              pTitle.includes(l) ||
+              pSub.includes(l) ||
+              pAddr.includes(l) ||
+              pArea.includes(l)
+            );
+          });
 
         const matchFurnishing =
-          filters.furnishing.length === 0 || filters.furnishing.includes(p.furnishing);
+          filters.furnishing.length === 0 ||
+          filters.furnishing.some((f) => {
+            const fNorm = String(f).toLowerCase().replace(/[-\s]/g, '');
+            const pFurn = String(p.furnishing || '').toLowerCase().replace(/[-\s]/g, '');
 
-        const matchGated            = !filters.gatedCommunity;
-        const matchPostedBy         = filters.postedBy.length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
-        const matchPossession       = filters.possessionStatus.length === 0 || (p.possessionStatus && filters.possessionStatus.includes(p.possessionStatus));
+            if (pFurn) {
+              return pFurn === fNorm;
+            }
+
+            const pPoss = String(p.possession || p.possessionStatus || '').toLowerCase();
+            const isReady = pPoss.includes('registration') || pPoss.includes('occupy') || pPoss.includes('ready');
+
+            if (fNorm === 'unfurnished' && isPlotOrLand(p)) return true;
+            if (isReady) return true;
+
+            return false;
+          });
+
+        const matchGated = !filters.gatedCommunity || p.gatedCommunity === true || p.gated === true;
+        const matchPostedBy = filters.postedBy.length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
+
+        const matchPossession =
+          filters.possessionStatus.length === 0 ||
+          filters.possessionStatus.some((status) => {
+            const statusNorm = String(status).toLowerCase().trim();
+            const pStatus = String(p.possession || p.possessionStatus || '').toLowerCase().trim();
+
+            if (!pStatus) {
+              if (statusNorm.includes('registration') && isPlotOrLand(p)) return true;
+              if (statusNorm.includes('occupy')) return true;
+              return false;
+            }
+
+            if (pStatus === statusNorm) return true;
+            if (statusNorm.includes('registration') && (pStatus.includes('registration') || pStatus.includes('register') || isPlotOrLand(p))) return true;
+            if (statusNorm.includes('occupy') && (pStatus.includes('occupy') || pStatus.includes('ready to move') || pStatus.includes('ready') || pStatus.includes('construction'))) return true;
+            return false;
+          });
         
         // Handle Amenities (property amenities should contain ALL selected amenities)
         const matchAmenities        = filters.amenities.length === 0 || filters.amenities.every(a => p.amenities && p.amenities.includes(a));

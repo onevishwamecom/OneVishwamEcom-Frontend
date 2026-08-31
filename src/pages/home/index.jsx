@@ -9,7 +9,7 @@ import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
 import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
-import { hasPropertyImages, getPropertyCoverImage } from '../services/property/propertyHelpers';
+import { hasPropertyImages, getPropertyCoverImage, getDetailTags } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
@@ -41,7 +41,7 @@ function Home() {
   const todayListed = useMemo(() => {
     const sorted = sortPropertiesImagesFirst(dummyProperties);
     const recent = sorted.filter((p) => p.recentlyAdded);
-    return (recent.length > 0 ? recent : sorted).slice(0, 6);
+    return (recent.length > 0 ? recent : sorted).slice(0, 5);
   }, [dummyProperties]);
 
   const availableNearYou = useMemo(() => {
@@ -51,11 +51,11 @@ function Home() {
       (p.location && p.location.toLowerCase().includes(cityName))
     );
     const listToUse = matched.length > 0 ? matched : dummyProperties;
-    return sortPropertiesImagesFirst(listToUse).slice(0, 6);
+    return sortPropertiesImagesFirst(listToUse).slice(0, 5);
   }, [dummyProperties, selectedCity]);
 
   const dreamHomes = useMemo(
-    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 6),
+    () => sortPropertiesImagesFirst(dummyProperties).slice(0, 5),
     [dummyProperties],
   );
 
@@ -67,7 +67,7 @@ function Home() {
         .filter(Boolean)
         .some((f) => String(f).toLowerCase().includes(q)),
     );
-    return sortPropertiesImagesFirst(matched).slice(0, 6);
+    return sortPropertiesImagesFirst(matched).slice(0, 5);
   }, [searchQuery, dummyProperties]);
 
   return (
@@ -99,7 +99,7 @@ function Home() {
                       title={p.title}
                       price={p.price}
                       location={p.location}
-                      tags={[p.bhk || '', p.area || ''].filter(Boolean)}
+                      tags={getDetailTags(p)}
                     />
                   </div>
                 ))}
@@ -144,11 +144,10 @@ function Home() {
         </section>
 
         {/* ── Module 1: Dream Home ── */}
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden bg-brand-navy">
           {heroProp && (
             <div className="absolute inset-0">
-              <img src={heroProp.images[0]} alt="" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/60" />
+              <div className="absolute inset-0 bg-gray-900/80" />
             </div>
           )}
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-16">
@@ -179,7 +178,7 @@ function Home() {
                     price={p.price}
                     priceSuffix={p.priceSuffix}
                     location={p.location}
-                    tags={[p.bhk || '', p.furnishing].filter(Boolean)}
+                    tags={getDetailTags(p)}
                     badges={[
                       ...(p.recentlyAdded ? [{ label: 'New', className: 'bg-emerald-500 text-white' }] : []),
                       ...(p.loanApproved ? [{ label: 'Loan OK', className: 'bg-blue-500 text-white' }] : []),
@@ -516,7 +515,7 @@ function Home() {
                     price={item.price}
                     priceSuffix={item.priceSuffix}
                     location={item.location}
-                    tags={[item.bhk || '']}
+                    tags={getDetailTags(item)}
                   />
                 </div>
               ))}
