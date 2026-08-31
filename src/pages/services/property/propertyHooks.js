@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
-  getCanonicalPossession,
+  getCanonicalPossession, getCanonicalFurnishing,
 } from './propertyHelpers';
 
 /**
@@ -138,18 +138,17 @@ export function useFilteredProperties({
             );
           });
 
+        const pFurnishing = getCanonicalFurnishing(p);
         const matchFurnishing =
           filters.furnishing.length === 0 ||
           filters.furnishing.some((f) => {
             const fNorm = String(f).toLowerCase().replace(/[-\s]/g, '');
-            const pFurn = String(p.furnishing || '').toLowerCase().replace(/[-\s]/g, '');
+            let target = 'unfurnished';
+            if (fNorm.includes('semi')) target = 'semi_furnished';
+            else if (fNorm.includes('un')) target = 'unfurnished';
+            else if (fNorm.includes('furnish')) target = 'furnished';
 
-            if (pFurn) {
-              return pFurn === fNorm;
-            }
-
-            if (fNorm === 'unfurnished' && isPlotOrLand(p)) return true;
-            return false;
+            return pFurnishing === target;
           });
 
         const matchGated = !filters.gatedCommunity || p.gatedCommunity === true || p.gated === true;

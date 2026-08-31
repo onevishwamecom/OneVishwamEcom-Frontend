@@ -260,6 +260,40 @@ export function getCanonicalPossession(property) {
   return 'ready_for_occupy';
 }
 
+export function getCanonicalFurnishing(property) {
+  if (!property) return 'unfurnished';
+
+  if (isPlotOrLand(property)) {
+    return 'unfurnished';
+  }
+
+  if (property.furnishing) {
+    const f = String(property.furnishing).toLowerCase().replace(/[-\s]/g, '');
+    if (f.includes('semi')) return 'semi_furnished';
+    if (f.includes('un')) return 'unfurnished';
+    if (f.includes('furnish')) return 'furnished';
+  }
+
+  const text = (
+    String(property.title || '') + ' ' +
+    String(property.subtitle || '') + ' ' +
+    String(property.description || '') + ' ' +
+    String(property.details || '')
+  ).toLowerCase();
+
+  if (text.includes('fully furnished') || text.includes('fully-furnished')) {
+    return 'furnished';
+  }
+  if (text.includes('semi furnished') || text.includes('semi-furnished') || text.includes('semifurnished') || text.includes('modular kitchen')) {
+    return 'semi_furnished';
+  }
+  if (text.includes('unfurnished') || text.includes('bare shell')) {
+    return 'unfurnished';
+  }
+
+  return 'semi_furnished';
+}
+
 export function getListedWithinDays(property) {
   return property.recentlyAdded ? 0 : 30;
 }
