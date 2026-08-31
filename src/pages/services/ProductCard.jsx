@@ -6,7 +6,11 @@ import ListingCard from './shared/cards/ListingCard';
  * Acts as a backward-compatible wrapper around the Master ListingCard.
  */
 export const ProductCard = React.memo(function ProductCard(props) {
-  return <ListingCard {...props} />;
+  const filteredTags = props.tags?.filter(
+    (t) => t && String(t).trim().toLowerCase() !== 'plots' && String(t).trim().toLowerCase() !== 'plot'
+  );
+
+  return <ListingCard {...props} tags={filteredTags} />;
 });
 
 export default ProductCard;
