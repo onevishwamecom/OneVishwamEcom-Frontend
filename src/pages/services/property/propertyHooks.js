@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
-  getBedrooms, getBuildingType, getListedWithinDays,
+  getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
+  getCanonicalPossession, getCanonicalFurnishing, getPropertyTypeLabel,
 } from './propertyHelpers';
 
 /**
@@ -15,9 +16,9 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
         ? properties
         : properties.filter((p) => getCardType(p) === ct.id);
       stats[ct.id] = {
-        projects: items.reduce((sum, p) => sum + (p.projectCount || 0), 0),
-        keys:     items.reduce((sum, p) => sum + (p.totalUnits   || 0), 0),
-        sites:    items.reduce((sum, p) => sum + (p.availableUnits || 0), 0),
+        projects: Math.max(items.length > 0 ? 1 : 0, items.reduce((sum, p) => sum + (p.projectCount || 0), 0)),
+        keys:     Math.max(items.length, items.reduce((sum, p) => sum + (p.totalUnits || 0), 0)),
+        sites:    Math.max(items.length, items.reduce((sum, p) => sum + (p.availableUnits || 0), 0)),
       };
     });
     return stats;
@@ -38,6 +39,7 @@ export function useActiveChips(filters) {
       chips.push({ key: 'budget', label: `Budget: ${label}` });
     }
     filters.buildingType.forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
+    filters.propertyType.forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
     filters.bedrooms.forEach((b)         => chips.push({ key: `bed-${b}`,   label: b }));
     filters.localities.forEach((l)       => chips.push({ key: `loc-${l}`,   label: l }));
     filters.furnishing.forEach((f)       => chips.push({ key: `furn-${f}`,  label: f }));
@@ -67,7 +69,7 @@ export function useFilteredProperties({
       .filter((p) => {
         const np          = getNumericPrice(p.price);
         const area        = getNumericArea(p.area);
-        const bedrooms    = getBedrooms(p.bhk);
+        const bedrooms    = getBedrooms(p.bhk, p);
         const buildingType= getBuildingType(p);
         const listedDays  = getListedWithinDays(p);
 
@@ -103,17 +105,20 @@ export function useFilteredProperties({
         const matchBuildingType =
           buildingTypes.length === 0 || buildingTypes.includes(buildingType);
 
-        const subcategoryLabel = (p.subcategory || p.subCategory || getPropertyTypeLabel(p) || 'Flats');
         const propTypes = filters?.propertyType || filters?.subcategory || [];
         const matchPropertyType =
           propTypes.length === 0 ||
           propTypes.some((t) => {
-            const tLower = t.toLowerCase();
-            const pSubLower = String(p.subcategory || p.subCategory || subcategoryLabel).toLowerCase();
-            if (tLower.includes('plot') || tLower.includes('site')) return pSubLower.includes('plot') || pSubLower.includes('site') || pSubLower.includes('land');
-            if (tLower.includes('villa')) return pSubLower.includes('villa');
-            if (tLower.includes('flat') || tLower.includes('apartment')) return pSubLower.includes('flat') || pSubLower.includes('apartment') || pSubLower.includes('house');
-            return pSubLower.includes(tLower);
+            const ftNorm = String(t).toLowerCase().trim();
+            const pType = getPropertyType(p).toLowerCase();
+
+            if (pType === ftNorm) return true;
+            if ((ftNorm === 'plots' || ftNorm === 'plot') && isPlotOrLand(p)) return true;
+            if ((ftNorm === 'flats' || ftNorm === 'flat') && pType.includes('flat')) return true;
+            if ((ftNorm === 'villas' || ftNorm === 'villa') && pType.includes('villa')) return true;
+            if ((ftNorm === 'houses' || ftNorm === 'house') && (pType.includes('house') || pType.includes('home'))) return true;
+            if (ftNorm === 'commercial' && (pType.includes('commercial') || buildingType === 'Commercial')) return true;
+            return false;
           });
 
         const bedroomsList = filters?.bedrooms || [];
@@ -123,22 +128,62 @@ export function useFilteredProperties({
         const localitiesList = filters?.localities || [];
         const matchLocality =
           localitiesList.length === 0 ||
-          localitiesList.some((l) =>
-            (p.zone && p.zone.toLowerCase().includes(l.toLowerCase())) ||
-            (p.location && p.location.toLowerCase().includes(l.toLowerCase()))
-          );
+          localitiesList.some((loc) => {
+            const l = String(loc).toLowerCase().trim();
+            const pLoc = String(p.location || '').toLowerCase();
+            const pZone = String(p.zone || '').toLowerCase();
+            const pTitle = String(p.title || '').toLowerCase();
+            const pSub = String(p.subtitle || '').toLowerCase();
+            const pAddr = String(p.address || '').toLowerCase();
+            const pArea = String(p.area || '').toLowerCase();
 
-        const furnishingList = filters?.furnishing || [];
+            return (
+              pLoc.includes(l) ||
+              pZone.includes(l) ||
+              pTitle.includes(l) ||
+              pSub.includes(l) ||
+              pAddr.includes(l) ||
+              pArea.includes(l)
+            );
+          });
+
+        const pFurnishing = getCanonicalFurnishing(p);
         const matchFurnishing =
-          furnishingList.length === 0 || (p.furnishing && furnishingList.includes(p.furnishing));
+          (filters?.furnishing || []).length === 0 ||
+          filters.furnishing.some((f) => {
+            const fNorm = String(f).toLowerCase().replace(/[-\s]/g, '');
+            let target = 'unfurnished';
+            if (fNorm.includes('semi')) target = 'semi_furnished';
+            else if (fNorm.includes('un')) target = 'unfurnished';
+            else if (fNorm.includes('furnish')) target = 'furnished';
 
-        const matchGated            = !filters?.gatedCommunity;
-        const matchPostedBy         = (filters?.postedBy || []).length === 0;
-        const matchPossession       = (filters?.possessionStatus || []).length === 0;
-        const matchAmenities        = (filters?.amenities || []).length === 0;
-        const matchFacing           = (filters?.facing || []).length === 0;
-        const matchAge              = (filters?.propertyAge || []).length === 0;
-        const matchAvailability     = (filters?.availability || []).length === 0;
+            return pFurnishing === target;
+          });
+
+        const matchGated = !filters?.gatedCommunity || p.gatedCommunity === true || p.gated === true;
+        const matchPostedBy = (filters?.postedBy || []).length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
+
+        const pPossession = getCanonicalPossession(p);
+        const matchPossession =
+          (filters?.possessionStatus || []).length === 0 ||
+          filters.possessionStatus.some((status) => {
+            const statusNorm = String(status).toLowerCase().trim();
+            let targetCanonical = '';
+            if (statusNorm.includes('registration') || statusNorm.includes('register')) {
+              targetCanonical = 'ready_for_registration';
+            } else if (statusNorm.includes('occupy') || statusNorm.includes('move')) {
+              targetCanonical = 'ready_for_occupy';
+            } else if (statusNorm.includes('construction')) {
+              targetCanonical = 'under_construction';
+            }
+
+            return pPossession === targetCanonical;
+          });
+
+        const matchAmenities        = (filters?.amenities || []).length === 0 || filters.amenities.every(a => p.amenities && p.amenities.includes(a));
+        const matchFacing           = (filters?.facing || []).length === 0 || (p.facing && filters.facing.includes(p.facing));
+        const matchAge              = (filters?.propertyAge || []).length === 0 || (p.propertyAge && filters.propertyAge.includes(p.propertyAge));
+        const matchAvailability     = (filters?.availability || []).length === 0 || (p.availability && filters.availability.includes(p.availability));
 
         let matchListedWithin = true;
         if      (filters.listedWithin === 'Today')       matchListedWithin = listedDays === 0;
@@ -186,6 +231,5 @@ export function useFilteredProperties({
   }, [
     properties, selectedCardType, searchTerm, requirementText, sortBy, filters,
     selectedCity, locationInput, pincodeInput, familyLocationsOnly, preApprovedMode,
-    // filters.loanApprovedOnly is included via filters object
   ]);
 }

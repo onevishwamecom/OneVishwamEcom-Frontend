@@ -15,11 +15,16 @@ function Footer() {
             <p className="text-sm leading-6 text-gray-400">{footerSummary}</p>
             <div className="flex gap-3">
               {footerSocialLinks.map((s) => (
-                <button key={s.label} aria-label={s.label}
+                <a
+                  key={s.label}
+                  href={s.href || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
                   className="h-9 w-9 rounded-lg border border-gray-600 text-gray-400 hover:border-yellow-400 hover:text-yellow-400 transition-colors flex items-center justify-center"
                 >
                   <i className={s.icon} />
-                </button>
+                </a>
               ))}
             </div>
           </div>
@@ -52,15 +57,19 @@ function Footer() {
                 </li>
               ))}
               <li className="pt-2">
-                <a href="tel:+919364862542" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
-                  <i className="fa-solid fa-phone mr-1.5" />+91 93648 62542
+                <a href="tel:+918546996622" className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors font-semibold">
+                  <i className="fa-solid fa-phone mr-1.5" />+91 85469 96622
                 </a>
               </li>
             </ul>
           </div>
         </div>
-        <div className="mt-10 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
-          &copy; {year} {footerBrandName}. All rights reserved.
+        <div className="mt-12 border-t border-gray-700/60 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
+          <p>© {year} {footerBrandName}. All rights reserved.</p>
+          <div className="flex gap-6">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms-conditions" className="hover:text-white transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>
