@@ -14,7 +14,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Maruti Suzuki Arena',
       address: 'No. 12, Hosur Road, Electronic City, Bangalore - 560100',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Maruti+Suzuki+Arena+Electronic+City+Bangalore',
     },
     loanApproved: true,
@@ -41,7 +41,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Hyundai Star Motors',
       address: '45, Outer Ring Road, Marathahalli, Bangalore - 560037',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Hyundai+Showroom+Marathahalli+Bangalore',
     },
     loanApproved: true,
@@ -68,7 +68,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Tata Motors Passenger Cars',
       address: '78, Mysore-Bangalore Road, Vijayanagar, Mysore - 570017',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Tata+Motors+Mysore+Vijayanagar',
     },
     loanApproved: true,
@@ -95,7 +95,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Tata Motors Passenger Cars',
       address: 'Plot 22, Vidyanagar, Hubli - 580031',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Tata+Motors+Hubli+Vidyanagar',
     },
     loanApproved: true,
@@ -122,7 +122,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Hyundai Motor Zone',
       address: '10, Falnir Road, Kodialbail, Mangalore - 575003',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Hyundai+Showroom+Falnir+Road+Mangalore',
     },
     loanApproved: true,
@@ -149,7 +149,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Tata Motors Passenger Cars',
       address: '99, Bannerghatta Road, JP Nagar, Bangalore - 560078',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Tata+Motors+JP+Nagar+Bangalore',
     },
     loanApproved: true,
@@ -176,7 +176,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Hyundai Prime Motors',
       address: '55, Bogadi Road, Vijayanagar, Mysore - 570012',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Hyundai+Showroom+Bogadi+Road+Mysore',
     },
     loanApproved: true,
@@ -203,7 +203,7 @@ export const dummyAutomobiles = [
     showroom: {
       name: 'Maruti Suzuki NEXA',
       address: '32, Sarjapur Road, Bellandur, Bangalore - 560103',
-      phone: '9364862542',
+      phone: '8546996622',
       mapsLink: 'https://maps.google.com/?q=Maruti+NEXA+Sarjapur+Road+Bangalore',
     },
     loanApproved: true,

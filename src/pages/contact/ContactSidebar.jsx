@@ -7,7 +7,7 @@ function ContactSidebar() {
         <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">Direct Contact</p>
         <h2 className="mt-3 text-xl font-bold text-brand-charcoal">Prefer to skip the form?</h2>
         <div className="mt-6 space-y-4">
-          <a href="tel:+919364862542"
+          <a href="tel:+918546996622"
             className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 hover:border-brand-blue/20 hover:bg-brand-blue/5 transition-all"
           >
             <div className="h-10 w-10 rounded-lg bg-brand-blue flex items-center justify-center text-white">

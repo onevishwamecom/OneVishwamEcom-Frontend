@@ -589,7 +589,7 @@ export const dummyProperties = [
     sizeRange: '737 – 1726 Sq.ft',
     possession: 'Ready for Registration',
     approval: 'BMRDA Approved',
-    contact: '90909 49482',
+    contact: '8546996622',
     status: 'available',
     images: SINDHOOR_IMAGES,
     loanApproved: false,
