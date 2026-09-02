@@ -24,7 +24,7 @@ export const footerSocialLinks = [
 
 export const footerLocations = [
   { label: 'Address', value: 'Basavanagudi Bangalore - 560 004', primary: true },
-  { label: 'Phone', value: '8546996611' },
+  { label: 'Phone', value: '8546996622' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
 
@@ -39,11 +39,11 @@ export const contactInfo = {
 
 export const contactInfoGroupB = {
   brandName: 'One Vishwam',
-  phoneDisplay: '+91 85469 96644',
-  phoneRaw: '8546996644',
-  phoneTel: '+918546996644',
-  whatsapp: '918546996644',
-  email: 'Kj.culturecraft@gmail.com',
+  phoneDisplay: '+91 85469 96622',
+  phoneRaw: '8546996622',
+  phoneTel: '+918546996622',
+  whatsapp: '918546996622',
+  email: 'ceo@onevishwam.com',
 };
 
 export const contactInfoVedantSuraksha = {
