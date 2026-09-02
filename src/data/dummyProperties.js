@@ -107,19 +107,19 @@ import bmrdaNelamangala1 from '../assets/BMRDA Plot (Nelamangala)/1.jpg';
 import bmrdaNelamangala2 from '../assets/BMRDA Plot (Nelamangala)/2.jpg';
 import bmrdaNelamangala3 from '../assets/BMRDA Plot (Nelamangala)/3.jpg';
 import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
-import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.30 (1).jpeg';
-import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.30.jpeg';
-import harmonyBrindavan3 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.31 (1).jpeg';
-import harmonyBrindavan4 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.31.jpeg';
-import harmonyBrindavan5 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.32 (1).jpeg';
-import harmonyBrindavan6 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.32 (2).jpeg';
-import harmonyBrindavan7 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.32.jpeg';
-import harmonyBrindavan8 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.33 (1).jpeg';
-import harmonyBrindavan9 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.33.jpeg';
-import harmonyBrindavan10 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.34 (1).jpeg';
-import harmonyBrindavan11 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.34.jpeg';
-import harmonyBrindavan12 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.35 (1).jpeg';
-import harmonyBrindavan13 from '../assets/Harmony Brindavan Residency/WhatsApp Image 2026-09-01 at 12.19.35.jpeg';
+import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/1.jpeg';
+import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/2.jpeg';
+import harmonyBrindavan3 from '../assets/Harmony Brindavan Residency/3.jpeg';
+import harmonyBrindavan4 from '../assets/Harmony Brindavan Residency/4.jpeg';
+import harmonyBrindavan5 from '../assets/Harmony Brindavan Residency/5.jpeg';
+import harmonyBrindavan6 from '../assets/Harmony Brindavan Residency/6.jpeg';
+import harmonyBrindavan7 from '../assets/Harmony Brindavan Residency/7.jpeg';
+import harmonyBrindavan8 from '../assets/Harmony Brindavan Residency/8.jpeg';
+import harmonyBrindavan9 from '../assets/Harmony Brindavan Residency/9.jpeg';
+import harmonyBrindavan10 from '../assets/Harmony Brindavan Residency/10.jpeg';
+import harmonyBrindavan11 from '../assets/Harmony Brindavan Residency/11.jpeg';
+import harmonyBrindavan12 from '../assets/Harmony Brindavan Residency/12.jpeg';
+import harmonyBrindavan13 from '../assets/Harmony Brindavan Residency/13.jpeg';
 
 export const HARMONY_BRINDAVAN_IMAGES = [
   harmonyBrindavan1, harmonyBrindavan2, harmonyBrindavan3, harmonyBrindavan4,
