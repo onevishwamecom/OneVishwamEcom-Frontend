@@ -7,6 +7,11 @@ import nexonTravenza6 from '../assets/NexonTravenza/6.png';
 import nexonTravenza7 from '../assets/NexonTravenza/7.png';
 import nexonTravenza8 from '../assets/NexonTravenza/8.png';
 import axisNiran1 from '../assets/Axis Niran/1.png';
+import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/1.jpeg';
+import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/2.jpeg';
+import harmonyBrindavan3 from '../assets/Harmony Brindavan Residency/3.jpeg';
+import harmonyBrindavan4 from '../assets/Harmony Brindavan Residency/4.jpeg';
+import harmonyBrindavan5 from '../assets/Harmony Brindavan Residency/5.jpeg';
 import axisNiran2 from '../assets/Axis Niran/2.png';
 import axisNiran3 from '../assets/Axis Niran/3.png';
 import axisNiran4 from '../assets/Axis Niran/4.png';
@@ -41,6 +46,10 @@ import dsMaxSamyak1 from '../assets/DS-MAX Samyak/1.png';
 import dsMaxSamyak2 from '../assets/DS-MAX Samyak/2.png';
 import dsMaxSamyak3 from '../assets/DS-MAX Samyak/3.png';
 import dsMaxSamyak4 from '../assets/DS-MAX Samyak/4.png';
+import dsMaxSkysisira1 from '../assets/DS MAX Skysisira/1.jpeg';
+import dsMaxSkysisira2 from '../assets/DS MAX Skysisira/2.jpeg';
+import dsMaxSkysisira3 from '../assets/DS MAX Skysisira/3.jpeg';
+import dsMaxSkysisiraVideo from '../assets/DS MAX Skysisira/1.mp4';
 import urbanForest1 from '../assets/The Urban Forest/1.png';
 import urbanForest2 from '../assets/The Urban Forest/2.png';
 import urbanForest3 from '../assets/The Urban Forest/3.png';
@@ -302,6 +311,13 @@ export const BMRDA_NELAMANGALA_IMAGES = [
   bmrdaNelamangala1,
   bmrdaNelamangala2,
   bmrdaNelamangala3,
+];
+export const harmonyBrindavan_IMAGES = [
+  harmonyBrindavan1,
+  harmonyBrindavan2,
+  harmonyBrindavan3,
+  harmonyBrindavan4,
+  harmonyBrindavan5,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -649,8 +665,8 @@ export const dummyProperties = [
     },
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
-    status: 'available',
-    images: VINRA_ALORA_IMAGES,
+status: 'available',
+    images: [PLACEHOLDER_IMG],
     loanApproved: true,
   },
   {
@@ -813,7 +829,7 @@ export const dummyProperties = [
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: THE_CLAN_IMAGES,
+    images: [PLACEHOLDER_IMG],
     loanApproved: true,
   },
   {
@@ -1130,7 +1146,7 @@ export const dummyProperties = [
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: harmonyBrindavan_IMAGES,
     loanApproved: true,
   },
   {
@@ -1383,7 +1399,8 @@ export const dummyProperties = [
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: [dsMaxSkysisira1, dsMaxSkysisira2, dsMaxSkysisira3],
+    video: dsMaxSkysisiraVideo,
     loanApproved: true,
   },
   {
