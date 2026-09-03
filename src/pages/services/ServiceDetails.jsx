@@ -37,7 +37,7 @@ function ServiceDetails({ service }) {
         subtitle={service.description}
       />
 
-      <section className="py-16 sm:py-20">
+      <section className="py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-10 xl:grid-cols-3">
             <div className="xl:col-span-2 space-y-12">

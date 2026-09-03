@@ -21,7 +21,7 @@ function ServicesPage() {
         subtitle="Explore our diverse divisions in one unified portal. From finance and real estate to consumer marketplaces and HR solutions — everything you need under a single ecosystem."
       />
 
-      <section className="py-16 sm:py-20 bg-gray-50">
+      <section className="py-10 sm:py-12 bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {serviceItems.map((item) => (
