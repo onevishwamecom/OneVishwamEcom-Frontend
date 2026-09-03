@@ -1871,12 +1871,7 @@ status: 'available',
     possession: 'Under Construction (Dec 2028)',
     approval: 'RERA Approved',
     vendorName: 'Onevishwam',
-    channelPartner: {
-      name: 'Sinchana Kulkarni',
-      email: 'ceo@onevishwam.com',
-      phone: '8546996622',
-    },
-    contact: '8546996622',
+        contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
     images: BREN_ANNANTA_IMAGES,
@@ -1901,12 +1896,7 @@ status: 'available',
     possession: 'Under Construction',
     approval: 'RERA Approved',
     vendorName: 'Onevishwam',
-    channelPartner: {
-      name: 'Sinchana Kulkarni',
-      email: 'ceo@onevishwam.com',
-      phone: '8546996622',
-    },
-    contact: '8546996622',
+        contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
     images: BREN_AVAANA_IMAGES,
@@ -1915,6 +1905,19 @@ status: 'available',
     locality: 'Kanakapura Road',
   },
 ];
+
+
+
+const PRIORITY_TITLES = ['VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana'];
+dummyProperties.sort((a, b) => {
+  const aPrioritized = PRIORITY_TITLES.includes(a.title) ? 1 : 0;
+  const bPrioritized = PRIORITY_TITLES.includes(b.title) ? 1 : 0;
+  const aVendor = a.vendorName === 'Onevishwam' ? 1 : 0;
+  const bVendor = b.vendorName === 'Onevishwam' ? 1 : 0;
+  
+  if (aPrioritized !== bPrioritized) return bPrioritized - aPrioritized;
+  return bVendor - aVendor;
+});
 
 dummyProperties.forEach((p) => {
   if (p.id >= 12) p.recentlyAdded = true;
