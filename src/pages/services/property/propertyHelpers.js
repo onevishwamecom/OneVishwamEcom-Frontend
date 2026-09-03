@@ -250,24 +250,40 @@ export function getPropertyCoverImage(property) {
   return property.image || '';
 }
 
-/**
- * Returns true if property subtitle or vendor is 'Onevishwam'.
- * Gives top priority placement in listings.
- */
+export const PRIORITY_TITLES = [
+  'VEDANT SURAKSHA',
+  'Whispering Waves',
+  'Bren Annanta',
+  'Bren Avaana',
+];
+
 export function isOneVishwamProperty(property) {
   if (!property) return false;
-  const sub = String(property.subtitle || property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-  return sub === 'onevishwam';
+  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
+  const vendor = String(property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
+  return sub === 'onevishwam' || vendor === 'onevishwam';
 }
 
 /**
  * Priority sort helper:
- * 1. Subtitle = 'Onevishwam' top priority
- * 2. Has images priority
- * 3. Recent ID (b.id - a.id)
+ * 1. Specific in-house projects (VEDANT SURAKSHA, Whispering Waves, Bren Annanta, Bren Avaana)
+ * 2. Subtitle / Vendor = 'Onevishwam' top priority
+ * 3. Has images priority
+ * 4. Recent ID (b.id - a.id)
  */
 export function sortPropertiesWithPriority(list = []) {
   return [...list].sort((a, b) => {
+    const aTitle = String(a.title || a.name || '').trim().toLowerCase();
+    const bTitle = String(b.title || b.name || '').trim().toLowerCase();
+    const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
+    const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+
+    if (aPriIndex !== -1 && bPriIndex !== -1) {
+      return aPriIndex - bPriIndex;
+    }
+    if (aPriIndex !== -1) return -1;
+    if (bPriIndex !== -1) return 1;
+
     const aOv = isOneVishwamProperty(a) ? 1 : 0;
     const bOv = isOneVishwamProperty(b) ? 1 : 0;
     if (aOv !== bOv) return bOv - aOv;

@@ -85,7 +85,7 @@ function Home() {
 
   return (
     <div className='pt-16 lg:pt-14'>
-      <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <HeroSection />
 
       {searchQuery && (
         <section className="border-b bg-gray-50">
@@ -169,7 +169,7 @@ function Home() {
                   <i className="fa-solid fa-house-chimney" /> {stats.totalProperties || latestProperties.length} Properties Available
                 </p>
                 <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Your Dream Home May Be Just Around the Corner</h2>
-                <p className="mt-1.5 text-sm text-white/70">Houses, Plot, apartments and rental homes near you.</p>
+                <p className="mt-1.5 text-sm text-white/70">Houses, Plots, Automobiles, Jewellery, anything you need, just a click away!</p>
               </div>
               <Link
                 to="/our-services/real-estate-property"

@@ -30,6 +30,7 @@ const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
 const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
 const NotificationsPage = lazy(() => import('./pages/notifications'));
+const ComingSoon = lazy(() => import('./pages/coming-soon/ComingSoon'));
 
 function ScrollToTopAndNavHelper() {
   const location = useLocation();
@@ -172,6 +173,7 @@ function App() {
             <Route path="/reset-success" element={<ResetSuccess />} />
             <Route path="/profile/settings" element={<RequireAuth><ProfileSettings /></RequireAuth>} />
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
