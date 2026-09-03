@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getPropertyContactInfo } from '../data/footerContent';
 
-function EnquiryModal({ open, onClose, propertyTitle }) {
+function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
+  const isModalOpen = open ?? isOpen ?? false;
   const [copied, setCopied] = useState(false);
   const activeContact = getPropertyContactInfo(propertyTitle);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isModalOpen) return;
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
@@ -14,13 +15,13 @@ function EnquiryModal({ open, onClose, propertyTitle }) {
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [isModalOpen, onClose]);
 
   useEffect(() => {
-    if (!open) setCopied(false);
-  }, [open]);
+    if (!isModalOpen) setCopied(false);
+  }, [isModalOpen]);
 
-  if (!open) return null;
+  if (!isModalOpen) return null;
 
   const copyPhone = async () => {
     try {
