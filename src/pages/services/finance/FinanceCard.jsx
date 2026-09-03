@@ -12,7 +12,7 @@ export default function FinanceCard({ service }) {
   return (
     <div
       onClick={() => navigateTo(`/finance-service/${service._id || service.id}`)}
-      className="bg-white rounded-xl border-2 border-indigo-400/80 hover:border-indigo-500 overflow-hidden hover:shadow-xl ring-1 ring-indigo-400/20 transition-all duration-300 cursor-pointer flex flex-col shadow-sm"
+      className="bg-white rounded-xl border border-brand-blue/20 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col shadow-2xs"
     >
       {/* Banner area */}
       <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-brand-navy/10 to-brand-blue/10 relative">

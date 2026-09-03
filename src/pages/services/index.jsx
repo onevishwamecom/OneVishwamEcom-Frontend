@@ -14,7 +14,7 @@ function ServicesPage() {
   }
 
   return (
-    <div>
+    <div className="pt-16 lg:pt-14">
       <PageHero
         eyebrow="Our Services"
         title="A Comprehensive Multi Business Ecosystem"

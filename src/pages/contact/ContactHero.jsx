@@ -1,18 +1,13 @@
+import PageHero from '../../components/PageHero';
+
 function ContactHero() {
   return (
-    <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-widest text-yellow-400">Contact Us</p>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight">
-            Get in touch with our team
-          </h1>
-          <p className="mt-4 text-lg text-white/80 max-w-xl">
-            Whether you're looking for property investments, financial services, or retail support, our dedicated team is here to help.
-          </p>
-        </div>
-      </div>
-    </section>
+    <PageHero
+      eyebrow={{ icon: 'fa-solid fa-headset', label: 'Contact One Vishwam' }}
+      title={<>Get in Touch with <span className="text-yellow-400">Our Team</span></>}
+      subtitle="Whether you're looking for verified property investments, cooperative financial services, or marketplace partnerships, our dedicated advisors are here to assist you every step of the way."
+      image="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2000&q=80"
+    />
   );
 }
 

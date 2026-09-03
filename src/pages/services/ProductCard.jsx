@@ -5,36 +5,6 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
 );
 
-const THEME_BORDER_CLASSES = {
-  blue: 'border-2 border-brand-blue/40 hover:border-brand-blue ring-1 ring-brand-blue/20',
-  property: 'border-2 border-brand-blue/40 hover:border-brand-blue ring-1 ring-brand-blue/20',
-  gold: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
-  amber: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
-  jewellery: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
-  red: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
-  automobile: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
-  vehicle: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
-  emerald: 'border-2 border-emerald-400/80 hover:border-emerald-500 ring-1 ring-emerald-400/20',
-  grocery: 'border-2 border-emerald-400/80 hover:border-emerald-500 ring-1 ring-emerald-400/20',
-  rose: 'border-2 border-rose-400/80 hover:border-rose-500 ring-1 ring-rose-400/20',
-  garments: 'border-2 border-rose-400/80 hover:border-rose-500 ring-1 ring-rose-400/20',
-  indigo: 'border-2 border-indigo-400/80 hover:border-indigo-500 ring-1 ring-indigo-400/20',
-  finance: 'border-2 border-indigo-400/80 hover:border-indigo-500 ring-1 ring-indigo-400/20',
-};
-
-function getThemeBorderClass(theme, link, overline) {
-  if (theme && THEME_BORDER_CLASSES[theme.toLowerCase()]) {
-    return THEME_BORDER_CLASSES[theme.toLowerCase()];
-  }
-  const str = `${link || ''} ${overline || ''}`.toLowerCase();
-  if (str.includes('/jewellery') || str.includes('jewellery') || str.includes('gold')) return THEME_BORDER_CLASSES.jewellery;
-  if (str.includes('/vehicle') || str.includes('/automobile') || str.includes('vehicle') || str.includes('automobile')) return THEME_BORDER_CLASSES.automobile;
-  if (str.includes('/grocery') || str.includes('grocery') || str.includes('food')) return THEME_BORDER_CLASSES.grocery;
-  if (str.includes('/garment') || str.includes('garment') || str.includes('fashion') || str.includes('clothing')) return THEME_BORDER_CLASSES.garments;
-  if (str.includes('/finance') || str.includes('loan') || str.includes('finance')) return THEME_BORDER_CLASSES.finance;
-  return THEME_BORDER_CLASSES.property;
-}
-
 /**
  * Generic product card component.
  * Props:
@@ -69,12 +39,11 @@ export default React.memo(function ProductCard({
   children,
 }) {
   const [imgError, setImgError] = useState(false);
-  const borderClass = getThemeBorderClass(theme, link, overline);
 
   return (
     <div
       onClick={link ? () => navigateTo(link) : undefined}
-      className={`bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-sm ${borderClass}`}
+      className="bg-white rounded-xl border border-brand-blue/20 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-2xs"
     >
       {/* Image — fixed 4:3 aspect ratio, consistent across all cards */}
       <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative shrink-0">

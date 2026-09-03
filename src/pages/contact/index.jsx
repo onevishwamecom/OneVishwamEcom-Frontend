@@ -22,7 +22,7 @@ function ContactPage({ location }) {
           </div>
         </div>
       )}
-      <section className="py-16 sm:py-20">
+      <section className="py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
             <EnquiryForm loanContext={loanContext} />

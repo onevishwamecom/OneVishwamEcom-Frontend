@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import PageSkeleton from '../../components/ui/PageSkeleton';
+import PageHero from '../../components/PageHero';
 
 const PropertyGallery = lazy(() => import('./property/PropertyGallery'));
 const JewelleryGallery = lazy(() => import('./jewellery/JewelleryGallery'));
@@ -29,16 +30,12 @@ function ServiceDetails({ service }) {
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
 
   return (
-    <div>
-      <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
-          <p className="text-sm font-semibold uppercase tracking-widest text-yellow-400 mb-4">Service Details</p>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight max-w-4xl">
-            {service.title}
-          </h1>
-          <p className="mt-4 text-lg text-white/80 max-w-2xl">{service.description}</p>
-        </div>
-      </section>
+    <div className="pt-16 lg:pt-14">
+      <PageHero
+        eyebrow="Service Details"
+        title={service.title}
+        subtitle={service.description}
+      />
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">

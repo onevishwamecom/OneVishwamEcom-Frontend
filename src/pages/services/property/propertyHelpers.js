@@ -2,9 +2,168 @@ import { getNumericPrice } from '../../../utils/formatters';
 
 export { getNumericPrice };
 
+/**
+ * Parses area strings into numeric square feet with multi-unit support.
+ * Handles:
+ * - "8000 Sq.ft" / "8000 sqft" -> 8000
+ * - "1200 - 2400 Sq.ft" -> 1200 (min area)
+ * - "2 Acres" -> 87,120 sq.ft (43,560 sq.ft / acre)
+ * - "5 Guntas" -> 5,445 sq.ft (1,089 sq.ft / gunta)
+ * - "200 Sq.Yds" -> 1,800 sq.ft (9 sq.ft / sq.yd)
+ * - "10 Cents" -> 4,356 sq.ft (435.6 sq.ft / cent)
+ */
 export function getNumericArea(area) {
-  const m = area?.match(/^([\d,.]+)/);
-  return m ? parseFloat(m[1].replace(/,/g, '')) : 0;
+  if (!area) return 0;
+  const str = String(area).trim();
+  const lower = str.toLowerCase();
+
+  const m = str.match(/([\d,.]+)/);
+  if (!m) return 0;
+  const num = parseFloat(m[1].replace(/,/g, ''));
+  if (isNaN(num) || num <= 0) return 0;
+
+  if (lower.includes('acre')) return Math.round(num * 43560);
+  if (lower.includes('gunta')) return Math.round(num * 1089);
+  if (lower.includes('cent')) return Math.round(num * 435.6);
+  if (lower.includes('ground')) return Math.round(num * 2400);
+  if (lower.includes('sq.yd') || lower.includes('sq yd') || lower.includes('sqyd') || lower.includes('yard')) {
+    return Math.round(num * 9);
+  }
+
+  return num;
+}
+
+/**
+ * Extracts { min, max } area range in sq.ft from an area string.
+ */
+export function parseAreaRange(area) {
+  if (!area) return { min: 0, max: 0 };
+  const str = String(area).trim();
+  const lower = str.toLowerCase();
+  
+  let unitMultiplier = 1;
+  if (lower.includes('acre')) unitMultiplier = 43560;
+  else if (lower.includes('gunta')) unitMultiplier = 1089;
+  else if (lower.includes('cent')) unitMultiplier = 435.6;
+  else if (lower.includes('ground')) unitMultiplier = 2400;
+  else if (lower.includes('sq.yd') || lower.includes('sq yd') || lower.includes('sqyd') || lower.includes('yard')) {
+    unitMultiplier = 9;
+  }
+
+  // Check for range e.g. "1200 - 2400 Sq.ft"
+  const rangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)/);
+  if (rangeMatch) {
+    const minVal = parseFloat(rangeMatch[1].replace(/,/g, '')) * unitMultiplier;
+    const maxVal = parseFloat(rangeMatch[2].replace(/,/g, '')) * unitMultiplier;
+    return {
+      min: Math.round(Math.min(minVal, maxVal)),
+      max: Math.round(Math.max(minVal, maxVal)),
+    };
+  }
+
+  const single = getNumericArea(str);
+  return { min: single, max: single };
+}
+
+/**
+ * Parses price range and computes total property valuation.
+ * If price is per sqft (e.g. "₹ 2500/Sq.ft" with 8000 sqft area = ₹ 2.00 Cr),
+ * accurately multiplies rate * area to calculate true total worth.
+ */
+export function parsePriceRange(property) {
+  if (!property) return { min: 0, max: 0 };
+
+  const rawPriceStr = String(
+    (typeof property === 'object' ? (property.price || property.cost || property.amount) : property) || ''
+  ).trim();
+
+  if (!rawPriceStr || rawPriceStr.toLowerCase() === 'on request') {
+    return { min: 0, max: 0 };
+  }
+
+  const areaRange = parseAreaRange(
+    typeof property === 'object' ? (property.area || property.size || property.plotSize || property.bhk || '') : ''
+  );
+  const isPerSqft = /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft)/i.test(rawPriceStr);
+
+  // Check for price range e.g. "₹ 1.80 Cr – 2.50 Cr" or "₹ 78 Lakhs – 1.22 Cr"
+  const priceRangeMatch = rawPriceStr.match(/₹?\s*([\d,.]+)\s*(cr|crore|l|lakh|lakhs|k)?\s*(?:-|–|to)\s*₹?\s*([\d,.]+)\s*(cr|crore|l|lakh|lakhs|k)?/i);
+
+  if (priceRangeMatch) {
+    const num1 = parseFloat(priceRangeMatch[1].replace(/,/g, ''));
+    const unit1 = (priceRangeMatch[2] || priceRangeMatch[4] || '').toLowerCase();
+    const num2 = parseFloat(priceRangeMatch[3].replace(/,/g, ''));
+    const unit2 = (priceRangeMatch[4] || priceRangeMatch[2] || '').toLowerCase();
+
+    const mult1 = unit1.startsWith('cr') ? 10000000 : (unit1.startsWith('l') ? 100000 : (unit1.startsWith('k') ? 1000 : 1));
+    const mult2 = unit2.startsWith('cr') ? 10000000 : (unit2.startsWith('l') ? 100000 : (unit2.startsWith('k') ? 1000 : 1));
+
+    let p1 = num1 * mult1;
+    let p2 = num2 * mult2;
+
+    if (isPerSqft || (p1 < 100000 && areaRange.min > 0)) {
+      p1 = p1 * (areaRange.min || 1);
+      p2 = p2 * (areaRange.max || areaRange.min || 1);
+    }
+
+    return {
+      min: Math.round(Math.min(p1, p2)),
+      max: Math.round(Math.max(p1, p2)),
+    };
+  }
+
+  // Single price point
+  const baseNumPrice = getNumericPrice(rawPriceStr);
+
+  if (isPerSqft || (baseNumPrice > 0 && baseNumPrice < 100000 && areaRange.min > 0)) {
+    const rateMatch = rawPriceStr.match(/([\d,.]+)/);
+    const rate = rateMatch ? parseFloat(rateMatch[1].replace(/,/g, '')) : baseNumPrice;
+    if (rate > 0 && areaRange.min > 0) {
+      return {
+        min: Math.round(rate * areaRange.min),
+        max: Math.round(rate * (areaRange.max || areaRange.min)),
+      };
+    }
+  }
+
+  return { min: baseNumPrice, max: baseNumPrice };
+}
+
+/**
+ * Returns single representative total valuation in INR for sorting & filters.
+ */
+export function getTotalPropertyPrice(property) {
+  const { min } = parsePriceRange(property);
+  return min;
+}
+
+/**
+ * True if property's total valuation range overlaps the user's budget filter.
+ */
+export function matchesBudgetRange(property, budgetMin, budgetMax) {
+  if (!budgetMin && !budgetMax) return true;
+  const { min: pMin, max: pMax } = parsePriceRange(property);
+  if (pMin === 0 && pMax === 0) return true; // Keep "On Request" or unpriced properties accessible
+
+  const bMin = budgetMin ? +budgetMin : 0;
+  const bMax = budgetMax ? +budgetMax : Infinity;
+
+  // Overlap condition: property max >= budget min && property min <= budget max
+  return (pMax || pMin) >= bMin && pMin <= bMax;
+}
+
+/**
+ * True if property's size in sq.ft overlaps the user's size filter.
+ */
+export function matchesSizeRange(property, sizeMin, sizeMax) {
+  if (!sizeMin && !sizeMax) return true;
+  const { min: aMin, max: aMax } = parseAreaRange(property.area || property.size || property.plotSize || '');
+  if (aMin === 0 && aMax === 0) return true;
+
+  const sMin = sizeMin ? +sizeMin : 0;
+  const sMax = sizeMax ? +sizeMax : Infinity;
+
+  return (aMax || aMin) >= sMin && aMin <= sMax;
 }
 
 export function getPropertyType(property) {
@@ -113,14 +272,14 @@ export function getPropertyStatusPill(property) {
     return { label: 'Ready for Registration', cls: 'bg-emerald-100 text-emerald-700' };
   }
   if (canonical === 'ready_for_occupy') {
-    return { label: 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+    return { label: 'Ready to Occupy', cls: 'bg-emerald-100 text-emerald-700' };
   }
   if (canonical === 'under_construction') {
     return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
   }
 
   const raw = String(property.possession || property.possessionStatus || '').trim();
-  return { label: raw || 'Ready for Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+  return { label: raw || 'Ready to Occupy', cls: 'bg-emerald-100 text-emerald-700' };
 }
 
 export function getBedrooms(bhk, property) {

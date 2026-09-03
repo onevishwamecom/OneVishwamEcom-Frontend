@@ -1,5 +1,4 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
 
 const SECTORS = {
   automobile: {
@@ -39,9 +38,7 @@ export default function ComingSoon() {
   const sector = SECTORS[sectorKey] || DEFAULT_SECTOR;
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-brand-gray pt-16 lg:pt-14 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-gray pt-16 lg:pt-14 flex items-center justify-center px-4">
         <div className="max-w-lg w-full text-center">
 
           {/* Icon */}
@@ -84,7 +81,6 @@ export default function ComingSoon() {
 
         </div>
       </div>
-    </>
   );
 }
 

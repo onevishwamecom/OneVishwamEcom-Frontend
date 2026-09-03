@@ -19,7 +19,6 @@ export const footerServiceLinks = [
 export const footerSocialLinks = [
   { label: 'Instagram', icon: 'fa-brands fa-instagram', href: 'https://www.instagram.com/onevishwam/' },
   { label: 'Facebook', icon: 'fa-brands fa-facebook-f', href: 'https://www.facebook.com/profile.php?id=61593017245527' },
-  { label: 'LinkedIn', icon: 'fa-brands fa-linkedin-in', href: 'https://www.linkedin.com/in/onevishwam' },
 ];
 
 export const footerLocations = [
@@ -29,7 +28,7 @@ export const footerLocations = [
 ];
 
 export const contactInfo = {
-  brandName: 'One Vishwam',
+  brandName: 'OneVishwam',
   phoneDisplay: '+91 85469 96622',
   phoneRaw: '8546996622',
   phoneTel: '+918546996622',
@@ -38,7 +37,7 @@ export const contactInfo = {
 };
 
 export const contactInfoGroupB = {
-  brandName: 'One Vishwam',
+  brandName: 'OneVishwam',
   phoneDisplay: '+91 85469 96622',
   phoneRaw: '8546996622',
   phoneTel: '+918546996622',
@@ -47,7 +46,7 @@ export const contactInfoGroupB = {
 };
 
 export const contactInfoVedantSuraksha = {
-  brandName: 'One Vishwam',
+  brandName: 'OneVishwam',
   phoneDisplay: '+91 85469 96622',
   phoneRaw: '8546996622',
   phoneTel: '+918546996622',

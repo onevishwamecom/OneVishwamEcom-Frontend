@@ -157,7 +157,7 @@ function Home() {
                 to="/our-services/real-estate-property"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2.5 text-xs font-bold text-brand-navy hover:bg-yellow-300 transition-colors shrink-0"
               >
-                Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
+                Explore<i className="fa-solid fa-arrow-right text-[10px]" />
               </Link>
             </div>
 
@@ -187,7 +187,7 @@ function Home() {
                 to="/our-services/real-estate-property"
                 className={BTN_SECONDARY}
               >
-                Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
+                Explore<i className="fa-solid fa-arrow-right text-[10px]" />
               </Link>
             </div>
           </div>
@@ -378,10 +378,7 @@ function Home() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-star mr-1.5" /> Fresh Arrivals
-                </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Just Added Today</h2>
+                <h2 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">Fresh Arrivals</h2>
                 <p className="mt-1 text-sm text-gray-500">New items and services uploaded recently.</p>
               </div>
             </div>
@@ -460,7 +457,7 @@ function Home() {
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-6">
               {[
-                { icon: 'fa-house-chimney', label: 'Houses & Land', desc: 'Find houses, plots and rentals', href: '/our-services/real-estate-property' },
+                { icon: 'fa-house-chimney', label: 'Houses & Land', desc: 'Find houses, plots and villas', href: '/our-services/real-estate-property' },
                 { icon: 'fa-car', label: 'Vehicles', desc: 'Cars, bikes and commercial', href: '/our-services/automobile' },
                 { icon: 'fa-shirt', label: 'Garments', desc: 'Clothes and fashion items', href: '/our-services/garments-fashion-lifestyle' },
                 { icon: 'fa-basket-shopping', label: 'Groceries', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
@@ -485,80 +482,6 @@ function Home() {
           </div>
         </section> */}
 
-        {/* ── Module 6: Available Near You ── */}
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-location-dot mr-1.5" /> Near You
-                </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Available in {locationName}</h2>
-                <p className="mt-1 text-sm text-gray-500">Items and services from your area.</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
-              {availableNearYou.map((item) => (
-                <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/property/${item.id}`}
-                    image={getPropertyCoverImage(item)}
-                    alt={item.title}
-                    title={item.title}
-                    price={item.price}
-                    priceSuffix={item.priceSuffix}
-                    location={item.location}
-                    tags={getDetailTags(item)}
-                  />
-                </div>
-              ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {dummyAutomobiles.slice(3, 5).map((v) => (
-                    <div key={`near-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/vehicle/${v.id}`}
-                        image={v.images[0]}
-                        alt={`${v.brand} ${v.model}`}
-                        title={`${v.brand} ${v.model}`}
-                        price={v.price}
-                        location={v.location}
-                        tags={[v.fuelType]}
-                      />
-                    </div>
-                  ))}
-                  {foodGrocery.slice(2, 4).map((g) => (
-                    <div key={`near-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/grocery/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={g.name}
-                        price={g.pricePerUnit}
-                        priceSuffix={`/ ${g.unit}`}
-                        location={`${g.location?.area || ''}`}
-                      />
-                    </div>
-                  ))}
-                  {dummyGarments.slice(2, 3).map((g) => (
-                    <div key={`near-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/garment/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={`${g.brand} ${g.name}`}
-                        price={g.finalPrice}
-                        location={g.store?.city || ''}
-                        badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-        </section>
 
         {/* ── Module 7: Best Deals ── */}
         {/* <section className="mt-14 sm:mt-16 bg-gradient-to-br from-rose-50 to-orange-50 py-14 sm:py-16">
