@@ -97,7 +97,7 @@ function PropertyCard({ property }) {
   return (
     <div className="w-[190px] sm:w-[260px] lg:w-[280px] flex-shrink-0 snap-start">
       <div onClick={() => navigateTo(`/property/${property._id || property.id}`)}
-        className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col"
+        className="bg-white rounded-xl border-2 border-brand-blue/40 hover:border-brand-blue overflow-hidden hover:shadow-xl ring-1 ring-brand-blue/20 transition-all duration-300 cursor-pointer group h-full flex flex-col shadow-sm"
       >
         {/* Image */}
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -149,6 +149,9 @@ function PropertyDetails() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [activeFpIndex, setActiveFpIndex] = useState(0);
+  const [fpGalleryOpen, setFpGalleryOpen] = useState(false);
+  const [fpGalleryIndex, setFpGalleryIndex] = useState(0);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const similarRef = useRef(null);
   const navigate = useNavigate();
@@ -243,12 +246,28 @@ function PropertyDetails() {
     !property.videoUrl.includes('youtu')
   );
 
+  const floorPlanImages = useMemo(() => {
+    if (!property) return [];
+    const fp = property.floorPlanImages || property.floorPlans || property.floorPlanMap;
+    if (Array.isArray(fp)) return fp.filter(Boolean);
+    if (typeof fp === 'string' && fp) return [fp];
+    return [];
+  }, [property]);
+
+  const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
+  const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
+
   const mediaItems = property
     ? [
         ...(property.images || []).filter(Boolean).map((img) => ({ type: 'image', url: img })),
         ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
       ]
     : [];
+
+  const fpMediaItems = useMemo(
+    () => floorPlanImages.map((img) => ({ type: 'image', url: img })),
+    [floorPlanImages]
+  );
 
   const goPrev = useCallback(() => {
     if (!mediaItems.length) return;
@@ -258,6 +277,15 @@ function PropertyDetails() {
     if (!mediaItems.length) return;
     setCurrentImageIndex((i) => (i === mediaItems.length - 1 ? 0 : i + 1));
   }, [mediaItems.length]);
+
+  const goFpPrev = useCallback(() => {
+    if (!fpMediaItems.length) return;
+    setFpGalleryIndex((i) => (i === 0 ? fpMediaItems.length - 1 : i - 1));
+  }, [fpMediaItems.length]);
+  const goFpNext = useCallback(() => {
+    if (!fpMediaItems.length) return;
+    setFpGalleryIndex((i) => (i === fpMediaItems.length - 1 ? 0 : i + 1));
+  }, [fpMediaItems.length]);
 
   if (loading) {
     return (
@@ -318,6 +346,9 @@ function PropertyDetails() {
     <div className="min-h-screen bg-gray-50">
       {galleryOpen && (
         <GalleryModal items={mediaItems} index={currentImageIndex} onClose={() => setGalleryOpen(false)} onPrev={goPrev} onNext={goNext} />
+      )}
+      {fpGalleryOpen && (
+        <GalleryModal items={fpMediaItems} index={fpGalleryIndex} onClose={() => setFpGalleryOpen(false)} onPrev={goFpPrev} onNext={goFpNext} />
       )}
 
       {/* ─── HERO SECTION ─── */}
@@ -496,44 +527,113 @@ function PropertyDetails() {
               )}
             </div>
 
-            {/* ── Floor Map PDF Viewer Module (Renders ONLY when PDF exists) ── */}
-            {(property.pdfUrl || property.floorPlanPdf || property.pdf) && (
-              <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                      <i className="fa-solid fa-file-pdf text-red-600 text-sm" />
+            {/* ── Floor Map & Layout Plans Module (Renders when images OR PDF exist) ── */}
+            {hasFloorPlans && (
+              <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <i className="fa-solid fa-map-location-dot text-brand-blue text-sm" />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-brand-charcoal">Unit Floor Maps & Layout Plans</h2>
-                      <p className="text-xs text-gray-500">Interactive PDF floor plans & unit dimensions</p>
+                      <p className="text-xs text-gray-500">Floor plans, unit layouts & dimensions</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={property.pdfUrl || property.floorPlanPdf || property.pdf}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <i className="fa-solid fa-up-right-from-square text-[10px]" /> Fullscreen
-                    </a>
-                    <a
-                      href={property.pdfUrl || property.floorPlanPdf || property.pdf}
-                      download
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
-                    >
-                      <i className="fa-solid fa-download text-[10px]" /> Download PDF
-                    </a>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {floorPlanImages.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { setFpGalleryIndex(activeFpIndex); setFpGalleryOpen(true); }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <i className="fa-solid fa-expand text-[10px]" /> Fullscreen Layout
+                      </button>
+                    )}
+                    {pdfUrl && (
+                      <>
+                        <a
+                          href={pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <i className="fa-solid fa-up-right-from-square text-[10px]" /> Fullscreen PDF
+                        </a>
+                        <a
+                          href={pdfUrl}
+                          download
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                        >
+                          <i className="fa-solid fa-download text-[10px]" /> Download PDF
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                  <iframe
-                    src={property.pdfUrl || property.floorPlanPdf || property.pdf}
-                    className="w-full h-[450px] sm:h-[550px] border-0"
-                    title={`${property.title} Floor Maps PDF`}
-                  />
-                </div>
+
+                {/* ── Floor Plan Photo Viewer (when floor plan images exist) ── */}
+                {floorPlanImages.length > 0 && (
+                  <div className="space-y-3">
+                    <div
+                      className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-900 flex items-center justify-center min-h-[320px] sm:min-h-[460px] group cursor-pointer"
+                      onClick={() => { setFpGalleryIndex(activeFpIndex); setFpGalleryOpen(true); }}
+                    >
+                      <img
+                        src={resolveImage(floorPlanImages[activeFpIndex] || floorPlanImages[0])}
+                        alt={`${property.title} Floor Plan ${activeFpIndex + 1}`}
+                        className="max-h-[480px] w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3.5 text-white flex justify-between items-center">
+                        <span className="text-xs font-semibold bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                          <i className="fa-solid fa-layer-group text-blue-400 mr-1.5" />
+                          Floor Plan {activeFpIndex + 1} of {floorPlanImages.length}
+                        </span>
+                        <span className="text-xs text-gray-300 group-hover:text-white flex items-center gap-1 font-medium">
+                          <i className="fa-solid fa-expand text-xs text-blue-400" /> Click for Full Screen
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Thumbnails */}
+                    {floorPlanImages.length > 1 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {floorPlanImages.map((fp, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActiveFpIndex(idx)}
+                            className={`relative flex-shrink-0 w-20 h-16 sm:w-24 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                              activeFpIndex === idx
+                                ? 'border-brand-blue ring-2 ring-blue-400/30'
+                                : 'border-gray-200 opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img
+                              src={resolveImage(fp)}
+                              alt={`Floor Plan thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[9px] font-bold px-1 rounded">
+                              #{idx + 1}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Floor Plan PDF Iframe (when PDF exists) ── */}
+                {pdfUrl && (
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 mt-4">
+                    <iframe
+                      src={pdfUrl}
+                      className="w-full h-[450px] sm:h-[550px] border-0"
+                      title={`${property.title} Floor Maps PDF`}
+                    />
+                  </div>
+                )}
               </div>
             )}
 

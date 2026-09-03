@@ -9,7 +9,7 @@ import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
 import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
-import { hasPropertyImages, getPropertyCoverImage, getDetailTags } from '../services/property/propertyHelpers';
+import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
@@ -29,14 +29,8 @@ function Home() {
   const heroProp = dummyProperties[0];
   const locationName = selectedCity ? getCityLabel(selectedCity) : 'Your Area';
 
-  /* ── Property helpers: images-first priority, best cover image ── */
-  const sortPropertiesImagesFirst = (list) =>
-    [...list].sort((a, b) => {
-      const aImg = hasPropertyImages(a) ? 1 : 0;
-      const bImg = hasPropertyImages(b) ? 1 : 0;
-      if (aImg !== bImg) return bImg - aImg;
-      return b.id - a.id;
-    });
+  /* ── Property helpers: Onevishwam priority -> images-first priority ── */
+  const sortPropertiesImagesFirst = (list) => sortPropertiesWithPriority(list);
 
   const todayListed = useMemo(() => {
     const sorted = sortPropertiesImagesFirst(dummyProperties);

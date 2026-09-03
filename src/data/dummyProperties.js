@@ -127,6 +127,45 @@ import harmonyBrindavan10 from '../assets/Harmony Brindavan Residency/10.jpeg';
 import harmonyBrindavan11 from '../assets/Harmony Brindavan Residency/11.jpeg';
 import harmonyBrindavan12 from '../assets/Harmony Brindavan Residency/12.jpeg';
 import harmonyBrindavan13 from '../assets/Harmony Brindavan Residency/13.jpeg';
+import brenAnnanta1 from '../assets/Bren ANNANTA/1.png';
+import brenAnnanta2 from '../assets/Bren ANNANTA/2.png';
+import brenAnnanta3 from '../assets/Bren ANNANTA/3.png';
+import brenAnnanta4 from '../assets/Bren ANNANTA/4.png';
+import brenAnnanta5 from '../assets/Bren ANNANTA/5.png';
+import brenAnnantaFp1 from '../assets/Bren ANNANTA/floor_plans/1.png';
+import brenAnnantaFp2 from '../assets/Bren ANNANTA/floor_plans/2.png';
+import brenAnnantaFp3 from '../assets/Bren ANNANTA/floor_plans/3.png';
+import brenAnnantaFp4 from '../assets/Bren ANNANTA/floor_plans/4.png';
+import brenAnnantaFp5 from '../assets/Bren ANNANTA/floor_plans/5.png';
+import brenAnnantaFp6 from '../assets/Bren ANNANTA/floor_plans/6.png';
+import brenAvaana1 from '../assets/Bren AVAANA/1.png';
+import brenAvaana2 from '../assets/Bren AVAANA/2.png';
+import brenAvaana3 from '../assets/Bren AVAANA/3.png';
+import brenAvaana4 from '../assets/Bren AVAANA/4.png';
+import brenAvaana5 from '../assets/Bren AVAANA/5.png';
+import brenAvaanaFp1 from '../assets/Bren AVAANA/Floor Plan/1.png';
+import brenAvaanaFp2 from '../assets/Bren AVAANA/Floor Plan/2.png';
+import brenAvaanaFp3 from '../assets/Bren AVAANA/Floor Plan/3.png';
+import brenAvaanaFp4 from '../assets/Bren AVAANA/Floor Plan/4.png';
+import brenAvaanaFp5 from '../assets/Bren AVAANA/Floor Plan/5.png';
+import brenAvaanaFp6 from '../assets/Bren AVAANA/Floor Plan/6.png';
+import brenAvaanaFp7 from '../assets/Bren AVAANA/Floor Plan/7.png';
+
+export const BREN_ANNANTA_IMAGES = [
+  brenAnnanta1, brenAnnanta2, brenAnnanta3, brenAnnanta4, brenAnnanta5,
+];
+
+export const BREN_ANNANTA_FLOOR_PLANS = [
+  brenAnnantaFp1, brenAnnantaFp2, brenAnnantaFp3, brenAnnantaFp4, brenAnnantaFp5, brenAnnantaFp6,
+];
+
+export const BREN_AVAANA_IMAGES = [
+  brenAvaana1, brenAvaana2, brenAvaana3, brenAvaana4, brenAvaana5,
+];
+
+export const BREN_AVAANA_FLOOR_PLANS = [
+  brenAvaanaFp1, brenAvaanaFp2, brenAvaanaFp3, brenAvaanaFp4, brenAvaanaFp5, brenAvaanaFp6, brenAvaanaFp7,
+];
 
 export const HARMONY_BRINDAVAN_IMAGES = [
   harmonyBrindavan1, harmonyBrindavan2, harmonyBrindavan3, harmonyBrindavan4,
@@ -1814,6 +1853,66 @@ status: 'available',
     status: 'available',
     images: [yeshwanthpurPlot1, yeshwanthpurPlot2],
     loanApproved: true,
+  },
+  {
+    id: 61,
+    title: 'Bren Annanta',
+    subtitle: 'Onevishwam',
+    propertyType: 'Flats',
+    subcategory: 'Flats',
+    price: '₹ 1.39 Cr – 1.49 Cr',
+    rawPrice: 13900000,
+    location: 'Bangalore',
+    city: 'bengaluru',
+    area: '3.2 Acres · 217 Units · 1588-1668 Sq.ft',
+    bhk: '2 & 3 BHK',
+    floors: 'B1+B2+G+24 & G+18',
+    furnishing: 'Unfurnished',
+    possession: 'Under Construction (Dec 2028)',
+    approval: 'RERA Approved',
+    vendorName: 'Onevishwam',
+    channelPartner: {
+      name: 'Sinchana Kulkarni',
+      email: 'ceo@onevishwam.com',
+      phone: '8546996622',
+    },
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    status: 'available',
+    images: BREN_ANNANTA_IMAGES,
+    floorPlanImages: BREN_ANNANTA_FLOOR_PLANS,
+    loanApproved: true,
+    locality: 'Kanakapura Road',
+  },
+  {
+    id: 62,
+    title: 'Bren Avaana',
+    subtitle: 'Onevishwam',
+    propertyType: 'Flats',
+    subcategory: 'Flats',
+    price: '₹ 1.39 Cr onwards',
+    rawPrice: 13900000,
+    location: 'Bangalore',
+    city: 'bengaluru',
+    area: '4.7 Acres · 327 Units · 1255-1660 Sq.ft',
+    bhk: '2 & 3 BHK',
+    floors: 'B+G+23',
+    furnishing: 'Unfurnished',
+    possession: 'Under Construction',
+    approval: 'RERA Approved',
+    vendorName: 'Onevishwam',
+    channelPartner: {
+      name: 'Sinchana Kulkarni',
+      email: 'ceo@onevishwam.com',
+      phone: '8546996622',
+    },
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    status: 'available',
+    images: BREN_AVAANA_IMAGES,
+    floorPlanImages: BREN_AVAANA_FLOOR_PLANS,
+    loanApproved: true,
+    locality: 'Kanakapura Road',
   },
 ];
 

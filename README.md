@@ -21,10 +21,11 @@ npm test           # Run tests
 ## Environment
 - `VITE_API_BASE_URL` — backend API base (default: `/api`)
 
-## 🔒 Operational Constraints (Mandatory)
-- **No user creation/deletion** without explicit user permission
-- **No code pushes** (git push, PR creation, deployments) without explicit user permission
-- All changes require review and approval before any remote operations
+## 🔒 Operational Constraints (Mandatory for all AI / LLMs)
+- **NO `git add`, `git commit`, or `git push` without explicit user permission.**
+- The user will perform commits and pushes at the end of the day, or explicitly prompt the AI to do so.
+- **No user creation/deletion** without explicit user permission.
+- All code changes must remain uncommitted until explicitly requested by the user.
 
 ## Project Structure
 ```
