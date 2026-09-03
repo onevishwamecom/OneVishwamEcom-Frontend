@@ -13,11 +13,9 @@ const LOOKING_FOR = [
   { value: 'commercial-shop', label: 'Commercial Shop' },
   { value: 'office', label: 'Office' },
   { value: 'warehouse', label: 'Warehouse' },
-  { value: 'rental-house', label: 'Rental House' },
-  { value: 'rental-flat', label: 'Rental Flat' },
 ];
 
-const REQUIREMENT_TYPES = ['Buy', 'Rent', 'Lease'];
+const REQUIREMENT_TYPES = ['Buy', 'Lease'];
 
 const BEDROOM_OPTIONS = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
 

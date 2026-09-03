@@ -61,7 +61,7 @@ export const revenueModel = [
   },
   {
     question: 'How do you make money from loans and property?',
-    answer: 'We earn a commission from banks for loans and a fee from property sales or rentals.',
+    answer: 'We earn a commission from banks for loans and a fee from property sales.',
   },
   {
     question: 'How do sellers and ads make money?',

@@ -1,9 +1,11 @@
 /* ── Property Type Card Definitions ── */
 export const PROPERTY_CARD_TYPES = [
-  { id: 'All',   icon: 'fa-layer-group',    label: 'All' },
-  { id: 'Plot', icon: 'fa-map',             label: 'Plot' },
-  { id: 'Flat',  icon: 'fa-building',        label: 'Flat' },
-  { id: 'Villa', icon: 'fa-house-chimney',   label: 'Villa' },
+  { id: 'All',              icon: 'fa-layer-group',    label: 'All' },
+  { id: 'Lands',            icon: 'fa-tree',            label: 'Lands' },
+  { id: 'Sites',            icon: 'fa-map',             label: 'Sites' },
+  { id: 'Flat',             icon: 'fa-building',        label: 'Flat' },
+  { id: 'Villa',            icon: 'fa-house-chimney',   label: 'Villa' },
+  { id: 'Independent House',icon: 'fa-home',            label: 'Independent House' },
 ];
 
 export const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
@@ -20,13 +22,11 @@ export const SIZE_OPTIONS        = [600, 1200, 2400];
 export const BEDROOM_OPTIONS     = ['1 RK','1 BHK','1.5 BHK','2 BHK','2.5 BHK','3 BHK','3.5 BHK','4 BHK','5 BHK','6 BHK','6+ BHK'];
 export const FURNISHING_OPTIONS  = ['Furnished','Semi-Furnished','Unfurnished'];
 export const POSTED_BY_OPTIONS   = ['Owner','Builder','Partner Agent','Dealer'];
-export const POSSESSION_OPTIONS  = ['Ready To Move','Under Construction','New Launch','Resale'];
+export const POSSESSION_OPTIONS  = ['Ready for Registration','Ready to Occupy'];
 export const FACING_OPTIONS      = ['East','West','North','South','North-East','North-West','South-East','South-West'];
 export const AGE_OPTIONS         = ['New','0–1 Years','1–5 Years','5–10 Years','10+ Years'];
 export const AVAILABILITY_OPTIONS= ['Available Now','Available Soon'];
-
-export const TENANT_TYPE_OPTIONS = ['Family Only','Bachelors','Other'];
-export const PETS_OPTIONS        = ['No Pets','With Pets','No Preference'];
+export const LISTED_WITHIN_OPTIONS=['Today','Last 3 Days','Last 7 Days','Last 30 Days'];
 
 export const AMENITIES_LIST = [
   '24×7 Security','CCTV','Power Backup','Lift','Swimming Pool',
@@ -44,17 +44,16 @@ export const FINANCE_INCENTIVES   = ['0% Processing Fee','Quick Approval','Flexi
 export const INITIAL_FILTERS = {
   budgetMin: '', budgetMax: '',
   sizeMin: '', sizeMax: '',
-  buildingType: [], propertyType: [], subcategory: [], bedrooms: [], localities: [],
+  buildingType: [], propertyType: [], bedrooms: [], localities: [],
   furnishing: [], gatedCommunity: false, postedBy: [], possessionStatus: [],
-  amenities: [], facing: [], propertyAge: [], availability: [],
-  listedWithin: '', loanApprovedOnly: false,
-  tenantType: [], pets: [],
+  amenities: [], facing: [], propertyAge: [], availability: [], listedWithin: '',
+  loanApprovedOnly: false,
 };
 
 export const INITIAL_SECTIONS = {
-  budget: true, size: true, buildingType: true,
+  budget: true, size: true, buildingType: true, propertyType: true,
   bedrooms: true, localities: true, furnishing: true, gatedCommunity: true,
   loanAvailability: true,
   postedBy: true, possessionStatus: true, amenities: false, facing: false,
-  propertyAge: false, availability: false, tenantType: false, pets: false,
+  propertyAge: false, availability: false, listedWithin: false,
 };

@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
 import PageSkeleton from '../../components/ui/PageSkeleton';
+import PageHero from '../../components/PageHero';
 
 const PropertyGallery = lazy(() => import('./property/PropertyGallery'));
 const JewelleryGallery = lazy(() => import('./jewellery/JewelleryGallery'));
@@ -30,16 +30,12 @@ function ServiceDetails({ service }) {
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
 
   return (
-    <div>
-      <section className="bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
-          <p className="text-sm font-semibold uppercase tracking-widest text-yellow-400 mb-4">Service Details</p>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-tight max-w-4xl">
-            {service.title}
-          </h1>
-          <p className="mt-4 text-lg text-white/80 max-w-2xl">{service.description}</p>
-        </div>
-      </section>
+    <div className="pt-16 lg:pt-14">
+      <PageHero
+        eyebrow="Service Details"
+        title={service.title}
+        subtitle={service.description}
+      />
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -81,11 +77,11 @@ function ServiceDetails({ service }) {
               <div className="rounded-xl bg-brand-navy text-white p-6">
                 <h3 className="text-lg font-bold">Ready to get started?</h3>
                 <p className="mt-2 text-sm text-gray-400">Contact our team to discuss your requirements.</p>
-                <Link to="/contact-us/"
+                <a href="/contact-us/"
                   className="mt-4 inline-flex w-full items-center justify-center bg-brand-blue px-6 py-3 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors"
                 >
                   Contact Us
-                </Link>
+                </a>
               </div>
             </div>
           </div>

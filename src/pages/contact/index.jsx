@@ -1,4 +1,4 @@
-import PageHero from '../../components/PageHero';
+import ContactHero from './ContactHero';
 import ContactSidebar from './ContactSidebar';
 import EnquiryForm from './EnquiryForm';
 
@@ -10,11 +10,7 @@ function ContactPage({ location }) {
 
   return (
     <div className='pt-16 lg:pt-14'>
-      <PageHero
-        eyebrow="Contact Us"
-        title="Get in touch with our team"
-        subtitle="Whether you're looking for property investments, financial services, or retail support, our dedicated team is here to help."
-      />
+      <ContactHero />
       {loanContext && (
         <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-4">
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 flex items-center gap-3">
@@ -26,7 +22,7 @@ function ContactPage({ location }) {
           </div>
         </div>
       )}
-      <section className="py-16 sm:py-20">
+      <section className="py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
             <EnquiryForm loanContext={loanContext} />

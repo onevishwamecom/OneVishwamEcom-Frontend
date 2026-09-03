@@ -93,7 +93,7 @@ export default function HeroSection() {
       aria-label="Featured Categories"
     >
       {/* ── Fixed-height viewport ──
-          Desktop ≈ 560px  |  md ≈ 520px  |  Tablet ≈ 460px  |  Mobile ≈ 400px
+          Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
           Guarantees zero layout shift across slides regardless of content length. */}
       <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group">
 

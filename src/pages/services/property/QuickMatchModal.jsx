@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { QuickMatchModalShell, getNumericPrice } from '../shared';
 import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
+import { getTotalPropertyPrice, getNumericPrice } from './propertyHelpers';
 
 function getCardType(property) {
-  const s = (property.subtitle || '').toLowerCase();
-  const b = (property.bhk || '').toLowerCase();
+  const s = property.subtitle.toLowerCase();
+  const b = property.bhk.toLowerCase();
   if (s.includes('villa') || s.includes('farmhouse')) return 'Villa';
   if (b.includes('office') || b.includes('shop') || b.includes('commercial') ||
       s.includes('office') || s.includes('shop') || s.includes('commercial')) return 'Flat';
@@ -17,7 +17,7 @@ function getCardType(property) {
 }
 
 function getBedroomNumber(bhk) {
-  const m = String(bhk || '').match(/(\d+(\.\d+)?)/);
+  const m = bhk?.match(/(\d+(\.\d+)?)/);
   return m ? parseFloat(m[1]) : 0;
 }
 
@@ -28,6 +28,7 @@ function matchesBedroom(bhk, selected) {
 }
 
 const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
+const PROPERTY_TYPES = ['Sites', 'Flat', 'Villa', 'Independent House'];
 const BEDROOM_OPTIONS = ['1RK', '1BHK', '2BHK', '3BHK', '4BHK', '4BHK+'];
 
 /* ── Component ── */
@@ -40,12 +41,13 @@ function QuickMatchModal({ onClose }) {
   /* All filter fields are optional */
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
+  const [propertyType, setPropertyType] = useState('');
   const [city, setCity] = useState('');
   const [location, setLocation] = useState('');
   const [bedrooms, setBedrooms] = useState('');
 
   const areas = city ? (cities[city]?.areas || []) : [];
-  const hasAnyFilter = budgetMin || budgetMax || city || location || bedrooms;
+  const hasAnyFilter = budgetMin || budgetMax || propertyType || city || location || bedrooms;
   const availableCount = properties.filter((p) => p.status !== 'closed').length;
 
   const handleFindMatch = () => setStep(2);
@@ -73,11 +75,11 @@ function QuickMatchModal({ onClose }) {
 
       const budgetMatch = (!budgetMin || price >= +budgetMin * 100000) &&
         (!budgetMax || price <= +budgetMax * 100000);
-      
+      const typeMatch = !propertyType || cardType === propertyType;
       const cityMatch = !city || p.city === city;
       const locationMatch = !location || p.zone === location;
       const bedroomMatch = matchesBedroom(p.bhk, bedrooms);
-      const allMatch = budgetMatch && cityMatch && locationMatch && bedroomMatch;
+      const allMatch = budgetMatch && typeMatch && cityMatch && locationMatch && bedroomMatch;
 
       if (p.status === 'closed') {
         if (allMatch) closed.push(p);
@@ -89,13 +91,32 @@ function QuickMatchModal({ onClose }) {
     });
 
     return { preApproved, matched, closed };
-  }, [properties, budgetMin, budgetMax, city, location, bedrooms]);
+  }, [properties, budgetMin, budgetMax, propertyType, city, location, bedrooms]);
 
   const totalResults = buckets.preApproved.length + buckets.matched.length;
-  const title = step === 1 ? 'Find Your Property' : step === 2 ? `${totalResults} Properties Found` : "You're All Set!";
 
   return (
-    <QuickMatchModalShell title={title} onClose={handleClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <h2 className="text-lg font-bold text-brand-charcoal">
+            {step === 1 && 'Find Your Property'}
+            {step === 2 && `${totalResults} Properties Found`}
+            {step === 3 && "You're All Set!"}
+          </h2>
+          <button onClick={handleClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+            <i className="fa-solid fa-xmark text-gray-500" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+
           {/* ═══ Step 1 — Browse first, optional filters ═══ */}
           {step === 1 && (
             <div className="space-y-4">
@@ -151,6 +172,28 @@ function QuickMatchModal({ onClose }) {
                       <input type="number" placeholder="Max" value={budgetMax}
                         onChange={(e) => setBudgetMax(e.target.value)}
                         className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-blue" />
+                    </div>
+                  </div>
+
+                  {/* Property Type */}
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-brand-charcoal">
+                      Property Type
+                      <span className="text-xs font-normal text-gray-400 ml-1">(optional)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {PROPERTY_TYPES.map((pt) => (
+                        <label key={pt} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm cursor-pointer transition-colors ${
+                          propertyType === pt
+                            ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}>
+                          <input type="radio" name="qmPropertyType" checked={propertyType === pt}
+                            onChange={() => setPropertyType(propertyType === pt ? '' : pt)}
+                            className="sr-only" />
+                          {pt}
+                        </label>
+                      ))}
                     </div>
                   </div>
 
@@ -248,13 +291,13 @@ function QuickMatchModal({ onClose }) {
                   </h3>
                   <div className="space-y-2">
                     {buckets.preApproved.map((p) => (
-                      <div key={p._id || p.id} className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/50 p-3">
+                      <div key={p.id} className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/50 p-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
                           <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
                         </div>
-                        <button onClick={() => navigateTo(`/property/${p._id || p.id}`)}
+                        <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
                           View
                         </button>
@@ -273,13 +316,13 @@ function QuickMatchModal({ onClose }) {
                   </h3>
                   <div className="space-y-2">
                     {buckets.matched.slice(0, 8).map((p) => (
-                      <div key={p._id || p.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-3">
+                      <div key={p.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
                           <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
                         </div>
-                        <button onClick={() => navigateTo(`/property/${p._id || p.id}`)}
+                        <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
                           View
                         </button>
@@ -331,7 +374,9 @@ function QuickMatchModal({ onClose }) {
               </div>
             </div>
           )}
-    </QuickMatchModalShell>
+        </div>
+      </div>
+    </div>
   );
 }
 

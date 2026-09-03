@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
-import { useAuth } from '../../../store/authSlice';
 import { formatFinanceAmount } from './financeConstants';
 
 const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
@@ -9,23 +8,11 @@ const FALLBACK_LOGO = 'data:image/svg+xml,' + encodeURIComponent(
 
 export default function FinanceCard({ service }) {
   const [logoError, setLogoError] = useState(false);
-  const { isLoggedIn, openAuthModal } = useAuth();
-
-  const handleCardClick = (e) => {
-    const link = `/finance-service/${service._id || service.id}`;
-    if (!isLoggedIn) {
-      if (e && e.preventDefault) e.preventDefault();
-      sessionStorage.setItem('vishwam_auth_redirect', link);
-      openAuthModal('login');
-      return;
-    }
-    navigateTo(link);
-  };
 
   return (
     <div
-      onClick={handleCardClick}
-      className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-brand-blue/20 transition-all cursor-pointer flex flex-col"
+      onClick={() => navigateTo(`/finance-service/${service._id || service.id}`)}
+      className="bg-white rounded-xl border border-brand-blue/20 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col shadow-2xs"
     >
       {/* Banner area */}
       <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-brand-navy/10 to-brand-blue/10 relative">
