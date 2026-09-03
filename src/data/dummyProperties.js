@@ -116,6 +116,8 @@ import bmrdaNelamangala1 from '../assets/BMRDA Plot (Nelamangala)/1.jpg';
 import bmrdaNelamangala2 from '../assets/BMRDA Plot (Nelamangala)/2.jpg';
 import bmrdaNelamangala3 from '../assets/BMRDA Plot (Nelamangala)/3.jpg';
 import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
+import yeshwanthpurPlot1 from '../assets/Residential Plot in Yeshwanthpur/1.jpeg';
+import yeshwanthpurPlot2 from '../assets/Residential Plot in Yeshwanthpur/2.jpeg';
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -1795,7 +1797,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [PLACEHOLDER_IMG],
+    images: [yeshwanthpurPlot1, yeshwanthpurPlot2],
     loanApproved: true,
   },
 ];
