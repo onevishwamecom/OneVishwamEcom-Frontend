@@ -49,6 +49,7 @@ import dsMaxSamyak4 from '../assets/DS-MAX Samyak/4.png';
 import dsMaxSkysisira1 from '../assets/DS MAX Skysisira/1.jpeg';
 import dsMaxSkysisira2 from '../assets/DS MAX Skysisira/2.jpeg';
 import dsMaxSkysisira3 from '../assets/DS MAX Skysisira/3.jpeg';
+import dsMaxSkysisira4 from '../assets/DS MAX Skysisira/4.png';
 import dsMaxSkysisiraVideo from '../assets/DS MAX Skysisira/1.mp4';
 import urbanForest1 from '../assets/The Urban Forest/1.png';
 import urbanForest2 from '../assets/The Urban Forest/2.png';
@@ -1401,7 +1402,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [dsMaxSkysisira1, dsMaxSkysisira2, dsMaxSkysisira3],
+    images: [dsMaxSkysisira1, dsMaxSkysisira2, dsMaxSkysisira3, dsMaxSkysisira4],
     video: dsMaxSkysisiraVideo,
     loanApproved: true,
   },
