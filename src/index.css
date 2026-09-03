@@ -47,6 +47,10 @@ body {
   .gallery-fade {
     animation: gallery-fade 0.4s ease-out;
   }
+  /* Allow vertical scrolling while horizontally scrolling */
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
 }
 
 @keyframes gallery-fade {

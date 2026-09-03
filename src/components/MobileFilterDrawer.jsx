@@ -20,7 +20,7 @@ export default function MobileFilterDrawer({ open, onClose, resultCount, resultL
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-xl overflow-y-auto">
+      <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-xl overflow-y-auto overscroll-contain">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
           <span className="font-bold text-brand-charcoal">Filters</span>

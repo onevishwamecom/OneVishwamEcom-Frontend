@@ -186,7 +186,7 @@ export default function MasterListingPage({
                   totalPages={totalPages}
                   onPageChange={(p) => {
                     setPage(p);
-                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                    window.scrollTo(0, 300);
                   }}
                 />
               </div>

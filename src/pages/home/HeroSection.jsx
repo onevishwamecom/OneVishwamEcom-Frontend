@@ -61,6 +61,7 @@ export default function HeroSection() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
   const total = HERO_SLIDES.length;
 
@@ -75,11 +76,15 @@ export default function HeroSection() {
   }, [isPaused, current, next, total]);
 
   /* Touch swiping */
-  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
+  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; touchStartY.current = e.changedTouches[0].screenY; };
   const onTouchEnd = (e) => {
-    const diff = touchStartX.current - e.changedTouches[0].screenX;
-    if (diff > 50) next();
-    else if (diff < -50) prev();
+    const diffX = touchStartX.current - e.changedTouches[0].screenX;
+    const diffY = touchStartY.current - e.changedTouches[0].screenY;
+    // Only trigger horizontal swipe if horizontal movement is significantly larger than vertical
+    if (Math.abs(diffX) > Math.abs(diffY) * 2) {
+      if (diffX > 50) next();
+      else if (diffX < -50) prev();
+    }
   };
 
   return (
@@ -95,7 +100,7 @@ export default function HeroSection() {
       {/* ── Fixed-height viewport ──
           Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group">
+      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group touch-pan-y">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {

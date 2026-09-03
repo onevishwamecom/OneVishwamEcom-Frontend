@@ -34,7 +34,7 @@ export default function SlideinPanel({ open, onClose, title, footer, children })
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-3">
           {children}
         </div>
 

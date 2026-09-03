@@ -25,15 +25,12 @@ export const POSTED_BY_OPTIONS   = ['Owner','Builder','Partner Agent','Dealer'];
 export const POSSESSION_OPTIONS  = ['Ready for Registration','Ready to Occupy'];
 export const FACING_OPTIONS      = ['East','West','North','South','North-East','North-West','South-East','South-West'];
 export const AGE_OPTIONS         = ['New','0–1 Years','1–5 Years','5–10 Years','10+ Years'];
-export const AVAILABILITY_OPTIONS= ['Available Now','Available Soon'];
-export const LISTED_WITHIN_OPTIONS=['Today','Last 3 Days','Last 7 Days','Last 30 Days'];
-
+export const AVAILABILITY_OPTIONS= ['15 Days','1 Month','3 Months','6 Months','1 Year','More than a year'];
 export const AMENITIES_LIST = [
-  '24×7 Security','CCTV','Power Backup','Lift','Swimming Pool',
-  'Clubhouse','Gym',"Children's Play Area",'Garden','Jogging Track',
-  'Visitor Parking','Covered Parking','Open Parking','Attached Market',
-  'Central AC','Intercom','Wi-Fi','Rain Water Harvesting',
-  'Solar Power','EV Charging','Community Hall',
+  '24×7 Security', 'CCTV', 'Power Backup', 'Lift', 'Swimming Pool',
+  'Clubhouse', 'Gym', "Children's Play Area", 'Garden',
+  '2 Wheeler Parking', '4 Wheeler Parking', 'Visitor Parking',
+  'Intercom', 'Wi-Fi', 'Solar Power', 'EV Charging', 'Community Hall',
 ];
 
 export const FINANCE_STATS        = { enquiries: 5, enrolled: 6, slots: 25 };
@@ -46,7 +43,7 @@ export const INITIAL_FILTERS = {
   sizeMin: '', sizeMax: '',
   buildingType: [], propertyType: [], bedrooms: [], localities: [],
   furnishing: [], gatedCommunity: false, postedBy: [], possessionStatus: [],
-  amenities: [], facing: [], propertyAge: [], availability: [], listedWithin: '',
+  amenities: [], facing: [], propertyAge: [], availability: [],
   loanApprovedOnly: false,
 };
 
@@ -55,5 +52,5 @@ export const INITIAL_SECTIONS = {
   bedrooms: true, localities: true, furnishing: true, gatedCommunity: true,
   loanAvailability: true,
   postedBy: true, possessionStatus: true, amenities: false, facing: false,
-  propertyAge: false, availability: false, listedWithin: false,
+  propertyAge: false, availability: false,
 };

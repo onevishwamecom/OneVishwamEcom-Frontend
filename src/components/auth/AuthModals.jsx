@@ -610,21 +610,48 @@ const MODE_TITLES = {
 function AuthModals() {
   const { showAuthModal, closeAuthModal, authModalMode, switchAuthMode, setVerifyToken } = useAuth();
 
+  useEffect(() => {
+    if (!showAuthModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeAuthModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [showAuthModal, closeAuthModal]);
+
   if (!showAuthModal) return null;
 
-  const mode = MODE_TITLES[authModalMode];
+  const mode = MODE_TITLES[authModalMode] || MODE_TITLES.login;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={closeAuthModal} />
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+        onClick={closeAuthModal}
+      />
+      <div
+        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
           <div>
             <h2 className="text-xl font-bold text-brand-charcoal">{mode.title}</h2>
             {mode.subtitle && <p className="text-sm text-gray-500 mt-0.5">{mode.subtitle}</p>}
           </div>
-          <button onClick={closeAuthModal}
-            className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAuthModal();
+            }}
+            aria-label="Close modal"
+            className="h-9 w-9 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
           >
             <i className="fa-solid fa-xmark text-lg" />
           </button>

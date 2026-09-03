@@ -1,8 +1,8 @@
 import { CollapsibleSection, CheckboxGroup } from '../../../components/ui';
 import {
-  SIZE_OPTIONS, BEDROOM_OPTIONS, FURNISHING_OPTIONS,
+  BEDROOM_OPTIONS, FURNISHING_OPTIONS,
   POSTED_BY_OPTIONS, POSSESSION_OPTIONS, AMENITIES_LIST, FACING_OPTIONS,
-  AGE_OPTIONS, AVAILABILITY_OPTIONS, LISTED_WITHIN_OPTIONS,
+  AGE_OPTIONS, AVAILABILITY_OPTIONS,
 } from './propertyConstants';
 
 function formatPriceLabel(val) {
@@ -24,13 +24,6 @@ function formatSizeLabel(val) {
   if (!num || isNaN(num) || num <= 0) return '0 sq.ft';
   return `${num.toLocaleString('en-IN')} sq.ft`;
 }
-
-const BUDGET_PRESETS = [
-  { label: 'Under ₹50L', min: '', max: '5000000' },
-  { label: '₹50L – ₹1Cr', min: '5000000', max: '10000000' },
-  { label: '₹1Cr – ₹2Cr', min: '10000000', max: '20000000' },
-  { label: '₹2Cr+', min: '20000000', max: '' },
-];
 
 function DualRangeSlider({
   min = 0,
@@ -135,36 +128,7 @@ export default function PropertyFilterSidebar({
           }}
         />
 
-        {/* Quick Presets */}
-        <div className="flex flex-wrap gap-1.5 my-2">
-          {BUDGET_PRESETS.map((p) => {
-            const active = filters.budgetMin === p.min && filters.budgetMax === p.max;
-            return (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => {
-                  if (active) {
-                    updateFilter('budgetMin', '');
-                    updateFilter('budgetMax', '');
-                  } else {
-                    updateFilter('budgetMin', p.min);
-                    updateFilter('budgetMax', p.max);
-                  }
-                }}
-                className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
-                  active
-                    ? 'border-brand-blue bg-brand-blue/10 text-brand-blue font-bold shadow-xs'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300 bg-white'
-                }`}
-              >
-                {p.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-3">
           <div className="w-full">
             <input
               type="number"
@@ -214,35 +178,7 @@ export default function PropertyFilterSidebar({
           }}
         />
 
-        <div className="flex flex-wrap gap-1.5 my-2">
-          {SIZE_OPTIONS.map((s) => {
-            const active = +filters.sizeMin === s && +filters.sizeMax === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => {
-                  if (active) {
-                    updateFilter('sizeMin', '');
-                    updateFilter('sizeMax', '');
-                  } else {
-                    updateFilter('sizeMin', String(s));
-                    updateFilter('sizeMax', String(s));
-                  }
-                }}
-                className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
-                  active
-                    ? 'border-brand-blue bg-brand-blue/10 text-brand-blue font-bold shadow-xs'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300 bg-white'
-                }`}
-              >
-                {s.toLocaleString('en-IN')} sq.ft
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-3">
           <div className="w-full">
             <input
               type="number"
@@ -377,23 +313,6 @@ export default function PropertyFilterSidebar({
       <CollapsibleSection id="availability" label="Availability" open={openSections.availability} onToggle={toggleSection}>
         <CheckboxGroup options={AVAILABILITY_OPTIONS} selected={filters.availability}
           onChange={(v) => updateFilter('availability', v)} />
-      </CollapsibleSection>
-
-      {/* Listed Within */}
-      <CollapsibleSection id="listedWithin" label="Listed Within" open={openSections.listedWithin} onToggle={toggleSection}>
-        <div className="flex flex-wrap gap-1.5">
-          {LISTED_WITHIN_OPTIONS.map((opt) => {
-            const active = filters.listedWithin === opt;
-            return (
-              <button key={opt}
-                onClick={() => updateFilter('listedWithin', active ? '' : opt)}
-                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  active ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-semibold' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}
-              >{opt}</button>
-            );
-          })}
-        </div>
       </CollapsibleSection>
     </div>
   );

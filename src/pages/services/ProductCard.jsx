@@ -6,20 +6,7 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
 );
 
 /**
- * Generic product card component.
- * Props:
- * - link: URL to navigate to when card is clicked
- * - image: Image URL
- * - alt: Alt text for image
- * - title: Main title text
- * - price: Price text (e.g., "₹2.5 Cr")
- * - priceSuffix: Optional suffix displayed after price (e.g., "/ month")
- * - location: Primary location string (city, area, etc.)
- * - pincode: Optional pincode string
- * - tags: Array of short tag strings to show (e.g., type, brand)
- * - badges: Array of { label: string, className: string } objects displayed in the top‑left overlay
- * - theme: Optional theme override ('property', 'jewellery', 'automobile', 'grocery', 'garments', 'finance')
- * - children: Optional JSX rendered at the bottom of the card (e.g., action buttons)
+ * Modern Generic Product / Listing Card.
  */
 export default React.memo(function ProductCard({
   link = "#",
@@ -39,14 +26,15 @@ export default React.memo(function ProductCard({
   children,
 }) {
   const [imgError, setImgError] = useState(false);
+  const [faved, setFaved] = useState(false);
 
   return (
     <div
       onClick={link ? () => navigateTo(link) : undefined}
-      className="bg-white rounded-xl border border-brand-blue/20 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-2xs"
+      className="group bg-white rounded-2xl border border-gray-200/80 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-xs"
     >
-      {/* Image — fixed 4:3 aspect ratio, consistent across all cards */}
-      <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative shrink-0">
+      {/* ── Image Container ── */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0">
         {image && !imgError ? (
           <img
             src={image}
@@ -54,7 +42,7 @@ export default React.memo(function ProductCard({
             loading="lazy"
             decoding="async"
             onError={() => setImgError(true)}
-            className="h-full w-full object-cover hover:scale-105 transition-transform duration-500"
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <img
@@ -63,59 +51,56 @@ export default React.memo(function ProductCard({
             className="h-full w-full object-cover"
           />
         )}
-        {/* Badges */}
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
+        {/* Top-Left Badges */}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${b.className}`}
+              className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
             >
               {b.label}
             </span>
           ))}
         </div>
+
+        {/* Top-Right Favorite Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setFaved(!faved);
+          }}
+          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10"
+          aria-label="Save to favorites"
+        >
+          <i className={`${faved ? 'fa-solid text-rose-500' : 'fa-regular text-gray-500'} fa-heart text-xs`} />
+        </button>
       </div>
 
-      {/* Body — flex column so button is always at the bottom */}
-      <div className="p-3 flex flex-col flex-1">
-        {/* Overline */}
+      {/* ── Card Body ── */}
+      <div className="p-4 flex flex-col flex-1 gap-2">
+        {/* Overline / Property Type */}
         {overline && (
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-0.5">
+          <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">
             {overline}
           </p>
         )}
 
-        {/* Title — always reserves 2 lines, clamps overflow */}
+        {/* Title */}
         <div className="min-h-[2.5rem] flex items-start">
           {title && (
-            <h3 className="font-semibold text-brand-charcoal text-sm leading-snug line-clamp-2">
+            <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {title}
             </h3>
           )}
         </div>
 
-        {/* Price — reserves 1.25rem so short/missing price doesn't collapse layout */}
-        <div className="min-h-[1.25rem]">
-          {priceOverride ? (
-            <div className="mt-0.5">{priceOverride}</div>
-          ) : (
-            price && (
-              <p className="mt-0.5 text-sm font-bold text-brand-blue">
-                {price}
-                {priceSuffix && (
-                  <span className="text-xs font-medium text-gray-400 ml-1">
-                    {priceSuffix}
-                  </span>
-                )}
-              </p>
-            )
-          )}
-        </div>
-
-        {/* Location — single line, clipped */}
+        {/* Location */}
         {location && (
-          <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[10px] shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate">
               {location}
               {pincode ? ` · ${pincode}` : ""}
@@ -123,12 +108,15 @@ export default React.memo(function ProductCard({
           </div>
         )}
 
-        {/* Tags — wrappable but max 2 rows */}
+        {/* Specs / Detail Tags */}
         {tags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-gray-600 overflow-hidden max-h-[3rem]">
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {tags.map((t, i) => (
               t && String(t).trim().toLowerCase() !== 'plots' && String(t).trim().toLowerCase() !== 'plot' && (
-                <span key={i} className="bg-gray-100 rounded-lg px-2 py-0.5 whitespace-nowrap">
+                <span
+                  key={i}
+                  className="bg-gray-100 text-gray-700 font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap"
+                >
                   {t}
                 </span>
               )
@@ -136,17 +124,31 @@ export default React.memo(function ProductCard({
           </div>
         )}
 
-        {/* Extra children (agent info, loan badges, etc.) */}
-        {children && <div className="mt-1.5 overflow-hidden">{children}</div>}
+        {/* Extra children (Agent info, Loan banners, etc.) */}
+        {children && <div className="pt-1">{children}</div>}
 
-        {/* View Details button — always pinned to the bottom */}
-        {showButton !== false && (
-          <div className="mt-auto pt-2">
-            <div className="w-full rounded-lg bg-brand-blue/10 text-brand-blue text-center text-[11px] font-semibold py-1.5 hover:bg-brand-blue hover:text-white transition-colors">
-              View Details
-            </div>
+        {/* ── Card Footer: Price ── */}
+        <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+          {/* Price */}
+          <div className="min-w-0">
+            {priceOverride ? (
+              priceOverride
+            ) : (
+              price && (
+                <div>
+                  <span className="text-base sm:text-lg font-extrabold text-brand-charcoal leading-tight block truncate">
+                    {price}
+                  </span>
+                  {priceSuffix && (
+                    <span className="text-[11px] font-semibold text-gray-400 block truncate">
+                      {priceSuffix}
+                    </span>
+                  )}
+                </div>
+              )
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

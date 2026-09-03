@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { NAVIGATION_EVENT } from './config/navigation';
 const Footer = lazy(() => import('./components/Footer'));
@@ -39,11 +39,11 @@ function ScrollToTopAndNavHelper() {
 
   useEffect(() => {
     if (!location.hash) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     } else {
       const targetId = location.hash.replace('#', '');
       requestAnimationFrame(() => {
-        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
       });
     }
   }, [location.pathname, location.hash]);
@@ -55,27 +55,6 @@ function ScrollToTopAndNavHelper() {
     window.addEventListener(NAVIGATION_EVENT, handleCustomNav);
     return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
   }, [navigate]);
-
-  // Authorization check for protected paths (detail pages)
-  useEffect(() => {
-    const isProtectedDetail = [
-      '/property/',
-      '/vehicle/',
-      '/garment/',
-      '/grocery/',
-      '/jewellery/',
-      '/finance-service/',
-      '/finance/',
-    ].some((prefix) =>
-      location.pathname.startsWith(prefix) &&
-      location.pathname !== '/property/requirement/success' &&
-      location.pathname !== '/property/requirement'
-    );
-
-    if (isProtectedDetail && !isLoggedIn) {
-      openAuthModal('login');
-    }
-  }, [location.pathname, openAuthModal, isLoggedIn]);
 
   // Listen for forced logout from token refresh failure
   useEffect(() => {
@@ -92,14 +71,16 @@ function ScrollToTopAndNavHelper() {
 /**
  * RequireAuth - guards protected detail/listing pages.
  * Unauthenticated users see a "please log in" placeholder and an auth modal
- * is opened automatically so they can log in without losing context.
+ * is opened automatically on first visit so they can log in without losing context.
  */
 function RequireAuth({ children }) {
   const { isLoggedIn, openAuthModal } = useAuth();
   const navigate = useNavigate();
+  const promptedRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !promptedRef.current) {
+      promptedRef.current = true;
       openAuthModal('login');
     }
   }, [isLoggedIn, openAuthModal]);

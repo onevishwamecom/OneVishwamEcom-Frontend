@@ -102,7 +102,7 @@ function Home() {
               )}
             </div>
             {propertyResults.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
+              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
                 {propertyResults.map((p) => (
                   <div key={p.id || p._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                     <ProductCard
@@ -179,7 +179,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
               {dreamHomes.map((p) => (
                 <div key={p.id || p._id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
@@ -230,7 +230,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
               {latestVehicles.slice(0, 5).map((v) => (
                 <div key={v.id || v._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
@@ -283,7 +283,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
               {latestFinance.slice(0, 5).map((s) => (
                 <div key={s.id || s._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
@@ -332,7 +332,7 @@ function Home() {
               <p className="mt-1 text-sm text-gray-500">Products people are viewing and buying right now.</p>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
               {latestGarments.slice(0, 2).map((g) => (
                 <div key={`pop-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
@@ -404,7 +404,7 @@ function Home() {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 touch-pan-y">
               {todayListed.map((p) => (
                 <Link key={`fresh-prop-${p.id || p._id}`} to={`/property/${p.id || p._id}`}
                   className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
@@ -478,7 +478,7 @@ function Home() {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
               {availableNearYou.map((item) => (
                 <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
@@ -551,7 +551,7 @@ function Home() {
               <p className="mt-1 text-sm text-gray-500">Great prices and top picks for you.</p>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-4 touch-pan-y">
               {dummyProperties.slice(2, 4).map((p) => (
                 <div key={`deal-prop-${p.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
