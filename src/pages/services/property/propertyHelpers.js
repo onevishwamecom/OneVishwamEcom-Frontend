@@ -249,3 +249,33 @@ export function getPropertyCoverImage(property) {
   }
   return property.image || '';
 }
+
+/**
+ * Returns true if property subtitle or vendor is 'Onevishwam'.
+ * Gives top priority placement in listings.
+ */
+export function isOneVishwamProperty(property) {
+  if (!property) return false;
+  const sub = String(property.subtitle || property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
+  return sub === 'onevishwam';
+}
+
+/**
+ * Priority sort helper:
+ * 1. Subtitle = 'Onevishwam' top priority
+ * 2. Has images priority
+ * 3. Recent ID (b.id - a.id)
+ */
+export function sortPropertiesWithPriority(list = []) {
+  return [...list].sort((a, b) => {
+    const aOv = isOneVishwamProperty(a) ? 1 : 0;
+    const bOv = isOneVishwamProperty(b) ? 1 : 0;
+    if (aOv !== bOv) return bOv - aOv;
+
+    const aImg = hasPropertyImages(a) ? 1 : 0;
+    const bImg = hasPropertyImages(b) ? 1 : 0;
+    if (aImg !== bImg) return bImg - aImg;
+
+    return (b.id || 0) - (a.id || 0);
+  });
+}

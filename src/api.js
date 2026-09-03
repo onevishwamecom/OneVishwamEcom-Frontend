@@ -115,9 +115,38 @@ export const publicAPI = {
 // ─── Upload ──────────────────────────────────────────────────────────────────
 export const uploadAPI = {
   uploadImages: (files) => {
-    const formData = new FormData();
-    files.forEach(f => formData.append('images', f));
+    const formData = files instanceof FormData ? files : new FormData();
+    if (Array.isArray(files)) {
+      files.forEach((f) => formData.append('images', f));
+    }
     return client.post('/upload/images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  uploadFloorPlanImages: (files) => {
+    const formData = files instanceof FormData ? files : new FormData();
+    if (Array.isArray(files)) {
+      files.forEach((f) => formData.append('floorPlanImages', f));
+    }
+    return client.post('/upload/floor-plan-images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  uploadFloorPlanPdf: (file) => {
+    const formData = file instanceof FormData ? file : new FormData();
+    if (file && !(file instanceof FormData)) {
+      formData.append('floorPlanPdf', file);
+    }
+    return client.post('/upload/floor-plan-pdf', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  uploadFloorPlans: (files) => {
+    const formData = files instanceof FormData ? files : new FormData();
+    if (Array.isArray(files)) {
+      files.forEach((f) => formData.append('floorPlans', f));
+    }
+    return client.post('/upload/floor-plans', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
@@ -140,7 +169,24 @@ export const propertyAPI = {
   remove: (id) => client.delete(`/product/properties/${id}`),
   toggleStatus: (id) => client.patch(`/product/properties/${id}/status`),
   uploadImages: (id, formData) => client.post(`/product/properties/${id}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadFloorPlanImages: (id, formDataOrFiles) => {
+    const formData = formDataOrFiles instanceof FormData ? formDataOrFiles : new FormData();
+    if (Array.isArray(formDataOrFiles)) {
+      formDataOrFiles.forEach((f) => formData.append('floorPlanImages', f));
+    }
+    return client.post(`/product/properties/${id}/floor-plan-images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadFloorPlanPdf: (id, formDataOrFile) => {
+    const formData = formDataOrFile instanceof FormData ? formDataOrFile : new FormData();
+    if (formDataOrFile && !(formDataOrFile instanceof FormData)) {
+      formData.append('floorPlanPdf', formDataOrFile);
+    }
+    return client.post(`/product/properties/${id}/floor-plan-pdf`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadFloorPlan: (id, formData) => client.post(`/product/properties/${id}/floor-plan`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteImage: (id, imageUrl) => client.delete(`/product/properties/${id}/images`, { data: { imageUrl } }),
+  deleteFloorPlanImage: (id, imageUrl) => client.delete(`/product/properties/${id}/floor-plan-images`, { data: { imageUrl } }),
+  deleteFloorPlanPdf: (id) => client.delete(`/product/properties/${id}/floor-plan-pdf`),
   getMy: () => client.get('/product/properties/my/listings'),
   submitRequirement: (body) => client.post('/product/properties/requirements', body),
   uploadBrochure: (id, formData) => client.post(`/product/properties/${id}/brochure`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),

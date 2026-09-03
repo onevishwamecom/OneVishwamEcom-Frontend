@@ -5,7 +5,7 @@ import { getCityLabel } from '../../data/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
-import { hasPropertyImages, getPropertyCoverImage, getDetailTags } from '../services/property/propertyHelpers';
+import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
@@ -23,12 +23,12 @@ function Home() {
   const { data, loading } = useHomepageData();
 
   const filterAvailable = useCallback(
-    (list) => (list || []).filter((item) => item && item.availabilityStatus !== 'sold_out' && item.isSoldOut !== true),
-    [],
+    (arr) => (arr || []).filter((item) => item.status !== 'sold_out'),
+    []
   );
 
   const rawProperties = useMemo(() => filterAvailable(data?.latestProperties), [data?.latestProperties, filterAvailable]);
-  const latestProperties = rawProperties;
+  const latestProperties = useMemo(() => sortPropertiesWithPriority(rawProperties), [rawProperties]);
   const latestVehicles = useMemo(() => filterAvailable(data?.latestVehicles), [data?.latestVehicles, filterAvailable]);
   const latestGroceries = useMemo(() => filterAvailable(data?.latestGroceries), [data?.latestGroceries, filterAvailable]);
   const latestGarments = useMemo(() => filterAvailable(data?.latestGarments), [data?.latestGarments, filterAvailable]);

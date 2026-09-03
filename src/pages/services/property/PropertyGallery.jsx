@@ -39,6 +39,7 @@ import {
   saveSessionState,
   clearSessionState,
 } from "../shared";
+import { sortPropertiesWithPriority } from "./propertyHelpers";
 
 const RESTORE_KEY = "vishwam.propertyGalleryState";
 const PER_PAGE = 9;
@@ -163,14 +164,9 @@ function PropertyGallery() {
     preApprovedMode,
   });
 
-  /* ── Image-priority sort + pagination ── */
+  /* ── Priority sort (Onevishwam top priority -> Images first) + pagination ── */
   const sortedProperties = useMemo(() => {
-    return [...filteredProperties].sort((a, b) => {
-      const aImg = Array.isArray(a.images) && a.images.some((src) => src && !src.startsWith("data:")) ? 1 : 0;
-      const bImg = Array.isArray(b.images) && b.images.some((src) => src && !src.startsWith("data:")) ? 1 : 0;
-      if (aImg !== bImg) return bImg - aImg;
-      return (b._id || b.id || 0) > (a._id || a.id || 0) ? 1 : -1;
-    });
+    return sortPropertiesWithPriority(filteredProperties);
   }, [filteredProperties]);
 
   const totalPages = Math.max(1, Math.ceil(sortedProperties.length / PER_PAGE));

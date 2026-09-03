@@ -165,6 +165,16 @@ export function normalizeListing(rawItem, sector = '') {
     badges.push({ label: 'Featured', className: 'bg-amber-400 text-brand-navy' });
   }
 
+  // Resolve floor plans
+  const floorPlanImages = Array.isArray(rawItem.floorPlanImages) ? rawItem.floorPlanImages.filter(Boolean)
+    : Array.isArray(rawItem.floorPlans) ? rawItem.floorPlans.filter(Boolean)
+    : Array.isArray(rawItem.floorPlanMap) ? rawItem.floorPlanMap.filter(Boolean)
+    : typeof rawItem.floorPlanImages === 'string' && rawItem.floorPlanImages ? [rawItem.floorPlanImages]
+    : typeof rawItem.floorPlans === 'string' && rawItem.floorPlans ? [rawItem.floorPlans]
+    : [];
+
+  const pdfUrl = rawItem.pdfUrl || rawItem.floorPlanPdf || rawItem.pdf || null;
+
   return {
     id,
     link,
@@ -178,6 +188,8 @@ export function normalizeListing(rawItem, sector = '') {
     pincode,
     tags: tags.filter(Boolean),
     badges,
+    floorPlanImages,
+    pdfUrl,
     availabilityStatus,
     isSoldOut,
     isInactive,

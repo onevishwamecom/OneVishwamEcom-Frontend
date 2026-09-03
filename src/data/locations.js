@@ -6,7 +6,7 @@ export const cities = {
       'Vijayanagar', 'Jayanagar', 'HSR Layout', 'Sarjapur Road',
       'MG Road', 'Yelahanka', 'Electronic City', 'Marathahalli',
       'BTM Layout', 'Banashankari', 'Malleshwaram', 'Rajajinagar',
-      'Basavanagudi', 'Hebbal',
+      'Hebbal',
     ],
   }
 };

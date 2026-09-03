@@ -11,6 +11,7 @@ import PropertyFactsCard from './components/PropertyFactsCard';
 import PropertyActionsCard from './components/PropertyActionsCard';
 import PropertyLoanCard from './components/PropertyLoanCard';
 import PropertyGalleryModal from './components/PropertyGalleryModal';
+import PropertyFloorMapsCard from './components/PropertyFloorMapsCard';
 import EnquiryModal from '../../../components/EnquiryModal';
 import ListingCard from '../shared/cards/ListingCard';
 
@@ -209,46 +210,8 @@ export default function PropertyDetails() {
                   {/* Description */}
                   <PropertyDescriptionCard description={item.description} />
 
-                  {/* ── Floor Map PDF Viewer Module (Renders ONLY when PDF exists) ── */}
-                  {(item.pdfUrl || item.floorPlanPdf || item.pdf) && (
-                    <div className="rounded-2xl bg-white border border-gray-100 p-6 sm:p-8 shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                            <i className="fa-solid fa-file-pdf text-red-600 text-base" />
-                          </div>
-                          <div>
-                            <h2 className="text-base font-bold text-brand-charcoal">Unit Floor Maps &amp; Layout Plans</h2>
-                            <p className="text-xs text-gray-500">Interactive PDF floor plans &amp; unit dimensions</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={item.pdfUrl || item.floorPlanPdf || item.pdf}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
-                          >
-                            <i className="fa-solid fa-up-right-from-square text-[10px]" /> Fullscreen
-                          </a>
-                          <a
-                            href={item.pdfUrl || item.floorPlanPdf || item.pdf}
-                            download
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
-                          >
-                            <i className="fa-solid fa-download text-[10px]" /> Download PDF
-                          </a>
-                        </div>
-                      </div>
-                      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                        <iframe
-                          src={item.pdfUrl || item.floorPlanPdf || item.pdf}
-                          className="w-full h-[450px] sm:h-[550px] border-0"
-                          title={`${item.title || item.name} Floor Maps PDF`}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {/* ── Unit Floor Maps & Layout Plans Card (Image & PDF support) ── */}
+                  <PropertyFloorMapsCard item={item} />
 
                   {/* Amenities */}
                   <div className="rounded-2xl bg-white border border-gray-100 p-6 sm:p-8 shadow-sm">

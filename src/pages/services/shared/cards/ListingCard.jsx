@@ -11,6 +11,36 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
 
 const EMPTY_ARRAY = [];
 
+const THEME_BORDER_CLASSES = {
+  blue: 'border-2 border-brand-blue/40 hover:border-brand-blue ring-1 ring-brand-blue/20',
+  property: 'border-2 border-brand-blue/40 hover:border-brand-blue ring-1 ring-brand-blue/20',
+  gold: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
+  amber: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
+  jewellery: 'border-2 border-amber-400/80 hover:border-amber-500 ring-1 ring-amber-400/20',
+  red: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
+  automobile: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
+  vehicle: 'border-2 border-red-400/80 hover:border-red-500 ring-1 ring-red-400/20',
+  emerald: 'border-2 border-emerald-400/80 hover:border-emerald-500 ring-1 ring-emerald-400/20',
+  grocery: 'border-2 border-emerald-400/80 hover:border-emerald-500 ring-1 ring-emerald-400/20',
+  rose: 'border-2 border-rose-400/80 hover:border-rose-500 ring-1 ring-rose-400/20',
+  garments: 'border-2 border-rose-400/80 hover:border-rose-500 ring-1 ring-rose-400/20',
+  indigo: 'border-2 border-indigo-400/80 hover:border-indigo-500 ring-1 ring-indigo-400/20',
+  finance: 'border-2 border-indigo-400/80 hover:border-indigo-500 ring-1 ring-indigo-400/20',
+};
+
+function getThemeBorderClass(theme, link, overline, sector) {
+  if (theme && THEME_BORDER_CLASSES[theme.toLowerCase()]) {
+    return THEME_BORDER_CLASSES[theme.toLowerCase()];
+  }
+  const str = `${sector || ''} ${link || ''} ${overline || ''}`.toLowerCase();
+  if (str.includes('jewellery') || str.includes('gold')) return THEME_BORDER_CLASSES.jewellery;
+  if (str.includes('vehicle') || str.includes('automobile')) return THEME_BORDER_CLASSES.automobile;
+  if (str.includes('grocery') || str.includes('food')) return THEME_BORDER_CLASSES.grocery;
+  if (str.includes('garment') || str.includes('fashion') || str.includes('clothing')) return THEME_BORDER_CLASSES.garments;
+  if (str.includes('finance') || str.includes('loan')) return THEME_BORDER_CLASSES.finance;
+  return THEME_BORDER_CLASSES.property;
+}
+
 /**
  * Universal Master Listing Card Component
  * Supports direct props or auto-normalization from raw sector items.
@@ -34,6 +64,7 @@ export const ListingCard = React.memo(function ListingCard({
   badges,
   showButton = true,
   buttonText = 'View Details',
+  theme,
   children,
   // Sold-out override props (when not using normalizeListing)
   isSoldOut: isSoldOutProp,
@@ -90,16 +121,18 @@ export const ListingCard = React.memo(function ListingCard({
     }
   };
 
+  const borderClass = getThemeBorderClass(theme, cardLink, cardOverline, sector || config?.sector);
+
   return (
     <div
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
-      className={`group bg-white rounded-2xl border border-gray-200/80 overflow-hidden transition-all duration-300 flex flex-col h-full relative ${
+      className={`group bg-white rounded-2xl overflow-hidden transition-all duration-300 flex flex-col h-full relative ${borderClass} ${
         isSoldOut
           ? 'cursor-not-allowed select-none'
           : isInactive
           ? 'opacity-50 cursor-not-allowed'
-          : 'hover:border-brand-blue/40 shadow-xs hover:shadow-xl transform hover:-translate-y-1 cursor-pointer'
+          : 'shadow-xs hover:shadow-xl transform hover:-translate-y-1 cursor-pointer'
       }`}
       role={isSoldOut || isInactive ? 'button' : undefined}
       tabIndex={isSoldOut || isInactive ? 0 : undefined}
