@@ -175,7 +175,7 @@ function Home() {
                 to="/our-services/real-estate-property"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2.5 text-xs font-bold text-brand-navy hover:bg-yellow-300 transition-colors shrink-0"
               >
-                Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
+                Explore <i className="fa-solid fa-arrow-right text-[10px]" />
               </Link>
             </div>
 
@@ -205,7 +205,7 @@ function Home() {
                 to="/our-services/real-estate-property"
                 className={BTN_SECONDARY}
               >
-                Explore Homes <i className="fa-solid fa-arrow-right text-[10px]" />
+                Explore <i className="fa-solid fa-arrow-right text-[10px]" />
               </Link>
             </div>
           </div>
