@@ -217,6 +217,15 @@ export function useFilteredProperties({
         );
       })
       .sort((a, b) => {
+        const isOneVishwam = (p) => {
+          const v = String(p.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
+          const s = String(p.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
+          return v === 'onevishwam' || s === 'onevishwam' ? 1 : 0;
+        };
+        const aOv = isOneVishwam(a);
+        const bOv = isOneVishwam(b);
+        if (aOv !== bOv) return bOv - aOv;
+
         if (sortBy === 'price-low')  return getNumericPrice(a.price) - getNumericPrice(b.price);
         if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
         return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);

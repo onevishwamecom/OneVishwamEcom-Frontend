@@ -22,6 +22,7 @@ const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGaller
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
+const ComingSoon = lazy(() => import('./pages/coming-soon/ComingSoon'));
 
 /**
  * Registers React Router's navigate function with the navigateTo() utility so that
@@ -79,6 +80,7 @@ function App() {
             <Route path="/vehicle/*" element={<VehicleDetails />} />
             <Route path="/jewellery/*" element={<JewelleryDetails />} />
             <Route path="/garment/*" element={<GarmentDetails />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
           </Routes>
         </Suspense>
       </main>
