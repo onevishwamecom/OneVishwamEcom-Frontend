@@ -23,7 +23,7 @@ export const footerSocialLinks = [
 ];
 
 export const footerLocations = [
-  { label: 'Address', value: 'Basavanagudi Bangalore - 560 004', primary: true },
+  { label: 'Address', value: 'Bangalore - 560 004', primary: true },
   { label: 'Phone', value: '8546996622' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
