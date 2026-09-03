@@ -7,11 +7,6 @@ import nexonTravenza6 from '../assets/NexonTravenza/6.png';
 import nexonTravenza7 from '../assets/NexonTravenza/7.png';
 import nexonTravenza8 from '../assets/NexonTravenza/8.png';
 import axisNiran1 from '../assets/Axis Niran/1.png';
-import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/1.jpeg';
-import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/2.jpeg';
-import harmonyBrindavan3 from '../assets/Harmony Brindavan Residency/3.jpeg';
-import harmonyBrindavan4 from '../assets/Harmony Brindavan Residency/4.jpeg';
-import harmonyBrindavan5 from '../assets/Harmony Brindavan Residency/5.jpeg';
 import axisNiran2 from '../assets/Axis Niran/2.png';
 import axisNiran3 from '../assets/Axis Niran/3.png';
 import axisNiran4 from '../assets/Axis Niran/4.png';
@@ -119,6 +114,25 @@ import bmrdaNelamangala3 from '../assets/BMRDA Plot (Nelamangala)/3.jpg';
 import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
 import yeshwanthpurPlot1 from '../assets/Residential Plot in Yeshwanthpur/1.jpeg';
 import yeshwanthpurPlot2 from '../assets/Residential Plot in Yeshwanthpur/2.jpeg';
+import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/1.jpeg';
+import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/2.jpeg';
+import harmonyBrindavan3 from '../assets/Harmony Brindavan Residency/3.jpeg';
+import harmonyBrindavan4 from '../assets/Harmony Brindavan Residency/4.jpeg';
+import harmonyBrindavan5 from '../assets/Harmony Brindavan Residency/5.jpeg';
+import harmonyBrindavan6 from '../assets/Harmony Brindavan Residency/6.jpeg';
+import harmonyBrindavan7 from '../assets/Harmony Brindavan Residency/7.jpeg';
+import harmonyBrindavan8 from '../assets/Harmony Brindavan Residency/8.jpeg';
+import harmonyBrindavan9 from '../assets/Harmony Brindavan Residency/9.jpeg';
+import harmonyBrindavan10 from '../assets/Harmony Brindavan Residency/10.jpeg';
+import harmonyBrindavan11 from '../assets/Harmony Brindavan Residency/11.jpeg';
+import harmonyBrindavan12 from '../assets/Harmony Brindavan Residency/12.jpeg';
+import harmonyBrindavan13 from '../assets/Harmony Brindavan Residency/13.jpeg';
+
+export const HARMONY_BRINDAVAN_IMAGES = [
+  harmonyBrindavan1, harmonyBrindavan2, harmonyBrindavan3, harmonyBrindavan4,
+  harmonyBrindavan5, harmonyBrindavan6, harmonyBrindavan7, harmonyBrindavan8,
+  harmonyBrindavan9, harmonyBrindavan10, harmonyBrindavan11, harmonyBrindavan12, harmonyBrindavan13,
+];
 
 export const NEXON_TRAVENZA_IMAGES = [
   nexonTravenza1,
@@ -1149,7 +1163,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: harmonyBrindavan_IMAGES,
+    images: HARMONY_BRINDAVAN_IMAGES,
     loanApproved: true,
   },
   {
