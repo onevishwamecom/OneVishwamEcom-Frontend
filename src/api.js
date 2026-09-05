@@ -112,46 +112,6 @@ export const publicAPI = {
   getUserReviews: (userId) => client.get(`/users/${userId}/reviews`),
 };
 
-// ─── Upload ──────────────────────────────────────────────────────────────────
-export const uploadAPI = {
-  uploadImages: (files) => {
-    const formData = files instanceof FormData ? files : new FormData();
-    if (Array.isArray(files)) {
-      files.forEach((f) => formData.append('images', f));
-    }
-    return client.post('/upload/images', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  uploadFloorPlanImages: (files) => {
-    const formData = files instanceof FormData ? files : new FormData();
-    if (Array.isArray(files)) {
-      files.forEach((f) => formData.append('floorPlanImages', f));
-    }
-    return client.post('/upload/floor-plan-images', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  uploadFloorPlanPdf: (file) => {
-    const formData = file instanceof FormData ? file : new FormData();
-    if (file && !(file instanceof FormData)) {
-      formData.append('floorPlanPdf', file);
-    }
-    return client.post('/upload/floor-plan-pdf', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  uploadFloorPlans: (files) => {
-    const formData = files instanceof FormData ? files : new FormData();
-    if (Array.isArray(files)) {
-      files.forEach((f) => formData.append('floorPlans', f));
-    }
-    return client.post('/upload/floor-plans', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-};
-
 // ─── Property ────────────────────────────────────────────────────────────────
 export const propertyAPI = {
   getAll: (params) => client.get('/product/properties', { params }),
@@ -164,32 +124,11 @@ export const propertyAPI = {
   getByType: (type, params) => client.get(`/product/properties/by-type/${type}`, { params }),
   getByCategory: (category, params) => client.get(`/product/properties/by-category/${category}`, { params }),
   getSimilar: (id) => client.get(`/product/properties/similar/${id}`),
-  create: (body) => client.post('/product/properties', body),
   update: (id, body) => client.put(`/product/properties/${id}`, body),
   remove: (id) => client.delete(`/product/properties/${id}`),
   toggleStatus: (id) => client.patch(`/product/properties/${id}/status`),
-  uploadImages: (id, formData) => client.post(`/product/properties/${id}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  uploadFloorPlanImages: (id, formDataOrFiles) => {
-    const formData = formDataOrFiles instanceof FormData ? formDataOrFiles : new FormData();
-    if (Array.isArray(formDataOrFiles)) {
-      formDataOrFiles.forEach((f) => formData.append('floorPlanImages', f));
-    }
-    return client.post(`/product/properties/${id}/floor-plan-images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-  },
-  uploadFloorPlanPdf: (id, formDataOrFile) => {
-    const formData = formDataOrFile instanceof FormData ? formDataOrFile : new FormData();
-    if (formDataOrFile && !(formDataOrFile instanceof FormData)) {
-      formData.append('floorPlanPdf', formDataOrFile);
-    }
-    return client.post(`/product/properties/${id}/floor-plan-pdf`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-  },
-  uploadFloorPlan: (id, formData) => client.post(`/product/properties/${id}/floor-plan`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  deleteImage: (id, imageUrl) => client.delete(`/product/properties/${id}/images`, { data: { imageUrl } }),
-  deleteFloorPlanImage: (id, imageUrl) => client.delete(`/product/properties/${id}/floor-plan-images`, { data: { imageUrl } }),
-  deleteFloorPlanPdf: (id) => client.delete(`/product/properties/${id}/floor-plan-pdf`),
   getMy: () => client.get('/product/properties/my/listings'),
   submitRequirement: (body) => client.post('/product/properties/requirements', body),
-  uploadBrochure: (id, formData) => client.post(`/product/properties/${id}/brochure`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 // ─── Vehicle ─────────────────────────────────────────────────────────────────
@@ -198,7 +137,6 @@ export const vehicleAPI = {
   getById: (id) => client.get(`/product/vehicles/${id}`),
   getSimilar: (id) => client.get(`/product/vehicles/similar/${id}`),
   getMy: () => client.get('/product/vehicles/my'),
-  create: (body) => client.post('/product/vehicles', body),
   update: (id, body) => client.put(`/product/vehicles/${id}`, body),
   remove: (id) => client.delete(`/product/vehicles/${id}`),
   toggleStatus: (id) => client.patch(`/product/vehicles/${id}/status`),
@@ -210,7 +148,6 @@ export const groceryAPI = {
   getById: (id) => client.get(`/product/groceries/${id}`),
   getSimilar: (id) => client.get(`/product/groceries/similar/${id}`),
   getMy: () => client.get('/product/groceries/my'),
-  create: (body) => client.post('/product/groceries', body),
   update: (id, body) => client.put(`/product/groceries/${id}`, body),
   remove: (id) => client.delete(`/product/groceries/${id}`),
   toggleStatus: (id) => client.patch(`/product/groceries/${id}/status`),
@@ -222,7 +159,6 @@ export const garmentAPI = {
   getById: (id) => client.get(`/product/garments/${id}`),
   getSimilar: (id) => client.get(`/product/garments/similar/${id}`),
   getMy: () => client.get('/product/garments/my'),
-  create: (body) => client.post('/product/garments', body),
   update: (id, body) => client.put(`/product/garments/${id}`, body),
   remove: (id) => client.delete(`/product/garments/${id}`),
   toggleStatus: (id) => client.patch(`/product/garments/${id}/status`),
@@ -234,7 +170,6 @@ export const jewelleryAPI = {
   getById: (id) => client.get(`/product/jewellery/${id}`),
   getSimilar: (id) => client.get(`/product/jewellery/${id}/similar`),
   getMy: () => client.get('/product/jewellery/my'),
-  create: (body) => client.post('/product/jewellery', body),
   update: (id, body) => client.put(`/product/jewellery/${id}`, body),
   remove: (id) => client.delete(`/product/jewellery/${id}`),
   toggleStatus: (id) => client.patch(`/product/jewellery/${id}/status`),
@@ -246,7 +181,6 @@ export const financeAPI = {
   getById: (id) => client.get(`/product/finance/${id}`),
   getSimilar: (id) => client.get(`/product/finance/similar/${id}`),
   getMy: () => client.get('/product/finance/my'),
-  create: (body) => client.post('/product/finance', body),
   update: (id, body) => client.put(`/product/finance/${id}`, body),
   remove: (id) => client.delete(`/product/finance/${id}`),
   toggleStatus: (id) => client.patch(`/product/finance/${id}/status`),
@@ -258,7 +192,6 @@ export const financeOfferingAPI = {
   getById: (id) => client.get(`/product/finance-offerings/${id}`),
   getSimilar: (id) => client.get(`/product/finance-offerings/similar/${id}`),
   getMy: () => client.get('/product/finance-offerings/my'),
-  create: (body) => client.post('/product/finance-offerings', body),
   update: (id, body) => client.put(`/product/finance-offerings/${id}`, body),
   remove: (id) => client.delete(`/product/finance-offerings/${id}`),
   toggleStatus: (id) => client.patch(`/product/finance-offerings/${id}/status`),
