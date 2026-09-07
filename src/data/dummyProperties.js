@@ -104,7 +104,7 @@ import bmrdaNelamangala1 from '../assets/BMRDA Plot (Nelamangala)/1.jpg';
 import bmrdaNelamangala2 from '../assets/BMRDA Plot (Nelamangala)/2.jpg';
 import bmrdaNelamangala3 from '../assets/BMRDA Plot (Nelamangala)/3.jpg';
 import vinraKbrPrime1 from '../assets/Vinra KBR Prime/1.png';
-import yeshwanthpurPlot1 from '../assets/Residential Plot in Yeshwanthpur/1.jpeg';
+// import yeshwanthpurPlot1 from '../assets/Residential Plot in Yeshwanthpur/1.jpeg';
 import yeshwanthpurPlot2 from '../assets/Residential Plot in Yeshwanthpur/2.jpeg';
 import harmonyBrindavan1 from '../assets/Harmony Brindavan Residency/1.jpeg';
 import harmonyBrindavan2 from '../assets/Harmony Brindavan Residency/2.jpeg';
@@ -358,7 +358,7 @@ export const DS_MAX_SKYSISIRA_IMAGES = [
 ];
 
 export const YESHWANTHPUR_PLOT_IMAGES = [
-  yeshwanthpurPlot1,
+  // yeshwanthpurPlot1,
   yeshwanthpurPlot2,
 ];
 
