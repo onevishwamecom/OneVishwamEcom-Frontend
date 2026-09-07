@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { useProperties } from '../../../hooks/useProperties';
 import { cities } from '../../../data/locations';
-import { getTotalPropertyPrice, getNumericPrice } from './propertyHelpers';
+import { getTotalPropertyPrice, getNumericPrice, matchesBudgetRange } from './propertyHelpers';
 
 function getCardType(property) {
   const s = property.subtitle.toLowerCase();
@@ -73,8 +73,11 @@ function QuickMatchModal({ onClose }) {
       const price = getNumericPrice(p.price);
       const cardType = getCardType(p);
 
-      const budgetMatch = (!budgetMin || price >= +budgetMin * 100000) &&
-        (!budgetMax || price <= +budgetMax * 100000);
+      const budgetMatch = matchesBudgetRange(
+        p,
+        budgetMin ? +budgetMin * 100000 : null,
+        budgetMax ? +budgetMax * 100000 : null
+      );
       const typeMatch = !propertyType || cardType === propertyType;
       const cityMatch = !city || p.city === city;
       const locationMatch = !location || p.zone === location;

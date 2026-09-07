@@ -2,12 +2,20 @@ import { propertyAPI } from '../api';
 import useCachedData from './useCachedData';
 import { CACHE_TTL, deterministicKey } from '../services/cache/cacheService';
 
+import { getTotalPropertyPrice, parsePriceRange } from '../pages/services/property/propertyHelpers';
+
 function extractProperties(res) {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.data?.data?.items)) return res.data.data.items;
-  return [];
+  let list = [];
+  if (Array.isArray(res?.data)) list = res.data;
+  else if (Array.isArray(res?.data?.data)) list = res.data.data;
+  else if (Array.isArray(res?.data?.items)) list = res.data.items;
+  else if (Array.isArray(res?.data?.data?.items)) list = res.data.data.items;
+  
+  return list.map((p) => ({
+    ...p,
+    calculatedTotalAmount: getTotalPropertyPrice(p),
+    priceRange: parsePriceRange(p),
+  }));
 }
 
 export function useProperties(params = {}) {
