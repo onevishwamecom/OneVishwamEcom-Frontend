@@ -274,12 +274,6 @@ function Navbar() {
                 )}
               </div>
 
-              <Link to="/contact-us/"
-                className="hidden sm:inline-flex items-center gap-2 bg-brand-blue text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-brand-navy transition-colors"
-              >
-                <i className="fa-solid fa-phone" /> Enquire Now
-              </Link>
-
               {/* Auth Login Button or User Dropdown */}
               {isLoggedIn ? (
                 <UserDropdown />

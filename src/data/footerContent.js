@@ -54,8 +54,6 @@ export const contactInfoVedantSuraksha = {
 
 export const GROUP_B_PROPERTY_TITLES = [
   'Nexon Travenza',
-  'Axis Niran',
-  'Axis Ektava',
   'Zen Indraprastha',
   'Ramky Fortuna',
   'Purva Northern Lights',

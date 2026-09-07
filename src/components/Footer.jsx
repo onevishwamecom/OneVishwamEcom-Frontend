@@ -71,8 +71,13 @@ function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-gray-700/80 text-center text-xs text-gray-400">
-          &copy; {year} {footerBrandName}. All rights reserved.
+        <div className="mt-12 pt-6 border-t border-gray-700/80 text-center">
+          <p className="text-[11px] sm:text-xs text-gray-400/90 max-w-4xl mx-auto leading-relaxed mb-4">
+            <span className="font-semibold text-gray-300">Disclaimer:</span> Website materials are provided for general information and are subject to change without notice, with renders and plans serving as artistic concepts rather than official sales offers. Sharing contact information constitutes agreement for the team to contact users by call or text, superseding the DND registry.
+          </p>
+          <p className="text-xs text-gray-500">
+            &copy; {year} {footerBrandName}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
