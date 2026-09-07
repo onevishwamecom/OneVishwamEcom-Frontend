@@ -66,9 +66,12 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about-us/*" element={<AboutPage />} />
+            <Route path="/enquiry/*" element={<ContactPage />} />
+            <Route path="/enquiry" element={<ContactPage />} />
+            <Route path="/contact-us/*" element={<ContactPage />} />
+            <Route path="/contact-us" element={<ContactPage />} />
             <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
             <Route path="/our-services/*" element={<ServicesPage />} />
-            <Route path="/contact-us/*" element={<ContactPage />} />
             <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />

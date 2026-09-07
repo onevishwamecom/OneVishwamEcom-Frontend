@@ -197,7 +197,7 @@ export default function PromoModal() {
               type="button"
               onClick={() => {
                 handleClose();
-                navigate('/contact-us/');
+                navigate('/enquiry/');
               }}
               className="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:scale-[0.98] px-5 py-3.5 text-sm font-black text-slate-950 shadow-md shadow-amber-500/30 transition-all cursor-pointer"
             >

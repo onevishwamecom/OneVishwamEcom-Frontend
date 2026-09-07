@@ -1,26 +1,9 @@
-export const navLinks = [
+export const primaryNavigation = [
   { label: 'Home', href: '/home', id: 'home' },
   { label: 'About Us', href: '/about-us/', id: 'about' },
-  { label: 'Contact Us', href: '/contact-us/', id: 'contact' },
-  { label: 'Properties', href: '/our-services/real-estate-property', id: 'properties' },
-  { label: 'Automobiles', href: '/our-services/automobile', id: 'automobiles' },
-  { label: 'Finance', href: '/our-services/finance-lending', id: 'finance' },
-  { label: 'Groceries', href: '/our-services/consumer-marketplace', id: 'groceries' },
-  { label: 'Garments', href: '/our-services/garments-fashion-lifestyle', id: 'garments' },
-  {
-    label: 'More',
-    href: '#',
-    id: 'more',
-    submenu: {
-      columns: [
-        [
-          { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
-          { label: 'Investment & Business', href: '/our-services/investment-venture-capital' },
-          { label: 'Building & Industry Supplies', href: '/our-services/industrial-infrastructure' },
-          { label: 'Open Market', href: '/our-services/open-marketplace' },
-          { label: 'Jobs & Staffing', href: '/our-services/hr-staffing' },
-        ],
-      ],
-    },
-  },
+  { label: 'Enquiry', href: '/enquiry/', id: 'enquiry' },
+  { label: 'Careers', href: '/careers/', id: 'careers' },
 ];
+
+export const navLinks = primaryNavigation;
+
