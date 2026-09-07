@@ -7,6 +7,7 @@ import { useAuth, forceLogout } from './store/authSlice';
 import store from './store';
 import AuthModals from './components/auth/AuthModals';
 import PromoToast from './components/PromoToast';
+import PromoModal from './components/PromoModal';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -165,6 +166,7 @@ function App() {
       </Suspense>
       <AuthModals />
       <PromoToast />
+      <PromoModal />
     </>
   );
 }
