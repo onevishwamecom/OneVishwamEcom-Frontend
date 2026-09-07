@@ -89,11 +89,11 @@ export const trustCards = [
     id: 'contacts',
     icon: 'fa-solid fa-phone-volume',
     eyebrow: 'Contacts',
-    title: 'Contact Us',
+    title: 'Enquiry',
     description:
       'Call or message us for property listings, loans, partnerships, or any questions.',
     cta: 'Get in touch',
-    href: '/contact-us/',
+    href: '/enquiry/',
   },
 ];
 

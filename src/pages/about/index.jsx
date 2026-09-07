@@ -60,7 +60,7 @@ function AboutPage() {
         title={<>OneVishwam: A <span className="text-yellow-400">FinVerse</span> for Everyday Life</>}
         subtitle="One Stop Solution for finance and products to build your life. Lower prices, direct from manufacturers, backed by co-operative finance."
         ctas={[
-          { label: 'Contact Us', href: '/contact-us/', primary: true, icon: 'fa-solid fa-envelope' },
+          { label: 'Enquiry', href: '/enquiry/', primary: true, icon: 'fa-solid fa-envelope' },
           { label: 'Explore Services', href: '/our-services/real-estate-property', primary: false, icon: 'fa-solid fa-compass' },
         ]}
       />
@@ -243,10 +243,10 @@ function AboutPage() {
                 <i className="fa-solid fa-house-chimney" /> Explore Properties
               </Link>
               <Link
-                to="/contact-us/"
+                to="/enquiry/"
                 className="inline-flex items-center gap-2 bg-white/10 text-white px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border border-white/20 hover:bg-white/20 transition-colors"
               >
-                <i className="fa-solid fa-envelope" /> Contact Us
+                <i className="fa-solid fa-envelope" /> Enquiry
               </Link>
             </div>
           </div>

@@ -138,7 +138,10 @@ function App() {
             <Route path="/about-us/*" element={<AboutPage />} />
             <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
             <Route path="/our-services/*" element={<ServicesPage location={location} />} />
+            <Route path="/enquiry/*" element={<ContactPage location={location} />} />
+            <Route path="/enquiry" element={<ContactPage location={location} />} />
             <Route path="/contact-us/*" element={<ContactPage location={location} />} />
+            <Route path="/contact-us" element={<ContactPage location={location} />} />
             <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />

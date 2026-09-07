@@ -1,14 +1,12 @@
+import { primaryNavigation } from './siteContent';
+
 export const footerBrandName = 'Vishwam';
 
 export const footerSummary =
   'A massive multi-service ecosystem spanning finance, property, marketplace, and enterprise solutions.';
 
-export const footerQuickLinks = [
-  { label: 'Home', href: '/home' },
-  { label: 'About Us', href: '/about-us/' },
-  { label: 'Contact Us', href: '/contact-us/' },
-  { label: 'Careers', href: '/careers/' },
-];
+export const footerQuickLinks = primaryNavigation;
+
 
 export const footerServiceLinks = [
   { label: 'Properties', href: '/our-services/real-estate-property' },

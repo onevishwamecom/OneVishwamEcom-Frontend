@@ -47,7 +47,7 @@ export default function PromoToast() {
 
   const handleAction = () => {
     handleDismiss();
-    navigate('/contact-us/');
+    navigate('/enquiry/');
   };
 
   return (

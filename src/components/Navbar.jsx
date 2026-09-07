@@ -20,9 +20,7 @@ function Navbar() {
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
   const { isLoggedIn, openAuthModal, user, logout } = useAuth();
 
-  const visibleNavLinks = PROPERTIES_ONLY
-    ? navLinks.filter((l) => l.id === 'home' || l.id === 'about' || l.id === 'contact' || l.id === 'properties' || l.id === 'automobiles')
-    : navLinks;
+  const visibleNavLinks = navLinks;
 
   const showDropdown = useCallback((name) => {
     if (closeTimerRef.current) {
@@ -144,13 +142,9 @@ function Navbar() {
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
-    if (link.id === 'about') return path.startsWith('/about-us/');
-    if (link.id === 'contact') return path.startsWith('/contact-us/');
-    if (link.id === 'properties') return path.startsWith('/our-services/real-estate-property') || path.startsWith('/property/');
-    if (link.id === 'automobiles') return path.startsWith('/our-services/automobile') || path.startsWith('/vehicle/');
-    if (link.id === 'finance') return path.startsWith('/our-services/finance-lending') || path.startsWith('/finance-service') || path.startsWith('/finance/') || path.startsWith('/finance-flow');
-    if (link.id === 'groceries') return path.startsWith('/our-services/consumer-marketplace') || path.startsWith('/grocery/');
-    if (link.id === 'garments') return path.startsWith('/our-services/garments-fashion-lifestyle') || path.startsWith('/garment/');
+    if (link.id === 'about') return path.startsWith('/about-us');
+    if (link.id === 'enquiry' || link.id === 'contact') return path.startsWith('/enquiry') || path.startsWith('/contact-us');
+    if (link.id === 'careers') return path.startsWith('/careers');
     return false;
   };
 
@@ -398,12 +392,6 @@ function Navbar() {
               )}
             </div>
           ))}
-          <hr className="my-3" />
-          <Link to="/contact-us/" onClick={() => setMenuOpen(false)}
-            className="flex items-center justify-center gap-2 bg-brand-blue text-white px-5 py-3 text-sm font-semibold rounded-lg"
-          >
-            <i className="fa-solid fa-phone" /> Enquire Now
-          </Link>
           {!isLoggedIn && (
             <button
               onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
