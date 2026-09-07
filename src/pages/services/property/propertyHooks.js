@@ -3,6 +3,7 @@ import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
+  matchesBudgetRange, getTotalPropertyPrice, parsePriceRange,
 } from './propertyHelpers';
 
 /**
@@ -101,9 +102,7 @@ export function useFilteredProperties(arg1, arg2) {
         const descStr = String(p.description || '').toLowerCase();
         const matchRequirement = !qReq || titleStr.includes(qReq) || locStr.includes(qReq) || subStr.includes(qReq) || descStr.includes(qReq);
 
-        const matchBudget =
-          (!filters.budgetMin || np >= +filters.budgetMin) &&
-          (!filters.budgetMax || np <= +filters.budgetMax);
+        const matchBudget = matchesBudgetRange(p, filters.budgetMin, filters.budgetMax);
 
         const matchSize =
           (!filters.sizeMin || area >= +filters.sizeMin) &&
@@ -240,8 +239,8 @@ export function useFilteredProperties(arg1, arg2) {
         const bOv = isOneVishwam(b);
         if (aOv !== bOv) return bOv - aOv;
 
-        if (sortBy === 'price-low')  return getNumericPrice(a.price) - getNumericPrice(b.price);
-        if (sortBy === 'price-high') return getNumericPrice(b.price) - getNumericPrice(a.price);
+        if (sortBy === 'price-low')  return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
+        if (sortBy === 'price-high') return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
         return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });
   }, [

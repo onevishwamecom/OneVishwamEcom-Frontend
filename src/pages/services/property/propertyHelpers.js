@@ -34,11 +34,27 @@ export function getNumericArea(area) {
 }
 
 /**
- * Extracts { min, max } area range in sq.ft from an area string.
+ * Extracts { min, max } area range in sq.ft from an area string or property object.
  */
-export function parseAreaRange(area) {
-  if (!area) return { min: 0, max: 0 };
-  const str = String(area).trim();
+export function parseAreaRange(areaOrProperty) {
+  if (!areaOrProperty) return { min: 0, max: 0 };
+
+  let str = '';
+  if (typeof areaOrProperty === 'object') {
+    str = String(
+      areaOrProperty.plotSize ||
+      areaOrProperty.sizeRange ||
+      (isPlotOrLand(areaOrProperty) && areaOrProperty.bhk ? areaOrProperty.bhk : '') ||
+      areaOrProperty.area ||
+      areaOrProperty.size ||
+      areaOrProperty.dimensions ||
+      ''
+    ).trim();
+  } else {
+    str = String(areaOrProperty).trim();
+  }
+
+  if (!str) return { min: 0, max: 0 };
   const lower = str.toLowerCase();
   
   let unitMultiplier = 1;
@@ -50,15 +66,26 @@ export function parseAreaRange(area) {
     unitMultiplier = 9;
   }
 
-  // Check for range e.g. "1200 - 2400 Sq.ft"
+  // Check for dimension patterns like "30x40", "30*40", "30×40", "40 X 60"
+  const dimMatches = [...str.matchAll(/(\d+)\s*(?:x|\*|×|X)\s*(\d+)/g)];
+  if (dimMatches.length > 0) {
+    const dimAreas = dimMatches.map((m) => parseInt(m[1], 10) * parseInt(m[2], 10));
+    const minDim = Math.min(...dimAreas);
+    const maxDim = Math.max(...dimAreas);
+    return { min: minDim, max: maxDim };
+  }
+
+  // Check for range e.g. "1200 - 2400 Sq.ft" or "1200 to 2400"
   const rangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)/);
   if (rangeMatch) {
     const minVal = parseFloat(rangeMatch[1].replace(/,/g, '')) * unitMultiplier;
     const maxVal = parseFloat(rangeMatch[2].replace(/,/g, '')) * unitMultiplier;
-    return {
-      min: Math.round(Math.min(minVal, maxVal)),
-      max: Math.round(Math.max(minVal, maxVal)),
-    };
+    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > 0 && maxVal > 0) {
+      return {
+        min: Math.round(Math.min(minVal, maxVal)),
+        max: Math.round(Math.max(minVal, maxVal)),
+      };
+    }
   }
 
   const single = getNumericArea(str);
@@ -67,11 +94,27 @@ export function parseAreaRange(area) {
 
 /**
  * Parses price range and computes total property valuation.
- * If price is per sqft (e.g. "₹ 2500/Sq.ft" with 8000 sqft area = ₹ 2.00 Cr),
+ * If price is per sqft (e.g. "₹ 2500/Sq.ft" with 8000 sqft area = ₹ 2.00 Cr / 20,000,000),
  * accurately multiplies rate * area to calculate true total worth.
  */
 export function parsePriceRange(property) {
   if (!property) return { min: 0, max: 0 };
+
+  // If property already has explicit / precomputed total amount:
+  if (typeof property === 'object') {
+    if (property.calculatedTotalAmount && !isNaN(Number(property.calculatedTotalAmount))) {
+      const val = Number(property.calculatedTotalAmount);
+      return { min: val, max: val };
+    }
+    if (property.totalAmount && !isNaN(getNumericPrice(String(property.totalAmount)))) {
+      const tot = getNumericPrice(String(property.totalAmount));
+      if (tot > 10000) return { min: tot, max: tot };
+    }
+    if (property.totalPrice && !isNaN(getNumericPrice(String(property.totalPrice)))) {
+      const tot = getNumericPrice(String(property.totalPrice));
+      if (tot > 10000) return { min: tot, max: tot };
+    }
+  }
 
   const rawPriceStr = String(
     (typeof property === 'object' ? (property.price || property.cost || property.amount) : property) || ''
@@ -81,10 +124,10 @@ export function parsePriceRange(property) {
     return { min: 0, max: 0 };
   }
 
-  const areaRange = parseAreaRange(
-    typeof property === 'object' ? (property.area || property.size || property.plotSize || property.bhk || '') : ''
-  );
-  const isPerSqft = /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft)/i.test(rawPriceStr);
+  const areaRange = parseAreaRange(property);
+  const isPerSqft = /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft|square\s*feet|square\s*foot|feet|ft)/i.test(rawPriceStr) ||
+                    /rs\s*per/i.test(rawPriceStr) ||
+                    /\/\s*sq/i.test(rawPriceStr);
 
   // Check for price range e.g. "₹ 1.80 Cr – 2.50 Cr" or "₹ 78 Lakhs – 1.22 Cr"
   const priceRangeMatch = rawPriceStr.match(/₹?\s*([\d,.]+)\s*(cr|crore|l|lakh|lakhs|k)?\s*(?:-|–|to)\s*₹?\s*([\d,.]+)\s*(cr|crore|l|lakh|lakhs|k)?/i);
@@ -115,6 +158,7 @@ export function parsePriceRange(property) {
   // Single price point
   const baseNumPrice = getNumericPrice(rawPriceStr);
 
+  // If per sqft OR if price is a unit rate (< 100,000 INR) and area is available
   if (isPerSqft || (baseNumPrice > 0 && baseNumPrice < 100000 && areaRange.min > 0)) {
     const rateMatch = rawPriceStr.match(/([\d,.]+)/);
     const rate = rateMatch ? parseFloat(rateMatch[1].replace(/,/g, '')) : baseNumPrice;
@@ -133,6 +177,10 @@ export function parsePriceRange(property) {
  * Returns single representative total valuation in INR for sorting & filters.
  */
 export function getTotalPropertyPrice(property) {
+  if (!property) return 0;
+  if (typeof property === 'object' && property.calculatedTotalAmount) {
+    return Number(property.calculatedTotalAmount);
+  }
   const { min } = parsePriceRange(property);
   return min;
 }

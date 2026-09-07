@@ -5,30 +5,38 @@ import logo from '../assets/logo.png';
 const PROMO_IMAGE_URL =
   'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
 
+const MODAL_SNOOZE_MS = 10 * 60 * 1000; // 10 minutes snooze after close
+const INITIAL_DELAY_MS = 2500; // 2.5 seconds appearance
+
 export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleOpen = useCallback(() => {
-    const hasSeen = sessionStorage.getItem('onevishwam_emi_modal_seen');
-    if (!hasSeen) {
+    const lastClosed = sessionStorage.getItem('onevishwam_modal_closed_at');
+    if (!lastClosed || Date.now() - Number(lastClosed) > MODAL_SNOOZE_MS) {
       setIsOpen(true);
     }
   }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    sessionStorage.setItem('onevishwam_emi_modal_seen', 'true');
+    sessionStorage.setItem('onevishwam_modal_closed_at', Date.now().toString());
+    window.dispatchEvent(
+      new CustomEvent('onevishwam:promomodal_closed', { detail: { timestamp: Date.now() } })
+    );
   }, []);
 
-  // 1. Timed appearance (2.5s after mount)
+  // 1. Timed appearance on mount if not in snooze cooldown
   useEffect(() => {
-    const hasSeen = sessionStorage.getItem('onevishwam_emi_modal_seen');
-    if (hasSeen) return;
+    const lastClosed = sessionStorage.getItem('onevishwam_modal_closed_at');
+    if (lastClosed && Date.now() - Number(lastClosed) <= MODAL_SNOOZE_MS) {
+      return;
+    }
 
     const timer = setTimeout(() => {
       handleOpen();
-    }, 2500);
+    }, INITIAL_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [handleOpen]);

@@ -4,28 +4,30 @@ import logoIcon from '../assets/Logo_icon.png';
 
 /**
  * REPEAT_INTERVAL_MS:
- * Time in milliseconds to wait before re-triggering the toast after user closes it (5 minutes).
+ * Time in milliseconds to wait before re-triggering the toast after closing (5 minutes).
  */
+const TOAST_DELAY_AFTER_MODAL_MS = 5 * 60 * 1000; // 5 minutes after promo modal is closed
 const REPEAT_INTERVAL_MS = 5 * 60 * 1000;
-const INITIAL_DELAY_MS = 2500; // 2.5 seconds initial appearance
 
 export default function PromoToast() {
   const [visible, setVisible] = useState(false);
   const retriggerTimerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Initial appearance
-  useEffect(() => {
-    const initialTimer = setTimeout(() => {
+  // Schedule toast appearance after 5 minutes of modal closing
+  const scheduleToast = useCallback((delayMs) => {
+    if (retriggerTimerRef.current) {
+      clearTimeout(retriggerTimerRef.current);
+    }
+    retriggerTimerRef.current = setTimeout(() => {
       setVisible(true);
-    }, INITIAL_DELAY_MS);
-
-    return () => clearTimeout(initialTimer);
+    }, delayMs);
   }, []);
 
-  // Handle dismiss with recurring re-trigger timer
+  // Handle dismiss with recurring re-trigger timer (5 mins)
   const handleDismiss = useCallback(() => {
     setVisible(false);
+    sessionStorage.setItem('onevishwam_toast_dismissed_at', Date.now().toString());
 
     if (retriggerTimerRef.current) {
       clearTimeout(retriggerTimerRef.current);
@@ -36,14 +38,44 @@ export default function PromoToast() {
     }, REPEAT_INTERVAL_MS);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
+    // 1. Check if modal was already closed in this session
+    const modalClosedAt = sessionStorage.getItem('onevishwam_modal_closed_at');
+    const toastDismissedAt = sessionStorage.getItem('onevishwam_toast_dismissed_at');
+
+    if (toastDismissedAt) {
+      const elapsedSinceDismiss = Date.now() - Number(toastDismissedAt);
+      if (elapsedSinceDismiss < REPEAT_INTERVAL_MS) {
+        scheduleToast(REPEAT_INTERVAL_MS - elapsedSinceDismiss);
+      } else {
+        setVisible(true);
+      }
+    } else if (modalClosedAt) {
+      const elapsedSinceModal = Date.now() - Number(modalClosedAt);
+      if (elapsedSinceModal >= TOAST_DELAY_AFTER_MODAL_MS) {
+        setVisible(true);
+      } else {
+        scheduleToast(TOAST_DELAY_AFTER_MODAL_MS - elapsedSinceModal);
+      }
+    }
+
+    // 2. Listen for modal closure event
+    const handleModalClosed = (e) => {
+      const timestamp = e?.detail?.timestamp || Date.now();
+      const elapsed = Date.now() - timestamp;
+      const remaining = Math.max(0, TOAST_DELAY_AFTER_MODAL_MS - elapsed);
+      scheduleToast(remaining);
+    };
+
+    window.addEventListener('onevishwam:promomodal_closed', handleModalClosed);
+
     return () => {
+      window.removeEventListener('onevishwam:promomodal_closed', handleModalClosed);
       if (retriggerTimerRef.current) {
         clearTimeout(retriggerTimerRef.current);
       }
     };
-  }, []);
+  }, [scheduleToast]);
 
   const handleAction = () => {
     handleDismiss();

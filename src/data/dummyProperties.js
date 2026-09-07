@@ -349,12 +349,17 @@ export const BMRDA_NELAMANGALA_IMAGES = [
   bmrdaNelamangala2,
   bmrdaNelamangala3,
 ];
-export const harmonyBrindavan_IMAGES = [
-  harmonyBrindavan1,
-  harmonyBrindavan2,
-  harmonyBrindavan3,
-  harmonyBrindavan4,
-  harmonyBrindavan5,
+
+export const DS_MAX_SKYSISIRA_IMAGES = [
+  dsMaxSkysisira1,
+  dsMaxSkysisira2,
+  dsMaxSkysisira3,
+  dsMaxSkysisira4,
+];
+
+export const YESHWANTHPUR_PLOT_IMAGES = [
+  yeshwanthpurPlot1,
+  yeshwanthpurPlot2,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -913,7 +918,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [theClan1],
+    images: THE_CLAN_IMAGES,
     loanApproved: true,
   },
   {
@@ -1362,7 +1367,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [dsMaxSkysisira1, dsMaxSkysisira2, dsMaxSkysisira3, dsMaxSkysisira4],
+    images: DS_MAX_SKYSISIRA_IMAGES,
     video: dsMaxSkysisiraVideo,
     loanApproved: true,
   },
@@ -1688,7 +1693,7 @@ status: 'available',
     contact: '8546996622',
     email: 'ceo@onevishwam.com',
     status: 'available',
-    images: [yeshwanthpurPlot1, yeshwanthpurPlot2],
+    images: YESHWANTHPUR_PLOT_IMAGES,
     loanApproved: true,
   },
 

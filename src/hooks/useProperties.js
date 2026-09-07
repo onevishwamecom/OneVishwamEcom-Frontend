@@ -1,15 +1,12 @@
 import { dummyProperties } from '../data/dummyProperties';
+import { getTotalPropertyPrice, parsePriceRange } from '../pages/services/property/propertyHelpers';
 
-/**
- * Returns property data synchronously.
- *
- * Previously this used useEffect + useState to "load" the data, which caused
- * a guaranteed 3-render cycle (mount → loading state → data arrives → loaded state)
- * even though dummyProperties is a synchronous in-memory array.
- *
- * By returning the data directly, the component renders with data on the first
- * render with no artificial loading flash.
- */
+const enrichedProperties = dummyProperties.map((p) => ({
+  ...p,
+  calculatedTotalAmount: getTotalPropertyPrice(p),
+  priceRange: parsePriceRange(p),
+}));
+
 export function useProperties() {
-  return { properties: dummyProperties, loading: false, error: null };
+  return { properties: enrichedProperties, loading: false, error: null };
 }

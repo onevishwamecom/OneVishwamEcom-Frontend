@@ -8,7 +8,7 @@ function Footer() {
   return (
     <footer className="bg-brand-navy text-white">
       <div className="h-1 bg-gradient-to-r from-brand-blue via-yellow-400 to-brand-blue" />
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-10 pb-6 sm:pt-12 sm:pb-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Brand Info */}
           <div className="space-y-4">
@@ -71,8 +71,8 @@ function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-gray-700/80 text-center">
-          <p className="text-[11px] sm:text-xs text-gray-400/90 max-w-4xl mx-auto leading-relaxed mb-4">
+        <div className="mt-8 pt-5 sm:mt-10 sm:pt-6 border-t border-gray-700/80 text-center">
+          <p className="text-[11px] sm:text-xs text-gray-400/90 max-w-4xl mx-auto leading-relaxed mb-2.5">
             <span className="font-semibold text-gray-300">Disclaimer:</span> Website materials are provided for general information and are subject to change without notice, with renders and plans serving as artistic concepts rather than official sales offers. Sharing contact information constitutes agreement for the team to contact users by call or text, superseding the DND registry.
           </p>
           <p className="text-xs text-gray-500">
