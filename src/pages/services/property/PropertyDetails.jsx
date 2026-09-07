@@ -6,6 +6,7 @@ import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent
 import { navigateTo } from '../../../config/navigation';
 import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
+import oneVishwamLogo from '../../../assets/logo.png';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -372,10 +373,34 @@ export default function PropertyDetails() {
   }
 
   const activeContact = getPropertyContactInfo(property);
-  const whatsappUrl = `https://wa.me/${activeContact.whatsapp}?text=${encodeURIComponent(`Hi, I would like to enquire about ${property.title} (${property.location || property.city}).`)}`;
   const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
   const isPlot = isPlotOrLand(property);
   const statusPill = getPropertyStatusPill(property);
+
+  const enterpriseLogo =
+    property.enterpriseLogo ||
+    property.companyLogo ||
+    property.developerLogo ||
+    property.builderLogo ||
+    property.projectLogo ||
+    property.logo ||
+    (property.channelPartner && Array.isArray(property.channelPartner)
+      ? property.channelPartner[0]?.logo
+      : property.channelPartner?.logo) ||
+    property.agent?.avatar ||
+    property.agent?.logo ||
+    null;
+
+  const enterpriseName =
+    property.enterpriseName ||
+    property.companyName ||
+    property.developer ||
+    property.builder ||
+    property.agent?.name ||
+    (property.channelPartner && Array.isArray(property.channelPartner)
+      ? property.channelPartner[0]?.name
+      : property.channelPartner?.name) ||
+    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null);
 
   const renderHighlightCard = (meta) => {
     if (meta.key === 'bhk' && isPlot) return null;
@@ -466,17 +491,17 @@ export default function PropertyDetails() {
             </div>
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs"
+              className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs cursor-pointer"
             >
-              <i className="fa-solid fa-paper-plane mr-1.5" /> Enquire
+              <i className="fa-solid fa-paper-plane mr-1.5" /> Enquire Now
             </button>
             <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-xs"
+              href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+              className="rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-xs flex items-center gap-1.5"
             >
-              <i className="fa-brands fa-whatsapp mr-1" /> WhatsApp
+              <i className="fa-solid fa-phone" />
+              <span className="hidden md:inline">Contact: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+              <span className="md:hidden">Contact Us</span>
             </a>
           </div>
         </div>
@@ -564,6 +589,36 @@ export default function PropertyDetails() {
 
             {/* Price & Primary CTAs */}
             <div className="flex flex-col sm:flex-row lg:flex-col lg:items-end gap-3 shrink-0">
+              {/* Co-Branding: OneVishwam + Company / Enterprise Logo */}
+              <div className="inline-flex items-center gap-2 rounded-xl bg-slate-50/90 border border-slate-200/80 px-3 py-1.5 shadow-2xs">
+                {enterpriseLogo ? (
+                  <>
+                    <img
+                      src={resolveImage(enterpriseLogo)}
+                      alt={enterpriseName || 'Enterprise'}
+                      className="h-6 max-w-[110px] object-contain"
+                    />
+                    <span className="text-slate-300 font-light text-xs">✕</span>
+                  </>
+                ) : enterpriseName ? (
+                  <>
+                    <span className="text-xs font-bold text-slate-800 tracking-wide">
+                      {enterpriseName}
+                    </span>
+                    <span className="text-slate-300 font-light text-xs">✕</span>
+                  </>
+                ) : null}
+
+                <img
+                  src={oneVishwamLogo}
+                  alt="OneVishwam"
+                  className="h-5 sm:h-5.5 w-auto object-contain"
+                />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100/70 border border-amber-300/60 px-2 py-0.5 rounded-md">
+                  Verified
+                </span>
+              </div>
+
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
@@ -578,27 +633,20 @@ export default function PropertyDetails() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
                   onClick={() => setEnquiryOpen(true)}
-                  className="rounded-xl bg-brand-blue px-6 py-3 text-sm font-bold text-white hover:bg-brand-navy transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  className="rounded-xl bg-brand-blue px-6 py-3 text-sm font-bold text-white hover:bg-brand-navy transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
                 >
                   <i className="fa-solid fa-paper-plane" /> Enquire Now
                 </button>
                 <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                  className="rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-3 text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
                 >
-                  <i className="fa-brands fa-whatsapp text-base" /> WhatsApp
+                  <i className="fa-solid fa-phone" />
+                  <span>Contact Us: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
                 </a>
-                <Link
-                  to="/contact-us/"
-                  className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white hover:bg-amber-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                >
-                  <i className="fa-solid fa-headset" /> Contact Us
-                </Link>
               </div>
             </div>
           </div>
@@ -913,41 +961,49 @@ export default function PropertyDetails() {
           </div>
         </section>
 
-        {/* ═══ MODULE 5: DEVELOPER & VERIFIED PARTNER ═══ */}
-        {property.agent && (
+        {/* ═══ MODULE 5: DEVELOPER & ENTERPRISE PARTNERSHIP ═══ */}
+        {(enterpriseLogo || enterpriseName || property.agent) && (
           <section className="rounded-3xl bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue p-6 sm:p-8 text-white shadow-lg space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/15">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-5 border-b border-white/15">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <img
-                    src={resolveImage(property.agent.avatar)}
-                    alt={property.agent.name}
-                    className="w-16 h-16 rounded-2xl object-cover border-2 border-white/30 shadow-md"
-                  />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] border-2 border-white">
-                    <i className="fa-solid fa-check" />
+                {enterpriseLogo ? (
+                  <div className="relative bg-white rounded-2xl p-2 h-16 w-24 flex items-center justify-center border-2 border-white/30 shadow-md">
+                    <img
+                      src={resolveImage(enterpriseLogo)}
+                      alt={enterpriseName || 'Enterprise'}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] border-2 border-white">
+                      <i className="fa-solid fa-check" />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="relative w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-xl font-black text-amber-400 shrink-0">
+                    {enterpriseName ? enterpriseName.charAt(0) : <i className="fa-solid fa-building" />}
+                  </div>
+                )}
+
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-white">{property.agent.name}</h3>
+                    <h3 className="text-lg font-bold text-white">
+                      {enterpriseName || property.agent?.name || 'Verified Enterprise'}
+                    </h3>
                     <span className="rounded-full bg-yellow-400 text-brand-navy text-[10px] font-extrabold px-2.5 py-0.5">
-                      {property.agent.type || 'Verified Partner'}
+                      {property.agent?.type || 'Enterprise Partner'}
                     </span>
                   </div>
-                  <p className="text-xs text-white/70 mt-1">Authorized Developer & Representation Partner</p>
+                  <p className="text-xs text-white/70 mt-1">Authorized Developer & Project Listing</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-white/80">
-                <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 text-center">
-                  <span className="block text-sm font-bold text-white">{property.projectCount || 12}+</span>
-                  <span className="text-[10px] text-white/70">Properties</span>
-                </div>
-                <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 text-center">
-                  <span className="block text-sm font-bold text-emerald-400">&lt; 5 min</span>
-                  <span className="text-[10px] text-white/70">Response Time</span>
-                </div>
+              {/* Co-branded with OneVishwam */}
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 shrink-0">
+                <span className="text-[11px] text-white/80 font-medium">In Partnership with</span>
+                <img
+                  src={oneVishwamLogo}
+                  alt="OneVishwam"
+                  className="h-6 sm:h-7 w-auto object-contain bg-white/95 rounded-lg px-2 py-0.5"
+                />
               </div>
             </div>
 
@@ -958,17 +1014,16 @@ export default function PropertyDetails() {
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => setEnquiryOpen(true)}
-                  className="flex-1 sm:flex-initial rounded-xl bg-yellow-400 px-5 py-3 text-xs font-extrabold text-brand-navy hover:bg-yellow-300 transition-colors shadow-md flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-initial rounded-xl bg-yellow-400 px-5 py-3 text-xs font-extrabold text-brand-navy hover:bg-yellow-300 transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <i className="fa-solid fa-paper-plane" /> Book Site Visit
+                  <i className="fa-solid fa-paper-plane" /> Enquire / Book Visit
                 </button>
                 <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 sm:flex-initial rounded-xl bg-emerald-600 px-5 py-3 text-xs font-extrabold text-white hover:bg-emerald-500 transition-colors shadow-md flex items-center justify-center gap-2"
+                  href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                  className="flex-1 sm:flex-initial rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-3 text-xs font-extrabold transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <i className="fa-brands fa-whatsapp text-sm" /> Chat on WhatsApp
+                  <i className="fa-solid fa-phone" />
+                  <span>Contact Us: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
                 </a>
               </div>
             </div>
@@ -1050,17 +1105,15 @@ export default function PropertyDetails() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-brand-blue px-4 py-2.5 text-xs font-bold text-white shadow-xs"
+              className="rounded-xl bg-brand-blue px-3.5 py-2.5 text-xs font-bold text-white shadow-xs cursor-pointer"
             >
-              <i className="fa-solid fa-paper-plane mr-1" /> Enquire
+              <i className="fa-solid fa-paper-plane mr-1" /> Enquire Now
             </button>
             <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl bg-emerald-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-xs"
+              href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+              className="rounded-xl bg-amber-500 px-3.5 py-2.5 text-xs font-bold text-slate-950 shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <i className="fa-brands fa-whatsapp text-sm" />
+              <i className="fa-solid fa-phone" /> Call
             </a>
           </div>
         </div>

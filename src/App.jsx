@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
+import PromoToast from './components/PromoToast';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
 
@@ -85,6 +86,7 @@ function App() {
         </Suspense>
       </main>
       <Footer />
+      <PromoToast />
     </>
   );
 }
