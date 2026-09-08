@@ -48,6 +48,10 @@ function ScrollToTopAndNavHelper() {
         document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
       });
     }
+
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'PageView');
+    }
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
