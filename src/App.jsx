@@ -42,7 +42,7 @@ function RouterSyncEffect() {
     setNavigate(navigate);
   }, [navigate]);
 
-  // Scroll to top on route change (unless navigating to a hash anchor).
+  // Scroll to top on route change (unless navigating to a hash anchor) and track Meta Pixel PageView.
   useEffect(() => {
     if (!location.hash) {
       window.scrollTo(0, 0);
@@ -51,6 +51,10 @@ function RouterSyncEffect() {
       requestAnimationFrame(() => {
         document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
+    }
+
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'PageView');
     }
   }, [location.pathname, location.hash]);
 
