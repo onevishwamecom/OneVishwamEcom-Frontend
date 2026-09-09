@@ -27,6 +27,10 @@ API.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Prevent double /api prefix if baseURL already ends with /api
+  if (config.baseURL?.endsWith('/api') && config.url?.startsWith('/api/')) {
+    config.url = config.url.replace(/^\/api/, '');
+  }
   return config;
 });
 
