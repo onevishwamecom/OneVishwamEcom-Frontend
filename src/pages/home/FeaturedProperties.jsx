@@ -4,7 +4,7 @@ import { cities } from '../../data/locations';
 import { navigateTo } from '../../config/navigation';
 import { useLocation } from '../../store/locationSlice';
 import { useProperties } from '../../hooks/useProperties';
-import { isPlotOrLand } from '../services/property/propertyHelpers';
+import { isPlotOrLand, getPropertyCoverImage } from '../services/property/propertyHelpers';
 import { useAuth } from '../../store/authSlice';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 
@@ -79,27 +79,30 @@ function FeaturedProperties() {
         ) : (
           <>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              {top2.map((p) => (
-                <div key={p.id} onClick={() => handlePropertyClick(p.id)}
-                  className="group cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all"
-                >
-                  <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
-                    <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                    {p.recentlyAdded && (
-                      <span className="absolute left-3 top-3 rounded-lg bg-emerald-500 px-2.5 py-1 text-[10px] font-bold text-white">New Launch</span>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-brand-charcoal group-hover:text-brand-blue transition-colors">{p.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">{p.location}</p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <p className="text-lg font-bold text-brand-blue">{withRupeeSymbol(p.price)} <span className="text-xs font-medium text-gray-400">{p.priceSuffix}</span></p>
-                      <span className="text-xs text-gray-400">{isPlotOrLand(p) ? (p.area || 'Plot') : (p.bhk || '')}</span>
+              {top2.map((p) => {
+                const propId = p._id || p.id;
+                return (
+                  <div key={propId} onClick={() => handlePropertyClick(propId)}
+                    className="group cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-lg transition-all"
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
+                      <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                      {p.recentlyAdded && (
+                        <span className="absolute left-3 top-3 rounded-lg bg-emerald-500 px-2.5 py-1 text-[10px] font-bold text-white">New Launch</span>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-semibold text-brand-charcoal group-hover:text-brand-blue transition-colors">{p.title}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{p.location}</p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-lg font-bold text-brand-blue">{withRupeeSymbol(p.price)} <span className="text-xs font-medium text-gray-400">{p.priceSuffix}</span></p>
+                        <span className="text-xs text-gray-400">{isPlotOrLand(p) ? (p.area || 'Plot') : (p.bhk || '')}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {filtered.length > 2 && (
@@ -116,21 +119,24 @@ function FeaturedProperties() {
                   </div>
                 </div>
                 <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-3 snap-x" style={{ scrollbarWidth: 'none' }}>
-                  {filtered.map((p, i) => (
-                    <div key={p.id} onClick={() => handlePropertyClick(p.id)}
-                      className="w-64 shrink-0 snap-start cursor-pointer rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-md transition-all"
-                    >
-                      <div className="relative aspect-[4/3] bg-gray-100">
-                        <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
-                        <span className="absolute bottom-2 left-3 text-5xl font-black text-white/40 drop-shadow-lg">{i + 1}</span>
+                  {filtered.map((p, i) => {
+                    const propId = p._id || p.id;
+                    return (
+                      <div key={propId} onClick={() => handlePropertyClick(propId)}
+                        className="w-64 shrink-0 snap-start cursor-pointer rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-md transition-all"
+                      >
+                        <div className="relative aspect-[4/3] bg-gray-100">
+                          <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover" />
+                          <span className="absolute bottom-2 left-3 text-5xl font-black text-white/40 drop-shadow-lg">{i + 1}</span>
+                        </div>
+                        <div className="p-4">
+                          <h4 className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</h4>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{p.location}</p>
+                          <p className="mt-2 text-sm font-bold text-brand-blue">{withRupeeSymbol(p.price)}</p>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        <h4 className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{p.location}</p>
-                        <p className="mt-2 text-sm font-bold text-brand-blue">{withRupeeSymbol(p.price)}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

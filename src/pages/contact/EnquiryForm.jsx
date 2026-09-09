@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
+import API from '../../services/api';
 import { serviceItems } from '../../data/servicesContent';
 import Field from '../../components/Field';
 import { uploadAudioToCloudinary } from '../../utils/uploadAudioToCloudinary';
@@ -99,16 +100,31 @@ function EnquiryForm({ loanContext }) {
       message: activeTab === 'text' ? formData.message : '[Voice Message Recorded]', voice_message: voicePublicUrl,
     };
 
-    if (!isEmailJSConfigured()) {
-      Swal.fire({ title: 'Configuration Error', text: 'Email service is not configured. Please try again later.', icon: 'error', confirmButtonColor: '#1a4b8c' });
-      setIsSending(false); return;
-    }
-
     try {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      // 1. Post to MongoDB Atlas via live Express backend
+      try {
+        await API.post('/api/enquiries', {
+          name: formData.name,
+          phone: formData.phone,
+          message: `[${selectedService}] ${activeTab === 'text' ? formData.message : '[Voice Message Recorded]'}`,
+        });
+      } catch (backendErr) {
+        console.warn('Backend enquiry save warning:', backendErr);
+      }
+
+      // 2. Also send notification email if EmailJS is configured
+      if (isEmailJSConfigured()) {
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+        } catch (emailErr) {
+          console.warn('EmailJS delivery warning:', emailErr);
+        }
+      }
+
       Swal.fire({ title: 'Success!', text: 'Your enquiry has been submitted.', icon: 'success', confirmButtonColor: '#1a4b8c' });
       setFormData({ name: '', phone: '', additionalPhone: '', additionalPhone2: '', service: '', message: '' });
-      deleteRecording(); setErrors({});
+      deleteRecording();
+      setErrors({});
     } catch {
       Swal.fire({ title: 'Oops!', text: 'Something went wrong. Please try again.', icon: 'error', confirmButtonColor: '#1a4b8c' });
     } finally { setIsSending(false); }
