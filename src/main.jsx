@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import store from './store';
 import App from './App';
 import Navbar from './components/Navbar';
+import './firebase/config';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
