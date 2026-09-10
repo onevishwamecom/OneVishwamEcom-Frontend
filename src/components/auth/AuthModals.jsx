@@ -13,7 +13,7 @@ const RULES = [
 ];
 
 function LoginForm({ onSwitch, onClose }) {
-  const { login, loading, error, clearError, switchAuthMode } = useAuth();
+  const { login, loginWithGoogle, loading, error, clearError, switchAuthMode } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
 
@@ -53,11 +53,49 @@ function LoginForm({ onSwitch, onClose }) {
     } catch {}
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle().unwrap();
+      Swal.fire({ icon: 'success', title: 'Signed in with Google!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+      onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
+    } catch {}
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-xs"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+        </svg>
+        Continue with Google
+      </button>
+
+      <div className="relative my-3">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-gray-400">or sign in with email</span>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
         <input type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)}
@@ -130,7 +168,7 @@ function isFormValid(name, phone, email, password, confirm) {
 }
 
 function RegisterForm({ onSwitch, onClose }) {
-  const { register, loading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, loading, error, clearError } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
@@ -187,10 +225,11 @@ function RegisterForm({ onSwitch, onClose }) {
     try {
       await register({
         fullName: form.name,
+        phoneNumber: form.phone,
         mobile: form.phone,
         email: form.email,
         password: form.password,
-        confirmPassword: form.confirm,
+        role: 'user',
       }).unwrap();
       Swal.fire({ icon: 'success', title: 'Account Created!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
       onClose();
@@ -200,28 +239,25 @@ function RegisterForm({ onSwitch, onClose }) {
         navigateTo(redirect);
       }
     } catch (err) {
-      if (err?.response?.data?.message) {
-        setServerError(err.response.data.message);
-      }
-      const srvErrors = err?.response?.data?.errors;
-      if (srvErrors && Array.isArray(srvErrors)) {
-        const mapped = {};
-        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
-        for (const { field, message } of srvErrors) {
-          const formField = fieldMap[field] || field;
-          if (formField in form) mapped[formField] = message;
-        }
-        if (Object.keys(mapped).length) setErrors(mapped);
-      } else if (srvErrors && typeof srvErrors === 'object') {
-        const mapped = {};
-        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
-        for (const [fld, msg] of Object.entries(srvErrors)) {
-          const formField = fieldMap[fld] || fld;
-          if (formField in form) mapped[formField] = Array.isArray(msg) ? msg[0] : msg;
-        }
-        if (Object.keys(mapped).length) setErrors(mapped);
+      if (typeof err === 'string') {
+        setServerError(err);
+      } else if (err?.message) {
+        setServerError(err.message);
       }
     }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      await loginWithGoogle().unwrap();
+      Swal.fire({ icon: 'success', title: 'Signed up with Google!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+      onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
+    } catch {}
   };
 
   function inputClass(field) {
@@ -242,6 +278,31 @@ function RegisterForm({ onSwitch, onClose }) {
       {!serverError && error && (
         <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
+
+      <button
+        type="button"
+        onClick={handleGoogleSignUp}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-xs"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+        </svg>
+        Continue with Google
+      </button>
+
+      <div className="relative my-3">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-gray-400">or sign up with email</span>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
         <input type="text" value={form.name} onChange={(e) => handleChange('name', e.target.value)}
@@ -288,7 +349,7 @@ function RegisterForm({ onSwitch, onClose }) {
 }
 
 function ForgotPasswordForm({ onBack, onNext }) {
-  const { forgotPassword, loading, error, clearError, setForgotEmail } = useAuth();
+  const { forgotPassword, loading, error, clearError, switchAuthMode } = useAuth();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
 
@@ -310,16 +371,17 @@ function ForgotPasswordForm({ onBack, onNext }) {
     setEmailError(err);
     if (err) return;
     try {
-      const result = await forgotPassword(email).unwrap();
-      setForgotEmail(email);
-      if (result?.otp) {
-        Swal.fire({
-          icon: 'info', title: 'Dev Mode OTP',
-          text: `Your OTP is: ${result.otp}`,
-          timer: 8000, showConfirmButton: true, confirmButtonText: 'Got it',
-        });
-      }
-      onNext();
+      await forgotPassword(email).unwrap();
+      Swal.fire({
+        icon: 'success',
+        title: 'Reset Link Sent!',
+        text: `We have sent password reset instructions to ${email}`,
+        timer: 4000,
+        showConfirmButton: true,
+        confirmButtonText: 'Back to Login',
+      }).then(() => {
+        switchAuthMode('login');
+      });
     } catch {}
   };
 
@@ -344,7 +406,7 @@ function ForgotPasswordForm({ onBack, onNext }) {
         className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50"
       >
         {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-        {loading ? 'Sending...' : 'Send Verification Code'}
+        {loading ? 'Sending...' : 'Send Reset Link'}
       </button>
       <div className="text-center text-sm text-gray-500">
         Remember your password?{' '}

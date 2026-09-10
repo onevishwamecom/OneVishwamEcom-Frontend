@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
@@ -28,11 +28,19 @@ function ProfileSettings() {
   const navigate = useNavigate();
   const { user, updateProfile, changePassword, updateNotifications, deleteAccount, logout, loading, error, clearError } = useAuth();
   const [name, setName] = useState(user?.fullName || user?.name || '');
-  const [phone, setPhone] = useState(user?.mobile || user?.phone || '');
+  const [phone, setPhone] = useState(user?.phoneNumber || user?.mobile || user?.phone || '');
   const [profileErrors, setProfileErrors] = useState({});
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' });
   const [passwordErrors, setPasswordErrors] = useState({});
   const [showDelete, setShowDelete] = useState(false);
+
+  // Synchronize local form inputs when user profile loads or updates
+  useEffect(() => {
+    if (user) {
+      setName(user.fullName || user.name || '');
+      setPhone(user.phoneNumber || user.mobile || user.phone || '');
+    }
+  }, [user?.fullName, user?.name, user?.phoneNumber, user?.mobile, user?.phone]);
 
   function validateProfile() {
     const e = {};
@@ -79,10 +87,11 @@ function ProfileSettings() {
     setProfileErrors(v);
     if (Object.keys(v).length) return;
     try {
-      await updateProfile({ fullName: name, mobile: phone }).unwrap();
+      await updateProfile({ fullName: name, phoneNumber: phone, mobile: phone }).unwrap();
       Swal.fire({ icon: 'success', title: 'Profile updated!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Failed to update profile', text: err?.response?.data?.message || 'Please try again', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
+      const errMsg = typeof err === 'string' ? err : err?.response?.data?.message || err?.message || 'Please check backend connection and try again';
+      Swal.fire({ icon: 'error', title: 'Failed to update profile', text: errMsg, toast: true, position: 'top-end', timer: 3500, showConfirmButton: false });
     }
   };
 

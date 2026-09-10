@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { auth } from './firebase/config';
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -21,9 +22,20 @@ function processQueue(error, token = null) {
   failedQueue = [];
 }
 
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+client.interceptors.request.use(async (config) => {
+  try {
+    const currentUser = auth?.currentUser;
+    if (currentUser) {
+      const idToken = await currentUser.getIdToken();
+      config.headers.Authorization = `Bearer ${idToken}`;
+    } else {
+      const token = localStorage.getItem('accessToken');
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {
+    const token = localStorage.getItem('accessToken');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

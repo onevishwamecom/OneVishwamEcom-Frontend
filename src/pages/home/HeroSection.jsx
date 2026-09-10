@@ -117,6 +117,7 @@ export default function HeroSection() {
               <Link
                 to={slide.link}
                 aria-label={`${slide.title} – ${slide.category}`}
+                tabIndex={active ? 0 : -1}
                 className="relative block w-full h-full cursor-pointer"
               >
                 {/* ── Image ── */}
@@ -127,7 +128,7 @@ export default function HeroSection() {
                     !slide.disabled ? 'group-hover:scale-[1.04]' : ''
                   }`}
                   loading={idx === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={idx === 0 ? 'high' : 'auto'}
+                  fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
 
