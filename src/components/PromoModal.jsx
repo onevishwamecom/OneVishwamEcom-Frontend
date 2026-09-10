@@ -5,52 +5,45 @@ import logo from '../assets/logo.png';
 const PROMO_IMAGE_URL =
   'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
 
-const MODAL_SNOOZE_MS = 10 * 60 * 1000; // 10 minutes snooze after close
-const INITIAL_DELAY_MS = 2500; // 2.5 seconds appearance
+const INITIAL_DELAY_MS = 2500; // 2.5 seconds appearance on fresh visit
 
 export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleOpen = useCallback(() => {
-    const lastClosed = sessionStorage.getItem('onevishwam_modal_closed_at');
-    if (!lastClosed || Date.now() - Number(lastClosed) > MODAL_SNOOZE_MS) {
-      setIsOpen(true);
-    }
+    setIsOpen(true);
   }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
+    sessionStorage.setItem('onevishwam_modal_shown', 'true');
     sessionStorage.setItem('onevishwam_modal_closed_at', Date.now().toString());
     window.dispatchEvent(
       new CustomEvent('onevishwam:promomodal_closed', { detail: { timestamp: Date.now() } })
     );
   }, []);
 
-  // 1. Timed appearance on mount if not in snooze cooldown
+  // 1. Show once per browser session on initial visit
   useEffect(() => {
-    const lastClosed = sessionStorage.getItem('onevishwam_modal_closed_at');
-    if (lastClosed && Date.now() - Number(lastClosed) <= MODAL_SNOOZE_MS) {
+    const hasBeenShown = sessionStorage.getItem('onevishwam_modal_shown');
+    if (hasBeenShown) {
       return;
     }
 
     const timer = setTimeout(() => {
       handleOpen();
+      sessionStorage.setItem('onevishwam_modal_shown', 'true');
     }, INITIAL_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [handleOpen]);
 
-  // 2. Desktop Exit Intent (mouse leaving near top of browser window)
+  // 2. Allow programmatic trigger via custom event
   useEffect(() => {
-    const handleMouseLeave = (e) => {
-      if (e.clientY <= 10) {
-        handleOpen();
-      }
-    };
-
-    document.addEventListener('mouseleave', handleMouseLeave);
-    return () => document.removeEventListener('mouseleave', handleMouseLeave);
+    const handleCustomOpen = () => handleOpen();
+    window.addEventListener('onevishwam:open_promomodal', handleCustomOpen);
+    return () => window.removeEventListener('onevishwam:open_promomodal', handleCustomOpen);
   }, [handleOpen]);
 
   // 3. Close on Escape key press & body scroll lock
