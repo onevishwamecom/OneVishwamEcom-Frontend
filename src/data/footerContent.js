@@ -1,25 +1,34 @@
-import { primaryNavigation } from './siteContent';
-
-export const footerBrandName = 'Vishwam';
+export const footerBrandName = 'OneVishwam';
 
 export const footerSummary =
   'A massive multi-service ecosystem spanning finance, property, marketplace, and enterprise solutions.';
 
-export const footerQuickLinks = primaryNavigation;
-
+export const footerQuickLinks = [
+  { label: 'Home', href: '/home' },
+  { label: 'About Us', href: '/about-us/' },
+  { label: 'Contact Us', href: '/contact-us/' },
+  { label: 'Careers', href: '/careers/' },
+  { label: 'Post Requirement', href: '/post-requirement' },
+];
 
 export const footerServiceLinks = [
-  { label: 'Properties', href: '/our-services/real-estate-property' },
+  { label: 'Properties & Real Estate', href: '/our-services/real-estate-property' },
+  { label: 'Home Loans & Finance', href: '/our-services/finance-lending' },
+  { label: 'Vehicles & Automobiles', href: '/our-services/automobile' },
+  { label: 'Jewellery & Gold', href: '/our-services/jewellery-gold' },
+  { label: 'Garments & Lifestyle', href: '/our-services/garments-fashion-lifestyle' },
 ];
 
 export const footerSocialLinks = [
-  { label: 'Instagram', icon: 'fa-brands fa-instagram', href: 'https://www.instagram.com/onevishwam/' },
+  { label: 'X (Twitter)', icon: 'fa-brands fa-x-twitter', href: 'https://twitter.com' },
   { label: 'Facebook', icon: 'fa-brands fa-facebook-f', href: 'https://www.facebook.com/profile.php?id=61593017245527' },
+  { label: 'Instagram', icon: 'fa-brands fa-instagram', href: 'https://www.instagram.com/onevishwam/' },
+  { label: 'LinkedIn', icon: 'fa-brands fa-linkedin-in', href: 'https://www.linkedin.com' },
 ];
 
 export const footerLocations = [
-  { label: 'Address', value: 'Bangalore - 560 004', primary: true },
-  { label: 'Phone', value: '8546996622' },
+  { label: 'Address', value: 'Basavanagudi, Bangalore - 560 004', primary: true },
+  { label: 'Phone', value: '+91 85469 96622' },
   { label: 'Email', value: 'ceo@onevishwam.com' },
 ];
 
@@ -84,30 +93,33 @@ export const GROUP_B_PROPERTY_TITLES = [
 export function getPropertyContactInfo(item) {
   if (!item) return contactInfo;
 
-  const propObj = typeof item === 'object' ? item : null;
-  const title = typeof item === 'string' ? item : (item.title || item.name || '');
+  const propObj = typeof item === 'object' && item !== null ? item : null;
+  const title = typeof item === 'string' ? item : (item && (item.title || item.name)) || '';
   const tLower = title.toLowerCase().trim();
 
   // 1. Channel Partner Override (Highest Priority)
-  const cp = propObj ? (
-    Array.isArray(propObj.channelPartner)
-      ? propObj.channelPartner[0]
-      : (propObj.channelPartner || (Array.isArray(propObj.channelPartners) ? propObj.channelPartners[0] : propObj.channelPartners))
-  ) : null;
+  const cp = propObj
+    ? (Array.isArray(propObj.channelPartner)
+        ? propObj.channelPartner[0]
+        : (propObj.channelPartner ||
+           (Array.isArray(propObj.channelPartners)
+             ? propObj.channelPartners[0]
+             : propObj.channelPartners)))
+    : null;
 
   if (cp && (cp.phone || cp.email || cp.name)) {
     const rawPhone = String(cp.phone || cp.contact || '').replace(/\D/g, '');
     const cleanPhone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
     const formattedPhone = cleanPhone
-      ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`
+      ? '+91 ' + cleanPhone.slice(0, 5) + ' ' + cleanPhone.slice(5)
       : contactInfo.phoneDisplay;
 
     return {
-      brandName: cp.name || propObj?.vendorName || contactInfo.brandName,
+      brandName: cp.name || (propObj && propObj.vendorName) || contactInfo.brandName,
       phoneDisplay: formattedPhone,
       phoneRaw: cleanPhone || contactInfo.phoneRaw,
-      phoneTel: cleanPhone ? `+91${cleanPhone}` : contactInfo.phoneTel,
-      whatsapp: cleanPhone ? `91${cleanPhone}` : contactInfo.whatsapp,
+      phoneTel: cleanPhone ? '+91' + cleanPhone : contactInfo.phoneTel,
+      whatsapp: cleanPhone ? '91' + cleanPhone : contactInfo.whatsapp,
       email: cp.email || contactInfo.email,
     };
   }
@@ -117,16 +129,16 @@ export function getPropertyContactInfo(item) {
     const rawPhone = String(propObj.contact || '').replace(/\D/g, '');
     const cleanPhone = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
     const formattedPhone = cleanPhone
-      ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`
+      ? '+91 ' + cleanPhone.slice(0, 5) + ' ' + cleanPhone.slice(5)
       : contactInfo.phoneDisplay;
 
     return {
-      brandName: propObj.vendorName || contactInfo.brandName,
+      brandName: (propObj && propObj.vendorName) || contactInfo.brandName,
       phoneDisplay: cleanPhone ? formattedPhone : contactInfo.phoneDisplay,
       phoneRaw: cleanPhone || contactInfo.phoneRaw,
-      phoneTel: cleanPhone ? `+91${cleanPhone}` : contactInfo.phoneTel,
-      whatsapp: cleanPhone ? `91${cleanPhone}` : contactInfo.whatsapp,
-      email: propObj.email || contactInfo.email,
+      phoneTel: cleanPhone ? '+91' + cleanPhone : contactInfo.phoneTel,
+      whatsapp: cleanPhone ? '91' + cleanPhone : contactInfo.whatsapp,
+      email: (propObj && propObj.email) || contactInfo.email,
     };
   }
 
@@ -149,7 +161,7 @@ export function isGroupBProperty(propertyOrTitle) {
   if (!propertyOrTitle) return false;
   const title = typeof propertyOrTitle === 'string'
     ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
+    : (propertyOrTitle ? (propertyOrTitle.title || propertyOrTitle.name || '') : '');
 
   const norm = title.trim().toLowerCase();
   return GROUP_B_PROPERTY_TITLES.some((t) => t.trim().toLowerCase() === norm);
@@ -159,7 +171,7 @@ export function isVedantSuraksha(propertyOrTitle) {
   if (!propertyOrTitle) return false;
   const title = typeof propertyOrTitle === 'string'
     ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
+    : (propertyOrTitle ? (propertyOrTitle.title || propertyOrTitle.name || '') : '');
 
   const norm = title.trim().toLowerCase();
   return norm.includes('vedant suraksha');
