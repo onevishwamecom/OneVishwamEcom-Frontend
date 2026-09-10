@@ -89,7 +89,7 @@ function Footer() {
           {/* Column 3: Contact Info (4 / 12 cols = 33.3%) */}
           <div className="lg:col-span-4 space-y-3.5">
             <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider mb-4 text-white">
-              Contact
+              Contact Info
             </h4>
             <ul className="space-y-2.5 sm:space-y-3">
               {footerLocations.map((loc) => (
@@ -112,8 +112,11 @@ function Footer() {
           </div>
         </div>
 
-        {/* Bottom Copyright Divider */}
-        <div className="mt-8 pt-6 sm:mt-10 sm:pt-8 border-t border-slate-800/80 text-center">
+        {/* Bottom Disclaimer & Copyright */}
+        <div className="mt-8 pt-6 sm:mt-10 sm:pt-8 border-t border-slate-800/80 text-center space-y-3">
+          <p className="text-[11px] sm:text-xs text-slate-400 max-w-4xl mx-auto leading-relaxed">
+            <span className="font-semibold text-slate-300">Disclaimer:</span> Website materials are provided for general information and are subject to change without notice, with renders and plans serving as artistic concepts rather than official sales offers. Sharing contact information constitutes agreement for the team to contact users by call or text, superseding the DND registry.
+          </p>
           <p className="text-xs text-slate-500">
             &copy; {year} {footerBrandName}. All rights reserved.
           </p>

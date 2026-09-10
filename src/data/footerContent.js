@@ -13,8 +13,8 @@ export const footerServiceLinks = [
 ];
 
 export const footerSocialLinks = [
-  { label: 'Facebook', icon: 'fa-brands fa-facebook-f', href: 'https://www.facebook.com/profile.php?id=61593017245527' },
   { label: 'Instagram', icon: 'fa-brands fa-instagram', href: 'https://www.instagram.com/onevishwam/' },
+  { label: 'Facebook', icon: 'fa-brands fa-facebook-f', href: 'https://www.facebook.com/profile.php?id=61593017245527' },
 ];
 
 export const footerLocations = [
