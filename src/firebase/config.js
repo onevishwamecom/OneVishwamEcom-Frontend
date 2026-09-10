@@ -3,6 +3,7 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 import {
   getAuth,
   GoogleAuthProvider,
+  FacebookAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -28,6 +29,7 @@ export const app = initializeApp(firebaseConfig);
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const facebookProvider = new FacebookAuthProvider();
 
 // Gracefully initialize Analytics only when supported and not blocked
 let analytics = null;

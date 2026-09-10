@@ -9,6 +9,7 @@ import {
   updateProfile,
   signInWithPopup,
   googleProvider,
+  facebookProvider,
   signOut,
   sendPasswordResetEmail,
 } from '../firebase/config';
@@ -183,6 +184,60 @@ export const loginWithGoogle = createAsyncThunk(
         msg = 'Google sign-in popup was closed before completing.';
       } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
         msg = 'Google sign-in is not yet enabled in your Firebase Console. Please enable Google provider in Firebase Console > Authentication > Sign-in method.';
+      }
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+export const loginWithFacebook = createAsyncThunk(
+  'auth/loginWithFacebook',
+  async (_, { rejectWithValue }) => {
+    try {
+      const userCredential = await signInWithPopup(auth, facebookProvider);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
+
+      let profileData = {
+        firebaseUid: user.uid,
+        email: user.email,
+        fullName: user.displayName || 'User',
+        avatar: user.photoURL || '',
+        role: 'user',
+      };
+
+      try {
+        const res = await API.post(
+          '/auth/sync',
+          {
+            firebaseUid: user.uid,
+            email: user.email,
+            fullName: user.displayName,
+            avatar: user.photoURL,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        if (res.data?.data) {
+          profileData = res.data.data;
+        }
+      } catch (syncErr) {
+        console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
+      }
+
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
+    } catch (error) {
+      let msg = error.message || 'Facebook sign-in failed';
+      if (error.code === 'auth/popup-closed-by-user') {
+        msg = 'Facebook sign-in popup was closed before completing.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        msg = 'An account already exists with the same email address using a different sign-in method.';
+      } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Facebook sign-in is not yet enabled in your Firebase Console. Please enable Facebook provider in Firebase Console > Authentication > Sign-in method.';
       }
       return rejectWithValue(msg);
     }
@@ -405,6 +460,16 @@ const authSlice = createSlice({
       })
       .addCase(loginWithGoogle.rejected, handleRejected)
 
+      // Facebook Login
+      .addCase(loginWithFacebook.pending, handlePending)
+      .addCase(loginWithFacebook.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isLoggedIn = true;
+        state.user = action.payload;
+        state.successMessage = 'Signed in with Facebook!';
+      })
+      .addCase(loginWithFacebook.rejected, handleRejected)
+
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
@@ -479,6 +544,7 @@ export function useAuth() {
     login: useCallback((credentials) => dispatch(loginWithEmail(credentials)), [dispatch]),
     loginWithEmail: useCallback((credentials) => dispatch(loginWithEmail(credentials)), [dispatch]),
     loginWithGoogle: useCallback(() => dispatch(loginWithGoogle()), [dispatch]),
+    loginWithFacebook: useCallback(() => dispatch(loginWithFacebook()), [dispatch]),
     register: useCallback((userData) => dispatch(registerWithEmail(userData)), [dispatch]),
     registerWithEmail: useCallback((userData) => dispatch(registerWithEmail(userData)), [dispatch]),
     logout: useCallback(() => dispatch(logoutUser()), [dispatch]),
