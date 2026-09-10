@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
-import PasswordInput from '../ui/PasswordInput';
+import logo from '../../assets/logo.png';
 
 const RULES = [
   { key: 'min', label: 'At least 8 characters', test: (v) => v.length >= 8 },
@@ -12,9 +12,86 @@ const RULES = [
   { key: 'special', label: 'One special character', test: (v) => /[!@#$%^&*()_\-+=<>?/{}[\]~|]/.test(v) },
 ];
 
+// Luxury Modern Architectural Real Estate / Home Image
+const HERO_IMAGE =
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+
+// City skyline & architectural landmark silhouettes (styled in brand-blue)
+function SkylineIllustration() {
+  return (
+    <svg
+      className="w-full h-12 sm:h-14 text-brand-blue opacity-85 select-none pointer-events-none"
+      viewBox="0 0 450 65"
+      fill="currentColor"
+      preserveAspectRatio="xMidYMax meet"
+    >
+      {/* Left: Taj Mahal Silhouette */}
+      <g transform="translate(10, 5)">
+        <path d="M40 50 L40 38 Q40 28 55 24 Q55 12 60 4 Q65 12 65 24 Q80 28 80 38 L80 50 Z" />
+        <rect x="25" y="32" width="12" height="18" rx="1" />
+        <path d="M31 22 L31 32" stroke="currentColor" strokeWidth="2" />
+        <rect x="83" y="32" width="12" height="18" rx="1" />
+        <path d="M89 22 L89 32" stroke="currentColor" strokeWidth="2" />
+        <rect x="12" y="18" width="6" height="32" rx="1" />
+        <polygon points="15,8 12,18 18,18" />
+        <rect x="102" y="18" width="6" height="32" rx="1" />
+        <polygon points="105,8 102,18 108,18" />
+        <rect x="52" y="36" width="16" height="14" rx="4" fill="white" />
+        <rect x="30" y="38" width="4" height="8" rx="1" fill="white" />
+        <rect x="86" y="38" width="4" height="8" rx="1" fill="white" />
+      </g>
+
+      {/* Right: Leaning Tower of Pisa & Cathedral Dome */}
+      <g transform="translate(340, 2)">
+        <g transform="rotate(6 25 35)">
+          <rect x="15" y="12" width="22" height="42" rx="1" />
+          <line x1="15" y1="18" x2="37" y2="18" stroke="white" strokeWidth="1.5" />
+          <line x1="15" y1="26" x2="37" y2="26" stroke="white" strokeWidth="1.5" />
+          <line x1="15" y1="34" x2="37" y2="34" stroke="white" strokeWidth="1.5" />
+          <line x1="15" y1="42" x2="37" y2="42" stroke="white" strokeWidth="1.5" />
+          <path d="M22 6 L30 6 L28 12 L24 12 Z" />
+        </g>
+        <g transform="translate(42, 10)">
+          <rect x="0" y="20" width="38" height="26" rx="1" />
+          <rect x="5" y="6" width="10" height="14" rx="1" />
+          <polygon points="10,0 5,6 15,6" />
+          <rect x="23" y="6" width="10" height="14" rx="1" />
+          <polygon points="28,0 23,6 33,6" />
+          <rect x="14" y="28" width="10" height="18" rx="4" fill="white" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+// Dotted flight trail with airplane
+function FlightTrail() {
+  return (
+    <div className="absolute top-4 right-12 hidden sm:block pointer-events-none opacity-80">
+      <svg className="w-28 h-14 text-brand-blue" viewBox="0 0 120 60" fill="none">
+        <path
+          d="M 5 50 C 40 45, 75 30, 100 14"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeDasharray="4 4"
+          strokeLinecap="round"
+        />
+        <g transform="translate(98, 8) rotate(35)">
+          <path
+            d="M0 6 L12 3 L18 0 L15 6 L20 8 L15 9 L12 12 L10 7 Z"
+            fill="currentColor"
+          />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// ─── LOGIN FORM ───────────────────────────────────────────────────────────────
 function LoginForm({ onSwitch, onClose }) {
-  const { login, loading, error, clearError, switchAuthMode } = useAuth();
+  const { login, loginWithGoogle, loading, error, clearError, switchAuthMode } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   function validate() {
@@ -43,7 +120,34 @@ function LoginForm({ onSwitch, onClose }) {
     if (Object.keys(v).length) return;
     try {
       await login({ email: form.email, password: form.password }).unwrap();
-      Swal.fire({ icon: 'success', title: 'Login Successful!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Successful!',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+      onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
+    } catch {}
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle().unwrap();
+      Swal.fire({
+        icon: 'success',
+        title: 'Signed in with Google!',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
       onClose();
       const redirect = sessionStorage.getItem('vishwam_auth_redirect');
       if (redirect) {
@@ -54,241 +158,401 @@ function LoginForm({ onSwitch, onClose }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-xs text-red-600 font-medium animate-in fade-in">
+          {error}
+        </div>
       )}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-        <input type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)}
-          placeholder="Enter your email"
-          className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
+
+      {/* Email Input with floating label pill */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Email id
+        </span>
+        <div
+          className={`flex items-center gap-3 px-3.5 py-2.5 sm:py-3 rounded-xl border bg-white transition-all ${
             errors.email
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-              : 'border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10'
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
           }`}
-        />
-        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+        >
+          <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            placeholder="user@example.com"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.email && <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.email}</p>}
       </div>
-      <PasswordInput label="Password" value={form.password}
-        onChange={(e) => handleChange('password', e.target.value)}
-        placeholder="Enter your password" error={errors.password}
-      />
-      <button type="submit" disabled={loading}
-        className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+      {/* Password Input with floating label pill */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Password
+        </span>
+        <div
+          className={`flex items-center gap-3 px-3.5 py-2.5 sm:py-3 rounded-xl border bg-white transition-all ${
+            errors.password
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <i className="fa-solid fa-lock text-brand-blue text-sm shrink-0" />
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={form.password}
+            onChange={(e) => handleChange('password', e.target.value)}
+            placeholder="••••••••••••"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-slate-400 hover:text-brand-blue transition-colors p-0.5 cursor-pointer"
+            aria-label="Toggle password visibility"
+          >
+            <i className={`fa-regular ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-xs`} />
+          </button>
+        </div>
+        {errors.password && <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.password}</p>}
+      </div>
+
+      {/* Forgot Password Link */}
+      <div className="text-right">
+        <button
+          type="button"
+          onClick={() => switchAuthMode('forgot')}
+          className="text-xs text-slate-500 hover:text-brand-blue font-medium transition-colors cursor-pointer"
+        >
+          Forgot your password?
+        </button>
+      </div>
+
+      {/* LOGIN Button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
       >
-        {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-        {loading ? 'Logging in...' : 'Login'}
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}
+        <span>LOGIN</span>
       </button>
-      <div className="flex items-center justify-between text-sm">
-        <button type="button" onClick={() => switchAuthMode('forgot')} className="text-brand-blue hover:underline font-medium">Forgot Password?</button>
-        <button type="button" onClick={onSwitch} className="text-brand-blue hover:underline font-medium">Create New Account</button>
+
+      {/* OR Divider */}
+      <div className="relative my-3">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <span className="bg-white px-3">OR CONTINUE WITH</span>
+        </div>
       </div>
+
+      {/* Google Sign-In Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shadow-xs hover:border-slate-300 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+        title="Sign in with Google"
+      >
+        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+          />
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
+
+      {/* Switch to Register */}
+      <p className="text-center text-xs text-slate-500 font-medium pt-1">
+        Don&rsquo;t have account?{' '}
+        <button
+          type="button"
+          onClick={onSwitch}
+          className="font-extrabold text-brand-blue hover:text-brand-navy transition-colors cursor-pointer"
+        >
+          Register Now
+        </button>
+      </p>
     </form>
   );
 }
 
-function validateName(name) {
-  const trimmed = name.trim();
-  if (!trimmed) return 'Full name is required';
-  if (trimmed.length < 2) return 'Name must be at least 2 characters';
-  if (trimmed.length > 50) return 'Name must be at most 50 characters';
-  return '';
-}
-
-function validatePhone(phone) {
-  if (!phone.trim()) return 'Mobile number is required';
-  const digits = phone.replace(/[\s-]/g, '');
-  if (!/^\d{10}$/.test(digits)) return 'Invalid mobile number';
-  return '';
-}
-
-function validateEmail(email) {
-  if (!email.trim()) return 'Email is required';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Invalid email';
-  return '';
-}
-
-function validatePassword(password) {
-  if (!password) return 'Password is required';
-  if (password.length < 8) return 'At least 8 characters';
-  if (!/[A-Z]/.test(password)) return 'Missing uppercase letter';
-  if (!/[a-z]/.test(password)) return 'Missing lowercase letter';
-  if (!/[0-9]/.test(password)) return 'Missing number';
-  if (!/[!@#$%^&*()_\-+=<>?/{}[\]~|]/.test(password)) return 'Missing special character';
-  return '';
-}
-
-function validateConfirm(password, confirm) {
-  if (!confirm) return 'Confirm password is required';
-  if (password !== confirm) return 'Passwords do not match';
-  return '';
-}
-
-function isFormValid(name, phone, email, password, confirm) {
-  return !validateName(name) && !validatePhone(phone) && !validateEmail(email) && !validatePassword(password) && !validateConfirm(password, confirm);
-}
-
+// ─── REGISTER FORM ────────────────────────────────────────────────────────────
 function RegisterForm({ onSwitch, onClose }) {
-  const { register, loading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, loading, error, clearError } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', confirm: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [serverError, setServerError] = useState(null);
 
-  function getFieldError(field, data = form) {
-    switch (field) {
-      case 'name': return validateName(data.name);
-      case 'phone': return validatePhone(data.phone);
-      case 'email': return validateEmail(data.email);
-      case 'password': return validatePassword(data.password);
-      case 'confirm': return validateConfirm(data.password, data.confirm);
-      default: return '';
-    }
+  function validate() {
+    const e = {};
+    if (!form.name.trim()) e.name = 'Full name is required';
+    if (!form.phone.trim()) e.phone = 'Phone number is required';
+    else if (!/^\d{10}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid 10-digit mobile number';
+    if (!form.email.trim()) e.email = 'Email is required';
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email';
+    if (!form.password) e.password = 'Password is required';
+    else if (form.password.length < 8) e.password = 'At least 8 characters';
+    if (form.password !== form.confirm) e.confirm = 'Passwords do not match';
+    return e;
   }
 
   function handleChange(field, value) {
-    const updated = { ...form, [field]: value };
-    setForm(updated);
-
-    setErrors((prev) => {
-      const next = { ...prev };
-      const err = getFieldError(field, updated);
-      if (err) {
-        next[field] = err;
-      } else {
-        delete next[field];
-      }
-      if (field === 'password' && 'confirm' in next) {
-        const confirmErr = getFieldError('confirm', updated);
-        if (confirmErr) {
-          next.confirm = confirmErr;
-        } else {
-          delete next.confirm;
-        }
-      }
-      return next;
-    });
-
+    setForm({ ...form, [field]: value });
     clearError();
-    setServerError(null);
+    if (errors[field]) {
+      const next = { ...errors };
+      delete next[field];
+      setErrors(next);
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const newErrors = {};
-    for (const field of ['name', 'phone', 'email', 'password', 'confirm']) {
-      const err = getFieldError(field, form);
-      if (err) newErrors[field] = err;
-    }
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length) return;
-
+    const v = validate();
+    setErrors(v);
+    if (Object.keys(v).length) return;
     try {
       await register({
         fullName: form.name,
-        mobile: form.phone,
         email: form.email,
+        phoneNumber: form.phone,
+        mobile: form.phone,
         password: form.password,
-        confirmPassword: form.confirm,
       }).unwrap();
-      Swal.fire({ icon: 'success', title: 'Account Created!', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Account Created!',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+      onClose();
+    } catch {}
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle().unwrap();
+      Swal.fire({
+        icon: 'success',
+        title: 'Signed in with Google!',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
       onClose();
       const redirect = sessionStorage.getItem('vishwam_auth_redirect');
       if (redirect) {
         sessionStorage.removeItem('vishwam_auth_redirect');
         navigateTo(redirect);
       }
-    } catch (err) {
-      if (err?.response?.data?.message) {
-        setServerError(err.response.data.message);
-      }
-      const srvErrors = err?.response?.data?.errors;
-      if (srvErrors && Array.isArray(srvErrors)) {
-        const mapped = {};
-        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
-        for (const { field, message } of srvErrors) {
-          const formField = fieldMap[field] || field;
-          if (formField in form) mapped[formField] = message;
-        }
-        if (Object.keys(mapped).length) setErrors(mapped);
-      } else if (srvErrors && typeof srvErrors === 'object') {
-        const mapped = {};
-        const fieldMap = { fullName: 'name', mobile: 'phone', confirmPassword: 'confirm' };
-        for (const [fld, msg] of Object.entries(srvErrors)) {
-          const formField = fieldMap[fld] || fld;
-          if (formField in form) mapped[formField] = Array.isArray(msg) ? msg[0] : msg;
-        }
-        if (Object.keys(mapped).length) setErrors(mapped);
-      }
-    }
+    } catch {}
   };
 
-  function inputClass(field) {
-    return `w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-      errors[field]
-        ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-        : 'border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10'
-    }`;
-  }
-
-  const valid = isFormValid(form.name, form.phone, form.email, form.password, form.confirm);
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {serverError && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{serverError}</div>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {error && (
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+          {error}
+        </div>
       )}
-      {!serverError && error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
-      )}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-        <input type="text" value={form.name} onChange={(e) => handleChange('name', e.target.value)}
-          placeholder="Enter your full name" className={inputClass('name')}
-        />
-        {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+
+      {/* Name Input */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Full Name
+        </span>
+        <div
+          className={`flex items-center gap-3 px-3.5 py-2 sm:py-2.5 rounded-xl border bg-white transition-all ${
+            errors.name
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <i className="fa-regular fa-user text-brand-blue text-sm shrink-0" />
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="John Doe"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.name && <p className="mt-0.5 text-[10px] text-red-500 font-medium">{errors.name}</p>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-        <input type="tel" value={form.phone} onChange={(e) => handleChange('phone', e.target.value)}
-          placeholder="Enter your phone number" className={inputClass('phone')}
-        />
-        {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+
+      {/* Phone Input */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Mobile Number
+        </span>
+        <div
+          className={`flex items-center gap-3 px-3.5 py-2 sm:py-2.5 rounded-xl border bg-white transition-all ${
+            errors.phone
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <i className="fa-solid fa-phone text-brand-blue text-sm shrink-0" />
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={(e) => handleChange('phone', e.target.value)}
+            placeholder="9876543210"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.phone && <p className="mt-0.5 text-[10px] text-red-500 font-medium">{errors.phone}</p>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-        <input type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)}
-          placeholder="Enter your email" className={inputClass('email')}
-        />
-        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+
+      {/* Email Input */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Email id
+        </span>
+        <div
+          className={`flex items-center gap-3 px-3.5 py-2 sm:py-2.5 rounded-xl border bg-white transition-all ${
+            errors.email
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            placeholder="name@email.com"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.email && <p className="mt-0.5 text-[10px] text-red-500 font-medium">{errors.email}</p>}
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <PasswordInput label="Password" value={form.password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          placeholder="Create password" error={errors.password}
-        />
-        <PasswordInput label="Confirm Password" value={form.confirm}
-          onChange={(e) => handleChange('confirm', e.target.value)}
-          placeholder="Confirm password" error={errors.confirm}
-        />
+
+      {/* Passwords grid */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="relative pt-1.5">
+          <span className="absolute top-0 left-3 bg-white px-1 text-[10px] font-bold text-brand-blue z-10 tracking-wide select-none">
+            Password
+          </span>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-blue/40 bg-white">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+            />
+          </div>
+          {errors.password && <p className="mt-0.5 text-[10px] text-red-500 font-medium">{errors.password}</p>}
+        </div>
+
+        <div className="relative pt-1.5">
+          <span className="absolute top-0 left-3 bg-white px-1 text-[10px] font-bold text-brand-blue z-10 tracking-wide select-none">
+            Confirm
+          </span>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-blue/40 bg-white">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.confirm}
+              onChange={(e) => handleChange('confirm', e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+            />
+          </div>
+          {errors.confirm && <p className="mt-0.5 text-[10px] text-red-500 font-medium">{errors.confirm}</p>}
+        </div>
       </div>
-      <button type="submit" disabled={!valid || loading}
-        className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+      {/* CREATE ACCOUNT Button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1"
       >
-        {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-        {loading ? 'Creating Account...' : 'Create Account'}
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}
+        <span>CREATE ACCOUNT</span>
       </button>
-      <p className="text-center text-sm text-gray-500">
+
+      {/* OR Divider */}
+      <div className="relative my-2.5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <span className="bg-white px-3">OR SIGN UP WITH</span>
+        </div>
+      </div>
+
+      {/* Google Sign-Up Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shadow-xs hover:border-slate-300 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+        title="Sign up with Google"
+      >
+        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+          />
+        </svg>
+        <span>Sign up with Google</span>
+      </button>
+
+      {/* Switch to Login */}
+      <p className="text-center text-xs text-slate-500 font-medium pt-1">
         Already have an account?{' '}
-        <button type="button" onClick={onSwitch} className="text-brand-blue hover:underline font-medium">Login</button>
+        <button
+          type="button"
+          onClick={onSwitch}
+          className="font-extrabold text-brand-blue hover:text-brand-navy transition-colors cursor-pointer"
+        >
+          Login
+        </button>
       </p>
     </form>
   );
 }
 
+// ─── FORGOT PASSWORD FORM ─────────────────────────────────────────────────────
 function ForgotPasswordForm({ onBack, onNext }) {
-  const { forgotPassword, loading, error, clearError, setForgotEmail } = useAuth();
+  const { forgotPassword, loading, error, clearError, switchAuthMode } = useAuth();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
 
@@ -310,50 +574,74 @@ function ForgotPasswordForm({ onBack, onNext }) {
     setEmailError(err);
     if (err) return;
     try {
-      const result = await forgotPassword(email).unwrap();
-      setForgotEmail(email);
-      if (result?.otp) {
-        Swal.fire({
-          icon: 'info', title: 'Dev Mode OTP',
-          text: `Your OTP is: ${result.otp}`,
-          timer: 8000, showConfirmButton: true, confirmButtonText: 'Got it',
-        });
-      }
-      onNext();
+      await forgotPassword(email).unwrap();
+      Swal.fire({
+        icon: 'success',
+        title: 'Reset Link Sent!',
+        text: `We have sent password reset instructions to ${email}`,
+        timer: 4000,
+        showConfirmButton: true,
+        confirmButtonText: 'Back to Login',
+      }).then(() => {
+        switchAuthMode('login');
+      });
     } catch {}
   };
 
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+          {error}
+        </div>
       )}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-        <input type="email" value={email} onChange={(e) => handleChange(e.target.value)}
-          placeholder="Enter your email"
-          className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-            emailError
-              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-              : 'border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10'
-          }`}
-        />
-        {emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+      <p className="text-xs text-slate-500 leading-relaxed">
+        Enter the email address registered with your OneVishwam account. We&rsquo;ll send you a link to reset your password.
+      </p>
+
+      {/* Email Input */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Email Address
+        </span>
+        <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-brand-blue/40 bg-white">
+          <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder="user@example.com"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {emailError && <p className="mt-1 text-[11px] text-red-500 font-medium">{emailError}</p>}
       </div>
-      <button type="submit" onClick={handleSubmit} disabled={loading || !email}
-        className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50"
+
+      <button
+        type="submit"
+        onClick={handleSubmit}
+        disabled={loading || !email}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 cursor-pointer"
       >
-        {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-        {loading ? 'Sending...' : 'Send Verification Code'}
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs mr-2" />}
+        <span>SEND RESET LINK</span>
       </button>
-      <div className="text-center text-sm text-gray-500">
+
+      <div className="text-center text-xs text-slate-500 pt-1">
         Remember your password?{' '}
-        <button type="button" onClick={onBack} className="text-brand-blue hover:underline font-medium">Back to Login</button>
+        <button
+          type="button"
+          onClick={onBack}
+          className="font-extrabold text-brand-blue hover:text-brand-navy transition-colors cursor-pointer"
+        >
+          Back to Login
+        </button>
       </div>
     </div>
   );
 }
 
+// ─── VERIFY OTP FORM ──────────────────────────────────────────────────────────
 function VerifyOtpForm({ onBack, onNext }) {
   const { verifyOtp, resendOtp, loading, error, clearError, forgotEmail } = useAuth();
   const [otp, setOtp] = useState(Array(6).fill(''));
@@ -361,11 +649,6 @@ function VerifyOtpForm({ onBack, onNext }) {
   const [timer, setTimer] = useState(300);
   const [canResend, setCanResend] = useState(false);
   const inputsRef = useRef([]);
-
-  const resetCooldown = useCallback(() => {
-    setTimer(300);
-    setCanResend(false);
-  }, []);
 
   useEffect(() => {
     if (timer <= 0) {
@@ -400,19 +683,6 @@ function VerifyOtpForm({ onBack, onNext }) {
     }
   }
 
-  function handlePaste(e) {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (!pasted) return;
-    const newOtp = Array(6).fill('');
-    for (let i = 0; i < pasted.length; i++) {
-      newOtp[i] = pasted[i];
-    }
-    setOtp(newOtp);
-    const nextIndex = pasted.length < 6 ? pasted.length : 5;
-    inputsRef.current[nextIndex]?.focus();
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const code = otp.join('');
@@ -426,78 +696,80 @@ function VerifyOtpForm({ onBack, onNext }) {
     } catch {}
   };
 
-  const handleResend = async () => {
-    try {
-      const result = await resendOtp(forgotEmail).unwrap();
-      resetCooldown();
-      if (result?.otp) {
-        Swal.fire({
-          icon: 'info', title: 'Dev Mode OTP',
-          text: `Your new OTP is: ${result.otp}`,
-          timer: 8000, showConfirmButton: true, confirmButtonText: 'Got it',
-        });
-      }
-    } catch {}
-  };
-
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
-      )}
-      <p className="text-sm text-gray-500 text-center">
-        Enter the 6-digit code sent to <strong className="text-brand-charcoal">{forgotEmail}</strong>
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3 text-center">Verification Code</label>
-          <div className="flex gap-2 justify-center" onPaste={handlePaste}>
-            {otp.map((digit, i) => (
-              <input key={i} ref={(el) => (inputsRef.current[i] = el)}
-                type="text" inputMode="numeric" autoComplete="one-time-code"
-                maxLength={1} value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`h-12 w-10 rounded-xl border text-center text-lg font-bold outline-none transition-all ${
-                  otpError
-                    ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-                    : 'border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10'
-                }`}
-              />
-            ))}
-          </div>
-          {otpError && <p className="mt-2 text-xs text-red-500 text-center">{otpError}</p>}
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+          {error}
         </div>
+      )}
+      <p className="text-xs text-slate-500 text-center">
+        Enter the 6-digit code sent to <strong className="text-slate-800">{forgotEmail}</strong>
+      </p>
 
-        <button type="submit" disabled={loading || otp.join('').length !== 6}
-          className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex gap-2 justify-center py-2">
+          {otp.map((digit, i) => (
+            <input
+              key={i}
+              ref={(el) => (inputsRef.current[i] = el)}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              className="h-11 w-10 sm:h-12 sm:w-11 rounded-xl border border-brand-blue/40 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/15 text-center text-lg font-black text-slate-800 outline-none transition-all"
+            />
+          ))}
+        </div>
+        {otpError && <p className="text-xs text-red-500 text-center font-medium">{otpError}</p>}
+
+        <button
+          type="submit"
+          disabled={loading || otp.join('').length !== 6}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 cursor-pointer"
         >
-          {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-          {loading ? 'Verifying...' : 'Verify Code'}
+          {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs mr-2" />}
+          <span>VERIFY CODE</span>
         </button>
 
-        <div className="text-center space-y-2">
-          <p className="text-sm text-gray-400">
-            Code expires in <span className="font-mono font-semibold text-brand-charcoal">{formatTime(timer)}</span>
+        <div className="text-center space-y-1 text-xs text-slate-400">
+          <p>
+            Code expires in <span className="font-mono font-bold text-slate-700">{formatTime(timer)}</span>
           </p>
-          {canResend ? (
-            <button type="button" onClick={handleResend} disabled={loading}
-              className="text-sm text-brand-blue hover:underline font-medium"
+          {canResend && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await resendOtp(forgotEmail).unwrap();
+                  setTimer(300);
+                  setCanResend(false);
+                } catch {}
+              }}
+              className="text-brand-blue hover:underline font-bold"
             >
               Resend Code
             </button>
-          ) : (
-            <p className="text-sm text-gray-400">Resend in {formatTime(timer)}</p>
           )}
         </div>
       </form>
-      <div className="text-center text-sm text-gray-500">
-        <button type="button" onClick={onBack} className="text-brand-blue hover:underline font-medium">Use a different email</button>
+
+      <div className="text-center text-xs text-slate-500 pt-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="font-extrabold text-brand-blue hover:text-brand-navy transition-colors cursor-pointer"
+        >
+          Use a different email
+        </button>
       </div>
     </div>
   );
 }
 
+// ─── SET PASSWORD FORM ────────────────────────────────────────────────────────
 function SetPasswordForm({ onBack, onSuccess }) {
   const { resetPasswordWithOtp, loading, error, clearError, forgotEmail, verifyToken } = useAuth();
   const [password, setPassword] = useState('');
@@ -508,20 +780,9 @@ function SetPasswordForm({ onBack, onSuccess }) {
     const e = {};
     if (!password) e.password = 'Password is required';
     else if (!RULES.every((r) => r.test(password))) e.password = 'Does not meet all requirements';
-    if (!confirm) e.confirm = 'Please confirm your password';
+    if (!confirm) e.confirm = 'Please confirm password';
     else if (password !== confirm) e.confirm = 'Passwords do not match';
     return e;
-  }
-
-  function handleChange(field, value) {
-    if (field === 'password') setPassword(value);
-    if (field === 'confirm') setConfirm(value);
-    clearError();
-    if (errors[field]) {
-      const next = { ...errors };
-      delete next[field];
-      setErrors(next);
-    }
   }
 
   const handleSubmit = async (e) => {
@@ -536,61 +797,84 @@ function SetPasswordForm({ onBack, onSuccess }) {
   };
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+          {error}
+        </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <PasswordInput label="New Password" value={password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          placeholder="Enter new password" error={errors.password}
-        />
 
-        {password && (
-          <div className="space-y-1.5 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
-            {RULES.map((rule) => {
-              const passed = rule.test(password);
-              return (
-                <div key={rule.key} className="flex items-center gap-2 text-xs">
-                  <i className={`fa-solid ${passed ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-[10px]`} />
-                  <span className={passed ? 'text-green-600' : 'text-gray-400'}>{rule.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <PasswordInput label="Confirm Password" value={confirm}
-          onChange={(e) => handleChange('confirm', e.target.value)}
-          placeholder="Confirm new password" error={errors.confirm}
-        />
-
-        <button type="submit" disabled={loading}
-          className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors disabled:opacity-50"
-        >
-          {loading && <i className="fa-solid fa-circle-notch fa-spin mr-2" />}
-          {loading ? 'Saving...' : 'Save New Password'}
-        </button>
-      </form>
-      <div className="text-center text-sm text-gray-500">
-        <button type="button" onClick={onBack} className="text-brand-blue hover:underline font-medium">Back to OTP</button>
+      {/* Password */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          New Password
+        </span>
+        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-brand-blue/40 bg-white">
+          <i className="fa-solid fa-lock text-brand-blue text-sm shrink-0" />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              clearError();
+            }}
+            placeholder="••••••••••••"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.password && <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.password}</p>}
       </div>
-    </div>
+
+      {/* Confirm */}
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Confirm Password
+        </span>
+        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-brand-blue/40 bg-white">
+          <i className="fa-solid fa-lock text-brand-blue text-sm shrink-0" />
+          <input
+            type="password"
+            value={confirm}
+            onChange={(e) => {
+              setConfirm(e.target.value);
+              clearError();
+            }}
+            placeholder="••••••••••••"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+          />
+        </div>
+        {errors.confirm && <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.confirm}</p>}
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 cursor-pointer"
+      >
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs mr-2" />}
+        <span>SAVE NEW PASSWORD</span>
+      </button>
+    </form>
   );
 }
 
+// ─── RESET SUCCESS VIEW ───────────────────────────────────────────────────────
 function ResetSuccessView({ onClose }) {
   return (
-    <div className="text-center py-2 space-y-4">
-      <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-        <i className="fa-solid fa-check text-3xl text-green-600" />
+    <div className="text-center py-4 space-y-4">
+      <div className="mx-auto h-14 w-14 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+        <i className="fa-solid fa-check text-2xl" />
       </div>
       <div>
-        <h3 className="text-lg font-bold text-brand-charcoal">Password Updated Successfully</h3>
-        <p className="text-sm text-gray-500 mt-1">Your password has been changed. You can now log in with your new password.</p>
+        <h3 className="text-lg font-black text-slate-900">Password Updated!</h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Your password has been changed successfully. You can now log in.
+        </p>
       </div>
-      <button type="button" onClick={onClose}
-        className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors"
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 cursor-pointer"
       >
         Go to Login
       </button>
@@ -598,24 +882,14 @@ function ResetSuccessView({ onClose }) {
   );
 }
 
-const MODE_TITLES = {
-  login: { title: 'Welcome Back', subtitle: 'Login to your account to continue' },
-  register: { title: 'Create Account', subtitle: 'Join OneVishwam to start posting' },
-  forgot: { title: 'Forgot Your Password?', subtitle: "Enter your email and we'll send you a verification code" },
-  'verify-otp': { title: 'Verify Your Email', subtitle: 'Enter the 6-digit verification code' },
-  'reset-password': { title: 'Create a New Password', subtitle: 'Choose a strong password' },
-  'reset-success': { title: 'All Done!', subtitle: '' },
-};
-
-function AuthModals() {
+// ─── MAIN AUTH MODALS WRAPPER (2-COLUMN DESIGN) ──────────────────────────────
+export default function AuthModals() {
   const { showAuthModal, closeAuthModal, authModalMode, switchAuthMode, setVerifyToken } = useAuth();
 
   useEffect(() => {
     if (!showAuthModal) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        closeAuthModal();
-      }
+      if (e.key === 'Escape') closeAuthModal();
     };
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
@@ -627,62 +901,131 @@ function AuthModals() {
 
   if (!showAuthModal) return null;
 
-  const mode = MODE_TITLES[authModalMode] || MODE_TITLES.login;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
+      {/* Outer Card: 2 Column Layout with Left Hero & Right Form */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
-        onClick={closeAuthModal}
-      />
-      <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden z-10"
+        className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_25px_70px_rgba(10,31,63,0.35)] overflow-hidden border border-brand-blue/10 grid grid-cols-1 md:grid-cols-12 min-h-[530px] max-h-[92vh] animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <div>
-            <h2 className="text-xl font-bold text-brand-charcoal">{mode.title}</h2>
-            {mode.subtitle && <p className="text-sm text-gray-500 mt-0.5">{mode.subtitle}</p>}
+        {/* Top-Right Sleek Close Button */}
+        <button
+          type="button"
+          onClick={closeAuthModal}
+          className="absolute top-4 right-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-400 hover:text-brand-navy hover:bg-white border border-slate-200/80 backdrop-blur-md transition-all shadow-xs active:scale-95 cursor-pointer"
+          aria-label="Close modal"
+        >
+          <i className="fa-solid fa-xmark text-sm" />
+        </button>
+
+        {/* ─── LEFT COLUMN: Brand Hero Banner with Official Logo ─── */}
+        <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-brand-navy text-white select-none">
+          {/* Background Luxury Architectural Image */}
+          <img
+            src={HERO_IMAGE}
+            alt="OneVishwam Living"
+            className="absolute inset-0 w-full h-full object-cover object-center transform scale-105"
+            loading="eager"
+          />
+          {/* Navy & Blue Gradients for Brand Consistency */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a1f3f]/90 via-[#0a1f3f]/60 to-[#0a1f3f]/95" />
+          <div className="absolute inset-0 bg-brand-blue/20" />
+
+          {/* Top Brand Logo & Tagline */}
+          <div className="relative z-10 space-y-4 pt-1">
+            {/* Official Logo in a translucent glass container */}
+            <div className="inline-flex items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-white/20">
+              <img src={logo} alt="OneVishwam Logo" className="h-8 w-auto object-contain" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-lg lg:text-xl font-bold text-white tracking-tight drop-shadow-sm">
+                Unlock Your Next Chapter
+              </h3>
+              <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xs drop-shadow-xs">
+                Your all-in-one destination for verified Real Estate, Smart Finance, and Lifestyle Services.
+              </p>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              closeAuthModal();
-            }}
-            aria-label="Close modal"
-            className="h-9 w-9 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
-          >
-            <i className="fa-solid fa-xmark text-lg" />
-          </button>
+
+          {/* Bottom Highlights Pill */}
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/20 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>Real Estate • Finance • Marketplace</span>
+            </div>
+          </div>
         </div>
-        <div className="px-6 pb-6 pt-4">
-          {authModalMode === 'login' ? (
-            <LoginForm onSwitch={() => switchAuthMode('register')} onClose={closeAuthModal} />
-          ) : authModalMode === 'register' ? (
-            <RegisterForm onSwitch={() => switchAuthMode('login')} onClose={closeAuthModal} />
-          ) : authModalMode === 'forgot' ? (
-            <ForgotPasswordForm
-              onBack={() => switchAuthMode('login')}
-              onNext={() => switchAuthMode('verify-otp')}
-            />
-          ) : authModalMode === 'verify-otp' ? (
-            <VerifyOtpForm
-              onBack={() => switchAuthMode('forgot')}
-              onNext={(vt) => { setVerifyToken(vt); switchAuthMode('reset-password'); }}
-            />
-          ) : authModalMode === 'reset-password' ? (
-            <SetPasswordForm
-              onBack={() => switchAuthMode('verify-otp')}
-              onSuccess={() => switchAuthMode('reset-success')}
-            />
-          ) : authModalMode === 'reset-success' ? (
-            <ResetSuccessView onClose={closeAuthModal} />
-          ) : null}
+
+        {/* ─── RIGHT COLUMN: Form & Landmarks ─── */}
+        <div className="md:col-span-7 relative flex flex-col justify-between bg-white px-6 py-8 sm:px-10 sm:py-10 overflow-y-auto">
+          {/* Top Flight Trail Curve */}
+          <FlightTrail />
+
+          <div className="relative z-10 max-w-sm mx-auto w-full my-auto">
+            {/* Header */}
+            <div className="text-center mb-5">
+              {/* Mobile-only Logo */}
+              <div className="flex justify-center mb-3 md:hidden">
+                <img src={logo} alt="OneVishwam Logo" className="h-8 w-auto object-contain" />
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-black text-brand-blue tracking-tight">
+                {authModalMode === 'login'
+                  ? 'Welcome'
+                  : authModalMode === 'register'
+                  ? 'Register'
+                  : authModalMode === 'forgot'
+                  ? 'Reset Password'
+                  : authModalMode === 'verify-otp'
+                  ? 'Verify Email'
+                  : authModalMode === 'reset-password'
+                  ? 'New Password'
+                  : 'Welcome'}
+              </h2>
+              <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                {authModalMode === 'login'
+                  ? 'Login with Email'
+                  : authModalMode === 'register'
+                  ? 'Join OneVishwam Today'
+                  : 'Follow the steps to continue'}
+              </p>
+            </div>
+
+            {/* Forms */}
+            {authModalMode === 'login' ? (
+              <LoginForm onSwitch={() => switchAuthMode('register')} onClose={closeAuthModal} />
+            ) : authModalMode === 'register' ? (
+              <RegisterForm onSwitch={() => switchAuthMode('login')} onClose={closeAuthModal} />
+            ) : authModalMode === 'forgot' ? (
+              <ForgotPasswordForm
+                onBack={() => switchAuthMode('login')}
+                onNext={() => switchAuthMode('verify-otp')}
+              />
+            ) : authModalMode === 'verify-otp' ? (
+              <VerifyOtpForm
+                onBack={() => switchAuthMode('forgot')}
+                onNext={(vt) => {
+                  setVerifyToken(vt);
+                  switchAuthMode('reset-password');
+                }}
+              />
+            ) : authModalMode === 'reset-password' ? (
+              <SetPasswordForm
+                onBack={() => switchAuthMode('verify-otp')}
+                onSuccess={() => switchAuthMode('reset-success')}
+              />
+            ) : authModalMode === 'reset-success' ? (
+              <ResetSuccessView onClose={closeAuthModal} />
+            ) : null}
+          </div>
+
+          {/* Bottom Landmarks / Monuments Illustration */}
+          <div className="relative pt-4 sm:pt-6 -mx-6 sm:-mx-10 -mb-8 sm:-mb-10 overflow-hidden">
+            <SkylineIllustration />
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default AuthModals;

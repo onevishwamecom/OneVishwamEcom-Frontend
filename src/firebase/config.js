@@ -1,5 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+} from "firebase/auth";
 
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,8 +23,39 @@ export const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
+// Initialize Firebase App
 export const app = initializeApp(firebaseConfig);
-export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+
+// Initialize Firebase Auth
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+export const facebookProvider = new FacebookAuthProvider();
+
+// Gracefully initialize Analytics only when supported and not blocked
+let analytics = null;
+if (typeof window !== "undefined" && firebaseConfig.measurementId) {
+  isSupported()
+    .then((supported) => {
+      if (supported && import.meta.env.PROD) {
+        try {
+          analytics = getAnalytics(app);
+        } catch {
+          // Blocked by ad-blocker / privacy extension
+        }
+      }
+    })
+    .catch(() => {});
+}
+
+export {
+  analytics,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+};
 
 export default app;

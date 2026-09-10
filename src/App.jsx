@@ -1,10 +1,14 @@
 import { useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase/config';
 import { NAVIGATION_EVENT } from './config/navigation';
 const Footer = lazy(() => import('./components/Footer'));
 import BrandLoader from './components/ui/BrandLoader';
-import { useAuth, forceLogout } from './store/authSlice';
+import { useAuth, setUser, forceLogout } from './store/authSlice';
 import store from './store';
+import API from './services/api';
 import AuthModals from './components/auth/AuthModals';
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
@@ -122,14 +126,62 @@ function RequireAuth({ children }) {
 
 function App() {
   const location = useLocation();
-  const { isLoggedIn, fetchMe } = useAuth();
+  const dispatch = useDispatch();
 
-  // Validate stored session on mount
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchMe();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Optimistically preserve cached user details (like phone/role) while refreshing
+        const existingStored = localStorage.getItem('user');
+        const parsedStored = existingStored ? JSON.parse(existingStored) : null;
+
+        const baseUser = {
+          ...parsedStored,
+          firebaseUid: firebaseUser.uid,
+          email: firebaseUser.email,
+          fullName: firebaseUser.displayName || parsedStored?.fullName || parsedStored?.name || 'User',
+          name: firebaseUser.displayName || parsedStored?.fullName || parsedStored?.name || 'User',
+          role: parsedStored?.role || 'user',
+        };
+        dispatch(setUser(baseUser));
+
+        // Enrich with latest MongoDB Atlas profile from backend
+        try {
+          const idToken = await firebaseUser.getIdToken(true);
+          const res = await API.get('/auth/me', {
+            headers: { Authorization: `Bearer ${idToken}` },
+          });
+          if (res.data?.data) {
+            dispatch(setUser(res.data.data));
+          }
+        } catch {
+          try {
+            const idToken = await firebaseUser.getIdToken();
+            const syncRes = await API.post(
+              '/auth/sync',
+              {
+                firebaseUid: firebaseUser.uid,
+                email: firebaseUser.email,
+                fullName: firebaseUser.displayName,
+              },
+              {
+                headers: { Authorization: `Bearer ${idToken}` },
+              }
+            );
+            if (syncRes.data?.data) {
+              dispatch(setUser(syncRes.data.data));
+            }
+          } catch {
+            // Retain optimistic baseUser
+          }
+        }
+      } else {
+        dispatch(setUser(null));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
 
   return (
     <>

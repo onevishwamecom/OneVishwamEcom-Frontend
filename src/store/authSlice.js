@@ -1,145 +1,347 @@
 import { useCallback } from 'react';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
-import { authAPI } from '../api';
-import { cacheUser, cachedUserIsFresh, clearAllUserCaches } from '../services/cache/userCache';
+import API from '../services/api';
+import {
+  auth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInWithPopup,
+  googleProvider,
+  facebookProvider,
+  signOut,
+  sendPasswordResetEmail,
+} from '../firebase/config';
 
-export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.login(credentials);
-    localStorage.setItem('accessToken', data.data.accessToken);
-    localStorage.setItem('refreshToken', data.data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    cacheUser(data.data.user);
-    return data.data.user;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Login failed');
-  }
-});
+// ─── Async Thunks ─────────────────────────────────────────────────────────────
 
-export const registerUser = createAsyncThunk('auth/registerUser', async (userData, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.register(userData);
-    localStorage.setItem('accessToken', data.data.accessToken);
-    localStorage.setItem('refreshToken', data.data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    cacheUser(data.data.user);
-    return data.data.user;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Registration failed');
+export const loginWithEmail = createAsyncThunk(
+  'auth/loginWithEmail',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
+
+      let profileData = {
+        firebaseUid: user.uid,
+        email: user.email,
+        fullName: user.displayName || 'User',
+        role: 'user',
+      };
+
+      try {
+        const res = await API.post(
+          '/auth/sync',
+          {
+            firebaseUid: user.uid,
+            email: user.email,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        if (res.data?.data) {
+          profileData = res.data.data;
+        }
+      } catch (syncErr) {
+        console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
+      }
+
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
+    } catch (error) {
+      let msg = error.response?.data?.message || error.message || 'Login failed';
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        msg = 'Invalid email or password';
+      } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Email/Password sign-in is not enabled in Firebase Console. Please enable it under Authentication > Sign-in method.';
+      }
+      return rejectWithValue(msg);
+    }
   }
+);
+export const loginUser = loginWithEmail;
+
+export const registerWithEmail = createAsyncThunk(
+  'auth/registerWithEmail',
+  async ({ email, password, fullName, phoneNumber, mobile, role = 'user' }, { rejectWithValue }) => {
+    try {
+      // 1. Create account in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Set Firebase displayName
+      if (fullName) {
+        try {
+          await updateProfile(user, { displayName: fullName });
+        } catch (profileErr) {
+          console.warn('[Firebase] updateProfile warning:', profileErr.message);
+        }
+      }
+
+      // 3. Force-fetch fresh ID token directly from created user
+      const idToken = await user.getIdToken(true);
+
+      let profileData = {
+        firebaseUid: user.uid,
+        email: user.email,
+        fullName: fullName || user.displayName || 'User',
+        name: fullName || user.displayName || 'User',
+        phoneNumber: phoneNumber || mobile || '',
+        mobile: phoneNumber || mobile || '',
+        role: role,
+      };
+
+      // 4. Save directly to MongoDB Atlas via backend
+      try {
+        const res = await API.post(
+          '/auth/sync',
+          {
+            firebaseUid: user.uid,
+            email: user.email,
+            fullName,
+            phoneNumber: phoneNumber || mobile,
+            role,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        if (res.data?.data) {
+          profileData = res.data.data;
+        }
+      } catch (syncErr) {
+        console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
+      }
+
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
+    } catch (error) {
+      console.error('Registration & MongoDB save error:', error.response?.data || error.message);
+      let msg = error.response?.data?.message || error.message || 'Registration failed';
+      if (error.code === 'auth/email-already-in-use') {
+        msg = 'This email is already registered. Please go to Login.';
+      } else if (error.code === 'auth/weak-password') {
+        msg = 'Password is too weak. Please use at least 6 characters.';
+      } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Email/Password authentication is not yet enabled in your Firebase Console. Please enable Email/Password provider in Firebase Console > Authentication > Sign-in method.';
+      }
+      return rejectWithValue(msg);
+    }
+  }
+);
+export const registerUser = registerWithEmail;
+
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async (_, { rejectWithValue }) => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
+
+      let profileData = {
+        firebaseUid: user.uid,
+        email: user.email,
+        fullName: user.displayName || 'User',
+        avatar: user.photoURL || '',
+        role: 'user',
+      };
+
+      try {
+        const res = await API.post(
+          '/auth/sync',
+          {
+            firebaseUid: user.uid,
+            email: user.email,
+            fullName: user.displayName,
+            avatar: user.photoURL,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        if (res.data?.data) {
+          profileData = res.data.data;
+        }
+      } catch (syncErr) {
+        console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
+      }
+
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
+    } catch (error) {
+      let msg = error.message || 'Google sign-in failed';
+      if (error.code === 'auth/popup-closed-by-user') {
+        msg = 'Google sign-in popup was closed before completing.';
+      } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Google sign-in is not yet enabled in your Firebase Console. Please enable Google provider in Firebase Console > Authentication > Sign-in method.';
+      }
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+export const loginWithFacebook = createAsyncThunk(
+  'auth/loginWithFacebook',
+  async (_, { rejectWithValue }) => {
+    try {
+      const userCredential = await signInWithPopup(auth, facebookProvider);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
+
+      let profileData = {
+        firebaseUid: user.uid,
+        email: user.email,
+        fullName: user.displayName || 'User',
+        avatar: user.photoURL || '',
+        role: 'user',
+      };
+
+      try {
+        const res = await API.post(
+          '/auth/sync',
+          {
+            firebaseUid: user.uid,
+            email: user.email,
+            fullName: user.displayName,
+            avatar: user.photoURL,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        if (res.data?.data) {
+          profileData = res.data.data;
+        }
+      } catch (syncErr) {
+        console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
+      }
+
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
+    } catch (error) {
+      let msg = error.message || 'Facebook sign-in failed';
+      if (error.code === 'auth/popup-closed-by-user') {
+        msg = 'Facebook sign-in popup was closed before completing.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        msg = 'An account already exists with the same email address using a different sign-in method.';
+      } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        msg = 'Facebook sign-in is not yet enabled in your Firebase Console. Please enable Facebook provider in Firebase Console > Authentication > Sign-in method.';
+      }
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
+  try {
+    await signOut(auth);
+  } catch (err) {
+    console.warn('Sign out error:', err);
+  }
+  localStorage.removeItem('user');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  return null;
 });
 
 export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithValue }) => {
   try {
-    // Fresh cached profile → skip the network call entirely (no duplicate /auth/me).
-    const storedRaw = localStorage.getItem('user');
-    const stored = storedRaw ? JSON.parse(storedRaw) : null;
-    if (stored && cachedUserIsFresh(stored)) {
-      return stored;
-    }
-    const { data } = await authAPI.getMe();
-    cacheUser(data.data.user);
-    return data.data.user;
+    const res = await API.get('/auth/me');
+    const user = res.data.data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
   } catch (err) {
-    if (err.response?.status === 401) {
-      clearStorage();
-      clearAllUserCaches();
-    }
     return rejectWithValue(err.response?.data?.message || 'Session expired');
   }
 });
 
-export const updateUserProfile = createAsyncThunk('auth/updateProfile', async (body, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.updateProfile(body);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    cacheUser(data.data.user);
-    return data.data.user;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Update failed');
-  }
-});
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (body, { rejectWithValue }) => {
+    try {
+      // 1. If Firebase Auth has an active user and fullName was changed, sync Firebase displayName
+      if (auth.currentUser && body.fullName) {
+        try {
+          await updateProfile(auth.currentUser, { displayName: body.fullName });
+        } catch (fbErr) {
+          console.warn('[Firebase] updateProfile warning:', fbErr.message);
+        }
+      }
 
-export const updateUserNotifications = createAsyncThunk('auth/updateNotifications', async (prefs, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.updateProfile({
-      notifications: {
-        email: prefs.email,
-        whatsapp: prefs.whatsapp,
-      },
-    });
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    cacheUser(data.data.user);
-    return data.data.user;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Update failed');
+      // 2. Fetch fresh token for backend authorization
+      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : undefined;
+      const res = await API.post('/auth/sync', body, {
+        headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
+      });
+      const user = res.data.data;
+      localStorage.setItem('user', JSON.stringify(user));
+      return user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Update failed');
+    }
   }
-});
+);
 
-export const changeUserPassword = createAsyncThunk('auth/changePassword', async (body, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.changePassword(body);
-    localStorage.setItem('accessToken', data.data.accessToken);
-    localStorage.setItem('refreshToken', data.data.refreshToken);
-    return null;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Password change failed');
+export const updateUserNotifications = createAsyncThunk(
+  'auth/updateNotifications',
+  async (prefs, { rejectWithValue }) => {
+    try {
+      const res = await API.post('/auth/sync', {
+        notifications: {
+          email: prefs.email,
+          whatsapp: prefs.whatsapp,
+        },
+      });
+      const user = res.data.data;
+      localStorage.setItem('user', JSON.stringify(user));
+      return user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Update failed');
+    }
   }
-});
+);
 
-export const forgotUserPassword = createAsyncThunk('auth/forgotPassword', async (email, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.forgotPassword(email);
-    return data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Request failed');
+export const forgotUserPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return { success: true, message: 'Password reset link sent to your email.' };
+    } catch (err) {
+      return rejectWithValue(err.message || 'Failed to send password reset email');
+    }
   }
-});
+);
 
-export const verifyUserOtp = createAsyncThunk('auth/verifyOtp', async (body, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.verifyOtp(body);
-    return data.data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Verification failed');
+export const deleteUserAccount = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { rejectWithValue }) => {
+    try {
+      await API.delete('/auth/account');
+      await signOut(auth);
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return null;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Delete failed');
+    }
   }
-});
+);
 
-export const resendUserOtp = createAsyncThunk('auth/resendOtp', async (email, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.resendOtp(email);
-    return data.data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Resend failed');
-  }
-});
-
-export const resetPasswordWithOtp = createAsyncThunk('auth/resetPasswordWithOtp', async (body, { rejectWithValue }) => {
-  try {
-    await authAPI.resetPasswordWithOtp(body);
-    return null;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Reset failed');
-  }
-});
-
-export const deleteUserAccount = createAsyncThunk('auth/deleteAccount', async (_, { rejectWithValue }) => {
-  try {
-    await authAPI.deleteAccount();
-    clearStorage();
-    clearAllUserCaches();
-    return null;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Delete failed');
-  }
-});
-
-function clearStorage() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('user');
-}
+// ─── Initial State ────────────────────────────────────────────────────────────
 
 const storedUser = localStorage.getItem('user');
 
@@ -157,11 +359,24 @@ const authSlice = createSlice({
     verifyToken: null,
   },
   reducers: {
+    setUser(state, action) {
+      state.user = action.payload;
+      state.isLoggedIn = !!action.payload;
+      state.loading = false;
+      state.error = null;
+      if (action.payload) {
+        localStorage.setItem('user', JSON.stringify(action.payload));
+      } else {
+        localStorage.removeItem('user');
+      }
+    },
     logout(state) {
       state.isLoggedIn = false;
       state.user = null;
-      clearStorage();
-      clearAllUserCaches();
+      state.loading = false;
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
     openAuthModal(state, action) {
       state.showAuthModal = true;
@@ -198,39 +413,82 @@ const authSlice = createSlice({
     forceLogout(state) {
       state.isLoggedIn = false;
       state.user = null;
-      clearStorage();
-      clearAllUserCaches();
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
   },
   extraReducers: (builder) => {
-    const handlePending = (state) => { state.loading = true; state.error = null; state.successMessage = null; };
-    const handleRejected = (state, action) => { state.loading = false; state.error = action.payload; };
+    const handlePending = (state) => {
+      state.loading = true;
+      state.error = null;
+      state.successMessage = null;
+    };
+    const handleRejected = (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    };
 
     builder
-      .addCase(loginUser.pending, handlePending)
-      .addCase(loginUser.fulfilled, (state, action) => {
+      // Login with Email
+      .addCase(loginWithEmail.pending, handlePending)
+      .addCase(loginWithEmail.fulfilled, (state, action) => {
         state.loading = false;
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Login successful!';
       })
-      .addCase(loginUser.rejected, handleRejected)
-      .addCase(registerUser.pending, handlePending)
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(loginWithEmail.rejected, handleRejected)
+
+      // Register with Email
+      .addCase(registerWithEmail.pending, handlePending)
+      .addCase(registerWithEmail.fulfilled, (state, action) => {
         state.loading = false;
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Account created successfully!';
       })
-      .addCase(registerUser.rejected, handleRejected)
+      .addCase(registerWithEmail.rejected, handleRejected)
+
+      // Google Login
+      .addCase(loginWithGoogle.pending, handlePending)
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isLoggedIn = true;
+        state.user = action.payload;
+        state.successMessage = 'Signed in with Google!';
+      })
+      .addCase(loginWithGoogle.rejected, handleRejected)
+
+      // Facebook Login
+      .addCase(loginWithFacebook.pending, handlePending)
+      .addCase(loginWithFacebook.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isLoggedIn = true;
+        state.user = action.payload;
+        state.successMessage = 'Signed in with Facebook!';
+      })
+      .addCase(loginWithFacebook.rejected, handleRejected)
+
+      // Logout
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.isLoggedIn = false;
+        state.loading = false;
+      })
+
+      // Fetch Me
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.isLoggedIn = true;
         state.user = action.payload;
       })
       .addCase(fetchMe.rejected, (state) => {
+        // If session expired
         state.isLoggedIn = false;
         state.user = null;
       })
+
+      // Profile Update
       .addCase(updateUserProfile.pending, handlePending)
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
@@ -238,43 +496,37 @@ const authSlice = createSlice({
         state.successMessage = 'Profile updated successfully';
       })
       .addCase(updateUserProfile.rejected, handleRejected)
-      .addCase(changeUserPassword.pending, handlePending)
-      .addCase(changeUserPassword.fulfilled, (state) => {
-        state.loading = false;
-        state.successMessage = 'Password changed successfully';
-      })
-      .addCase(changeUserPassword.rejected, handleRejected)
+
+      // Forgot Password
       .addCase(forgotUserPassword.pending, handlePending)
       .addCase(forgotUserPassword.fulfilled, (state) => {
         state.loading = false;
+        state.successMessage = 'Password reset instructions sent to your email';
       })
       .addCase(forgotUserPassword.rejected, handleRejected)
-      .addCase(verifyUserOtp.pending, handlePending)
-      .addCase(verifyUserOtp.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(verifyUserOtp.rejected, handleRejected)
-      .addCase(resendUserOtp.pending, handlePending)
-      .addCase(resendUserOtp.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(resendUserOtp.rejected, handleRejected)
-      .addCase(resetPasswordWithOtp.pending, handlePending)
-      .addCase(resetPasswordWithOtp.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(resetPasswordWithOtp.rejected, handleRejected)
-      .addCase(deleteUserAccount.pending, handlePending)
+
+      // Delete Account
       .addCase(deleteUserAccount.fulfilled, (state) => {
         state.loading = false;
         state.isLoggedIn = false;
         state.user = null;
-      })
-      .addCase(deleteUserAccount.rejected, handleRejected);
+      });
   },
 });
 
-export const { logout, openAuthModal, closeAuthModal, switchAuthMode, clearError, clearSuccess, forceLogout, setForgotEmail, setVerifyToken } = authSlice.actions;
+export const {
+  setUser,
+  logout,
+  openAuthModal,
+  closeAuthModal,
+  switchAuthMode,
+  clearError,
+  clearSuccess,
+  forceLogout,
+  setForgotEmail,
+  setVerifyToken,
+} = authSlice.actions;
+
 export default authSlice.reducer;
 
 export function useAuth() {
@@ -289,9 +541,13 @@ export function useAuth() {
     successMessage: useSelector((s) => s.auth.successMessage),
     forgotEmail: useSelector((s) => s.auth.forgotEmail),
     verifyToken: useSelector((s) => s.auth.verifyToken),
-    login: useCallback((credentials) => dispatch(loginUser(credentials)), [dispatch]),
-    register: useCallback((userData) => dispatch(registerUser(userData)), [dispatch]),
-    logout: useCallback(() => dispatch(logout()), [dispatch]),
+    login: useCallback((credentials) => dispatch(loginWithEmail(credentials)), [dispatch]),
+    loginWithEmail: useCallback((credentials) => dispatch(loginWithEmail(credentials)), [dispatch]),
+    loginWithGoogle: useCallback(() => dispatch(loginWithGoogle()), [dispatch]),
+    loginWithFacebook: useCallback(() => dispatch(loginWithFacebook()), [dispatch]),
+    register: useCallback((userData) => dispatch(registerWithEmail(userData)), [dispatch]),
+    registerWithEmail: useCallback((userData) => dispatch(registerWithEmail(userData)), [dispatch]),
+    logout: useCallback(() => dispatch(logoutUser()), [dispatch]),
     openAuthModal: useCallback((mode) => dispatch(openAuthModal(mode)), [dispatch]),
     closeAuthModal: useCallback(() => dispatch(closeAuthModal()), [dispatch]),
     switchAuthMode: useCallback((mode) => dispatch(switchAuthMode(mode)), [dispatch]),
@@ -300,11 +556,7 @@ export function useAuth() {
     fetchMe: useCallback(() => dispatch(fetchMe()), [dispatch]),
     updateProfile: useCallback((body) => dispatch(updateUserProfile(body)), [dispatch]),
     updateNotifications: useCallback((prefs) => dispatch(updateUserNotifications(prefs)), [dispatch]),
-    changePassword: useCallback((body) => dispatch(changeUserPassword(body)), [dispatch]),
     forgotPassword: useCallback((email) => dispatch(forgotUserPassword(email)), [dispatch]),
-    verifyOtp: useCallback((body) => dispatch(verifyUserOtp(body)), [dispatch]),
-    resendOtp: useCallback((email) => dispatch(resendUserOtp(email)), [dispatch]),
-    resetPasswordWithOtp: useCallback((body) => dispatch(resetPasswordWithOtp(body)), [dispatch]),
     deleteAccount: useCallback(() => dispatch(deleteUserAccount()), [dispatch]),
     forceLogout: useCallback(() => dispatch(forceLogout()), [dispatch]),
     setForgotEmail: useCallback((email) => dispatch(setForgotEmail(email)), [dispatch]),
