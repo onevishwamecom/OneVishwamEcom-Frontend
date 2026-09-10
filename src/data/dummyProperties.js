@@ -142,6 +142,12 @@ import brenAvaanaFp4 from '../assets/Bren AVAANA/Floor Plan/4.png';
 import brenAvaanaFp5 from '../assets/Bren AVAANA/Floor Plan/5.png';
 import brenAvaanaFp6 from '../assets/Bren AVAANA/Floor Plan/6.png';
 import brenAvaanaFp7 from '../assets/Bren AVAANA/Floor Plan/7.png';
+import sriSaiNilayam1 from '../assets/Sri Sai Nilayam/1.jpeg';
+import sriSaiBrundhavana1 from '../assets/Sri Sai Brundhavana/1.jpeg';
+import sriSaiVillas1 from '../assets/Sri sai Villas/1.jpeg';
+import sriSaiNilayamPdf from '../assets/Sri Sai Nilayam/floor-plan.pdf';
+import sriSaiBrundhavanaPdf from '../assets/Sri Sai Brundhavana/floor-plan.pdf';
+import sriSaiVillasPdf from '../assets/Sri sai Villas/floor-plan.pdf';
 
 export const BREN_ANNANTA_IMAGES = [
   brenAnnanta1, brenAnnanta2, brenAnnanta3, brenAnnanta4, brenAnnanta5,
@@ -360,6 +366,18 @@ export const DS_MAX_SKYSISIRA_IMAGES = [
 export const YESHWANTHPUR_PLOT_IMAGES = [
   // yeshwanthpurPlot1,
   yeshwanthpurPlot2,
+];
+
+export const SRI_SAI_NILAYAM_IMAGES = [
+  sriSaiNilayam1,
+];
+
+export const SRI_SAI_BRUNDHAVANA_IMAGES = [
+  sriSaiBrundhavana1,
+];
+
+export const SRI_SAI_VILLAS_IMAGES = [
+  sriSaiVillas1,
 ];
 
 const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -1696,8 +1714,78 @@ status: 'available',
     images: YESHWANTHPUR_PLOT_IMAGES,
     loanApproved: true,
   },
-
-
+  {
+    id: 63,
+    title: 'Sri Sai Nilayam',
+    subtitle: 'K R INFRA',
+    propertyType: 'Residential',
+    subcategory: 'Apartments',
+    price: '₹ 1.00 Cr',
+    rawPrice: 10000000,
+    location: 'Nandakumar Layout, AGS Layout, Bengaluru',
+    city: 'bengaluru',
+    area: '1,450 Sq.ft · 9 Units',
+    possession: 'Ready to Move',
+    facing: 'East / North',
+    vendorName: 'K R INFRA',
+    builderName: 'B HARIKRISHNA',
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    status: 'available',
+    images: SRI_SAI_NILAYAM_IMAGES,
+    pdfUrl: sriSaiNilayamPdf,
+    floorPlanPdf: sriSaiNilayamPdf,
+    loanApproved: true,
+    locality: 'Nandakumar Layout, AGS Layout',
+  },
+  {
+    id: 64,
+    title: 'Sri Sai Brundhavana',
+    subtitle: 'K R INFRA',
+    propertyType: 'Residential',
+    subcategory: 'Apartments',
+    price: '₹ 2.01 Cr',
+    rawPrice: 20100000,
+    location: 'Nandakumar Layout, AGS Layout, Bengaluru',
+    city: 'bengaluru',
+    area: '2,400 Sq.ft · 9 Units',
+    possession: 'Ready to Move',
+    facing: 'East / North',
+    vendorName: 'K R INFRA',
+    builderName: 'B HARIKRISHNA',
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    status: 'available',
+    images: SRI_SAI_BRUNDHAVANA_IMAGES,
+    pdfUrl: sriSaiBrundhavanaPdf,
+    floorPlanPdf: sriSaiBrundhavanaPdf,
+    loanApproved: true,
+    locality: 'Nandakumar Layout, AGS Layout',
+  },
+  {
+    id: 65,
+    title: 'Sri Sai Villas',
+    subtitle: 'K R INFRA',
+    propertyType: 'Villa',
+    subcategory: 'Villas',
+    price: '₹ 1.80 Cr',
+    rawPrice: 18000000,
+    location: 'Nandakumar Layout, AGS Layout, Bengaluru',
+    city: 'bengaluru',
+    area: '1,450 - 2,400 Sq.ft · Luxury Villas',
+    possession: 'Ready to Move',
+    facing: 'East / North',
+    vendorName: 'K R INFRA',
+    builderName: 'B HARIKRISHNA',
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    status: 'available',
+    images: SRI_SAI_VILLAS_IMAGES,
+    pdfUrl: sriSaiVillasPdf,
+    floorPlanPdf: sriSaiVillasPdf,
+    loanApproved: true,
+    locality: 'Nandakumar Layout, AGS Layout',
+  },
 ];
 
 
