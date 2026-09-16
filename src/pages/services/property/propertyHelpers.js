@@ -528,6 +528,7 @@ export function getPropertyCoverImage(property) {
 
 export const PRIORITY_TITLES = [
   'VEDANT SURAKSHA',
+  'Bren Park City',
   'Whispering Waves',
   'Bren Annanta',
   'Bren Avaana',
@@ -546,7 +547,7 @@ export function isOneVishwamProperty(property) {
 
 /**
  * Priority sort helper:
- * 1. Specific in-house projects ('VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana')
+ * 1. Specific in-house projects ('VEDANT SURAKSHA', 'Bren Park City', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana')
  * 2. Any other Onevishwam properties
  * 3. Has images priority
  * 4. Recent ID (b.id - a.id)

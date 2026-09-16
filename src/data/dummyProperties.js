@@ -149,6 +149,14 @@ import sriSaiNilayamPdf from '../assets/Sri Sai Nilayam/floor-plan.pdf';
 import sriSaiBrundhavanaPdf from '../assets/Sri Sai Brundhavana/floor-plan.pdf';
 import sriSaiVillasPdf from '../assets/Sri sai Villas/floor-plan.pdf';
 
+export const BREN_PARK_CITY_IMAGES = [
+  'https://lh3.googleusercontent.com/d/1gb3o1xbCP5i5syEcqowCjszcTda_Hwuz',
+  'https://lh3.googleusercontent.com/d/13yoPXXhpQ6Flo3UKzrw22876AndlRuss',
+  'https://lh3.googleusercontent.com/d/1A43tLiUKPG2Flanqn9JO50FKvc6LTqIo',
+  'https://lh3.googleusercontent.com/d/1dq1KPL9FA5pnHgyUZoxYz5XxChG1nuWI',
+  'https://lh3.googleusercontent.com/d/1eRLsjZMySwcVdK6iXafY38lapYiYNlyC',
+];
+
 export const BREN_ANNANTA_IMAGES = [
   brenAnnanta1, brenAnnanta2, brenAnnanta3, brenAnnanta4, brenAnnanta5,
 ];
@@ -411,6 +419,40 @@ export const dummyProperties = [
     images: VEDANT_SURAKSHA_IMAGES,
     pdfUrl: vedantSurakshaPdf,
     loanApproved: true,
+  },
+  {
+    id: 66,
+    title: 'Bren Park City',
+    subtitle: 'Onevishwam',
+    propertyType: 'Flats',
+    subcategory: 'Apartments',
+    price: '₹ 1.72 Cr Onwards',
+    rawPrice: 17200000,
+    location: 'Electronic City Phase 1, Bangalore - 560100',
+    locality: 'Electronic City Phase 1',
+    city: 'bengaluru',
+    pincode: '560100',
+    area: '1645 - 1666 Sq.ft · 191 Units',
+    bhk: '2 & 3 BHK',
+    possession: 'Under Construction',
+    status: 'available',
+    approval: 'RERA Approved',
+    vendorName: 'Onevishwam',
+    contact: '8546996622',
+    email: 'ceo@onevishwam.com',
+    details: '1645-1666 Sq.ft, 191 Units, Under Construction, Premium Integrated Township, 73% open space, football court and Garden of Joy.',
+    description: '1645-1666 Sq.ft, 191 Units, Under Construction, Premium Integrated Township, 73% open space, football court and Garden of Joy.',
+    amenities: ['Football Court', 'Garden of Joy', 'Clubhouse', 'Swimming Pool', 'Gym', '24/7 Security', 'Power Backup', "Children's Play Area", 'Open Green Spaces', 'Vaastu Compliant'],
+    videoUrl: 'https://drive.google.com/file/d/1hg_q5CN83_8gQaVb8NoykAsCDcRTS0hr/preview',
+    pdfUrl: 'https://drive.google.com/file/d/1hvUSqAygECJIa6hJbTbcHSt-4lxvrOrO/view',
+    floorPlanPdf: 'https://drive.google.com/file/d/1hvUSqAygECJIa6hJbTbcHSt-4lxvrOrO/view',
+    images: BREN_PARK_CITY_IMAGES,
+    loanApproved: true,
+    isInsured: true,
+    insured: true,
+    verified: true,
+    featured: true,
+    recentlyAdded: true,
   },
   {
     id: 35,
@@ -1790,7 +1832,7 @@ status: 'available',
 
 
 
-const PRIORITY_TITLES = ['VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana'];
+const PRIORITY_TITLES = ['VEDANT SURAKSHA', 'Bren Park City', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana'];
 dummyProperties.sort((a, b) => {
   const aTitle = String(a.title || a.name || '').trim().toLowerCase();
   const bTitle = String(b.title || b.name || '').trim().toLowerCase();
