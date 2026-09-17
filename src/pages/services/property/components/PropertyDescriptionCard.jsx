@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 
-export default function PropertyDescriptionCard({ description }) {
+export default function PropertyDescriptionCard({ description, details }) {
   const [showFull, setShowFull] = useState(false);
+  const text = details || description;
 
-  if (!description) return null;
+  if (!text) return null;
 
   return (
     <div className="rounded-2xl bg-white border border-gray-100 p-5 sm:p-6 shadow-sm">
@@ -14,11 +15,11 @@ export default function PropertyDescriptionCard({ description }) {
         <h2 className="text-base font-bold text-brand-charcoal">Description</h2>
       </div>
       <p className="text-gray-600 leading-relaxed text-sm">
-        {showFull || description.length < 300
-          ? description
-          : `${description.slice(0, 300)}...`}
+        {showFull || text.length < 300
+          ? text
+          : `${text.slice(0, 300)}...`}
       </p>
-      {description.length > 300 && (
+      {text.length > 300 && (
         <button
           type="button"
           onClick={() => setShowFull(!showFull)}
