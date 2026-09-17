@@ -43,11 +43,20 @@ const AMENITY_ICONS = {
   'Wi-Fi': 'fa-wifi',
 };
 
+const PROPERTY_FALLBACK_IMG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f8fafc"/><path fill="#cbd5e1" d="M360 260h80v-20l-40-40-40 40v20zm-40 80h160v-80l-60-60-40 40-20-20-40 40v80z"/><text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="22" font-weight="600">Property Preview</text></svg>`
+  );
+
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
   { key: 'area', label: 'Super Built-up Area', icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' },
   { key: 'facing', label: 'Facing Direction', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
   { key: 'status', label: 'Possession Status', icon: 'fa-key', color: 'text-purple-600 bg-purple-50' },
+  { key: 'floors', label: 'Floors / Structure', icon: 'fa-building', color: 'text-sky-600 bg-sky-50' },
+  { key: 'towers', label: 'Towers', icon: 'fa-city', color: 'text-indigo-600 bg-indigo-50' },
+  { key: 'approval', label: 'Approval Authority', icon: 'fa-stamp', color: 'text-blue-600 bg-blue-50' },
   { key: 'furnishing', label: 'Furnishing State', icon: 'fa-couch', color: 'text-indigo-600 bg-indigo-50' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath', color: 'text-cyan-600 bg-cyan-50' },
   { key: 'floor', label: 'Floor Level', icon: 'fa-layer-group', color: 'text-rose-600 bg-rose-50' },
@@ -315,9 +324,12 @@ export default function PropertyDetails() {
   const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
+  const rawImages = (property?.images || []).filter(Boolean);
   const mediaItems = property
     ? [
-        ...(property.images || []).filter(Boolean).map((img) => ({ type: 'image', url: img })),
+        ...(rawImages.length > 0
+          ? rawImages.map((img) => ({ type: 'image', url: img }))
+          : [{ type: 'image', url: property.image || PROPERTY_FALLBACK_IMG }]),
         ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
       ]
     : [];
@@ -411,8 +423,11 @@ export default function PropertyDetails() {
     if (meta.key === 'area' && value) {
       value = String(value).split('·')[0].trim();
     }
+    if (meta.key === 'approval' && property.approval) {
+      value = `${property.approval} Approved`;
+    }
     if (meta.key === 'status') {
-      value = statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
+      value = property.possession || statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
     }
     if (!value || value === 'N/A' || value === '') return null;
 
@@ -791,23 +806,31 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
-            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
-              {showFullDesc || !property.description || property.description.length < 350
-                ? property.description
-                : property.description.slice(0, 350) + '...'}
-            </p>
-          </div>
+          {(() => {
+            const desc = property.details || property.description || '';
+            if (!desc) return null;
+            return (
+              <>
+                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
+                  <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
+                    {showFullDesc || desc.length < 350
+                      ? desc
+                      : desc.slice(0, 350) + '...'}
+                  </p>
+                </div>
 
-          {property.description && property.description.length > 350 && (
-            <button
-              onClick={() => setShowFullDesc(!showFullDesc)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
-            >
-              {showFullDesc ? 'Show Less' : 'Read Full Description'}
-              <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
-            </button>
-          )}
+                {desc.length > 350 && (
+                  <button
+                    onClick={() => setShowFullDesc(!showFullDesc)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
+                  >
+                    {showFullDesc ? 'Show Less' : 'Read Full Description'}
+                    <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
+                  </button>
+                )}
+              </>
+            );
+          })()}
 
           {/* Quick tags / attributes */}
           <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">

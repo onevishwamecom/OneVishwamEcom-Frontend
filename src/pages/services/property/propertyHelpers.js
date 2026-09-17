@@ -102,6 +102,14 @@ export function parsePriceRange(property) {
 
   // If property already has explicit / precomputed total amount:
   if (typeof property === 'object') {
+    if (property.rawPrice && !isNaN(Number(property.rawPrice)) && Number(property.rawPrice) > 0) {
+      const val = Number(property.rawPrice);
+      return { min: val, max: val };
+    }
+    if (property.numericPrice && !isNaN(Number(property.numericPrice)) && Number(property.numericPrice) > 10000) {
+      const val = Number(property.numericPrice);
+      return { min: val, max: val };
+    }
     if (property.calculatedTotalAmount && !isNaN(Number(property.calculatedTotalAmount))) {
       const val = Number(property.calculatedTotalAmount);
       return { min: val, max: val };
@@ -281,11 +289,11 @@ export function getPropertyType(property) {
 
 export function getPropertyTypeLabel(property) {
   if (!property) return 'Flat';
-  const sub = String(property.subcategory || property.subCategory || property.category || '').toLowerCase();
+  const sub = String(property.propertyType || property.subcategory || property.subCategory || property.category || '').toLowerCase();
   if (sub.includes('plot') || sub.includes('site') || sub.includes('land')) return 'Plot';
   if (sub.includes('villa')) return 'Villa';
   if (sub.includes('flat') || sub.includes('apartment') || sub.includes('house') || !sub) return 'Flat';
-  return property.subcategory || property.subCategory || 'Flat';
+  return property.propertyType || property.subcategory || property.subCategory || 'Flat';
 }
 
 export function isPlotOrLand(property) {
