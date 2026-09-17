@@ -343,13 +343,24 @@ export const deleteUserAccount = createAsyncThunk(
 
 // ─── Initial State ────────────────────────────────────────────────────────────
 
-const storedUser = localStorage.getItem('user');
+let parsedStoredUser = null;
+try {
+  const rawUser = localStorage.getItem('user');
+  if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+    parsedStoredUser = JSON.parse(rawUser);
+  } else if (rawUser === 'undefined' || rawUser === 'null') {
+    localStorage.removeItem('user');
+  }
+} catch {
+  localStorage.removeItem('user');
+  parsedStoredUser = null;
+}
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    isLoggedIn: !!storedUser,
-    user: storedUser ? JSON.parse(storedUser) : null,
+    isLoggedIn: !!parsedStoredUser,
+    user: parsedStoredUser,
     showAuthModal: false,
     authModalMode: 'login',
     loading: false,
@@ -364,8 +375,12 @@ const authSlice = createSlice({
       state.isLoggedIn = !!action.payload;
       state.loading = false;
       state.error = null;
-      if (action.payload) {
-        localStorage.setItem('user', JSON.stringify(action.payload));
+      if (action.payload && typeof action.payload === 'object') {
+        try {
+          localStorage.setItem('user', JSON.stringify(action.payload));
+        } catch {
+          /* storage error */
+        }
       } else {
         localStorage.removeItem('user');
       }

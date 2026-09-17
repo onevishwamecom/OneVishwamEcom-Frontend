@@ -132,8 +132,15 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Optimistically preserve cached user details (like phone/role) while refreshing
-        const existingStored = localStorage.getItem('user');
-        const parsedStored = existingStored ? JSON.parse(existingStored) : null;
+        let parsedStored = null;
+        try {
+          const existingStored = localStorage.getItem('user');
+          if (existingStored && existingStored !== 'undefined' && existingStored !== 'null') {
+            parsedStored = JSON.parse(existingStored);
+          }
+        } catch {
+          parsedStored = null;
+        }
 
         const baseUser = {
           ...parsedStored,
