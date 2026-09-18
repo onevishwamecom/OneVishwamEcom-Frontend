@@ -305,12 +305,18 @@ export default function PropertyDetails() {
     }
   };
 
+  const resolvedVideoUrl =
+    property?.videoUrl ||
+    property?.video ||
+    (Array.isArray(property?.videos) && property.videos.find((v) => typeof v === 'string' && v.trim())) ||
+    null;
+
   const hasVideo = Boolean(
-    property?.videoUrl &&
-    typeof property.videoUrl === 'string' &&
-    property.videoUrl.trim() !== '' &&
-    !property.videoUrl.startsWith('WhatsApp') &&
-    !property.videoUrl.includes('youtu')
+    resolvedVideoUrl &&
+    typeof resolvedVideoUrl === 'string' &&
+    resolvedVideoUrl.trim() !== '' &&
+    !resolvedVideoUrl.startsWith('WhatsApp') &&
+    !resolvedVideoUrl.includes('youtu')
   );
 
   const floorPlanImages = useMemo(() => {
@@ -321,7 +327,13 @@ export default function PropertyDetails() {
     return [];
   }, [property]);
 
-  const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
+  const pdfUrl =
+    property?.brochure ||
+    property?.pdfUrl ||
+    property?.floorPlanPdf ||
+    property?.pdf ||
+    (Array.isArray(property?.documents) && property.documents[0]?.url) ||
+    null;
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
   const rawImages = (property?.images || []).filter(Boolean);
@@ -330,7 +342,7 @@ export default function PropertyDetails() {
         ...(rawImages.length > 0
           ? rawImages.map((img) => ({ type: 'image', url: img }))
           : [{ type: 'image', url: property.image || PROPERTY_FALLBACK_IMG }]),
-        ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
+        ...(hasVideo ? [{ type: 'video', url: resolvedVideoUrl }] : []),
       ]
     : [];
 
