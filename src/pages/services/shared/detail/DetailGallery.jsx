@@ -10,6 +10,7 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
  */
 export default function DetailGallery({
   images = [],
+  video = null,
   title = '',
   aspectRatio = 'aspect-[4/3]',
   onImageClick,
@@ -24,34 +25,55 @@ export default function DetailGallery({
       ? [images]
       : [];
 
-  const currentImage = imageList[currentIndex] || imageList[0] || FALLBACK_IMG;
+  const rawVideo = video && typeof video === 'string' && video.trim() !== '' ? video.trim() : null;
+
+  const mediaList = [
+    ...imageList.map((img) => ({ type: 'image', url: img })),
+    ...(rawVideo ? [{ type: 'video', url: rawVideo }] : []),
+  ];
+
+  const currentMedia = mediaList[currentIndex] || mediaList[0] || { type: 'image', url: FALLBACK_IMG };
+  const isVideo = currentMedia.type === 'video';
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Main Image */}
+      {/* Main Media */}
       <div
-        className={`${aspectRatio} overflow-hidden rounded-2xl bg-gray-100 shadow-sm relative group ${
-          onImageClick ? 'cursor-pointer' : ''
+        className={`${aspectRatio} overflow-hidden rounded-2xl bg-gray-900 shadow-sm relative group ${
+          !isVideo && onImageClick ? 'cursor-pointer' : ''
         }`}
-        onClick={() => onImageClick && onImageClick(currentIndex)}
+        onClick={() => {
+          if (!isVideo && onImageClick) {
+            onImageClick(currentIndex);
+          }
+        }}
       >
-        <img
-          src={currentImage}
-          alt={title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-        />
-        {onImageClick && imageList.length > 0 && (
+        {isVideo ? (
+          <video
+            src={currentMedia.url}
+            controls
+            playsInline
+            className="h-full w-full object-contain bg-black"
+          />
+        ) : (
+          <img
+            src={currentMedia.url}
+            alt={title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+          />
+        )}
+        {!isVideo && onImageClick && mediaList.length > 0 && (
           <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
             <i className="fa-solid fa-expand text-[10px]" />
-            <span>{currentIndex + 1} / {imageList.length}</span>
+            <span>{currentIndex + 1} / {mediaList.length}</span>
           </div>
         )}
       </div>
 
       {/* Thumbnails */}
-      {imageList.length > 1 && (
+      {mediaList.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {imageList.map((img, idx) => (
+          {mediaList.map((item, idx) => (
             <button
               key={idx}
               type="button"
@@ -62,7 +84,14 @@ export default function DetailGallery({
                   : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
-              <img src={img} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
+              {item.type === 'video' ? (
+                <div className="h-full w-full bg-gray-900 flex flex-col items-center justify-center text-white">
+                  <i className="fa-solid fa-play text-xs text-blue-400 mb-0.5" />
+                  <span className="text-[10px] font-semibold">Video</span>
+                </div>
+              ) : (
+                <img src={item.url} alt={`${title} view ${idx + 1}`} className="h-full w-full object-cover" />
+              )}
             </button>
           ))}
         </div>
