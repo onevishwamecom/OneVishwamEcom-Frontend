@@ -219,6 +219,11 @@ export default function MasterDetailPage({
     : normalized.image
       ? [normalized.image]
       : [];
+  const itemVideo =
+    rawItem?.video ||
+    rawItem?.videoUrl ||
+    (Array.isArray(rawItem?.videos) && rawItem.videos.find((v) => typeof v === 'string' && v.trim())) ||
+    null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 sm:pb-32 relative">
@@ -236,14 +241,14 @@ export default function MasterDetailPage({
 
       {/* Hero Section: Custom or Standard 2-Column */}
       {customHero ? (
-        customHero({ item: rawItem, normalized, images })
+        customHero({ item: rawItem, normalized, images, video: itemVideo })
       ) : (
         <div className="bg-white border-b border-gray-100 py-6 sm:py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 lg:grid-cols-12 items-start">
               {/* Media Gallery */}
               <div className="lg:col-span-7">
-                <DetailGallery images={images} title={normalized.title} />
+                <DetailGallery images={images} video={itemVideo} title={normalized.title} />
               </div>
 
               {/* Core Information Header & Primary Actions */}
