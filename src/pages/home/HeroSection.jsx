@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const HERO_SLIDES = [
   {
     id: 'properties',
-    category: 'Real Estate & Properties',
+    category: 'Houses & Land',
     title: 'Find Your Ideal Plot, Villa or Apartment',
     subtitle: 'Verified residential plots, luxury flats, gated communities & prime commercial land across Bengaluru.',
     link: '/our-services/real-estate-property',
@@ -17,39 +17,39 @@ const HERO_SLIDES = [
   },
   {
     id: 'automobile',
-    category: 'Automobiles & Vehicles',
+    category: 'Vehicles',
     title: 'Premium Cars, Bikes & Commercial Vehicles',
     subtitle: 'Brand-new and certified pre-owned vehicles with hassle-free loan approvals and verified dealers.',
-    link: '/coming-soon?sector=automobile',
+    link: '/our-services/automobile',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-car',
-    ctaText: 'Coming Soon',
-    disabled: true,
+    ctaText: 'Explore Vehicles',
+    disabled: false,
     alt: 'Premium luxury vehicle on open road',
   },
   {
-    id: 'jewellery',
-    category: 'Jewellery & Gold',
-    title: 'Exquisite Hallmarked Gold & Diamond Jewellery',
-    subtitle: 'Certified pure gold, designer bridal sets, diamond rings & flexible easy EMI options.',
-    link: '/coming-soon?sector=jewellery',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-gem',
-    ctaText: 'Coming Soon',
-    disabled: true,
-    alt: 'Exquisite hallmarked gold and diamond jewellery',
-  },
-  {
     id: 'electronics',
-    category: 'Electronics & Gadgets',
+    category: 'Consumer Electronics',
     title: 'Latest Smartphones, Laptops & Home Appliances',
     subtitle: 'Top electronics brands, computers, smart 4K TVs & instant easy no-cost EMI payment schemes.',
-    link: '/coming-soon?sector=electronics',
+    link: '/our-services/consumer-electronics',
     image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-laptop',
-    ctaText: 'Coming Soon',
-    disabled: true,
+    badgeIcon: 'fa-solid fa-tv',
+    ctaText: 'Explore Electronics',
+    disabled: false,
     alt: 'Modern smartphones, tech gadgets and laptops',
+  },
+  {
+    id: 'bedding',
+    category: 'Bedding & Comfort',
+    title: 'Luxury Mattresses, Pillows & Comfort Essentials',
+    subtitle: 'Ergonomic orthopedic mattresses, premium cotton bedsheets, duvets & pillows for restorative sleep.',
+    link: '/our-services/bedding-comfort',
+    image: 'https://images.unsplash.com/photo-1540518614846-7ede433c4ef2?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-bed',
+    ctaText: 'Explore Bedding',
+    disabled: false,
+    alt: 'Comfortable luxury bed and bedding',
   },
 ];
 
@@ -61,7 +61,6 @@ export default function HeroSection() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
 
   const total = HERO_SLIDES.length;
 
@@ -76,15 +75,11 @@ export default function HeroSection() {
   }, [isPaused, current, next, total]);
 
   /* Touch swiping */
-  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; touchStartY.current = e.changedTouches[0].screenY; };
+  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
   const onTouchEnd = (e) => {
-    const diffX = touchStartX.current - e.changedTouches[0].screenX;
-    const diffY = touchStartY.current - e.changedTouches[0].screenY;
-    // Only trigger horizontal swipe if horizontal movement is significantly larger than vertical
-    if (Math.abs(diffX) > Math.abs(diffY) * 2) {
-      if (diffX > 50) next();
-      else if (diffX < -50) prev();
-    }
+    const diff = touchStartX.current - e.changedTouches[0].screenX;
+    if (diff > 50) next();
+    else if (diff < -50) prev();
   };
 
   return (
@@ -100,7 +95,7 @@ export default function HeroSection() {
       {/* ── Fixed-height viewport ──
           Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group touch-pan-y">
+      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {
@@ -117,7 +112,6 @@ export default function HeroSection() {
               <Link
                 to={slide.link}
                 aria-label={`${slide.title} – ${slide.category}`}
-                tabIndex={active ? 0 : -1}
                 className="relative block w-full h-full cursor-pointer"
               >
                 {/* ── Image ── */}
@@ -128,7 +122,7 @@ export default function HeroSection() {
                     !slide.disabled ? 'group-hover:scale-[1.04]' : ''
                   }`}
                   loading={idx === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={idx === 0 ? 'high' : 'auto'}
+                  fetchPriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
 

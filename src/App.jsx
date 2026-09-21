@@ -25,6 +25,8 @@ const RequirementSuccess = lazy(() => import('./pages/services/property/Requirem
 const LoanDetails = lazy(() => import('./pages/services/finance/LoanDetails'));
 const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetails'));
 const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
+const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
+const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
@@ -214,6 +216,8 @@ function App() {
             <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
             <Route path="/vehicle/*" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
+            <Route path="/electronics/*" element={<RequireAuth><ElectronicsDetails location={location} /></RequireAuth>} />
+            <Route path="/bedding/*" element={<RequireAuth><BeddingDetails location={location} /></RequireAuth>} />
             <Route path="/jewellery/*" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
             <Route path="/garment/*" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
