@@ -1,223 +1,257 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useVehicles } from './automobileHooks';
-import { vehicleListingConfig, VEHICLE_TYPE_STRIP } from './vehicleConfig';
-import VehicleFilterSidebar from './VehicleFilterSidebar';
-import VehicleFinancePanel from './VehicleFinancePanel';
+import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
+import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import { mapVehicleToEntityItem } from '../../../components/common/templates/adapters';
 import VehicleQuickMatchModal from './VehicleQuickMatchModal';
 import ShowroomModal from './ShowroomModal';
 import QuickLoanModal from '../finance/QuickLoanModal';
-import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
-import {
-  MasterListingPage,
-  TopFilterBar,
-  FilterToggle,
-  useFilterState,
-  getNumericPrice,
-} from '../shared';
 
-const INITIAL_FILTERS = {
-  budgetMin: '',
-  budgetMax: '',
-  fuelTypes: [],
-  categories: [],
-  locations: [],
-  kmMin: '',
-  kmMax: '',
-};
+const FILTER_GROUPS = [
+  {
+    id: 'fuelTypes',
+    title: 'Fuel Type',
+    options: ['Petrol', 'Diesel', 'Electric', 'CNG'],
+    defaultOpen: true,
+  },
+  {
+    id: 'transmissions',
+    title: 'Transmission',
+    options: ['Automatic', 'Manual'],
+    defaultOpen: true,
+  },
+  {
+    id: 'bodyTypes',
+    title: 'Body Type & Category',
+    options: ['SUV', 'Sedan', 'Hatchback', 'Cruiser / Bike', 'Commercial'],
+    defaultOpen: true,
+  },
+  {
+    id: 'conditions',
+    title: 'Condition & Ownership',
+    options: ['Brand New', '1st Owner', 'Pre-Owned'],
+    defaultOpen: false,
+  },
+];
 
-const INITIAL_SECTIONS = {
-  budget: true,
-  fuelTypes: false,
-  categories: false,
-  locations: false,
-  kmDriven: false,
-};
+const RANGE_FILTERS = [
+  {
+    id: 'budget',
+    title: 'Budget Range',
+    min: 0,
+    max: 6000000,
+    step: 50000,
+    maxLabel: '₹ 60 L+',
+    unitLabel: '₹',
+    defaultOpen: true,
+  },
+];
 
-/**
- * Automobile & Vehicles Marketplace Gallery Page
- * Powered by MasterListingPage & TopFilterBar.
- */
+function parseNumericPrice(str) {
+  if (!str) return 0;
+  const cleaned = String(str).replace(/[^\d.]/g, '');
+  const num = parseFloat(cleaned);
+  if (isNaN(num)) return 0;
+  if (/cr/i.test(str)) return num * 10000000;
+  if (/lakh|lac|l/i.test(str)) return num * 100000;
+  return num;
+}
+
 export default function AutomobileGallery() {
-  const { selectedCity, selectCity } = useLocation();
-  const [condition, setCondition] = useState('new');
-  const [selectedCardType, setSelectedCardType] = useState('All');
-  const [locationInput, setLocationInput] = useState('');
-  const [requirementText, setRequirementText] = useState('');
-  const [showFinance, setShowFinance] = useState(false);
-  const [preApprovedMode, setPreApprovedMode] = useState(false);
+  const { vehicles = [], loading, error } = useVehicles();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilters, setActiveFilters] = useState({
+    budgetMin: '',
+    budgetMax: '',
+    fuelTypes: [],
+    transmissions: [],
+    bodyTypes: [],
+    conditions: [],
+  });
+
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
+  const [showroomTarget, setShowroomTarget] = useState(null);
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [loanModalPrefill, setLoanModalPrefill] = useState(null);
-  const [showroomTarget, setShowroomTarget] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const { filters, openSections, updateFilter, toggleSection, resetFilters } = useFilterState(
-    INITIAL_FILTERS,
-    INITIAL_SECTIONS
-  );
+  const handleFilterChange = (key, value) => {
+    setActiveFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
-  const { vehicles, loading, error } = useVehicles();
+  const handleResetFilters = () => {
+    setActiveFilters({
+      budgetMin: '',
+      budgetMax: '',
+      fuelTypes: [],
+      transmissions: [],
+      bodyTypes: [],
+      conditions: [],
+    });
+    setSearchTerm('');
+  };
 
-  const cityAreas = selectedCity ? cities[selectedCity]?.areas || [] : [];
+  // Active chips calculation
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (activeFilters.budgetMin) {
+      chips.push({ key: 'budgetMin', label: `Min ₹${(+activeFilters.budgetMin / 100000).toFixed(1)}L` });
+    }
+    if (activeFilters.budgetMax) {
+      chips.push({ key: 'budgetMax', label: `Max ₹${(+activeFilters.budgetMax / 100000).toFixed(1)}L` });
+    }
+    (activeFilters.fuelTypes || []).forEach((f) => {
+      chips.push({ key: 'fuelTypes', label: f, value: f });
+    });
+    (activeFilters.transmissions || []).forEach((t) => {
+      chips.push({ key: 'transmissions', label: t, value: t });
+    });
+    (activeFilters.bodyTypes || []).forEach((b) => {
+      chips.push({ key: 'bodyTypes', label: b, value: b });
+    });
+    (activeFilters.conditions || []).forEach((c) => {
+      chips.push({ key: 'conditions', label: c, value: c });
+    });
+    return chips;
+  }, [activeFilters]);
 
-  const fuelTypeOptions = useMemo(() => {
-    const set = new Set((vehicles || []).map((v) => v.fuelType).filter(Boolean));
-    return Array.from(set);
-  }, [vehicles]);
+  const handleRemoveChip = (chip) => {
+    if (chip.key === 'budgetMin' || chip.key === 'budgetMax') {
+      handleFilterChange(chip.key, '');
+    } else {
+      const currentList = activeFilters[chip.key] || [];
+      handleFilterChange(chip.key, currentList.filter((x) => x !== chip.value));
+    }
+  };
 
-  const locationOptions = useMemo(() => {
-    const set = new Set((vehicles || []).map((v) => v.location || v.city).filter(Boolean));
-    return Array.from(set);
-  }, [vehicles]);
-
+  // Filtering vehicles
   const filteredVehicles = useMemo(() => {
-    return (vehicles || []).filter((v) => {
-      if (condition && v.condition && v.condition !== condition) return false;
-      if (selectedCardType !== 'All' && v.category !== selectedCardType) return false;
-      if (preApprovedMode && !v.loanApproved) return false;
-
-      const brandStr = (v.brand || v.make || '').toLowerCase();
-      const modelStr = (v.model || '').toLowerCase();
-      const locStr = (v.location || v.city || '').toLowerCase();
-
-      if (requirementText) {
-        const q = requirementText.toLowerCase();
-        const matchReq = brandStr.includes(q) || modelStr.includes(q) || (v.category && v.category.toLowerCase().includes(q));
-        if (!matchReq) return false;
+    const list = Array.isArray(vehicles) ? vehicles : [];
+    return list.filter((v) => {
+      // Search
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase().trim();
+        const matchTitle = (v.title || '').toLowerCase().includes(q);
+        const matchBrand = (v.brand || '').toLowerCase().includes(q);
+        const matchModel = (v.model || '').toLowerCase().includes(q);
+        const matchLocation = (v.location || v.city || '').toLowerCase().includes(q);
+        const matchFuel = (v.fuelType || '').toLowerCase().includes(q);
+        if (!matchTitle && !matchBrand && !matchModel && !matchLocation && !matchFuel) {
+          return false;
+        }
       }
 
-      if (locationInput) {
-        const locFilter = locationInput.toLowerCase();
-        const matchLoc = locStr.includes(locFilter) || (v.area && v.area.toLowerCase().includes(locFilter));
-        if (!matchLoc) return false;
+      // Budget
+      const numPrice = parseNumericPrice(v.price);
+      if (activeFilters.budgetMin && numPrice < Number(activeFilters.budgetMin)) {
+        return false;
+      }
+      if (activeFilters.budgetMax && numPrice > Number(activeFilters.budgetMax)) {
+        return false;
       }
 
-      const p = getNumericPrice(v.price);
-      if (filters.budgetMin && p < +filters.budgetMin) return false;
-      if (filters.budgetMax && p > +filters.budgetMax) return false;
-      if (filters.fuelTypes.length > 0 && !filters.fuelTypes.includes(v.fuelType)) return false;
-      if (filters.categories.length > 0 && !filters.categories.includes(v.category)) return false;
-      if (filters.locations.length > 0 && !filters.locations.includes(v.location || v.city)) return false;
-      if (filters.kmMin && (v.kmDriven || 0) < +filters.kmMin) return false;
-      if (filters.kmMax && (v.kmDriven || 0) > +filters.kmMax) return false;
+      // Fuel Types
+      if (activeFilters.fuelTypes.length > 0) {
+        if (!v.fuelType || !activeFilters.fuelTypes.some((f) => f.toLowerCase() === v.fuelType.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Transmissions
+      if (activeFilters.transmissions.length > 0) {
+        if (!v.transmission || !activeFilters.transmissions.some((t) => t.toLowerCase() === v.transmission.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Body Types
+      if (activeFilters.bodyTypes.length > 0) {
+        if (!v.bodyType || !activeFilters.bodyTypes.some((b) => b.toLowerCase() === v.bodyType.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Conditions
+      if (activeFilters.conditions.length > 0) {
+        const matchesCondition = activeFilters.conditions.some((c) => {
+          if (c === 'Brand New' && v.condition === 'new') return true;
+          if (c === 'Pre-Owned' && v.condition === 'old') return true;
+          if (c === '1st Owner' && (v.statusBadges || []).some((sb) => sb.label === '1st Owner')) return true;
+          return false;
+        });
+        if (!matchesCondition) return false;
+      }
 
       return true;
     });
-  }, [vehicles, condition, selectedCardType, preApprovedMode, requirementText, locationInput, filters]);
+  }, [vehicles, searchTerm, activeFilters]);
 
   return (
-    <MasterListingPage
-      sector="automobile"
-      config={vehicleListingConfig}
-      hooks={{
-        useItems: () => ({ items: filteredVehicles, loading, error }),
-      }}
-      topBarSlot={() => (
-        <div className="flex flex-col sm:flex-row items-center gap-3 my-4">
-          <div className="relative flex-1 w-full">
-            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none" />
-            <input
-              type="text"
-              value={requirementText}
-              onChange={(e) => setRequirementText(e.target.value)}
-              placeholder="Search vehicles by brand or model (e.g. Verna, Nexon, Altroz)..."
-              className="w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-10 py-3 text-sm font-semibold text-brand-charcoal outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all shadow-2xs hover:shadow-xs"
+    <>
+      <MarketplaceCategoryGallery
+        categoryTitle="Explore Verified Automobiles & Vehicles"
+        categorySubtitle="Discover brand-new cars, verified pre-owned vehicles, bikes, and commercial fleets with full inspection reports."
+        breadcrumbCategory="Automobiles & Vehicles"
+        items={filteredVehicles}
+        filterGroups={FILTER_GROUPS}
+        rangeFilters={RANGE_FILTERS}
+        activeFilters={activeFilters}
+        onFilterChange={handleFilterChange}
+        activeChips={activeChips}
+        onRemoveChip={handleRemoveChip}
+        onResetFilters={handleResetFilters}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search vehicles by brand, model, fuel, or locality (e.g. Creta Petrol, Thar, Whitefield)..."
+        postRequirementLink="/property/requirement"
+        onQuickMatch={() => setQuickMatchOpen(true)}
+        quickMatchLabel="Vehicle Match"
+        customCardRenderer={(vehicle) => {
+          const mapped = mapVehicleToEntityItem(vehicle);
+          const vId = vehicle.id || vehicle._id;
+          return (
+            <CategoryListingCard
+              key={vId}
+              item={mapped || vehicle}
+              link={`/vehicle/${vId}`}
+              title={mapped?.title || vehicle.title}
+              price={mapped?.price || vehicle.price}
+              location={mapped?.location || vehicle.location}
+              pincode={mapped?.pincode || vehicle.pincode}
+              statusBadges={mapped?.badges || vehicle.statusBadges}
+              keyAttributes={mapped?.keyAttributes || vehicle.keyAttributes}
+              highlightBanner={vehicle.highlightBanner || (vehicle.loanApproved ? '100% Pre-Approved Loan Available' : null)}
             />
-            {requirementText && (
-              <button
-                type="button"
-                onClick={() => setRequirementText('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-brand-charcoal hover:bg-gray-100 transition-colors"
-                aria-label="Clear search"
-              >
-                <i className="fa-solid fa-xmark text-xs" />
-              </button>
-            )}
-          </div>
-          <Link
-            to="/post-requirement"
-            className="rounded-2xl bg-brand-blue hover:bg-brand-navy text-white font-bold px-5 py-3 text-xs sm:text-sm flex items-center justify-center gap-2 shrink-0 whitespace-nowrap shadow-xs hover:shadow transition-colors duration-200"
-          >
-            <i className="fa-solid fa-circle-plus text-xs" />
-            <span>Post Requirement</span>
-          </Link>
-        </div>
-      )}
-      sidebarComponent={() => (
-        <VehicleFilterSidebar
-          filters={filters}
-          vehicles={vehicles}
-          openSections={openSections}
-          fuelTypeOptions={fuelTypeOptions}
-          locationOptions={locationOptions}
-          onUpdateFilter={updateFilter}
-          onToggleSection={toggleSection}
-          onResetFilters={resetFilters}
-          condition={condition}
-          setCondition={setCondition}
-          preApprovedMode={preApprovedMode}
-          setPreApprovedMode={setPreApprovedMode}
+          );
+        }}
+      />
+
+      {/* Showroom Target Modal */}
+      {showroomTarget && (
+        <ShowroomModal
+          vehicle={showroomTarget}
+          onClose={() => setShowroomTarget(null)}
         />
       )}
-      cardActionsSlot={(v) => (
-        <div className="flex gap-2">
-          {v.showroom ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowroomTarget(v);
-              }}
-              className="flex-1 rounded-lg border border-brand-blue/30 bg-blue-50/50 py-2 text-center text-xs font-bold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
-            >
-              Showroom
-            </button>
-          ) : null}
-          {v.loanApproved && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setLoanModalPrefill(v);
-                setShowLoanModal(true);
-              }}
-              className="flex-1 rounded-lg bg-emerald-600 py-2 text-center text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
-            >
-              ⚡ Quick Loan
-            </button>
-          )}
-        </div>
+
+      {/* Quick Match Modal */}
+      {quickMatchOpen && (
+        <VehicleQuickMatchModal
+          isOpen={quickMatchOpen}
+          onClose={() => setQuickMatchOpen(false)}
+        />
       )}
-      modalsSlot={() => (
-        <>
-          {quickMatchOpen && (
-            <VehicleQuickMatchModal
-              isOpen={quickMatchOpen}
-              onClose={() => setQuickMatchOpen(false)}
-            />
-          )}
-          {showroomTarget && (
-            <ShowroomModal
-              vehicle={showroomTarget}
-              onClose={() => setShowroomTarget(null)}
-            />
-          )}
-          {showLoanModal && (
-            <QuickLoanModal
-              isOpen={showLoanModal}
-              onClose={() => {
-                setShowLoanModal(false);
-                setLoanModalPrefill(null);
-              }}
-              prefillVehicle={loanModalPrefill}
-            />
-          )}
-        </>
+
+      {/* Quick Loan Modal */}
+      {showLoanModal && (
+        <QuickLoanModal
+          open={showLoanModal}
+          onClose={() => {
+            setShowLoanModal(false);
+            setLoanModalPrefill(null);
+          }}
+          prefill={loanModalPrefill}
+        />
       )}
-    />
+    </>
   );
 }

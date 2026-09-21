@@ -183,6 +183,60 @@ export const serviceItems = [
       ]
     }
   },
+  {
+    id: 'consumer-electronics',
+    title: 'Consumer Electronics',
+    description: 'Smartphones, laptops, 4K TVs, home audio, kitchen and smart home appliances on easy EMI.',
+    image: 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800',
+    details: {
+      overviewText: 'Discover the latest in consumer technology and home appliances. From cutting-edge smartphones and laptops to high-definition smart TVs and home entertainment systems, with flexible EMI and warranty support.',
+      sections: [
+        {
+          title: 'Electronics & Gadgets',
+          items: [
+            'Smartphones & Accessories', 'Laptops & Desktops', 'Smart TVs & Home Theatres',
+            'Refrigerators & Washing Machines', 'Air Conditioners', 'Kitchen Appliances',
+            'Smart Watches & Wearables', 'Audio & Speakers'
+          ]
+        },
+        {
+          title: 'Services & Benefits',
+          items: [
+            'Easy EMI & No-Cost EMI', 'Brand Warranty Support', 'Doorstep Delivery & Installation',
+            'Exchange Offers', 'Extended Warranty Options'
+          ]
+        }
+      ],
+      specialFeatures: ['Zero down-payment options and instant EMI approvals available.']
+    }
+  },
+  {
+    id: 'bedding-comfort',
+    title: 'Bedding & Comfort',
+    description: 'Premium mattresses, orthopedic pillows, luxury bed linen, comforters, and home comfort essentials.',
+    image: 'https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg?auto=compress&cs=tinysrgb&w=800',
+    details: {
+      overviewText: 'Transform your sleep and daily comfort with our curated collection of ergonomic mattresses, plush pillows, luxury bedsheets, duvet sets, and home relaxation products crafted for deep restorative rest.',
+      sections: [
+        {
+          title: 'Bedding Collections',
+          items: [
+            'Orthopedic & Memory Foam Mattresses', 'Natural Latex Mattresses', 'Ergonomic Pillows & Cushions',
+            'Egyptian Cotton Bedsheets', 'Duvets & Comforters', 'Mattress Protectors',
+            'Blankets & Quilts', 'Recliners & Comfort Furniture'
+          ]
+        },
+        {
+          title: 'Our Promise',
+          items: [
+            '100-Night Sleep Trial on Mattresses', 'Hypoallergenic & Eco-Friendly Materials',
+            'Custom Dimensions & Made-to-Order', 'Free Home Delivery'
+          ]
+        }
+      ],
+      specialFeatures: ['Complimentary doorstep delivery and mattress trial on selected models.']
+    }
+  },
 ];
 
 export const serviceIconMap = {
@@ -194,6 +248,8 @@ export const serviceIconMap = {
   'garments-fashion-lifestyle': 'fa-solid fa-shirt',
   'industrial-infrastructure': 'fa-solid fa-industry',
   'consumer-marketplace': 'fa-solid fa-cart-shopping',
+  'consumer-electronics': 'fa-solid fa-tv',
+  'bedding-comfort': 'fa-solid fa-bed',
   'open-marketplace': 'fa-solid fa-store',
   'hr-staffing': 'fa-solid fa-users',
 };

@@ -5,6 +5,8 @@ import PageHero from '../../components/PageHero';
 const PropertyGallery = lazy(() => import('./property/PropertyGallery'));
 const JewelleryGallery = lazy(() => import('./jewellery/JewelleryGallery'));
 const AutomobileGallery = lazy(() => import('./automobile/AutomobileGallery'));
+const ElectronicsGallery = lazy(() => import('./electronics/ElectronicsGallery'));
+const BeddingGallery = lazy(() => import('./bedding/BeddingGallery'));
 const GroceryGallery = lazy(() => import('./grocery/GroceryGallery'));
 const GarmentGallery = lazy(() => import('./garments/GarmentGallery'));
 const FinanceLoanGallery = lazy(() => import('./finance/FinanceLoanGallery'));
@@ -23,8 +25,10 @@ function ServiceDetails({ service }) {
   }
 
   if (service.id === 'real-estate-property') return <Suspense fallback={galleryFallback}><PropertyGallery /></Suspense>;
-  if (service.id === 'jewellery-gold') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
   if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
+  if (service.id === 'consumer-electronics') return <Suspense fallback={galleryFallback}><ElectronicsGallery /></Suspense>;
+  if (service.id === 'bedding-comfort') return <Suspense fallback={galleryFallback}><BeddingGallery /></Suspense>;
+  if (service.id === 'jewellery-gold') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
   if (service.id === 'consumer-marketplace') return <Suspense fallback={galleryFallback}><GroceryGallery /></Suspense>;
   if (service.id === 'garments-fashion-lifestyle') return <Suspense fallback={galleryFallback}><GarmentGallery /></Suspense>;
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
@@ -37,7 +41,7 @@ function ServiceDetails({ service }) {
         subtitle={service.description}
       />
 
-      <section className="py-10 sm:py-12">
+      <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-10 xl:grid-cols-3">
             <div className="xl:col-span-2 space-y-12">
