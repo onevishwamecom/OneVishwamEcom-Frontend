@@ -455,15 +455,17 @@ function Home() {
               <p className="mt-1 text-sm text-gray-500">Choose a category to get started.</p>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-6">
+            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-4">
               {[
                 { icon: 'fa-house-chimney', label: 'Houses & Land', desc: 'Find houses, plots and villas', href: '/our-services/real-estate-property' },
                 { icon: 'fa-car', label: 'Vehicles', desc: 'Cars, bikes and commercial', href: '/our-services/automobile' },
+                { icon: 'fa-tv', label: 'Consumer Electronics', desc: 'Mobiles, TV & appliances', href: '/our-services/consumer-electronics' },
+                { icon: 'fa-bed', label: 'Bedding & Comfort', desc: 'Mattresses & luxury bedding', href: '/our-services/bedding-comfort' },
                 { icon: 'fa-shirt', label: 'Garments', desc: 'Clothes and fashion items', href: '/our-services/garments-fashion-lifestyle' },
                 { icon: 'fa-basket-shopping', label: 'Groceries', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
                 { icon: 'fa-building-columns', label: 'Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
                 { icon: 'fa-wrench', label: 'Services', desc: 'Find services near you', href: '/our-services/' },
-              ].filter((t) => !PROPERTIES_ONLY || t.label === 'Houses & Land').map((item) => (
+              ].filter((t) => ['Houses & Land', 'Vehicles', 'Consumer Electronics', 'Bedding & Comfort'].includes(t.label) || !PROPERTIES_ONLY).map((item) => (
                 <Link key={item.label}
                   to={item.href}
                   className="group rounded-xl border border-gray-100 bg-white p-3 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all w-[46vw] lg:w-auto shrink-0 snap-start block"

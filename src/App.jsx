@@ -18,6 +18,8 @@ const RequirementSuccess = lazy(() => import('./pages/services/property/Requirem
 const LoanDetails = lazy(() => import('./pages/services/finance/LoanDetails'));
 const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetails'));
 const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
+const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
+const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
@@ -87,6 +89,8 @@ function App() {
             <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<GroceryDetails />} />
             <Route path="/vehicle/*" element={<VehicleDetails />} />
+            <Route path="/electronics/*" element={<ElectronicsDetails />} />
+            <Route path="/bedding/*" element={<BeddingDetails />} />
             <Route path="/jewellery/*" element={<JewelleryDetails />} />
             <Route path="/garment/*" element={<GarmentDetails />} />
             <Route path="/coming-soon" element={<ComingSoon />} />

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import logo from '../assets/logo.png';
 import { navLinks } from '../data/siteContent';
+import { marketplaceCategories } from '../data/categoriesData';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
@@ -9,10 +10,12 @@ import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const currentLocation = useRouterLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null); // 'more', 'location', or null
+  const [openDropdown, setOpenDropdown] = useState(null); // 'categories', 'more', 'location', or null
   const menuRef = useRef(null);
+  const categoryRef = useRef(null);
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
@@ -112,9 +115,10 @@ function Navbar() {
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
+      const clickedOutsideCategory = !categoryRef.current || !categoryRef.current.contains(e.target);
       const clickedOutsideMore = !menuRef.current || !menuRef.current.contains(e.target);
       const clickedOutsideLocation = !locationRef.current || !locationRef.current.contains(e.target);
-      if (clickedOutsideMore && clickedOutsideLocation) {
+      if (clickedOutsideCategory && clickedOutsideMore && clickedOutsideLocation) {
         setOpenDropdown(null);
       }
     };
@@ -125,11 +129,22 @@ function Navbar() {
   useEffect(() => {
     setOpenDropdown(null);
     setMenuOpen(false);
+    setMobileCategoryOpen(false);
   }, [currentLocation.pathname]);
+
+  const isCategoryActive =
+    currentLocation.pathname.startsWith('/our-services') ||
+    currentLocation.pathname.startsWith('/property') ||
+    currentLocation.pathname.startsWith('/vehicle') ||
+    currentLocation.pathname.startsWith('/grocery') ||
+    currentLocation.pathname.startsWith('/jewellery') ||
+    currentLocation.pathname.startsWith('/garment') ||
+    currentLocation.pathname.startsWith('/finance');
 
   const isActive = (link) => {
     const path = currentLocation.pathname;
     if (link.id === 'home') return path === '/' || path === '/home';
+    if (link.id === 'category' || link.id === 'categories') return isCategoryActive;
     if (link.id === 'about') return path.startsWith('/about-us');
     if (link.id === 'enquiry' || link.id === 'contact') return path.startsWith('/enquiry') || path.startsWith('/contact-us');
     if (link.id === 'careers') return path.startsWith('/careers');
@@ -146,7 +161,158 @@ function Navbar() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
-              {visibleNavLinks.map((link) => {
+              {/* Home Link */}
+              <Link
+                to="/home"
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  currentLocation.pathname === '/' || currentLocation.pathname === '/home'
+                    ? 'text-brand-blue bg-brand-blue/5 font-semibold'
+                    : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
+                }`}
+              >
+                Home
+              </Link>
+
+              {/* Category Dropdown Menu */}
+              <div
+                ref={categoryRef}
+                className="relative"
+                onMouseEnter={() => showDropdown('categories')}
+                onMouseLeave={hideDropdown}
+              >
+                <button
+                  type="button"
+                  id="category-dropdown-trigger"
+                  aria-controls="category-dropdown-menu"
+                  aria-haspopup="true"
+                  aria-expanded={openDropdown === 'categories'}
+                  onClick={() => toggleDropdown('categories')}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isCategoryActive
+                      ? 'text-brand-blue bg-brand-blue/5 font-semibold'
+                      : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
+                  }`}
+                >
+                  <span>Category</span>
+                  <i className={`fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${openDropdown === 'categories' ? 'rotate-180 text-brand-blue' : 'text-gray-400'}`} />
+                </button>
+
+                {openDropdown === 'categories' && (
+                  <div
+                    id="category-dropdown-menu"
+                    role="menu"
+                    aria-labelledby="category-dropdown-trigger"
+                    className="absolute left-0 top-full pt-1.5 w-[580px] max-w-[calc(100vw-2rem)] z-50 animate-fade-in"
+                  >
+                    <div className="rounded-2xl border border-gray-100 bg-white shadow-xl shadow-slate-200/70 overflow-hidden ring-1 ring-black/5">
+                      {/* Dropdown Header */}
+                      <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex h-2 w-2 rounded-full bg-brand-blue" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
+                            Marketplace Categories
+                          </span>
+                        </div>
+                        <Link
+                          to="/our-services"
+                          onClick={() => setOpenDropdown(null)}
+                          className="text-xs font-semibold text-brand-blue hover:text-brand-navy inline-flex items-center gap-1 group"
+                        >
+                          <span>All Services</span>
+                          <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </div>
+
+                      {/* Categories Grid */}
+                      <div className="p-3 grid grid-cols-2 gap-1.5 max-h-[440px] overflow-y-auto">
+                        {marketplaceCategories.map((cat) => {
+                          const isItemActive = currentLocation.pathname === cat.href;
+
+                          if (cat.disabled) {
+                            return (
+                              <div
+                                key={cat.id}
+                                role="menuitem"
+                                aria-disabled="true"
+                                className="flex items-start gap-3 p-2.5 rounded-xl opacity-40 cursor-not-allowed select-none bg-gray-50/50"
+                              >
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm bg-gray-100 text-gray-400">
+                                  <i className={cat.icon} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-medium text-gray-500 truncate">
+                                      {cat.label}
+                                    </h4>
+                                    <span className="text-[10px] font-semibold text-gray-400 bg-gray-200/70 px-1.5 py-0.5 rounded">
+                                      Coming Soon
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-400 truncate mt-0.5">
+                                    {cat.shortDesc}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <Link
+                              key={cat.id}
+                              to={cat.href}
+                              role="menuitem"
+                              onClick={() => setOpenDropdown(null)}
+                              className={`group flex items-start gap-3 p-2.5 rounded-xl transition-all duration-150 ${
+                                isItemActive
+                                  ? 'bg-brand-blue/5 ring-1 ring-brand-blue/20'
+                                  : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <div
+                                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm transition-all duration-150 ${
+                                  isItemActive
+                                    ? 'bg-brand-blue text-white shadow-sm'
+                                    : 'bg-gray-100 text-gray-600 group-hover:bg-brand-blue group-hover:text-white'
+                                }`}
+                              >
+                                <i className={cat.icon} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h4 className={`text-sm font-semibold truncate ${
+                                    isItemActive ? 'text-brand-blue' : 'text-gray-800 group-hover:text-brand-blue'
+                                  }`}>
+                                    {cat.label}
+                                  </h4>
+                                  <i className="fa-solid fa-chevron-right text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                </div>
+                                <p className="text-xs text-gray-500 truncate mt-0.5">
+                                  {cat.shortDesc}
+                                </p>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+
+                      {/* Dropdown Footer */}
+                      <div className="bg-gray-50 px-4 py-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
+                        <span className="text-gray-500">Looking for custom partnership or listing?</span>
+                        <Link
+                          to="/enquiry"
+                          onClick={() => setOpenDropdown(null)}
+                          className="font-semibold text-brand-blue hover:text-brand-navy inline-flex items-center gap-1"
+                        >
+                          Contact Team <i className="fa-solid fa-chevron-right text-[10px]" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Other Navigation Links */}
+              {visibleNavLinks.filter((l) => l.id !== 'home').map((link) => {
                 const active = isActive(link);
                 if (link.submenu) {
                   return (
@@ -301,7 +467,82 @@ function Navbar() {
         </div>
 
         <nav className="p-4 space-y-1">
-          {visibleNavLinks.map((link) => (
+          {/* Home Link */}
+          <Link
+            to="/home"
+            onClick={() => setMenuOpen(false)}
+            className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              currentLocation.pathname === '/' || currentLocation.pathname === '/home'
+                ? 'text-brand-blue bg-brand-blue/5 font-semibold'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Home
+          </Link>
+
+          {/* Category Accordion */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setMobileCategoryOpen((prev) => !prev)}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                isCategoryActive ? 'text-brand-blue bg-brand-blue/5 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <span>Category</span>
+              <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-200 ${mobileCategoryOpen ? 'rotate-180 text-brand-blue' : 'text-gray-400'}`} />
+            </button>
+
+            {mobileCategoryOpen && (
+              <div className="ml-4 pl-3 my-1.5 border-l-2 border-brand-blue/20 space-y-0.5">
+                {marketplaceCategories.map((cat) => {
+                  if (cat.disabled) {
+                    return (
+                      <div
+                        key={cat.id}
+                        className="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-gray-400 opacity-40 cursor-not-allowed select-none"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <i className={`${cat.icon} w-4 text-center text-gray-300`} />
+                          <span className="truncate">{cat.label}</span>
+                        </div>
+                        <span className="text-[9px] font-semibold text-gray-400 bg-gray-200/70 px-1.5 py-0.5 rounded shrink-0">
+                          Coming Soon
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={cat.id}
+                      to={cat.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                        currentLocation.pathname === cat.href
+                          ? 'text-brand-blue bg-brand-blue/5 font-semibold'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-brand-blue'
+                      }`}
+                    >
+                      <i className={`${cat.icon} w-4 text-center text-gray-400`} />
+                      <span className="truncate">{cat.label}</span>
+                    </Link>
+                  );
+                })}
+                <Link
+                  to="/our-services"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-brand-blue rounded-lg hover:bg-brand-blue/5 transition-colors"
+                >
+                  <i className="fa-solid fa-arrow-right w-4 text-center" />
+                  <span>View All Categories</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Remaining Links */}
+          {visibleNavLinks.filter((l) => l.id !== 'home').map((link) => (
             <div key={link.id}>
               <Link to={link.href} onClick={() => setMenuOpen(false)}
                 className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
