@@ -6,26 +6,38 @@ import CategoryListingCard from '../../../components/common/templates/CategoryLi
 const FILTER_GROUPS = [
   {
     id: 'categories',
-    title: 'Bedding & Comfort Type',
+    title: 'Category & Collection',
     options: [
-      'Orthopedic Mattresses',
-      'Natural Latex Mattresses',
-      'Reversible Mattresses',
-      'Luxury Bedding & Linen',
-      'Orthopedic Pillows & Cushions',
+      'Peps Affordable Luxury',
+      'The Restonic American Comfort',
+      'Peps Elite Comfort',
+      'Italiano Luxury Collection',
+      'Peps Orthopaedic Mattress',
+      'Peps Hypoallergenic Mattress',
+      'Pillows & Rest Cushions',
+      'Mattress Protectors & Sheets',
+      'Blankets & Comforters',
     ],
     defaultOpen: true,
   },
   {
     id: 'brands',
-    title: 'Brand',
-    options: ['SleepyCat', 'Sunday Rest', 'Wakefit', 'Portico New York', 'The White Willow'],
+    title: 'Brand / Series',
+    options: [
+      'Peps',
+      'Restonic by Peps',
+      'Peps Italiano',
+      'Peps Organica',
+      'Peps Rest',
+      'Peps Comfort',
+      'Peps Linen',
+    ],
     defaultOpen: true,
   },
   {
     id: 'sizes',
-    title: 'Mattress & Bed Size',
-    options: ['King Size (78x72)', 'Queen Size (78x60)', 'Pillows & Linen'],
+    title: 'Size & Fit',
+    options: ['King', 'Queen', 'Single', 'Twin'],
     defaultOpen: false,
   },
 ];
@@ -35,9 +47,9 @@ const RANGE_FILTERS = [
     id: 'budget',
     title: 'Price Range (₹)',
     min: 0,
-    max: 60000,
+    max: 100000,
     step: 1000,
-    maxLabel: '₹ 60 K+',
+    maxLabel: '₹ 1 L+',
     unitLabel: '₹',
     defaultOpen: true,
   },
@@ -143,6 +155,14 @@ export default function BeddingGallery() {
         }
       }
 
+      // Sizes
+      if (activeFilters.sizes && activeFilters.sizes.length > 0) {
+        const itemSizes = (item.keyAttributes || []).find((k) => k.label === 'Available Sizes')?.value || '';
+        if (!activeFilters.sizes.some((sz) => itemSizes.toLowerCase().includes(sz.toLowerCase()))) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [searchTerm, activeFilters]);
@@ -164,19 +184,21 @@ export default function BeddingGallery() {
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search mattresses by brand, material, size, or locality (e.g. Orthopedic King, Latex, Indiranagar)..."
       postRequirementLink="/property/requirement"
+      perPage={10}
       customCardRenderer={(item) => (
         <CategoryListingCard
           key={item.id}
           item={item}
           link={`/bedding/${item.id}`}
-          title={item.title}
+          overline={item.category}
+          title={item.model || item.title}
           price={item.price}
           priceSuffix={item.priceSuffix}
-          location={item.location}
-          pincode={item.pincode}
+          location=""
+          pincode=""
           statusBadges={item.statusBadges}
-          keyAttributes={item.cardPills}
-          highlightBanner={item.highlightBanner}
+          cardPills={item.cardPills}
+          highlightBanner={null}
         />
       )}
     />

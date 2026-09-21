@@ -40,18 +40,18 @@ export default React.memo(function CategoryListingCard({
   const [faved, setFaved] = useState(false);
 
   // Normalize data
-  const cardTitle = item?.title || title || '';
+  const cardTitle = title !== undefined ? title : (item?.title || '');
   const cardLink = link || item?.link || (item?.id ? `/property/${item.id}` : '#');
   const cardImg = image || item?.images?.[0] || item?.image || '';
-  const cardPrice = item?.price || price || 'Price on Request';
-  const cardPriceSuffix = item?.priceSuffix || priceSuffix || '';
-  const cardLocation = item?.location || location || '';
-  const cardPincode = item?.pincode || pincode || '';
-  const cardOverline = overline || item?.category || item?.brand || item?.propertyType || '';
+  const cardPrice = price !== undefined ? price : (item?.price || 'Price on Request');
+  const cardPriceSuffix = priceSuffix !== undefined ? priceSuffix : (item?.priceSuffix || '');
+  const cardLocation = location !== undefined ? location : (item?.location || '');
+  const cardPincode = pincode !== undefined ? pincode : (item?.pincode || '');
+  const cardOverline = overline !== undefined ? overline : (item?.category || item?.brand || item?.propertyType || '');
 
-  // Badges
-  const rawBadges = item?.statusBadges || statusBadges || item?.badges || [];
-  const badges = rawBadges.map((b) => {
+  // Badges (max 2 badges to keep cards clean and prevent crowding)
+  const rawBadges = statusBadges !== undefined ? statusBadges : (item?.statusBadges || item?.badges || []);
+  const badges = (rawBadges || []).slice(0, 2).map((b) => {
     if (typeof b === 'string') return { label: b, className: 'bg-brand-blue text-white' };
     let cls = b.className;
     if (!cls) {
@@ -64,15 +64,17 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
-  // 3 Attribute Pills (cardPills)
-  const pills = (item?.cardPills || cardPills || item?.keyAttributes || keyAttributes || []).slice(0, 3);
+  // Attribute Pills (cardPills) - max 2 pills to keep card neat and avoid line-wrapping clutter
+  const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
+  const pills = (rawPills || []).slice(0, 2);
 
   // Trust highlight banner
   const bannerText =
-    highlightBanner ||
-    item?.highlightBanner ||
-    item?.trustBannerText ||
-    (item?.loanApproved ? '100% Pre-Approved Loan Available' : null);
+    highlightBanner !== undefined
+      ? highlightBanner
+      : (item?.highlightBanner ||
+        item?.trustBannerText ||
+        (item?.loanApproved ? '100% Pre-Approved Loan Available' : null));
 
   const handleClick = () => {
     if (onSelect) {
@@ -112,11 +114,11 @@ export default React.memo(function CategoryListingCard({
 
         {/* Top-Left Badges */}
         {badges.length > 0 && (
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 z-10 max-w-[calc(100%-3.25rem)] overflow-hidden">
             {badges.map((b, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap ${b.className}`}
               >
                 {b.label}
               </span>
