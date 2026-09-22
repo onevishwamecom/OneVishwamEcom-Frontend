@@ -93,6 +93,7 @@ export default React.memo(function ProductCard({
         <div className="min-h-[2.5rem] flex items-start">
           {title && (
             <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
+              {title}
               {cleanProductName(title)}
             </h3>
           )}

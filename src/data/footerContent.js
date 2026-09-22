@@ -71,15 +71,8 @@ export function getPropertyContactInfo(item) {
   if (!item) return contactInfo;
 
   let propObj = typeof item === 'object' ? item : null;
-  const title = typeof item === 'string' ? item : (item.title || item.name || '');
+  const title = typeof item === 'string' ? item : (item?.title || item?.name || '');
   const tLower = title.toLowerCase().trim();
-
-  if (!propObj && tLower) {
-    propObj = dummyProperties.find((p) => {
-      const pTitle = (p.title || p.name || '').toLowerCase().trim();
-      return pTitle === tLower || pTitle.includes(tLower) || tLower.includes(pTitle);
-    }) || null;
-  }
 
   // 1. Channel Partner Override (Highest Priority)
   const cp = propObj ? (
