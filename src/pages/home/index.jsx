@@ -461,9 +461,9 @@ function Home() {
                 { icon: 'fa-car', label: 'Vehicles', desc: 'Cars, bikes and commercial', href: '/our-services/automobile' },
                 { icon: 'fa-tv', label: 'Consumer Electronics', desc: 'Mobiles, TV & appliances', href: '/our-services/consumer-electronics' },
                 { icon: 'fa-bed', label: 'Bedding & Comfort', desc: 'Mattresses & luxury bedding', href: '/our-services/bedding-comfort' },
-                { icon: 'fa-shirt', label: 'Garments', desc: 'Clothes and fashion items', href: '/our-services/garments-fashion-lifestyle' },
-                { icon: 'fa-basket-shopping', label: 'Groceries', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
-                { icon: 'fa-building-columns', label: 'Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
+                { icon: 'fa-shirt', label: 'Clothes & Fashion', desc: 'Clothes and fashion items', href: '/our-services/garments-fashion-lifestyle' },
+                { icon: 'fa-basket-shopping', label: 'Groceries & Daily Needs', desc: 'Daily essentials near you', href: '/our-services/consumer-marketplace' },
+                { icon: 'fa-building-columns', label: 'Finance & Loans', desc: 'Financial help and services', href: '/our-services/finance-lending' },
                 { icon: 'fa-wrench', label: 'Services', desc: 'Find services near you', href: '/our-services/' },
               ].filter((t) => ['Houses & Land', 'Vehicles', 'Consumer Electronics', 'Bedding & Comfort'].includes(t.label) || !PROPERTIES_ONLY).map((item) => (
                 <Link key={item.label}

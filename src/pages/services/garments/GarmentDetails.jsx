@@ -15,7 +15,7 @@ function GarmentDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Item not found</h1>
-        <a href="/our-services/garments-fashion-lifestyle" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Garments &amp; Fashion</a>
+        <a href="/our-services/garments-fashion-lifestyle" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Clothes & Fashion</a>
       </div>
     );
   }
@@ -31,7 +31,7 @@ function GarmentDetails() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
           <button onClick={() => navigateTo('/our-services/garments-fashion-lifestyle')}
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
-            <i className="fa-solid fa-arrow-left" /> Back to Garments &amp; Fashion
+            <i className="fa-solid fa-arrow-left" /> Back to Clothes & Fashion
           </button>
 
           <div className="grid gap-6 lg:grid-cols-5">

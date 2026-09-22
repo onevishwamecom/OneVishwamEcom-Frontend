@@ -145,7 +145,7 @@ export default function VehicleDetails() {
     return (
       <MasterDetailPage
         item={null}
-        categoryName="Automobiles & Vehicles"
+        categoryName="Vehicles"
         categoryLink="/our-services/automobile"
       />
     );
@@ -409,7 +409,7 @@ export default function VehicleDetails() {
   return (
     <MasterDetailPage
       item={displayedVehicle}
-      categoryName="Automobiles & Vehicles"
+      categoryName="Vehicles"
       categoryLink="/our-services/automobile"
       similarItems={similarVehicles}
       itemLinkPrefix="/vehicle/"

@@ -827,6 +827,7 @@ export const dummyProperties = [
   {
     id: 16,
     title: 'DS-MAX Samyak',
+    title: 'DS MAX Samyak',
     subtitle: 'The Complete Living',
     propertyType: 'Flats',
     price: 'On Request',
@@ -1472,6 +1473,7 @@ export const dummyProperties = [
   {
     id: 46,
     title: 'DS MAX - Skysisira',
+    title: 'DS MAX Skysisira',
     subtitle: 'SP WEB TECHNOLOGIES',
     propertyType: 'Flats',
     subcategory: 'Flats',
@@ -1755,6 +1757,7 @@ export const dummyProperties = [
   {
     id: 58,
     title: 'BDA Residential Plot - 6th Block',
+    title: 'BDA Residential Plot 6th Block',
     subtitle: 'SP WEB TECHNOLOGIES',
     propertyType: 'Plot',
     subcategory: 'Plots',
@@ -2006,6 +2009,7 @@ export const dummyProperties = [
   {
     id: 71,
     title: 'Residential Plot in Nadaprabhu Kempegowda Layout - 6th Block (30x40)',
+    title: 'Residential Plot in Nadaprabhu Kempegowda Layout 6th Block (30x40)',
     subtitle: 'SP WEB TECHNOLOGIES',
     propertyType: 'Plot',
     subcategory: 'Plots',
@@ -2013,6 +2017,8 @@ export const dummyProperties = [
     rawPrice: 8000,
     location: 'Nada Prabhu Kempegowda Layout - 6th Block, Bangalore',
     locality: 'Nada Prabhu Kempegowda Layout - 6th Block',
+    location: 'Nada Prabhu Kempegowda Layout 6th Block, Bangalore',
+    locality: 'Nada Prabhu Kempegowda Layout 6th Block',
     city: 'bengaluru',
     area: '1,200 Sq.ft (30x40)',
     dimensions: '30x40',
@@ -2163,6 +2169,7 @@ export const dummyProperties = [
   {
     id: 77,
     title: 'Tumkur Batwadi NH - DC Conversion Land',
+    title: 'Tumkur Batwadi NH DC Conversion Land',
     subtitle: 'SP WEB TECHNOLOGIES',
     propertyType: 'Plot',
     subcategory: 'Layout / Development Land',
@@ -2214,6 +2221,7 @@ export const dummyProperties = [
   {
     id: 79,
     title: 'Address Makers - Artemis',
+    title: 'Address Makers Artemis',
     subtitle: 'SP WEB TECHNOLOGIES',
     propertyType: 'Plot',
     subcategory: 'Plots',
@@ -2326,6 +2334,19 @@ dummyProperties.sort((a, b) => {
 
 dummyProperties.forEach((p) => {
   if (p.id >= 12) p.recentlyAdded = true;
+  p.rawPrice = p.price;
+  p.rawPriceSuffix = p.priceSuffix;
+  const combined = `${p.price || ''} ${p.priceSuffix || ''}`.toLowerCase();
+  const isSqft =
+    /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft|square\s*feet|square\s*foot|feet|ft)/i.test(combined) ||
+    /rs\s*per/i.test(combined) ||
+    /\/\s*sq/i.test(combined) ||
+    /sq\.?\s*f?t/i.test(combined);
+
+  if (!isSqft) {
+    p.price = 'This is negotiable';
+    p.priceSuffix = '';
+  }
 });
 
 export const PROPERTY_TYPES = ['Flat', 'House', 'Villa', 'Plot', 'Commercial'];

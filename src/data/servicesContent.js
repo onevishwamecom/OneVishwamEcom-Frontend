@@ -74,6 +74,7 @@ export const serviceItems = [
   {
     id: 'investment-venture-capital',
     title: 'Investment & Business Help',
+    title: 'Investment & Funding',
     description: 'Get funding for your business, startup, or project. Find partners and investors.',
     image: 'https://images.pexels.com/photos/19856572/pexels-photo-19856572.jpeg?cs=srgb&dl=pexels-markus-winkler-1430818-19856572.jpg&fm=jpg',
     details: {
@@ -110,6 +111,7 @@ export const serviceItems = [
   {
     id: 'industrial-infrastructure',
     title: 'Building & Industry Supplies',
+    title: 'Building & Industry',
     description: 'Buy cement, steel, machinery, and other building or industrial materials.',
     image: 'https://images.pexels.com/photos/18734753/pexels-photo-18734753.jpeg?cs=srgb&dl=pexels-arturoaez225-18734753.jpg&fm=jpg',
     details: {
@@ -192,7 +194,7 @@ export const serviceItems = [
       overviewText: 'Discover the latest in consumer technology and home appliances. From cutting-edge smartphones and laptops to high-definition smart TVs and home entertainment systems, with flexible EMI and warranty support.',
       sections: [
         {
-          title: 'Electronics & Gadgets',
+          title: 'Consumer Electronics',
           items: [
             'Smartphones & Accessories', 'Laptops & Desktops', 'Smart TVs & Home Theatres',
             'Refrigerators & Washing Machines', 'Air Conditioners', 'Kitchen Appliances',
@@ -235,6 +237,32 @@ export const serviceItems = [
         }
       ],
       specialFeatures: ['Complimentary doorstep delivery and mattress trial on selected models.']
+    }
+  },
+  {
+    id: 'finance-lending',
+    title: 'Finance & Loans',
+    description: 'Personal loans, business loans, home loans, vehicle loans, and gold loans with quick approvals.',
+    image: 'https://images.pexels.com/photos/4386431/pexels-photo-4386431.jpeg?auto=compress&cs=tinysrgb&w=800',
+    details: {
+      overviewText: 'We help individuals and businesses secure funding with competitive interest rates and minimal documentation.',
+      sections: [
+        {
+          title: 'Loan Types',
+          items: [
+            'Home Loan', 'Personal Loan', 'Business Loan', 'Vehicle Loan',
+            'Gold Loan', 'Loan Against Property', 'Education Loan'
+          ]
+        },
+        {
+          title: 'Our Services',
+          items: [
+            'Quick Eligibility Check', 'Doorstep Assistance', 'Lowest Interest Rates',
+            'Flexible Repayment Tenure', 'Fast Disbursal'
+          ]
+        }
+      ],
+      specialFeatures: ['Quick approvals and doorstep documentation assistance.']
     }
   },
 ];

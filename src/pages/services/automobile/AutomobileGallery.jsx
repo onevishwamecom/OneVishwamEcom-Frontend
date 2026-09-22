@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { dummyAutomobiles } from '../../../data/dummyAutomobiles';
 import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
 import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import { matchesSearch } from '../../../utils/searchUtils';
 import VehicleQuickMatchModal from './VehicleQuickMatchModal';
 import ShowroomModal from './ShowroomModal';
 import QuickLoanModal from '../finance/QuickLoanModal';
@@ -126,13 +127,18 @@ export default function AutomobileGallery() {
     return dummyAutomobiles.filter((v) => {
       // Search
       if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const matchTitle = (v.title || '').toLowerCase().includes(q);
-        const matchBrand = (v.brand || '').toLowerCase().includes(q);
-        const matchModel = (v.model || '').toLowerCase().includes(q);
-        const matchLocation = (v.location || '').toLowerCase().includes(q);
-        const matchFuel = (v.fuelType || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchBrand && !matchModel && !matchLocation && !matchFuel) {
+        if (!matchesSearch(
+          searchTerm,
+          v.title,
+          v.brand,
+          v.model,
+          v.location,
+          v.fuelType,
+          v.transmission,
+          v.variants,
+          v.category,
+          v.specs
+        )) {
           return false;
         }
       }
@@ -185,9 +191,9 @@ export default function AutomobileGallery() {
   return (
     <>
       <MarketplaceCategoryGallery
-        categoryTitle="Explore Verified Automobiles & Vehicles"
+        categoryTitle="Explore Verified Vehicles"
         categorySubtitle="Discover brand-new cars, verified pre-owned vehicles, bikes, and commercial fleets with full inspection reports."
-        breadcrumbCategory="Automobiles & Vehicles"
+        breadcrumbCategory="Vehicles"
         items={filteredVehicles}
         filterGroups={FILTER_GROUPS}
         rangeFilters={RANGE_FILTERS}

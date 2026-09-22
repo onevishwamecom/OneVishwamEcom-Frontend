@@ -3,8 +3,9 @@ import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
-  matchesBudgetRange, getTotalPropertyPrice, parsePriceRange,
+  matchesBudgetRange, matchesSizeRange, getTotalPropertyPrice, parsePriceRange,
 } from './propertyHelpers';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 /**
  * Builds card-type stats (projects / keys / sites) for each property type.
@@ -32,12 +33,12 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
 export function useActiveChips(filters) {
   return useMemo(() => {
     const chips = [];
-    if (filters.budgetMin || filters.budgetMax) {
+    if (filters.sizeMin || filters.sizeMax) {
       const label = [
-        filters.budgetMin && `Min ₹${(+filters.budgetMin / 100000).toFixed(1)}L`,
-        filters.budgetMax && `Max ₹${(+filters.budgetMax / 100000).toFixed(1)}L`,
+        filters.sizeMin && `Min ${Number(filters.sizeMin).toLocaleString('en-IN')} sq.ft`,
+        filters.sizeMax && `Max ${Number(filters.sizeMax).toLocaleString('en-IN')} sq.ft`,
       ].filter(Boolean).join(' – ');
-      chips.push({ key: 'budget', label: `Budget: ${label}` });
+      chips.push({ key: 'size', label: `Size: ${label}` });
     }
     filters.buildingType.forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
     filters.propertyType.forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
@@ -92,21 +93,41 @@ export function useFilteredProperties(arg1, arg2) {
         const matchCardType =
           selectedCardType === 'All' || getCardType(p) === selectedCardType;
 
-        const q = (searchTerm || '').toLowerCase().trim();
-        const titleStr = String(p.title || p.name || '').toLowerCase();
-        const locStr = String(p.location || p.city || '').toLowerCase();
-        const subStr = String(p.subtitle || p.propertyType || '').toLowerCase();
-        const matchSearch = !q || titleStr.includes(q) || locStr.includes(q) || subStr.includes(q);
+        const matchSearch = matchesSearch(
+          searchTerm,
+          p.title,
+          p.name,
+          p.propertyName,
+          p.location,
+          p.city,
+          p.zone,
+          p.locality,
+          p.subtitle,
+          p.propertyType,
+          p.subcategory,
+          p.bhk,
+          p.area,
+          p.dimensions,
+          p.pincode
+        );
 
-        const qReq = (requirementText || '').toLowerCase().trim();
-        const descStr = String(p.description || '').toLowerCase();
-        const matchRequirement = !qReq || titleStr.includes(qReq) || locStr.includes(qReq) || subStr.includes(qReq) || descStr.includes(qReq);
+        const matchRequirement = matchesSearch(
+          requirementText,
+          p.title,
+          p.name,
+          p.propertyName,
+          p.location,
+          p.city,
+          p.locality,
+          p.subtitle,
+          p.description,
+          p.propertyType,
+          p.area
+        );
 
         const matchBudget = matchesBudgetRange(p, filters.budgetMin, filters.budgetMax);
 
-        const matchSize =
-          (!filters.sizeMin || area >= +filters.sizeMin) &&
-          (!filters.sizeMax || area <= +filters.sizeMax);
+        const matchSize = matchesSizeRange(p, filters.sizeMin, filters.sizeMax);
 
         const matchBuildingType =
           filters.buildingType.length === 0 ||

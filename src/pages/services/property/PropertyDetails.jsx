@@ -4,7 +4,8 @@ import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice } from './propertyHelpers';
+import { cleanProductName } from '../../../utils/searchUtils';
 import EnquiryModal from '../../../components/EnquiryModal';
 import oneVishwamLogo from '../../../assets/logo.png';
 
@@ -130,6 +131,7 @@ function PropertyCard({ property }) {
   const [faved, setFaved] = useState(false);
   if (!property) return null;
   const imgSrc = resolveImage(getPropertyCoverImage(property));
+  const display = formatPropertyDisplayPrice(property);
 
   return (
     <div className="w-[260px] sm:w-[290px] lg:w-[310px] flex-shrink-0 snap-start">
@@ -168,14 +170,15 @@ function PropertyCard({ property }) {
           </span>
           <h4 className="text-sm font-bold text-brand-charcoal leading-snug line-clamp-1 group-hover:text-brand-blue transition-colors">
             {property.title}
+            {cleanProductName(property.title)}
           </h4>
           <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
             <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" /> {property.location || property.city}
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
-              <span className="text-base font-extrabold text-brand-charcoal">{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
+              <span className={display.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-base font-extrabold text-brand-charcoal"}>{display.price}</span>
+              {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
             </div>
             {property.bhk && <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">{property.bhk}</span>}
           </div>
@@ -205,9 +208,21 @@ export default function PropertyDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
-  const property = properties.find(
+  const rawProperty = properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
   ) || null;
+
+  const property = useMemo(() => {
+    if (!rawProperty) return null;
+    const display = formatPropertyDisplayPrice(rawProperty);
+    return {
+      ...rawProperty,
+      title: cleanProductName(rawProperty.title),
+      price: display.price,
+      priceSuffix: display.priceSuffix,
+    };
+  }, [rawProperty]);
+
   const loading = listLoading;
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
@@ -365,7 +380,7 @@ export default function PropertyDetails() {
             onClick={goBack}
             className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
           >
-            &larr; Back to Real Estate
+            &larr; Back to Houses & Land
           </button>
         </div>
       </div>
@@ -486,7 +501,7 @@ export default function PropertyDetails() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className="text-sm font-extrabold text-brand-charcoal">{property.price}</span>
+              <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{property.price}</span>
               {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
             </div>
             <button
@@ -513,12 +528,12 @@ export default function PropertyDetails() {
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-gray-500">
               <button onClick={goBack} className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline">
-                <i className="fa-solid fa-arrow-left" /> Back to Properties
+                <i className="fa-solid fa-arrow-left" /> Back
               </button>
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Real Estate</Link>
+              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Houses & Land</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{property.title}</span>
             </div>
@@ -621,14 +636,14 @@ export default function PropertyDetails() {
 
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                  <span className={property.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
                     {property.price}
                   </span>
                   {property.priceSuffix && (
                     <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
                   )}
                 </div>
-                {property.priceNote && (
+                {property.priceNote && property.price !== 'This is negotiable' && (
                   <p className="text-[11px] text-gray-400 mt-0.5">{property.priceNote}</p>
                 )}
               </div>
@@ -1100,7 +1115,7 @@ export default function PropertyDetails() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className="text-base font-extrabold text-brand-charcoal leading-tight">{property.price}</span>
+            <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{property.price}</span>
           </div>
           <div className="flex items-center gap-2">
             <button

@@ -24,6 +24,7 @@ import {
   hasPropertyImages,
   getPropertyCoverImage,
   sortPropertiesWithPriority,
+  getPropertiesSizeBounds,
 } from "./propertyHelpers";
 
 const PER_PAGE = 9;
@@ -219,9 +220,17 @@ function PropertyGallery() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /* ── Dynamic Size limits computed from listed properties ── */
+  const sizeBounds = useMemo(() => {
+    return getPropertiesSizeBounds(properties);
+  }, [properties]);
+
   /* ── Chip removal ── */
   const removeChip = (chip) => {
-    if (chip.key === "budget") {
+    if (chip.key === "size") {
+      updateFilter("sizeMin", "");
+      updateFilter("sizeMax", "");
+    } else if (chip.key === "budget") {
       updateFilter("budgetMin", "");
       updateFilter("budgetMax", "");
     } else if (chip.key === "gated") {
@@ -262,6 +271,7 @@ function PropertyGallery() {
     resetFilters,
     cityAreas,
     noCityMessage,
+    sizeBounds,
   };
 
   /* ── Render ── */
@@ -282,7 +292,7 @@ function PropertyGallery() {
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <span className="text-brand-charcoal font-semibold">Real Estate Properties</span>
+              <span className="text-brand-charcoal font-semibold">Houses & Land</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -578,7 +588,7 @@ function PropertyGallery() {
             <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
               <div>
                 <h3 className="font-bold text-brand-charcoal">Filter Properties</h3>
-                <p className="text-[11px] text-gray-500">Refine by price, size, type & amenities</p>
+                <p className="text-[11px] text-gray-500">Refine by size, type & amenities</p>
               </div>
               <button
                 onClick={() => setShowMobileFilters(false)}

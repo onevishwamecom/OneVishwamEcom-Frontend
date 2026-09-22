@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 const SECTORS = {
   automobile: {
     icon: 'fa-solid fa-car',
-    title: 'Automobiles & Vehicles',
+    title: 'Vehicles',
     description: 'We are building a premium marketplace for brand-new and certified pre-owned cars, bikes, and commercial vehicles with hassle-free loan approvals.',
     color: 'text-rose-500',
     bg: 'bg-rose-50',
@@ -17,7 +17,7 @@ const SECTORS = {
   },
   electronics: {
     icon: 'fa-solid fa-laptop',
-    title: 'Electronics & Gadgets',
+    title: 'Consumer Electronics',
     description: 'A curated marketplace for top-brand smartphones, laptops, smart TVs and home appliances with easy no-cost EMI payment schemes is coming.',
     color: 'text-cyan-500',
     bg: 'bg-cyan-50',

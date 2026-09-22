@@ -3,6 +3,7 @@ import { navigateTo } from '../../../config/navigation';
 import { dummyGrocery } from '../../../data/dummyGrocery';
 import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../data/locations';
+import { matchesSearch } from '../../../utils/searchUtils';
 import { CollapsibleSection, CheckboxGroup } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import SearchSortBar from '../../../components/SearchSortBar';
@@ -68,11 +69,7 @@ function GroceryGallery() {
         if (activeCategory === 'Organic') matchCat = p.organic;
         else if (activeCategory !== 'All') matchCat = p.category === activeCategory;
 
-        const q = searchTerm.toLowerCase();
-        const matchSearch = !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.vendorName.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q);
+        const matchSearch = matchesSearch(searchTerm, p.name, p.vendorName, p.category, p.locality);
 
         const pv = getPriceValue(p.pricePerUnit);
         const matchPrice = (!filters.priceMin || pv >= +filters.priceMin) && (!filters.priceMax || pv <= +filters.priceMax);
@@ -185,7 +182,7 @@ function GroceryGallery() {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
-              OneVishwam · Consumer Marketplace
+              OneVishwam · Groceries & Daily Needs
             </p>
             <h1 className="text-2xl font-bold tracking-tight text-brand-charcoal sm:text-3xl">
               Groceries & Daily Needs

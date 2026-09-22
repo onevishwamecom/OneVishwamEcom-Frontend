@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { FINANCE_CATEGORIES } from './financeConstants';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 function parsePriceRange(amountStr) {
   const cleaned = amountStr.replace(/[₹,\s]/g, '');
@@ -62,13 +63,8 @@ export function useFilteredServices({
     }
 
     if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      results = results.filter(
-        (s) =>
-          s.serviceName.toLowerCase().includes(q) ||
-          s.companyName.toLowerCase().includes(q) ||
-          s.category.toLowerCase().includes(q) ||
-          s.location.toLowerCase().includes(q)
+      results = results.filter((s) =>
+        matchesSearch(searchTerm, s.serviceName, s.companyName, s.category, s.location, s.description)
       );
     }
 

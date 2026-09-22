@@ -77,6 +77,7 @@ function FinanceGallery() {
             </p>
             <h1 className="text-2xl font-bold tracking-tight text-brand-charcoal sm:text-3xl">
               Finance & Loan Services
+              Finance & Loans
             </h1>
             <p className="mt-1 text-sm text-gray-500 max-w-2xl">
               Find trusted financial services, loans, insurance, and investment options near you.

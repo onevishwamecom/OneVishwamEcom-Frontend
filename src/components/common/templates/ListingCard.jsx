@@ -118,7 +118,7 @@ export default React.memo(function ListingCard({
           {/* Price Header */}
           <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              <span className={price === 'This is negotiable' ? "text-sm font-normal text-slate-500" : "text-base sm:text-lg font-bold text-slate-900 tracking-tight"}>
                 {price}
               </span>
               {priceSubtext && (

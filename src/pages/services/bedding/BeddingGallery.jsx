@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { dummyBedding } from '../../../data/dummyBedding';
 import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
 import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 const FILTER_GROUPS = [
   {
@@ -121,13 +122,17 @@ export default function BeddingGallery() {
     return dummyBedding.filter((item) => {
       // Search
       if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const matchTitle = (item.title || '').toLowerCase().includes(q);
-        const matchBrand = (item.brand || '').toLowerCase().includes(q);
-        const matchModel = (item.model || '').toLowerCase().includes(q);
-        const matchCategory = (item.category || '').toLowerCase().includes(q);
-        const matchLocation = (item.location || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchBrand && !matchModel && !matchCategory && !matchLocation) {
+        if (!matchesSearch(
+          searchTerm,
+          item.title,
+          item.brand,
+          item.model,
+          item.category,
+          item.subtitle,
+          item.location,
+          item.keyAttributes,
+          item.description
+        )) {
           return false;
         }
       }
@@ -169,7 +174,7 @@ export default function BeddingGallery() {
 
   return (
     <MarketplaceCategoryGallery
-      categoryTitle="Explore Verified Bedding & Sleep Comfort"
+      categoryTitle="Explore Verified Bedding & Comfort"
       categorySubtitle="Discover orthopedic memory foam mattresses, 100% natural organic latex, Egyptian cotton bedsheets, and cervical contour pillows."
       breadcrumbCategory="Bedding & Comfort"
       items={filteredItems}

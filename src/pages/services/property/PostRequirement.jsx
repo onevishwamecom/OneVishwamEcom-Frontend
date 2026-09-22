@@ -116,7 +116,7 @@ function PostRequirement() {
         {/* Header */}
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
-            OneVishwam · Real Estate
+            OneVishwam · Houses & Land
           </p>
           <h1 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">Tell Us What You're Looking For</h1>
           <p className="text-sm text-gray-500 mt-2">Fill in a few details, and we'll help you find matching properties.</p>

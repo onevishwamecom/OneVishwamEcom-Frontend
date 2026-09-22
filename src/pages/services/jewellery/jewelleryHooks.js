@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { dummyJewellery } from '../../../data/dummyJewellery';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 export function useJewellery(params = {}) {
   const [jewellery, setJewellery] = useState([]);
@@ -16,6 +17,7 @@ export function useJewellery(params = {}) {
     if (params.search) {
       const search = params.search.toLowerCase();
       filtered = filtered.filter(j => j.name.toLowerCase().includes(search));
+      filtered = filtered.filter(j => matchesSearch(params.search, j.name, j.category, j.store?.name, j.store?.city));
     }
     setJewellery(filtered);
     setLoading(false);

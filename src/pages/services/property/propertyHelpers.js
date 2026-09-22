@@ -93,6 +93,52 @@ export function parseAreaRange(areaOrProperty) {
 }
 
 /**
+ * Checks whether a property price is quoted on a per square foot basis.
+ * E.g., "₹ 2,500/Sq.ft", "₹ 2500 / sqft", or priceSuffix containing "/ Sq.ft".
+ *
+ * @param {Object|string} property
+ * @returns {boolean}
+ */
+export function isPerSqftPrice(property) {
+  if (!property) return false;
+  const rawPriceStr = String(
+    (typeof property === 'object' ? (property.rawPrice || property.price || property.cost || property.amount) : property) || ''
+  ).trim();
+  const suffix = typeof property === 'object' ? String(property.rawPriceSuffix || property.priceSuffix || '') : '';
+  const combined = `${rawPriceStr} ${suffix}`.toLowerCase();
+
+  return (
+    /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft|square\s*feet|square\s*foot|feet|ft)/i.test(combined) ||
+    /rs\s*per/i.test(combined) ||
+    /\/\s*sq/i.test(combined) ||
+    /sq\.?\s*f?t/i.test(combined)
+  );
+}
+
+/**
+ * Returns the customer-facing display price and price suffix for a property.
+ * If price is in sq/ft, it leaves it as is. Otherwise, returns "This is negotiable".
+ *
+ * @param {Object|string} property
+ * @returns {{ price: string, priceSuffix: string }}
+ */
+export function formatPropertyDisplayPrice(property) {
+  if (!property) return { price: 'This is negotiable', priceSuffix: '' };
+
+  if (isPerSqftPrice(property)) {
+    const rawPrice = typeof property === 'object'
+      ? (property.rawPrice || property.price || property.cost || property.amount || '')
+      : String(property);
+    const suffix = typeof property === 'object'
+      ? (property.rawPriceSuffix || property.priceSuffix || '')
+      : '';
+    return { price: rawPrice, priceSuffix: suffix };
+  }
+
+  return { price: 'This is negotiable', priceSuffix: '' };
+}
+
+/**
  * Parses price range and computes total property valuation.
  * If price is per sqft (e.g. "₹ 2500/Sq.ft" with 8000 sqft area = ₹ 2.00 Cr / 20,000,000),
  * accurately multiplies rate * area to calculate true total worth.
@@ -102,6 +148,10 @@ export function parsePriceRange(property) {
 
   // If property already has explicit / precomputed total amount:
   if (typeof property === 'object') {
+    if (property.rawPrice && !isNaN(Number(property.rawPrice)) && Number(property.rawPrice) > 0) {
+      const val = Number(property.rawPrice);
+      return { min: val, max: val };
+    }
     if (property.calculatedTotalAmount && !isNaN(Number(property.calculatedTotalAmount))) {
       const val = Number(property.calculatedTotalAmount);
       return { min: val, max: val };
@@ -205,13 +255,53 @@ export function matchesBudgetRange(property, budgetMin, budgetMax) {
  */
 export function matchesSizeRange(property, sizeMin, sizeMax) {
   if (!sizeMin && !sizeMax) return true;
-  const { min: aMin, max: aMax } = parseAreaRange(property.area || property.size || property.plotSize || '');
+  const { min: aMin, max: aMax } = parseAreaRange(property);
   if (aMin === 0 && aMax === 0) return true;
 
   const sMin = sizeMin ? +sizeMin : 0;
   const sMax = sizeMax ? +sizeMax : Infinity;
 
-  return (aMax || aMin) >= sMin && aMin <= sMax;
+  return (aMax || aMin) >= sMin && (aMin || aMax) <= sMax;
+}
+
+/**
+ * Calculates the minimum and maximum property size (in sq.ft)
+ * across a list of properties.
+ *
+ * @param {Array} properties
+ * @returns {{ min: number, max: number }}
+ */
+export function getPropertiesSizeBounds(properties = []) {
+  if (!Array.isArray(properties) || properties.length === 0) {
+    return { min: 600, max: 10000 };
+  }
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  properties.forEach((p) => {
+    if (!p) return;
+    const { min: pMin, max: pMax } = parseAreaRange(p);
+    const low = pMin || pMax;
+    const high = pMax || pMin;
+
+    if (low > 0 && low < min) {
+      min = low;
+    }
+    if (high > 0 && high > max) {
+      max = high;
+    }
+  });
+
+  if (min === Infinity || max === -Infinity) {
+    return { min: 600, max: 10000 };
+  }
+
+  if (min >= max) {
+    return { min: Math.max(0, min - 100), max: min + 500 };
+  }
+
+  return { min, max };
 }
 
 export function getPropertyType(property) {

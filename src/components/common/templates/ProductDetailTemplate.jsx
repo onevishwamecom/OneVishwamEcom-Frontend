@@ -286,7 +286,7 @@ export default function ProductDetailTemplate({
                   Listed Price
                 </span>
                 <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-slate-500" : "text-3xl font-extrabold text-slate-900 tracking-tight"}>
                     {item.price}
                   </span>
                   {item.priceSubtext && (

@@ -4,6 +4,7 @@ import EnquiryModal from '../../EnquiryModal';
 import CategoryListingCard from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { cleanProductName } from '../../../utils/searchUtils';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -280,6 +281,7 @@ export default function MasterDetailPage({
     );
   }
 
+  const itemTitle = cleanProductName(item.title);
   const activeContact = getPropertyContactInfo(item.title);
   const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
 
@@ -361,12 +363,13 @@ export default function MasterDetailPage({
             </button>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-brand-charcoal truncate">{item.title}</h4>
+              <h4 className="text-sm font-bold text-brand-charcoal truncate">{itemTitle}</h4>
               <p className="text-xs text-gray-500 truncate">{item.location || item.city}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className="text-sm font-extrabold text-brand-charcoal">{item.price}</span>
+              <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{item.price}</span>
               {item.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>}
             </div>
             <button
@@ -401,6 +404,7 @@ export default function MasterDetailPage({
               <Link to={categoryLink} className="hover:text-brand-blue">{categoryName}</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{item.title}</span>
+              <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{itemTitle}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -463,6 +467,7 @@ export default function MasterDetailPage({
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-charcoal tracking-tight leading-tight">
                 {item.title}
+                {itemTitle}
               </h1>
 
               {item.subtitle && (
@@ -517,7 +522,7 @@ export default function MasterDetailPage({
 
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
                     {item.price}
                   </span>
                   {item.priceSuffix && (
@@ -969,7 +974,7 @@ export default function MasterDetailPage({
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className="text-base font-extrabold text-brand-charcoal leading-tight">{item.price}</span>
+            <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{item.price}</span>
           </div>
           <div className="flex items-center gap-2">
             <button

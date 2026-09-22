@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { dummyGarments } from '../../../data/dummyGarments';
+import { matchesSearch } from '../../../utils/searchUtils';
 import { CollapsibleSection, CheckboxGroup, ActiveChip, getNumericPrice } from '../GalleryComponents';
 import ProductCard from '../ProductCard';
 import SearchSortBar from '../../../components/SearchSortBar';
@@ -71,11 +72,7 @@ function GarmentGallery() {
           else matchTab = p.category === activeTab;
         }
 
-        const q = searchTerm.toLowerCase();
-        const matchSearch = !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q);
+        const matchSearch = matchesSearch(searchTerm, p.name, p.brand, p.category, p.store?.name);
 
         const np = getNumericPrice(p.finalPrice);
         const matchBudget =
@@ -202,6 +199,7 @@ function GarmentGallery() {
     <div className="pb-24 pt-16 lg:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">Fashion & Lifestyle</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">Clothes & Fashion</h1>
 
         {/* Category Tabs */}
         <div className="mt-6 flex gap-2 overflow-x-auto pb-2">

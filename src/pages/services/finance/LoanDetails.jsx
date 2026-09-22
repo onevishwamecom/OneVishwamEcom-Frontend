@@ -44,8 +44,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <p className="mt-2 text-sm text-gray-500">{error}</p>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</a>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
@@ -54,7 +53,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</a>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
