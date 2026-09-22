@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { navigateTo } from '../config/navigation';
 import { useLocation } from '../store/locationSlice';
-import { loanProducts } from '../data/dummyFinance';
+import { financeServices as loanProducts } from '../data/dummyFinanceServices';
 
 const LOAN_TABS = ['All', 'Home Loan', 'Construction Loan', 'NRI Loan', 'Loan Against Property'];
 

@@ -148,21 +148,21 @@ export default function AutomobileGallery() {
 
       // Fuel Types
       if (activeFilters.fuelTypes.length > 0) {
-        if (!v.fuelType || !activeFilters.fuelTypes.some((f) => f.toLowerCase() === v.fuelType.toLowerCase())) {
+        if (!v.fuelType || !activeFilters.fuelTypes.some((f) => v.fuelType.toLowerCase().includes(f.toLowerCase()))) {
           return false;
         }
       }
 
       // Transmissions
       if (activeFilters.transmissions.length > 0) {
-        if (!v.transmission || !activeFilters.transmissions.some((t) => t.toLowerCase() === v.transmission.toLowerCase())) {
+        if (!v.transmission || !activeFilters.transmissions.some((t) => v.transmission.toLowerCase().includes(t.toLowerCase()))) {
           return false;
         }
       }
 
       // Body Types
       if (activeFilters.bodyTypes.length > 0) {
-        if (!v.bodyType || !activeFilters.bodyTypes.some((b) => b.toLowerCase() === v.bodyType.toLowerCase())) {
+        if (!v.bodyType || !activeFilters.bodyTypes.some((b) => v.bodyType.toLowerCase().includes(b.toLowerCase()))) {
           return false;
         }
       }
@@ -170,8 +170,8 @@ export default function AutomobileGallery() {
       // Conditions
       if (activeFilters.conditions.length > 0) {
         const matchesCondition = activeFilters.conditions.some((c) => {
-          if (c === 'Brand New' && v.condition === 'new') return true;
-          if (c === 'Pre-Owned' && v.condition === 'old') return true;
+          if (c === 'Brand New' && (v.condition === 'new' || v.condition === 'brand-new')) return true;
+          if (c === 'Pre-Owned' && (v.condition === 'old' || v.condition === 'pre-owned')) return true;
           if (c === '1st Owner' && (v.statusBadges || []).some((sb) => sb.label === '1st Owner')) return true;
           return false;
         });
@@ -198,7 +198,7 @@ export default function AutomobileGallery() {
         onResetFilters={handleResetFilters}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search vehicles by brand, model, fuel, or locality (e.g. Creta Petrol, Thar, Whitefield)..."
+        searchPlaceholder="Search vehicles by model, fuel, or transmission (e.g. Swift, Brezza, Ertiga CNG, Automatic)..."
         postRequirementLink="/property/requirement"
         onQuickMatch={() => setQuickMatchOpen(true)}
         quickMatchLabel="Vehicle Match"
@@ -207,15 +207,16 @@ export default function AutomobileGallery() {
             key={vehicle.id}
             item={vehicle}
             link={`/vehicle/${vehicle.id}`}
+            overline={vehicle.brand ? `${vehicle.brand} · ${vehicle.bodyType || vehicle.category}` : vehicle.category}
             title={vehicle.title}
             price={vehicle.price}
+            priceSuffix={vehicle.priceSuffix}
             location={vehicle.location}
             pincode={vehicle.pincode}
             statusBadges={vehicle.statusBadges}
-            keyAttributes={vehicle.keyAttributes}
+            cardPills={vehicle.cardPills}
             highlightBanner={vehicle.highlightBanner}
-          >
-          </CategoryListingCard>
+          />
         )}
       />
 
