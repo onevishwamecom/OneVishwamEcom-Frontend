@@ -140,6 +140,9 @@ function Navbar() {
     currentLocation.pathname.startsWith('/jewellery') ||
     currentLocation.pathname.startsWith('/garment') ||
     currentLocation.pathname.startsWith('/finance');
+    currentLocation.pathname.startsWith('/finance') ||
+    currentLocation.pathname.startsWith('/electronics') ||
+    currentLocation.pathname.startsWith('/bedding');
 
   const isActive = (link) => {
     const path = currentLocation.pathname;
@@ -149,6 +152,104 @@ function Navbar() {
     if (link.id === 'enquiry' || link.id === 'contact') return path.startsWith('/enquiry') || path.startsWith('/contact-us');
     if (link.id === 'careers') return path.startsWith('/careers');
     return false;
+  };
+
+  const aboutLink = visibleNavLinks.find((l) => l.id === 'about');
+  const enquiryLink = visibleNavLinks.find((l) => l.id === 'enquiry');
+
+  const renderNavLink = (link) => {
+    if (!link) return null;
+    const active = isActive(link);
+    if (link.submenu) {
+      return (
+        <div
+          key={link.id}
+          ref={menuRef}
+          className="relative"
+          onMouseEnter={() => showDropdown(link.id)}
+          onMouseLeave={hideDropdown}
+        >
+          <button
+            type="button"
+            id={`${link.id}-dropdown-trigger`}
+            aria-controls={`${link.id}-dropdown-menu`}
+            aria-haspopup="true"
+            aria-expanded={openDropdown === link.id}
+            onClick={() => toggleDropdown(link.id)}
+            className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
+          >
+            {link.label}
+            <i className={`fa-solid fa-chevron-down text-xs transition-transform ${openDropdown === link.id ? 'rotate-180' : ''}`} />
+          </button>
+          {openDropdown === link.id && (
+            <div
+              id={`${link.id}-dropdown-menu`}
+              role="menu"
+              aria-labelledby={`${link.id}-dropdown-trigger`}
+              className="absolute left-0 top-full pt-1.5 min-w-[200px] z-50 animate-fade-in"
+            >
+              <div className="rounded-xl border border-gray-100 bg-white shadow-lg py-2">
+                {link.submenu.columns.map((col, ci) => (
+                  <div key={ci} className="border-r border-gray-100 last:border-r-0">
+                    {col.map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        role="menuitem"
+                        onClick={() => setOpenDropdown(null)}
+                        className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-blue transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return (
+      <Link
+        key={link.id}
+        to={link.href}
+        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
+      >
+        {link.label}
+      </Link>
+    );
+  };
+
+  const renderMobileNavLink = (link) => {
+    if (!link) return null;
+    return (
+      <div key={link.id}>
+        <Link
+          to={link.href}
+          onClick={() => setMenuOpen(false)}
+          className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {link.label}
+        </Link>
+        {link.submenu && (
+          <div className="ml-4 mt-1 space-y-0.5">
+            {link.submenu.columns.flat().map((item) => (
+              <Link
+                key={item.label}
+                to={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2 text-sm text-gray-500 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -174,6 +275,13 @@ function Navbar() {
               </Link>
 
               {/* Category Dropdown Menu */}
+              {/* About Us Link */}
+              {renderNavLink(aboutLink)}
+
+              {/* Enquiry Link */}
+              {renderNavLink(enquiryLink)}
+
+              {/* Categories Dropdown Menu */}
               <div
                 ref={categoryRef}
                 className="relative"
@@ -193,7 +301,7 @@ function Navbar() {
                       : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
                   }`}
                 >
-                  <span>Category</span>
+                  <span>Categories</span>
                   <i className={`fa-solid fa-chevron-down text-[10px] transition-transform duration-200 ${openDropdown === 'categories' ? 'rotate-180 text-brand-blue' : 'text-gray-400'}`} />
                 </button>
 
@@ -311,67 +419,7 @@ function Navbar() {
                 )}
               </div>
 
-              {/* Other Navigation Links */}
-              {visibleNavLinks.filter((l) => l.id !== 'home').map((link) => {
-                const active = isActive(link);
-                if (link.submenu) {
-                  return (
-                    <div
-                      key={link.id}
-                      ref={menuRef}
-                      className="relative"
-                      onMouseEnter={() => showDropdown(link.id)}
-                      onMouseLeave={hideDropdown}
-                    >
-                      <button
-                        type="button"
-                        id="more-dropdown-trigger"
-                        aria-controls="more-dropdown-menu"
-                        aria-haspopup="true"
-                        aria-expanded={openDropdown === link.id}
-                        onClick={() => toggleDropdown(link.id)}
-                        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
-                      >
-                        {link.label}
-                        <i className={`fa-solid fa-chevron-down text-xs transition-transform ${openDropdown === link.id ? 'rotate-180' : ''}`} />
-                      </button>
-                      {openDropdown === link.id && (
-                        <div
-                          id="more-dropdown-menu"
-                          role="menu"
-                          aria-labelledby="more-dropdown-trigger"
-                          className="absolute left-0 top-full pt-1.5 min-w-[200px] z-50 animate-fade-in"
-                        >
-                          <div className="rounded-xl border border-gray-100 bg-white shadow-lg py-2">
-                            {link.submenu.columns.map((col, ci) => (
-                              <div key={ci} className="border-r border-gray-100 last:border-r-0">
-                                {col.map((item) => (
-                                  <Link
-                                    key={item.label}
-                                    to={item.href}
-                                    role="menuitem"
-                                    onClick={() => setOpenDropdown(null)}
-                                    className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-blue transition-colors"
-                                  >
-                                    {item.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                return (
-                  <Link key={link.id} to={link.href}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+
             </nav>
 
             <div className="hidden lg:flex items-center gap-3">
@@ -481,6 +529,13 @@ function Navbar() {
           </Link>
 
           {/* Category Accordion */}
+          {/* About Us Link */}
+          {renderMobileNavLink(aboutLink)}
+
+          {/* Enquiry Link */}
+          {renderMobileNavLink(enquiryLink)}
+
+          {/* Categories Accordion */}
           <div>
             <button
               type="button"
@@ -490,6 +545,7 @@ function Navbar() {
               }`}
             >
               <span>Category</span>
+              <span>Categories</span>
               <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-200 ${mobileCategoryOpen ? 'rotate-180 text-brand-blue' : 'text-gray-400'}`} />
             </button>
 
@@ -541,29 +597,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* Remaining Links */}
-          {visibleNavLinks.filter((l) => l.id !== 'home').map((link) => (
-            <div key={link.id}>
-              <Link to={link.href} onClick={() => setMenuOpen(false)}
-                className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(link) ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {link.label}
-              </Link>
-              {link.submenu && (
-                <div className="ml-4 mt-1 space-y-0.5">
-                  {link.submenu.columns.flat().map((item) => (
-                    <Link key={item.label} to={item.href} onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-gray-500 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+
         </nav>
       </div>
     </div>
