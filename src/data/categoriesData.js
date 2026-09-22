@@ -16,20 +16,20 @@ export const marketplaceCategories = [
     disabled: false,
   },
   {
-    id: 'consumer-electronics',
-    label: 'Consumer Electronics',
-    shortDesc: 'Mobiles, laptops, TV & home appliances',
-    href: '/our-services/consumer-electronics',
-    icon: 'fa-solid fa-tv',
-    disabled: false,
-  },
-  {
     id: 'bedding-comfort',
     label: 'Bedding & Comfort',
     shortDesc: 'Mattresses, pillows, bedsheets & linen',
     href: '/our-services/bedding-comfort',
     icon: 'fa-solid fa-bed',
     disabled: false,
+  },
+  {
+    id: 'consumer-electronics',
+    label: 'Consumer Electronics',
+    shortDesc: 'Mobiles, laptops, TV & home appliances',
+    href: '/our-services/consumer-electronics',
+    icon: 'fa-solid fa-tv',
+    disabled: true,
   },
   {
     id: 'consumer-marketplace',

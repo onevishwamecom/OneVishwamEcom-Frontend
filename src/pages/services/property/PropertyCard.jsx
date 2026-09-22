@@ -8,6 +8,7 @@ import {
   getDetailTags,
   getStatusBadge,
   getPropertyCoverImage,
+  formatPropertyDisplayPrice,
 } from './propertyHelpers';
 
 const FALLBACK_IMG =
@@ -35,6 +36,7 @@ function PropertyCardImpl({ property }) {
   const typeLabel = getPropertyTypeLabel(property);
   const tags = (getDetailTags(property) || []).slice(0, 2);
   const badge = getStatusBadge(property);
+  const display = formatPropertyDisplayPrice(property);
 
   const badges = [
     ...(property.recentlyAdded
@@ -132,19 +134,21 @@ function PropertyCardImpl({ property }) {
           ) : property.priceType === 'on-request' ? (
             <p className="text-base font-extrabold text-brand-gold">Price on Request</p>
           ) : (
-            property.price != null && property.price !== '' && (
+            display.price != null && display.price !== '' && (
               <p className="text-base font-extrabold text-brand-blue">
-                {typeof property.price === 'number' ||
-                (typeof property.price === 'string' &&
-                  /^\d/.test(property.price.replace(/[₹,\s]/g, '')))
-                  ? formatINR(property.price)
-                  : withRupeeSymbol(property.price)}
-                {property.priceSuffix && (
+                {display.price === 'This is negotiable'
+                  ? display.price
+                  : typeof display.price === 'number' ||
+                    (typeof display.price === 'string' &&
+                      /^\d/.test(display.price.replace(/[₹,\s]/g, '')))
+                  ? formatINR(display.price)
+                  : withRupeeSymbol(display.price)}
+                {display.priceSuffix && (
                   <span className="text-xs font-normal text-gray-400 ml-1">
-                    {property.priceSuffix}
+                    {display.priceSuffix}
                   </span>
                 )}
-                {property.priceType === 'negotiable' && (
+                {property.priceType === 'negotiable' && display.price !== 'This is negotiable' && (
                   <span className="ml-1.5 text-[9px] font-bold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
                     Negotiable
                   </span>

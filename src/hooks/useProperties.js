@@ -2,7 +2,7 @@ import API from '../services/api';
 import useCachedData from './useCachedData';
 import { CACHE_TTL, deterministicKey } from '../services/cache/cacheService';
 
-import { getTotalPropertyPrice, parsePriceRange } from '../pages/services/property/propertyHelpers';
+import { getTotalPropertyPrice, parsePriceRange, formatPropertyDisplayPrice } from '../pages/services/property/propertyHelpers';
 
 function extractProperties(res) {
   let list = [];
@@ -11,12 +11,19 @@ function extractProperties(res) {
   else if (Array.isArray(res?.data?.data)) list = res.data.data;
   else if (Array.isArray(res?.data)) list = res.data;
   
-  return list.map((p) => ({
-    ...p,
-    id: p.id || p._id,
-    calculatedTotalAmount: getTotalPropertyPrice(p),
-    priceRange: parsePriceRange(p),
-  }));
+  return list.map((p) => {
+    const display = formatPropertyDisplayPrice(p);
+    return {
+      ...p,
+      rawPrice: p.price,
+      rawPriceSuffix: p.priceSuffix,
+      id: p.id || p._id,
+      calculatedTotalAmount: getTotalPropertyPrice(p),
+      priceRange: parsePriceRange(p),
+      price: display.price,
+      priceSuffix: display.priceSuffix,
+    };
+  });
 }
 
 export function useProperties(params = {}) {
@@ -35,14 +42,25 @@ export function usePropertyById(id) {
     `property:item:${id}`,
     () =>
       API.get(`/api/properties/${id}`).then(
-        (res) =>
-          res.data?.data?.item ||
-          res.data?.data?.property ||
-          res.data?.item ||
-          res.data?.property ||
-          (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
-          res.data ||
-          null
+        (res) => {
+          const item =
+            res.data?.data?.item ||
+            res.data?.data?.property ||
+            res.data?.item ||
+            res.data?.property ||
+            (res.data?.data && typeof res.data.data === 'object' && !res.data.data.item ? res.data.data : null) ||
+            res.data ||
+            null;
+          if (!item) return null;
+          const display = formatPropertyDisplayPrice(item);
+          return {
+            ...item,
+            rawPrice: item.price,
+            rawPriceSuffix: item.priceSuffix,
+            price: display.price,
+            priceSuffix: display.priceSuffix,
+          };
+        }
       ),
     { ttl: CACHE_TTL.detail, fallback: null, enabled: !!id }
   );

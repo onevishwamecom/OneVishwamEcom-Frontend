@@ -213,10 +213,10 @@ export const serviceItems = [
   {
     id: 'bedding-comfort',
     title: 'Bedding & Comfort',
-    description: 'Premium mattresses, orthopedic pillows, luxury bed linen, comforters, and home comfort essentials.',
-    image: 'https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg?auto=compress&cs=tinysrgb&w=800',
+    description: 'Affordable mattresses, orthopedic pillows, bedsheets, comforters, and everyday sleep essentials.',
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
     details: {
-      overviewText: 'Transform your sleep and daily comfort with our curated collection of ergonomic mattresses, plush pillows, luxury bedsheets, duvet sets, and home relaxation products crafted for deep restorative rest.',
+      overviewText: 'Upgrade your sleep with affordable orthopedic mattresses, soft pillows, bedsheets, and everyday bedding essentials crafted for deep restorative rest at honest prices.',
       sections: [
         {
           title: 'Bedding Collections',

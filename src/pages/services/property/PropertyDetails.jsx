@@ -3,7 +3,7 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, getNumericPrice } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, getNumericPrice, formatPropertyDisplayPrice } from './propertyHelpers';
 import EnquiryModal from '../../../components/EnquiryModal';
 import oneVishwamLogo from '../../../assets/logo.png';
 
@@ -138,6 +138,7 @@ function PropertyCard({ property }) {
   const [faved, setFaved] = useState(false);
   if (!property) return null;
   const imgSrc = resolveImage(getPropertyCoverImage(property));
+  const display = formatPropertyDisplayPrice(property);
 
   return (
     <div className="w-[260px] sm:w-[290px] lg:w-[310px] flex-shrink-0 snap-start">
@@ -182,8 +183,8 @@ function PropertyCard({ property }) {
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
-              <span className="text-base font-extrabold text-brand-charcoal">{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
+              <span className="text-base font-extrabold text-brand-charcoal">{display.price}</span>
+              {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
             </div>
             {property.bhk && <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">{property.bhk}</span>}
           </div>
@@ -213,9 +214,20 @@ export default function PropertyDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
 
-  const property = properties.find(
+  const rawProperty = properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
   ) || null;
+
+  const property = useMemo(() => {
+    if (!rawProperty) return null;
+    const display = formatPropertyDisplayPrice(rawProperty);
+    return {
+      ...rawProperty,
+      price: display.price,
+      priceSuffix: display.priceSuffix,
+    };
+  }, [rawProperty]);
+
   const loading = listLoading;
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
@@ -657,7 +669,7 @@ export default function PropertyDetails() {
                     <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
                   )}
                 </div>
-                {property.priceNote && (
+                {property.priceNote && property.price !== 'This is negotiable' && (
                   <p className="text-[11px] text-gray-400 mt-0.5">{property.priceNote}</p>
                 )}
               </div>
