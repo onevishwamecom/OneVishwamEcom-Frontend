@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CategoryListingCard from './CategoryListingCard';
 import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
+import { useLocation } from '../../../store/locationSlice';
+import { cities } from '../../../data/locations';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -295,9 +297,9 @@ export default function MarketplaceCategoryGallery({
           </div>
         </div>
 
-        {/* ── Stretched Modern Unified Search Bar ── */}
-        <div className="mt-4">
-          <div className="relative flex items-center w-full bg-white rounded-2xl border border-gray-200/90 shadow-sm hover:border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
+        {/* ── Stretched Modern Unified Search & Location Bar ── */}
+        <div className="mt-4 flex flex-col sm:flex-row items-stretch gap-3">
+          <div className="relative flex-1 flex items-center w-full bg-white rounded-2xl border border-gray-200/90 shadow-sm hover:border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
             <i className="fa-solid fa-magnifying-glass absolute left-4 text-gray-400 text-sm pointer-events-none" />
             <input
               type="text"
@@ -307,7 +309,7 @@ export default function MarketplaceCategoryGallery({
                 if (onSearchChange) onSearchChange(e.target.value);
               }}
               placeholder={searchPlaceholder}
-              className="w-full bg-transparent pl-11 pr-28 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
+              className="w-full bg-transparent pl-11 pr-28 py-3.5 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
             />
             {searchTerm && (
               <button
@@ -326,6 +328,27 @@ export default function MarketplaceCategoryGallery({
               <span className="text-[11px] font-bold text-white bg-brand-blue px-3 py-1.5 rounded-xl shadow-xs">
                 Search
               </span>
+            </div>
+          </div>
+
+          {/* Top Location Filter Dropdown */}
+          <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200/90 px-4 py-3 text-sm shadow-sm hover:border-brand-blue/40 transition-all shrink-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-sm shrink-0" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:inline">Location:</span>
+              <select
+                value={selectedCity || ''}
+                onChange={(e) => {
+                  setCurrentPage(1);
+                  selectCity(e.target.value);
+                }}
+                className="bg-transparent text-xs sm:text-sm font-semibold text-brand-charcoal outline-none cursor-pointer pr-1"
+              >
+                <option value="">All Cities</option>
+                {Object.entries(cities).map(([id, c]) => (
+                  <option key={id} value={id}>{c.label}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

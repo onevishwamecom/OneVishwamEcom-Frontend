@@ -15,6 +15,9 @@
  *   className        – extra wrapper classes
  */
 
+import { useLocation } from '../store/locationSlice';
+import { cities } from '../data/locations';
+
 const DEFAULT_SORT_OPTIONS = [
   { value: 'latest',     label: 'Latest' },
   { value: 'price-low',  label: 'Price: Low to High' },
@@ -31,6 +34,8 @@ export default function SearchSortBar({
   onMobileFilter,
   className = '',
 }) {
+  const { selectedCity, selectCity } = useLocation();
+
   return (
     <div className={`flex flex-col sm:flex-row gap-3 ${className}`}>
       {/* Search input */}
@@ -45,7 +50,21 @@ export default function SearchSortBar({
         />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
+        {/* Location filter dropdown */}
+        <div className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs font-semibold text-gray-700 shadow-2xs shrink-0">
+          <i className="fa-solid fa-location-dot text-brand-blue" />
+          <select
+            value={selectedCity || ''}
+            onChange={(e) => selectCity(e.target.value)}
+            className="bg-transparent outline-none cursor-pointer text-xs font-semibold text-brand-charcoal"
+          >
+            <option value="">All Cities</option>
+            {Object.entries(cities).map(([id, c]) => (
+              <option key={id} value={id}>{c.label}</option>
+            ))}
+          </select>
+        </div>
         {/* Mobile filter trigger */}
         {onMobileFilter && (
           <button
