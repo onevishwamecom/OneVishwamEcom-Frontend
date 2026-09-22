@@ -298,7 +298,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
+                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}{p.priceSuffix ? ` ${p.priceSuffix}` : ''}</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
@@ -323,7 +323,7 @@ function QuickMatchModal({ onClose }) {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-brand-charcoal truncate">{p.title}</p>
                           <p className="text-xs text-gray-500 truncate">{p.location}</p>
-                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}</p>
+                          <p className="text-xs font-bold text-brand-blue mt-0.5">{p.price}{p.priceSuffix ? ` ${p.priceSuffix}` : ''}</p>
                         </div>
                         <button onClick={() => navigateTo(`/property/${p.id}`)}
                           className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">

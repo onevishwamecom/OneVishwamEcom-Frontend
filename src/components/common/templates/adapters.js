@@ -3,6 +3,16 @@
  * from their respective database / mock structures into the unified EntityItem contract.
  */
 
+function isPerSqft(priceStr = '', suffix = '') {
+  const combined = `${priceStr} ${suffix}`.toLowerCase();
+  return (
+    /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft|square\s*feet|square\s*foot|feet|ft)/i.test(combined) ||
+    /rs\s*per/i.test(combined) ||
+    /\/\s*sq/i.test(combined) ||
+    /sq\.?\s*f?t/i.test(combined)
+  );
+}
+
 /**
  * Transforms a Property entity (from dummyProperties or backend Mongoose doc)
  * into a unified EntityItem.
@@ -15,8 +25,11 @@ export function mapPropertyToEntityItem(property) {
 
   const id = property.id || property._id || '';
   const title = property.propertyName || property.title || 'Featured Property';
-  const price = property.price || property.expectedPrice || property.priceRange?.formattedMin || 'Price on Request';
-  const priceSubtext = property.negotiable ? 'Negotiable' : (property.priceRange?.isRange ? 'Onwards' : '');
+  const rawPrice = property.rawPrice || property.price || property.expectedPrice || property.priceRange?.formattedMin || '';
+  const rawSuffix = property.rawPriceSuffix || property.priceSuffix || '';
+  const inSqft = isPerSqft(rawPrice, rawSuffix);
+  const price = inSqft ? rawPrice : 'This is negotiable';
+  const priceSubtext = inSqft ? (rawSuffix || (property.negotiable ? 'Negotiable' : (property.priceRange?.isRange ? 'Onwards' : ''))) : '';
   const location = property.location || property.city || property.address || '';
   const pincode = property.pincode || '';
 

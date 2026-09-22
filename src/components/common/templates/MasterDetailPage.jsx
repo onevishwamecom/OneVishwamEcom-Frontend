@@ -154,6 +154,8 @@ export default function MasterDetailPage({
   error = null,
   bentoTitle = 'Key Specifications & Verified Parameters',
   featuresTitle = 'Key Features & Included Highlights',
+  headerExtra = null,
+  children = null,
 }) {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -473,6 +475,12 @@ export default function MasterDetailPage({
                   {item.location}{item.zone ? ` (${item.zone})` : ''}{item.pincode ? ` — ${item.pincode}` : ''}
                 </span>
               </p>
+
+              {headerExtra && (
+                <div className="pt-2">
+                  {headerExtra}
+                </div>
+              )}
             </div>
 
             {/* Price & Primary CTAs */}
@@ -641,6 +649,7 @@ export default function MasterDetailPage({
 
       {/* ─── MAIN CONTENT CONTAINER (Full Width Max-7XL) ─── */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {children}
 
         {/* ═══ MODULE 1: BENTO SPEC HIGHLIGHTS ═══ */}
         {bentoHighlights.length > 0 && (

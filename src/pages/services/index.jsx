@@ -3,7 +3,7 @@ import ServiceDetails from './ServiceDetails';
 import { serviceItems, serviceIconMap } from '../../data/servicesContent';
 import PageHero from '../../components/PageHero';
 
-const ACTIVE_SERVICE_IDS = ['real-estate-property', 'automobile', 'consumer-electronics', 'bedding-comfort'];
+const ACTIVE_SERVICE_IDS = ['real-estate-property', 'automobile', 'bedding-comfort'];
 
 function ServicesPage() {
   const { pathname } = useLocation();

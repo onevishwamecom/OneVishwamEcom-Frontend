@@ -6,50 +6,50 @@ const HERO_SLIDES = [
   {
     id: 'properties',
     category: 'Houses & Land',
-    title: 'Find Your Ideal Plot, Villa or Apartment',
-    subtitle: 'Verified residential plots, luxury flats, gated communities & prime commercial land across Bengaluru.',
+    title: 'Affordable Homes, Plots & Apartments in Bengaluru',
+    subtitle: 'Verified residential plots, budget-friendly flats, gated layouts & commercial spaces with easy loan support.',
     link: '/our-services/real-estate-property',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-house-chimney',
     ctaText: 'Explore Properties',
     disabled: false,
-    alt: 'Luxury villa and modern real estate property',
+    alt: 'Affordable homes, modern plots and apartments',
   },
   {
     id: 'automobile',
     category: 'Vehicles',
-    title: 'Premium Cars, Bikes & Commercial Vehicles',
-    subtitle: 'Brand-new and certified pre-owned vehicles with hassle-free loan approvals and verified dealers.',
+    title: 'Affordable Cars, Bikes & Commercial Vehicles',
+    subtitle: 'Quality new and verified pre-owned vehicles with low down payments, easy EMI options and trusted dealers.',
     link: '/our-services/automobile',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-car',
     ctaText: 'Explore Vehicles',
     disabled: false,
-    alt: 'Premium luxury vehicle on open road',
-  },
-  {
-    id: 'electronics',
-    category: 'Consumer Electronics',
-    title: 'Latest Smartphones, Laptops & Home Appliances',
-    subtitle: 'Top electronics brands, computers, smart 4K TVs & instant easy no-cost EMI payment schemes.',
-    link: '/our-services/consumer-electronics',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-tv',
-    ctaText: 'Explore Electronics',
-    disabled: false,
-    alt: 'Modern smartphones, tech gadgets and laptops',
+    alt: 'Affordable family cars, two-wheelers and commercial vehicles',
   },
   {
     id: 'bedding',
     category: 'Bedding & Comfort',
-    title: 'Luxury Mattresses, Pillows & Comfort Essentials',
-    subtitle: 'Ergonomic orthopedic mattresses, premium cotton bedsheets, duvets & pillows for restorative sleep.',
+    title: 'Affordable Mattresses, Pillows & Sleep Comfort',
+    subtitle: 'Comfortable orthopedic mattresses, bedsheets & pillows designed for great sleep at honest, budget-friendly prices.',
     link: '/our-services/bedding-comfort',
-    image: 'https://images.unsplash.com/photo-1540518614846-7ede433c4ef2?auto=format&fit=crop&w=1800&q=80',
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-bed',
     ctaText: 'Explore Bedding',
     disabled: false,
-    alt: 'Comfortable luxury bed and bedding',
+    alt: 'Comfortable and affordable mattress and bedding',
+  },
+  {
+    id: 'electronics',
+    category: 'Consumer Electronics',
+    title: 'Everyday Electronics, Mobiles & Home Appliances',
+    subtitle: 'Quality smartphones, laptops, smart TVs & home essentials with easy no-cost EMI and zero down payment.',
+    link: '/our-services/consumer-electronics',
+    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-tv',
+    ctaText: 'Coming Soon',
+    disabled: true,
+    alt: 'Affordable electronics, smartphones and laptops',
   },
 ];
 
@@ -110,9 +110,10 @@ export default function HeroSection() {
               aria-hidden={!active}
             >
               <Link
-                to={slide.link}
+                to={slide.disabled ? '#' : slide.link}
+                onClick={slide.disabled ? (e) => e.preventDefault() : undefined}
                 aria-label={`${slide.title} – ${slide.category}`}
-                className="relative block w-full h-full cursor-pointer"
+                className={`relative block w-full h-full ${slide.disabled ? 'cursor-default' : 'cursor-pointer'}`}
               >
                 {/* ── Image ── */}
                 <img

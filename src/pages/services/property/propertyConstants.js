@@ -39,7 +39,6 @@ export const FINANCE_INCENTIVES   = ['0% Processing Fee','Quick Approval','Flexi
 
 /* ── Initial State ── */
 export const INITIAL_FILTERS = {
-  budgetMin: '', budgetMax: '',
   sizeMin: '', sizeMax: '',
   buildingType: [], propertyType: [], bedrooms: [], localities: [],
   furnishing: [], gatedCommunity: false, postedBy: [], possessionStatus: [],
@@ -48,7 +47,7 @@ export const INITIAL_FILTERS = {
 };
 
 export const INITIAL_SECTIONS = {
-  budget: true, size: true, buildingType: true, propertyType: true,
+  size: true, buildingType: true, propertyType: true,
   bedrooms: true, localities: true, furnishing: true, gatedCommunity: true,
   loanAvailability: true,
   postedBy: true, possessionStatus: true, amenities: false, facing: false,
