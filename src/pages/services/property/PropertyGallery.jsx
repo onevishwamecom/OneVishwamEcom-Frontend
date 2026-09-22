@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import GalleryLocationBar from "../../../components/GalleryLocationBar";
 import { useLocation } from "../../../store/locationSlice";
 import { cities, getCityLabel } from "../../../data/locations";
 import { ActiveChip } from "../../../components/ui";
@@ -218,7 +217,7 @@ function PropertyGallery() {
 
   const goToPage = (p) => {
     setPage(Math.min(Math.max(1, p), totalPages));
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   /* ── Dynamic Size limits computed from listed properties ── */
@@ -293,7 +292,7 @@ function PropertyGallery() {
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <span className="text-brand-charcoal font-semibold">Real Estate Properties</span>
+              <span className="text-brand-charcoal font-semibold">Houses & Land</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -332,19 +331,9 @@ function PropertyGallery() {
           </div>
         </div>
 
-        {/* ── Top Location Filter Bar ── */}
-        <GalleryLocationBar
-          selectedArea={locationInput}
-          onAreaChange={(a) => {
-            setPage(1);
-            setLocationInput(a);
-          }}
-          className="mt-4"
-        />
-
-        {/* ── Stretched Modern Unified Search Bar ── */}
-        <div className="mt-4">
-          <div className="relative flex items-center w-full bg-white rounded-2xl border border-gray-200/90 shadow-sm hover:border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
+        {/* ── Stretched Modern Unified Search & Location Bar ── */}
+        <div className="mt-4 flex flex-col md:flex-row items-stretch gap-3">
+          <div className="relative flex-1 flex items-center w-full bg-white rounded-2xl border border-gray-200/90 shadow-sm hover:border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-4 focus-within:ring-brand-blue/10 transition-all duration-200">
             <i className="fa-solid fa-magnifying-glass absolute left-4 text-gray-400 text-sm pointer-events-none" />
             <input
               type="text"
@@ -354,7 +343,7 @@ function PropertyGallery() {
                 setSearchTerm(e.target.value);
               }}
               placeholder="Search properties by title, locality, builder, BHK (e.g. 3 BHK Whitefield, Prestige, Plot)..."
-              className="w-full bg-transparent pl-11 pr-10 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
+              className="w-full bg-transparent pl-11 pr-28 py-3.5 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
             />
             {searchTerm && (
               <button
@@ -363,11 +352,53 @@ function PropertyGallery() {
                   setPage(1);
                   setSearchTerm("");
                 }}
-                className="absolute right-4 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
+                className="absolute right-14 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
                 title="Clear search"
               >
                 <i className="fa-solid fa-circle-xmark text-sm" />
               </button>
+            )}
+            <div className="absolute right-3.5 hidden sm:flex items-center">
+              <span className="text-[11px] font-bold text-white bg-brand-blue px-3 py-1.5 rounded-xl shadow-xs">
+                Search
+              </span>
+            </div>
+          </div>
+
+          {/* Top Location Filter Selectors (City & Area) */}
+          <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200/90 px-4 py-3 text-sm shadow-sm hover:border-brand-blue/40 transition-all shrink-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-sm shrink-0" />
+            <select
+              value={selectedCity || ""}
+              onChange={(e) => {
+                selectCity(e.target.value);
+                setLocationInput("");
+                setPage(1);
+              }}
+              className="bg-transparent text-xs sm:text-sm font-semibold text-brand-charcoal outline-none cursor-pointer pr-1"
+            >
+              <option value="">All Cities</option>
+              {Object.entries(cities).map(([id, c]) => (
+                <option key={id} value={id}>{c.label}</option>
+              ))}
+            </select>
+            {selectedCity && cities[selectedCity]?.areas?.length > 0 && (
+              <>
+                <span className="text-gray-300">|</span>
+                <select
+                  value={locationInput}
+                  onChange={(e) => {
+                    setLocationInput(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-transparent text-xs sm:text-sm font-semibold text-brand-charcoal outline-none cursor-pointer max-w-[130px] truncate"
+                >
+                  <option value="">All Areas</option>
+                  {cities[selectedCity].areas.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </>
             )}
           </div>
         </div>
@@ -590,7 +621,7 @@ function PropertyGallery() {
             className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setShowMobileFilters(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl overflow-y-auto overscroll-contain flex flex-col">
+          <div className="absolute left-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl overflow-y-auto flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
               <div>
                 <h3 className="font-bold text-brand-charcoal">Filter Properties</h3>
@@ -603,7 +634,7 @@ function PropertyGallery() {
                 <i className="fa-solid fa-xmark text-sm" />
               </button>
             </div>
-            <div className="p-5 flex-1 overflow-y-auto overscroll-contain">
+            <div className="p-5 flex-1 overflow-y-auto">
               <PropertyFilterSidebar {...sidebarProps} />
             </div>
             <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
