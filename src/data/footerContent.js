@@ -7,9 +7,12 @@ export const footerSummary =
 
 export const footerQuickLinks = primaryNavigation;
 
-
 export const footerServiceLinks = [
   { label: 'Properties', href: '/our-services/real-estate-property' },
+  { label: 'Houses & Land', href: '/our-services/real-estate-property' },
+  { label: 'Vehicles', href: '/our-services/automobile' },
+  { label: 'Bedding & Comfort', href: '/our-services/bedding-comfort' },
+  { label: 'Consumer Electronics', href: '/our-services/consumer-electronics' },
 ];
 
 export const footerSocialLinks = [
@@ -62,31 +65,21 @@ export const GROUP_B_PROPERTY_TITLES = [
   'TRU Aquapolis',
   'North East Properties',
   'SWASTHIK VENTURES',
-  'Royal Kadhambas',
-  'Golden City',
-  'Nambiar District 25',
-  'DS-MAX Samyak',
-  'DS MAX Skysisira',
-  'The Urban Forest',
-  'Sindhoor Nature Pearl',
-  'Vasudha',
-  'Unique Enclave',
-  'Vinra Alora',
-  'Green Valley',
-  'Elite Gardenia',
-  'Giri Green Park Phase II',
-  'Pavani Park West',
-  'SLV Lakeview Apartment',
-  'Nandi Meadows',
-  'Shubha Shanthi Greens',
 ];
 
 export function getPropertyContactInfo(item) {
   if (!item) return contactInfo;
 
-  const propObj = typeof item === 'object' ? item : null;
+  let propObj = typeof item === 'object' ? item : null;
   const title = typeof item === 'string' ? item : (item.title || item.name || '');
   const tLower = title.toLowerCase().trim();
+
+  if (!propObj && tLower) {
+    propObj = dummyProperties.find((p) => {
+      const pTitle = (p.title || p.name || '').toLowerCase().trim();
+      return pTitle === tLower || pTitle.includes(tLower) || tLower.includes(pTitle);
+    }) || null;
+  }
 
   // 1. Channel Partner Override (Highest Priority)
   const cp = propObj ? (
@@ -141,26 +134,4 @@ export function getPropertyContactInfo(item) {
     return tLower.includes(gLower) || gLower.includes(tLower);
   });
   return isGroupB ? contactInfoGroupB : contactInfo;
-}
-
-export const getContactForProperty = getPropertyContactInfo;
-
-export function isGroupBProperty(propertyOrTitle) {
-  if (!propertyOrTitle) return false;
-  const title = typeof propertyOrTitle === 'string'
-    ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
-
-  const norm = title.trim().toLowerCase();
-  return GROUP_B_PROPERTY_TITLES.some((t) => t.trim().toLowerCase() === norm);
-}
-
-export function isVedantSuraksha(propertyOrTitle) {
-  if (!propertyOrTitle) return false;
-  const title = typeof propertyOrTitle === 'string'
-    ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
-
-  const norm = title.trim().toLowerCase();
-  return norm.includes('vedant suraksha');
 }

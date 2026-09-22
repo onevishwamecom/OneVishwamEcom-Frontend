@@ -198,7 +198,13 @@ export default React.memo(function CategoryListingCard({
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
           {/* Price */}
           <div className="min-w-0">
-            <span className="text-base sm:text-lg font-extrabold text-brand-charcoal leading-tight block truncate">
+            <span
+              className={`leading-tight block truncate ${
+                String(cardPrice).trim().toLowerCase() === 'this is negotiable'
+                  ? 'text-sm font-normal text-gray-500'
+                  : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
+              }`}
+            >
               {cardPrice}
             </span>
             {cardPriceSuffix && (

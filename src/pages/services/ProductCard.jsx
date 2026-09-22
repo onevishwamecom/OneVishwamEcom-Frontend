@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
+import { cleanProductName } from "../../utils/searchUtils";
 
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
@@ -92,7 +93,7 @@ export default React.memo(function ProductCard({
         <div className="min-h-[2.5rem] flex items-start">
           {title && (
             <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
-              {title}
+              {cleanProductName(title)}
             </h3>
           )}
         </div>
@@ -136,7 +137,13 @@ export default React.memo(function ProductCard({
             ) : (
               price && (
                 <div>
-                  <span className="text-base sm:text-lg font-extrabold text-brand-charcoal leading-tight block truncate">
+                  <span
+                    className={`leading-tight block truncate ${
+                      String(price).trim().toLowerCase() === 'this is negotiable'
+                        ? 'text-sm font-normal text-gray-500'
+                        : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
+                    }`}
+                  >
                     {price}
                   </span>
                   {priceSuffix && (
