@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import GalleryLocationBar from "../../../components/GalleryLocationBar";
 import { useLocation } from "../../../store/locationSlice";
 import { cities, getCityLabel } from "../../../data/locations";
 import { ActiveChip } from "../../../components/ui";
@@ -330,6 +331,16 @@ function PropertyGallery() {
             </div>
           </div>
         </div>
+
+        {/* ── Top Location Filter Bar ── */}
+        <GalleryLocationBar
+          selectedArea={locationInput}
+          onAreaChange={(a) => {
+            setPage(1);
+            setLocationInput(a);
+          }}
+          className="mt-4"
+        />
 
         {/* ── Stretched Modern Unified Search Bar ── */}
         <div className="mt-4">

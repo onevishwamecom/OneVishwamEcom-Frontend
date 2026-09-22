@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CategoryListingCard from './CategoryListingCard';
 import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
+import GalleryLocationBar from '../../GalleryLocationBar';
+import { useLocation } from '../../../store/locationSlice';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -159,12 +161,25 @@ export default function MarketplaceCategoryGallery({
     else navigate('/');
   };
 
+  const { selectedArea } = useLocation();
+
+  const filteredByAreaItems = useMemo(() => {
+    if (!selectedArea || selectedArea.trim() === '') return items;
+    const targetArea = selectedArea.toLowerCase().trim();
+    return items.filter((item) => {
+      const locStr = String(
+        item.location || item.city || item.area || item.locality || item.address || ''
+      ).toLowerCase();
+      return locStr.includes(targetArea);
+    });
+  }, [items, selectedArea]);
+
   // Pagination calculation
-  const totalPages = Math.ceil(items.length / perPage) || 1;
+  const totalPages = Math.ceil(filteredByAreaItems.length / perPage) || 1;
   const pageItems = useMemo(() => {
     const start = (currentPage - 1) * perPage;
-    return items.slice(start, start + perPage);
-  }, [items, currentPage, perPage]);
+    return filteredByAreaItems.slice(start, start + perPage);
+  }, [filteredByAreaItems, currentPage, perPage]);
 
   const goToPage = (n) => {
     setCurrentPage(n);
@@ -289,11 +304,14 @@ export default function MarketplaceCategoryGallery({
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs font-semibold text-gray-500 bg-white border border-gray-200/80 px-3 py-1.5 rounded-xl shadow-2xs">
                 <i className="fa-solid fa-layer-group mr-1.5 text-brand-blue" />
-                {items.length} Listing{items.length !== 1 ? 's' : ''} Available
+                {filteredByAreaItems.length} Listing{filteredByAreaItems.length !== 1 ? 's' : ''} Available
               </span>
             </div>
           </div>
         </div>
+
+        {/* ── Top Location Filter Bar ── */}
+        <GalleryLocationBar className="mt-4" />
 
         {/* ── Stretched Modern Unified Search Bar ── */}
         <div className="mt-4">
