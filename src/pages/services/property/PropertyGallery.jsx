@@ -354,7 +354,7 @@ function PropertyGallery() {
                 setSearchTerm(e.target.value);
               }}
               placeholder="Search properties by title, locality, builder, BHK (e.g. 3 BHK Whitefield, Prestige, Plot)..."
-              className="w-full bg-transparent pl-11 pr-28 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
+              className="w-full bg-transparent pl-11 pr-10 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
             />
             {searchTerm && (
               <button
@@ -363,17 +363,12 @@ function PropertyGallery() {
                   setPage(1);
                   setSearchTerm("");
                 }}
-                className="absolute right-14 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
+                className="absolute right-4 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
                 title="Clear search"
               >
                 <i className="fa-solid fa-circle-xmark text-sm" />
               </button>
             )}
-            <div className="absolute right-3.5 hidden sm:flex items-center">
-              <span className="text-[11px] font-bold text-white bg-brand-blue px-3 py-1.5 rounded-xl shadow-xs">
-                Search
-              </span>
-            </div>
           </div>
         </div>
 

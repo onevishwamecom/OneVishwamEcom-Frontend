@@ -304,6 +304,7 @@ export default function MarketplaceCategoryGallery({
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs font-semibold text-gray-500 bg-white border border-gray-200/80 px-3 py-1.5 rounded-xl shadow-2xs">
                 <i className="fa-solid fa-layer-group mr-1.5 text-brand-blue" />
+                {items.length} Listing{items.length !== 1 ? 's' : ''} Available
                 {filteredByAreaItems.length} Listing{filteredByAreaItems.length !== 1 ? 's' : ''} Available
               </span>
             </div>
@@ -325,7 +326,7 @@ export default function MarketplaceCategoryGallery({
                 if (onSearchChange) onSearchChange(e.target.value);
               }}
               placeholder={searchPlaceholder}
-              className="w-full bg-transparent pl-11 pr-28 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
+              className="w-full bg-transparent pl-11 pr-10 py-3.5 sm:py-4 text-sm font-medium text-brand-charcoal placeholder:text-gray-400 outline-none"
             />
             {searchTerm && (
               <button
@@ -334,17 +335,12 @@ export default function MarketplaceCategoryGallery({
                   setCurrentPage(1);
                   if (onSearchChange) onSearchChange('');
                 }}
-                className="absolute right-14 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
+                className="absolute right-4 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
                 title="Clear search"
               >
                 <i className="fa-solid fa-circle-xmark text-sm" />
               </button>
             )}
-            <div className="absolute right-3.5 hidden sm:flex items-center">
-              <span className="text-[11px] font-bold text-white bg-brand-blue px-3 py-1.5 rounded-xl shadow-xs">
-                Search
-              </span>
-            </div>
           </div>
         </div>
 
