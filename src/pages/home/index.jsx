@@ -84,7 +84,7 @@ function Home() {
   }
 
   return (
-    <div className='pt-16 lg:pt-14'>
+    <div>
       <HeroSection />
 
       {searchQuery && (
@@ -127,34 +127,6 @@ function Home() {
       )}
 
       <div className="bg-gray-50 pb-16 sm:pb-20">
-
-        {/* ── Activity Strip ── */}
-        <section className="bg-white border-b border-gray-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-center justify-between gap-6 overflow-x-auto py-3.5 text-xs sm:text-sm flex-nowrap scrollbar-thin">
-              <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                <i className="fa-solid fa-house-chimney text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">{stats.totalProperties || latestProperties.length}</span> properties listed
-              </span>
-              {!PROPERTIES_ONLY && (
-                <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                  <i className="fa-solid fa-car text-brand-blue text-sm" />
-                  <span className="font-semibold text-brand-charcoal">{stats.totalVehicles || latestVehicles.length}</span> vehicles listed
-                </span>
-              )}
-              {!PROPERTIES_ONLY && (
-                <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                  <i className="fa-solid fa-box text-brand-blue text-sm" />
-                  <span className="font-semibold text-brand-charcoal">{stats.totalGroceries || latestGroceries.length}</span> products listed
-                </span>
-              )}
-              <span className="flex items-center gap-1.5 text-gray-600 whitespace-nowrap">
-                <i className="fa-solid fa-users text-brand-blue text-sm" />
-                <span className="font-semibold text-brand-charcoal">250+</span> people visited today
-              </span>
-            </div>
-          </div>
-        </section>
 
         {/* ── Module 1: Dream Home ── */}
         <section className="relative overflow-hidden">

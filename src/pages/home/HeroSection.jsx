@@ -124,6 +124,7 @@ export default function HeroSection() {
                   }`}
                   loading={idx === 0 ? 'eager' : 'lazy'}
                   fetchPriority={idx === 0 ? 'high' : 'auto'}
+                  fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
 
@@ -217,6 +218,18 @@ export default function HeroSection() {
         >
           <i className="fa-solid fa-chevron-right text-xs" />
         </button>
+
+        {/* ── Floating Activity Stats (bottom-left) ── */}
+        <div className="absolute bottom-3 sm:bottom-5 left-4 sm:left-8 z-30 hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-brand-navy/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white/90 shadow-md">
+            <i className="fa-solid fa-house-chimney text-yellow-400 text-xs" />
+            <span><strong className="text-white font-bold">70</strong> properties added today</span>
+          </div>
+          <div className="flex items-center gap-2 bg-brand-navy/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white/90 shadow-md">
+            <i className="fa-solid fa-users text-blue-400 text-xs" />
+            <span><strong className="text-white font-bold">250+</strong> people visited today</span>
+          </div>
+        </div>
 
         {/* ── Indicators (bottom-right) ── */}
         <div className="absolute bottom-3 sm:bottom-5 right-4 sm:right-8 z-30 flex items-center gap-2 bg-brand-navy/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/15">

@@ -60,7 +60,7 @@ export default function CategoryGalleryTemplate({
   }, [items, currentSearch, currentPill, controlledSearch, selectedPill]);
 
   return (
-    <div className="pb-24 pt-16 lg:pt-14 bg-slate-50/50 min-h-screen">
+    <div className="pb-24 bg-slate-50/50 min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* ── Header Area ── */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-4 sm:py-6">

@@ -2,12 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import useLoanProducts from './useLoanProducts';
 import { resolveLoan } from './loanUtils';
-import { useAuth } from '../../../store/authSlice';
-import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 
 function LoanDetails() {
   const { pathname } = useLocation();
-  const { isLoggedIn } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);
@@ -22,16 +19,6 @@ function LoanDetails() {
   const [emiAmount, setEmiAmount] = useState(5000000);
   const [emiRate, setEmiRate] = useState(8.5);
   const [emiTenure, setEmiTenure] = useState(20);
-
-  if (!isLoggedIn) {
-    return (
-      <AuthRequiredView
-        title="Login to View Loan Details"
-        message="Please log in or create an account to view loan terms, bank interest comparisons, EMI options, and apply online."
-        backUrl="/our-services/finance-lending"
-      />
-    );
-  }
 
   const emiResult = useMemo(() => {
     const P = emiAmount;
@@ -57,8 +44,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <p className="mt-2 text-sm text-gray-500">{error}</p>
-        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</Link>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
@@ -67,7 +53,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <Link to="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Lending</Link>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
@@ -80,7 +66,7 @@ function LoanDetails() {
     <div className="pb-24 sm:pb-32">
       {/* ── Gradient Hero Banner ── */}
       <div className="bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 lg:pt-14 pb-12 sm:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-12 sm:pb-16">
           <Link to="/our-services/finance-lending"
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Loan Products
@@ -129,10 +115,10 @@ function LoanDetails() {
                     <p className="text-[11px] text-white/60 font-semibold">Open Slots</p>
                   </div>
                 </div>
-                <Link to="/contact-us/"
+                <a href="/contact-us/"
                   className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-4 py-3 text-sm font-bold text-brand-navy hover:bg-yellow-300 transition-colors shadow-sm">
                   <i className="fa-solid fa-bolt" /> Apply Now — Instant Approval
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -375,18 +361,18 @@ function LoanDetails() {
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <p className="text-sm font-bold text-brand-charcoal">Construction Loan</p>
                   <p className="text-xs text-gray-500">Disbursed in stages</p>
-                  <Link to="/contact-us/"
+                  <a href="/contact-us/"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
                     Enquire <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </Link>
+                  </a>
                 </div>
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <p className="text-sm font-bold text-brand-charcoal">NRI Loans</p>
                   <p className="text-xs text-gray-500">For non-resident Indians</p>
-                  <Link to="/our-services/finance-lending"
+                  <a href="/our-services/finance-lending"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
                     Explore <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -394,10 +380,10 @@ function LoanDetails() {
             <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue text-white p-6">
               <h3 className="text-lg font-bold">Ready to apply?</h3>
               <p className="mt-2 text-sm text-white/70">Get started with instant approval.</p>
-              <Link to="/contact-us/"
+              <a href="/contact-us/"
                 className="mt-4 inline-flex w-full items-center justify-center bg-yellow-400 px-6 py-3 rounded-xl font-semibold text-sm text-brand-navy hover:bg-yellow-300 transition-colors">
                 Apply Now
-              </Link>
+              </a>
             </div>
           </div>
         </div>

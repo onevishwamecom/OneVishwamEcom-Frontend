@@ -29,12 +29,13 @@ function ServiceDetails({ service }) {
   if (service.id === 'consumer-electronics') return <Suspense fallback={galleryFallback}><ElectronicsGallery /></Suspense>;
   if (service.id === 'bedding-comfort') return <Suspense fallback={galleryFallback}><BeddingGallery /></Suspense>;
   if (service.id === 'jewellery-gold') return <Suspense fallback={galleryFallback}><JewelleryGallery /></Suspense>;
+  if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
   if (service.id === 'consumer-marketplace') return <Suspense fallback={galleryFallback}><GroceryGallery /></Suspense>;
   if (service.id === 'garments-fashion-lifestyle') return <Suspense fallback={galleryFallback}><GarmentGallery /></Suspense>;
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
 
   return (
-    <div className="pt-16 lg:pt-14">
+    <div>
       <PageHero
         eyebrow="Service Details"
         title={service.title}

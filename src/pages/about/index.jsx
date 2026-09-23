@@ -53,7 +53,7 @@ const ROADMAP_STEPS = [
 
 function AboutPage() {
   return (
-    <div className="pt-16 lg:pt-14 bg-white">
+    <div className="bg-white">
       {/* ── 1. Hero ── */}
       <PageHero
         eyebrow="About OneVishwam"
