@@ -7,6 +7,8 @@ import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
+import VerticalRibbonBar from './VerticalRibbonBar';
+import HitCounterBanner from './HitCounterBanner';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -254,7 +256,8 @@ function Navbar() {
 
   return (
     <div>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'}`}>
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-md' : 'bg-white shadow-xs'}`}>
+        <HitCounterBanner />
         <div className="max-w-[1400px] mx-auto px-4">
           <div className="flex items-center justify-between h-16 lg:h-14">
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
@@ -479,6 +482,7 @@ function Navbar() {
             </button>
           </div>
         </div>
+        <VerticalRibbonBar />
       </header>
 
       {/* Mobile overlay */}
@@ -596,8 +600,6 @@ function Navbar() {
               </div>
             )}
           </div>
-
-
         </nav>
       </div>
     </div>

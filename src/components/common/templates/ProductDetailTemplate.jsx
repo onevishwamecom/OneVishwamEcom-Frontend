@@ -77,7 +77,7 @@ export default function ProductDetailTemplate({
   const sellerWhatsApp = item.seller?.whatsapp || sellerPhone;
 
   return (
-    <div className="pb-24 pt-16 lg:pt-14 bg-slate-50/50 min-h-screen">
+    <div className="pb-24 bg-slate-50/50 min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* ── Top Bar: Back Link + Quick Actions ── */}
         <div className="flex items-center justify-between py-4">
@@ -286,7 +286,7 @@ export default function ProductDetailTemplate({
                   Listed Price
                 </span>
                 <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-slate-500" : "text-3xl font-extrabold text-slate-900 tracking-tight"}>
                     {item.price}
                   </span>
                   {item.priceSubtext && (

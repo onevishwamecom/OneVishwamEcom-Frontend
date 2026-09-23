@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
+import { getNumericPrice } from '../../../utils/formatters';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, getNumericPrice, formatPropertyDisplayPrice } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
+import { cleanProductName } from '../../../utils/searchUtils';
 import EnquiryModal from '../../../components/EnquiryModal';
 import oneVishwamLogo from '../../../assets/logo.png';
 
@@ -43,20 +45,12 @@ const AMENITY_ICONS = {
   'Wi-Fi': 'fa-wifi',
 };
 
-const PROPERTY_FALLBACK_IMG =
-  'data:image/svg+xml,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f8fafc"/><path fill="#cbd5e1" d="M360 260h80v-20l-40-40-40 40v20zm-40 80h160v-80l-60-60-40 40-20-20-40 40v80z"/><text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="22" font-weight="600">Property Preview</text></svg>`
-  );
-
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
   { key: 'area', label: 'Super Built-up Area', icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' },
-  { key: 'facing', label: 'Facing Direction', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'facing', label: 'Door Facing', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'isCornerPlot', label: 'Corner Site / Plot', icon: 'fa-draw-polygon', color: 'text-purple-600 bg-purple-50' },
   { key: 'status', label: 'Possession Status', icon: 'fa-key', color: 'text-purple-600 bg-purple-50' },
-  { key: 'floors', label: 'Floors / Structure', icon: 'fa-building', color: 'text-sky-600 bg-sky-50' },
-  { key: 'towers', label: 'Towers', icon: 'fa-city', color: 'text-indigo-600 bg-indigo-50' },
-  { key: 'approval', label: 'Approval Authority', icon: 'fa-stamp', color: 'text-blue-600 bg-blue-50' },
   { key: 'furnishing', label: 'Furnishing State', icon: 'fa-couch', color: 'text-indigo-600 bg-indigo-50' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath', color: 'text-cyan-600 bg-cyan-50' },
   { key: 'floor', label: 'Floor Level', icon: 'fa-layer-group', color: 'text-rose-600 bg-rose-50' },
@@ -176,14 +170,14 @@ function PropertyCard({ property }) {
             {property.propertyType || 'Property'}
           </span>
           <h4 className="text-sm font-bold text-brand-charcoal leading-snug line-clamp-1 group-hover:text-brand-blue transition-colors">
-            {property.title}
+            {cleanProductName(property.title)}
           </h4>
           <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
             <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" /> {property.location || property.city}
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
-              <span className="text-base font-extrabold text-brand-charcoal">{display.price}</span>
+              <span className={display.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-base font-extrabold text-brand-charcoal"}>{display.price}</span>
               {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
             </div>
             {property.bhk && <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">{property.bhk}</span>}
@@ -223,6 +217,7 @@ export default function PropertyDetails() {
     const display = formatPropertyDisplayPrice(rawProperty);
     return {
       ...rawProperty,
+      title: cleanProductName(rawProperty.title),
       price: display.price,
       priceSuffix: display.priceSuffix,
     };
@@ -278,14 +273,11 @@ export default function PropertyDetails() {
   }, [propertySlug]);
 
   useEffect(() => {
-    let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        window.requestAnimationFrame(() => {
-          setScrolledPastHero(window.scrollY > 450);
-          ticking = false;
-        });
+      if (window.scrollY > 450) {
+        setScrolledPastHero(true);
+      } else {
+        setScrolledPastHero(false);
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -317,18 +309,12 @@ export default function PropertyDetails() {
     }
   };
 
-  const resolvedVideoUrl =
-    property?.videoUrl ||
-    property?.video ||
-    (Array.isArray(property?.videos) && property.videos.find((v) => typeof v === 'string' && v.trim())) ||
-    null;
-
   const hasVideo = Boolean(
-    resolvedVideoUrl &&
-    typeof resolvedVideoUrl === 'string' &&
-    resolvedVideoUrl.trim() !== '' &&
-    !resolvedVideoUrl.startsWith('WhatsApp') &&
-    !resolvedVideoUrl.includes('youtu')
+    property?.videoUrl &&
+    typeof property.videoUrl === 'string' &&
+    property.videoUrl.trim() !== '' &&
+    !property.videoUrl.startsWith('WhatsApp') &&
+    !property.videoUrl.includes('youtu')
   );
 
   const floorPlanImages = useMemo(() => {
@@ -339,22 +325,13 @@ export default function PropertyDetails() {
     return [];
   }, [property]);
 
-  const pdfUrl =
-    property?.brochure ||
-    property?.pdfUrl ||
-    property?.floorPlanPdf ||
-    property?.pdf ||
-    (Array.isArray(property?.documents) && property.documents[0]?.url) ||
-    null;
+  const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
-  const rawImages = (property?.images || []).filter(Boolean);
   const mediaItems = property
     ? [
-        ...(rawImages.length > 0
-          ? rawImages.map((img) => ({ type: 'image', url: img }))
-          : [{ type: 'image', url: property.image || PROPERTY_FALLBACK_IMG }]),
-        ...(hasVideo ? [{ type: 'video', url: resolvedVideoUrl }] : []),
+        ...(property.images || []).filter(Boolean).map((img) => ({ type: 'image', url: img })),
+        ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
       ]
     : [];
 
@@ -403,7 +380,7 @@ export default function PropertyDetails() {
             onClick={goBack}
             className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
           >
-            &larr; Back to Real Estate
+            &larr; Back to Houses & Land
           </button>
         </div>
       </div>
@@ -444,14 +421,14 @@ export default function PropertyDetails() {
     if (meta.key === 'bhk' && isPlot) return null;
     let value = property[meta.key];
     if (meta.key === 'facing' && property.facing) value = property.facing;
+    if (meta.key === 'isCornerPlot') {
+      value = isCornerProperty(property) ? (isPlot ? 'Yes (Corner Site Available)' : 'Yes (Corner Plot Available)') : null;
+    }
     if (meta.key === 'area' && value) {
       value = String(value).split('·')[0].trim();
     }
-    if (meta.key === 'approval' && property.approval) {
-      value = `${property.approval} Approved`;
-    }
     if (meta.key === 'status') {
-      value = property.possession || statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
+      value = statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
     }
     if (!value || value === 'N/A' || value === '') return null;
 
@@ -511,7 +488,7 @@ export default function PropertyDetails() {
 
       {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
       <div
-        className={`fixed top-14 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
+        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
           scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -527,7 +504,7 @@ export default function PropertyDetails() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className="text-sm font-extrabold text-brand-charcoal">{property.price}</span>
+              <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{property.price}</span>
               {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
             </div>
             <button
@@ -549,17 +526,17 @@ export default function PropertyDetails() {
       </div>
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
-      <div className="bg-white border-b border-gray-100 pt-16 lg:pt-14">
+      <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-gray-500">
               <button onClick={goBack} className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline">
-                <i className="fa-solid fa-arrow-left" /> Back to Properties
+                <i className="fa-solid fa-arrow-left" /> Back
               </button>
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Real Estate</Link>
+              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Houses & Land</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{property.title}</span>
             </div>
@@ -608,6 +585,16 @@ export default function PropertyDetails() {
                 {property.recentlyAdded && (
                   <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5">
                     New Listing
+                  </span>
+                )}
+                {property.facing && (
+                  <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-compass text-amber-600 text-[10px]" /> Door Facing: {property.facing}
+                  </span>
+                )}
+                {isCornerProperty(property) && (
+                  <span className="rounded-full bg-purple-50 text-purple-800 border border-purple-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-draw-polygon text-purple-600 text-[10px]" /> {isPlot ? 'Corner Site' : 'Corner Plot'}
                   </span>
                 )}
               </div>
@@ -662,7 +649,7 @@ export default function PropertyDetails() {
 
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                  <span className={property.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
                     {property.price}
                   </span>
                   {property.priceSuffix && (
@@ -830,31 +817,23 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          {(() => {
-            const desc = property.details || property.description || '';
-            if (!desc) return null;
-            return (
-              <>
-                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
-                  <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
-                    {showFullDesc || desc.length < 350
-                      ? desc
-                      : desc.slice(0, 350) + '...'}
-                  </p>
-                </div>
+          <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
+            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {showFullDesc || !property.description || property.description.length < 350
+                ? property.description
+                : property.description.slice(0, 350) + '...'}
+            </p>
+          </div>
 
-                {desc.length > 350 && (
-                  <button
-                    onClick={() => setShowFullDesc(!showFullDesc)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
-                  >
-                    {showFullDesc ? 'Show Less' : 'Read Full Description'}
-                    <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
-                  </button>
-                )}
-              </>
-            );
-          })()}
+          {property.description && property.description.length > 350 && (
+            <button
+              onClick={() => setShowFullDesc(!showFullDesc)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
+            >
+              {showFullDesc ? 'Show Less' : 'Read Full Description'}
+              <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
+            </button>
+          )}
 
           {/* Quick tags / attributes */}
           <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
@@ -1058,7 +1037,7 @@ export default function PropertyDetails() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-white/80 max-w-xl">
-                Get direct pricing, unit selection, site visit scheduling, and official documentation assistance through OneVishwam.
+                Get direct pricing, unit selection, site visit scheduling, and documentation assistance through OneVishwam.
               </p>
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
@@ -1149,7 +1128,7 @@ export default function PropertyDetails() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className="text-base font-extrabold text-brand-charcoal leading-tight">{property.price}</span>
+            <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{property.price}</span>
           </div>
           <div className="flex items-center gap-2">
             <button

@@ -4,6 +4,7 @@ import EnquiryModal from '../../EnquiryModal';
 import CategoryListingCard from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { cleanProductName } from '../../../utils/searchUtils';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
   ? new URL(import.meta.env.VITE_API_BASE_URL).origin
@@ -280,6 +281,7 @@ export default function MasterDetailPage({
     );
   }
 
+  const itemTitle = cleanProductName(item.title);
   const activeContact = getPropertyContactInfo(item.title);
   const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
 
@@ -324,7 +326,7 @@ export default function MasterDetailPage({
   ];
 
   // Specification Sections normalization
-  const specSections = item.specifications || item.specs || [];
+  const specSections = item.specifications || [];
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
@@ -350,7 +352,7 @@ export default function MasterDetailPage({
 
       {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
       <div
-        className={`fixed top-14 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
+        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
           scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -361,12 +363,13 @@ export default function MasterDetailPage({
             </button>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-brand-charcoal truncate">{item.title}</h4>
+              <h4 className="text-sm font-bold text-brand-charcoal truncate">{itemTitle}</h4>
               <p className="text-xs text-gray-500 truncate">{item.location || item.city}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className="text-sm font-extrabold text-brand-charcoal">{item.price}</span>
+              <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{item.price}</span>
               {item.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>}
             </div>
             <button
@@ -388,7 +391,7 @@ export default function MasterDetailPage({
       </div>
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
-      <div className="bg-white border-b border-gray-100 pt-16 lg:pt-14">
+      <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-gray-500">
@@ -401,6 +404,7 @@ export default function MasterDetailPage({
               <Link to={categoryLink} className="hover:text-brand-blue">{categoryName}</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{item.title}</span>
+              <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{itemTitle}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -463,6 +467,7 @@ export default function MasterDetailPage({
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-charcoal tracking-tight leading-tight">
                 {item.title}
+                {itemTitle}
               </h1>
 
               {item.subtitle && (
@@ -517,7 +522,7 @@ export default function MasterDetailPage({
 
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
                     {item.price}
                   </span>
                   {item.priceSuffix && (
@@ -767,13 +772,13 @@ export default function MasterDetailPage({
                 <div key={secIdx} className="rounded-2xl border border-gray-100 bg-gray-50/60 overflow-hidden">
                   <div className="bg-gray-100/80 px-4 py-3 border-b border-gray-200/60">
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-charcoal">
-                      {sec.title || sec.groupName}
+                      {sec.title}
                     </h3>
                   </div>
                   <div className="divide-y divide-gray-100 p-2">
                     {sec.items.map((it, itIdx) => (
                       <div key={itIdx} className="flex justify-between items-center py-2 px-3 text-xs">
-                        <span className="font-semibold text-gray-500">{it.label || it.key}</span>
+                        <span className="font-semibold text-gray-500">{it.label}</span>
                         <span className="font-bold text-brand-charcoal text-right">{it.value}</span>
                       </div>
                     ))}
@@ -969,7 +974,7 @@ export default function MasterDetailPage({
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className="text-base font-extrabold text-brand-charcoal leading-tight">{item.price}</span>
+            <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{item.price}</span>
           </div>
           <div className="flex items-center gap-2">
             <button

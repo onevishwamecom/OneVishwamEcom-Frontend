@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { navigateTo } from '../../../config/navigation';
+import { cleanProductName } from '../../../utils/searchUtils';
 
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
@@ -40,18 +41,19 @@ export default React.memo(function CategoryListingCard({
   const [faved, setFaved] = useState(false);
 
   // Normalize data
-  const cardTitle = item?.title || title || '';
+  const rawTitle = title !== undefined ? title : (item?.title || '');
+  const cardTitle = cleanProductName(rawTitle);
   const cardLink = link || item?.link || (item?.id ? `/property/${item.id}` : '#');
   const cardImg = image || item?.images?.[0] || item?.image || '';
-  const cardPrice = item?.price || price || 'Price on Request';
-  const cardPriceSuffix = item?.priceSuffix || priceSuffix || '';
-  const cardLocation = item?.location || location || '';
-  const cardPincode = item?.pincode || pincode || '';
-  const cardOverline = overline || item?.category || item?.brand || item?.propertyType || '';
+  const cardPrice = price !== undefined ? price : (item?.price || 'Price on Request');
+  const cardPriceSuffix = priceSuffix !== undefined ? priceSuffix : (item?.priceSuffix || '');
+  const cardLocation = location !== undefined ? location : (item?.location || '');
+  const cardPincode = pincode !== undefined ? pincode : (item?.pincode || '');
+  const cardOverline = overline !== undefined ? overline : (item?.category || item?.brand || item?.propertyType || '');
 
-  // Badges
-  const rawBadges = item?.statusBadges || statusBadges || item?.badges || [];
-  const badges = rawBadges.map((b) => {
+  // Badges (max 2 badges to keep cards clean and prevent crowding)
+  const rawBadges = statusBadges !== undefined ? statusBadges : (item?.statusBadges || item?.badges || []);
+  const badges = (rawBadges || []).slice(0, 2).map((b) => {
     if (typeof b === 'string') return { label: b, className: 'bg-brand-blue text-white' };
     let cls = b.className;
     if (!cls) {
@@ -64,15 +66,17 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
-  // 3 Attribute Pills (cardPills)
-  const pills = (item?.cardPills || cardPills || item?.keyAttributes || keyAttributes || []).slice(0, 3);
+  // Attribute Pills (cardPills) - max 3 pills to keep card neat and avoid line-wrapping clutter
+  const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
+  const pills = (rawPills || []).slice(0, 3);
 
   // Trust highlight banner
   const bannerText =
-    highlightBanner ||
-    item?.highlightBanner ||
-    item?.trustBannerText ||
-    (item?.loanApproved ? '100% Pre-Approved Loan Available' : null);
+    highlightBanner !== undefined
+      ? highlightBanner
+      : (item?.highlightBanner ||
+        item?.trustBannerText ||
+        (item?.loanApproved ? '100% Pre-Approved Loan Available' : null));
 
   const handleClick = () => {
     if (onSelect) {
@@ -112,11 +116,11 @@ export default React.memo(function CategoryListingCard({
 
         {/* Top-Left Badges */}
         {badges.length > 0 && (
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 z-10 max-w-[calc(100%-3.25rem)] overflow-hidden">
             {badges.map((b, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap ${b.className}`}
               >
                 {b.label}
               </span>
@@ -172,11 +176,21 @@ export default React.memo(function CategoryListingCard({
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {pills.map((pill, idx) => {
               const label = typeof pill === 'string' ? pill : `${pill.label ? `${pill.label}: ` : ''}${pill.value}`;
+              const isFacing = label.toLowerCase().includes('facing');
+              const isCorner = label.toLowerCase().includes('corner');
               return (
                 <span
                   key={idx}
-                  className="bg-gray-100 text-gray-700 font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full"
+                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1 ${
+                    isCorner
+                      ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
+                      : isFacing
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
                 >
+                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-[10px]" />}
+                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-[10px]" />}
                   {label}
                 </span>
               );
@@ -228,4 +242,3 @@ export default React.memo(function CategoryListingCard({
     </div>
   );
 });
-

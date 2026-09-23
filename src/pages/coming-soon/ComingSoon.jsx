@@ -38,7 +38,7 @@ export default function ComingSoon() {
   const sector = SECTORS[sectorKey] || DEFAULT_SECTOR;
 
   return (
-    <div className="min-h-screen bg-brand-gray pt-16 lg:pt-14 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-gray flex items-center justify-center px-4">
         <div className="max-w-lg w-full text-center">
 
           {/* Icon */}
