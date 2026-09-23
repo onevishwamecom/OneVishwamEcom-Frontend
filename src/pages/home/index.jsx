@@ -84,7 +84,7 @@ function Home() {
   }
 
   return (
-    <div className='pt-16 lg:pt-14'>
+    <div>
       <HeroSection />
 
       {searchQuery && (
