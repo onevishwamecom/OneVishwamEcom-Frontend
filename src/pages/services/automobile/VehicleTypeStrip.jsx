@@ -1,4 +1,19 @@
+import CategoryPillStrip from '../../../components/common/CategoryPillStrip';
+
+/**
+ * Vehicle-type pill strip built on CategoryPillStrip.
+ */
 export default function VehicleTypeStrip({ types, selected, stats, onSelect }) {
+  const items = types.map((ct) => {
+    const st = stats?.[ct.id];
+    return {
+      id: ct.id,
+      icon: ct.icon,
+      label: ct.label,
+      count: ct.id !== 'All' && st !== undefined ? `${st} units` : undefined,
+    };
+  });
+
   return (
     <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
       {types.map((ct) => {
@@ -27,5 +42,10 @@ export default function VehicleTypeStrip({ types, selected, stats, onSelect }) {
         );
       })}
     </div>
+    <CategoryPillStrip
+      items={items}
+      selected={selected}
+      onSelect={onSelect}
+    />
   );
 }

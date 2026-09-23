@@ -10,6 +10,11 @@ import SearchSortBar from '../../../components/SearchSortBar';
 import FilterSidebar from '../../../components/FilterSidebar';
 import MobileFilterDrawer from '../../../components/MobileFilterDrawer';
 import SlideinPanel from '../../../components/SlideinPanel';
+import PageContainer from '../../../components/common/PageContainer';
+import PageHeader from '../../../components/common/PageHeader';
+import CategoryPillStrip from '../../../components/common/CategoryPillStrip';
+import EmptyStateCard from '../../../components/common/EmptyStateCard';
+import FloatingActionButton from '../../../components/common/FloatingActionButton';
 
 const CATEGORIES = [
   { id: 'All',                icon: 'fa-basket-shopping', label: 'All' },
@@ -175,8 +180,17 @@ function GroceryGallery() {
     </FilterSidebar>
   );
 
+  const categoryPillItems = useMemo(() => CATEGORIES.map((ct) => ({
+    id: ct.id,
+    icon: ct.icon,
+    label: ct.label,
+    count: ct.id === 'All' ? dummyGrocery.length
+      : ct.id === 'Organic' ? organicCount
+      : dummyGrocery.filter((p) => p.category === ct.id).length,
+  })), [organicCount]);
+
   return (
-    <div className="pb-24 pt-16 lg:pt-14 relative">
+    <div className="pb-24 pt-4 sm:pt-6 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">
@@ -192,6 +206,13 @@ function GroceryGallery() {
             </p>
           </div>
         </div>
+    <PageContainer>
+      {/* ── Page Header ── */}
+      <PageHeader
+        eyebrow="OneVishwam · Groceries & Daily Needs"
+        title="Groceries & Daily Needs"
+        subtitle="Fresh produce, dairy, grains, spices, and packaged goods — delivered to your doorstep."
+      />
 
         {/* ── Category Pill Strip ── */}
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -216,6 +237,12 @@ function GroceryGallery() {
             );
           })}
         </div>
+      {/* ── Category Pill Strip ── */}
+      <CategoryPillStrip
+        items={categoryPillItems}
+        selected={activeCategory}
+        onSelect={setActiveCategory}
+      />
 
         {/* ── Search + Sort ── */}
         <SearchSortBar
@@ -233,7 +260,7 @@ function GroceryGallery() {
         {/* ── Main Layout ── */}
         <div className="mt-6 flex gap-8">
           <aside className="hidden lg:block w-72 shrink-0">
-            <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
+            <div className="lg:sticky lg:top-[132px] lg:self-start max-h-[calc(100vh-9.5rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
               {filterContent}
             </div>
           </aside>
@@ -268,6 +295,17 @@ function GroceryGallery() {
                 <p className="text-lg font-medium">No items found.</p>
                 <p className="text-sm mt-1">Try adjusting your filters.</p>
               </div>
+              <EmptyStateCard
+                icon="fa-basket-shopping"
+                title="No items found."
+                subtitle="Try adjusting your filters or search terms."
+                onReset={() => {
+                  setActiveCategory('All');
+                  setSearchTerm('');
+                  setSortBy('relevance');
+                  setFilters({ organic: false, inStock: false, aiOnly: false, brand: '', locality: '', budgetMin: '', budgetMax: '' });
+                }}
+              />
             )}
           </div>
         </div>
@@ -290,6 +328,11 @@ function GroceryGallery() {
           <i className="fa-solid fa-cart-shopping" />
           Cart ({cartCount})
         </button>
+        <FloatingActionButton
+          icon="fa-cart-shopping"
+          label={`Cart (${cartCount})`}
+          onClick={() => setShowCart(true)}
+        />
       )}
 
       {/* Cart Slide-in Panel */}
@@ -326,6 +369,7 @@ function GroceryGallery() {
       </SlideinPanel>
 
     </div>
+    </PageContainer>
   );
 }
 

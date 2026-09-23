@@ -278,7 +278,7 @@ function PropertyGallery() {
 
   /* ── Render ── */
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-24 pt-16 lg:pt-14 relative">
+    <div className="min-h-screen bg-[#f8fafc] pb-24 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* ── Top Navigation & Title Bar ── */}
@@ -464,7 +464,7 @@ function PropertyGallery() {
         <div className="mt-4 flex gap-6">
           {/* Desktop Filter Sidebar */}
           <aside className="hidden lg:block w-72 shrink-0">
-            <div className="lg:sticky lg:top-20 lg:self-start max-h-[calc(100vh-6rem)] overflow-y-auto rounded-3xl border border-gray-200/80 bg-white p-5 shadow-xs scrollbar-hide">
+            <div className="lg:sticky lg:top-[132px] lg:self-start max-h-[calc(100vh-9.5rem)] overflow-y-auto rounded-3xl border border-gray-200/80 bg-white p-5 shadow-xs scrollbar-hide">
               <PropertyFilterSidebar {...sidebarProps} />
             </div>
           </aside>

@@ -1,8 +1,21 @@
+import CategoryPillStrip from '../../../components/common/CategoryPillStrip';
+
 /**
  * Compact horizontal scrollable property-type pill strip.
  * Single row on all breakpoints — no wrapping, no overflow grid.
+ * Property-type pill strip built on CategoryPillStrip.
  */
 export default function PropertyTypeStrip({ types, selected, stats, onSelect }) {
+  const items = types.map((ct) => {
+    const st = stats?.[ct.id];
+    return {
+      id: ct.id,
+      icon: ct.icon,
+      label: ct.label,
+      count: ct.id !== 'All' && st ? `${st.projects}P · ${st.sites}S` : undefined,
+    };
+  });
+
   return (
     <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
       {types.map((ct) => {
@@ -31,5 +44,10 @@ export default function PropertyTypeStrip({ types, selected, stats, onSelect }) 
         );
       })}
     </div>
+    <CategoryPillStrip
+      items={items}
+      selected={selected}
+      onSelect={onSelect}
+    />
   );
 }

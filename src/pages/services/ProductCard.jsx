@@ -120,7 +120,6 @@ export default React.memo(function ProductCard({
                 <span
                   key={i}
                   className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1 ${
-                    isFacing
                     isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing

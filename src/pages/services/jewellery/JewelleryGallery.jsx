@@ -11,6 +11,11 @@ import SearchSortBar from "../../../components/SearchSortBar";
 import FilterSidebar from "../../../components/FilterSidebar";
 import MobileFilterDrawer from "../../../components/MobileFilterDrawer";
 import SlideinPanel from "../../../components/SlideinPanel";
+import PageContainer from "../../../components/common/PageContainer";
+import PageHeader from "../../../components/common/PageHeader";
+import CategoryPillStrip from "../../../components/common/CategoryPillStrip";
+import EmptyStateCard from "../../../components/common/EmptyStateCard";
+import FloatingActionButton from "../../../components/common/FloatingActionButton";
 
 const CATEGORIES = [
   { id: "All", icon: "fa-gem", label: "All" },
@@ -272,8 +277,15 @@ function JewelleryGallery() {
     </FilterSidebar>
   );
 
+  const categoryPillItems = useMemo(() => CATEGORIES.map((ct) => ({
+    id: ct.id,
+    icon: ct.icon,
+    label: ct.label,
+    count: ct.id === "All" ? jewellery.length : jewellery.filter((p) => p.category === ct.id).length,
+  })), [jewellery]);
+
   return (
-    <div className="pb-24 pt-16 lg:pt-14 relative">
+    <div className="pb-24 pt-4 sm:pt-6 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">
@@ -290,6 +302,13 @@ function JewelleryGallery() {
             </p>
           </div>
         </div>
+    <PageContainer>
+      {/* ── Page Header ── */}
+      <PageHeader
+        eyebrow="OneVishwam · Jewellery & Gold"
+        title="Jewellery & Gold"
+        subtitle="Gold, silver, diamond, platinum, and gemstone jewellery — certified, hallmarked, and crafted to perfection."
+      />
 
         {/* ── Category Pill Strip ── */}
         <div className="mt-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -324,6 +343,12 @@ function JewelleryGallery() {
             );
           })}
         </div>
+      {/* ── Category Pill Strip ── */}
+      <CategoryPillStrip
+        items={categoryPillItems}
+        selected={activeCategory}
+        onSelect={setActiveCategory}
+      />
 
         {/* ── Search + Sort ── */}
         <SearchSortBar
@@ -344,7 +369,7 @@ function JewelleryGallery() {
         {/* ── Main Layout ── */}
         <div className="mt-6 flex gap-8">
           <aside className="hidden lg:block w-72 shrink-0">
-            <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
+            <div className="lg:sticky lg:top-[132px] lg:self-start max-h-[calc(100vh-9.5rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
               {filterContent}
             </div>
           </aside>
@@ -440,6 +465,12 @@ function JewelleryGallery() {
                 <p className="text-lg font-medium">No items found.</p>
                 <p className="text-sm mt-1">Try adjusting your filters.</p>
               </div>
+              <EmptyStateCard
+                icon="fa-gem"
+                title="No items found."
+                subtitle="Try adjusting your filters or search terms."
+                onReset={resetFilters}
+              />
             )}
           </div>
         </div>
@@ -458,12 +489,16 @@ function JewelleryGallery() {
       {/* Enquiry Cart FAB */}
       {enquiryCart.length > 0 && (
         <button
+        <FloatingActionButton
+          icon="fa-cart-shopping"
+          label={`Enquiry (${enquiryCart.length})`}
           onClick={() => setShowCart(true)}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-brand-blue px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-blue-700 transition-all"
         >
           <i className="fa-solid fa-cart-shopping" />
           Enquiry ({enquiryCart.length})
         </button>
+        />
       )}
 
       {/* Enquiry Cart Slide-in */}
@@ -517,6 +552,7 @@ function JewelleryGallery() {
         ))}
       </SlideinPanel>
     </div>
+    </PageContainer>
   );
 }
 

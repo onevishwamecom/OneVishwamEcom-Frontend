@@ -7,6 +7,10 @@ import FinanceCard from './FinanceCard';
 import FinanceFilterSidebar from './FinanceFilterSidebar';
 import { FINANCE_TABS, INITIAL_FILTERS, INITIAL_SECTIONS } from './financeConstants';
 import { useTabStats, useActiveChips, useFilteredServices } from './financeHooks';
+import PageContainer from '../../../components/common/PageContainer';
+import PageHeader from '../../../components/common/PageHeader';
+import CategoryPillStrip from '../../../components/common/CategoryPillStrip';
+import EmptyStateCard from '../../../components/common/EmptyStateCard';
 
 function FinanceGallery() {
   const [activeTab, setActiveTab] = useState('All');
@@ -66,8 +70,15 @@ function FinanceGallery() {
   const cityAreas = filters.city ? (cities[filters.city]?.areas || []) : [];
   const noCityMessage = !filters.city;
 
+  const financeTabItems = useMemo(() => FINANCE_TABS.map((tab) => ({
+    id: tab.id,
+    icon: tab.icon,
+    label: tab.label,
+    count: tab.id === 'All' ? services.length : (tabStats[tab.id] || 0),
+  })), [services.length, tabStats]);
+
   return (
-    <div className="pb-24 pt-16 lg:pt-14">
+    <div className="pb-24 pt-4 sm:pt-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* ── Page Header ── */}
         <div className="flex items-end justify-between">
@@ -85,6 +96,13 @@ function FinanceGallery() {
           </div>
          
         </div>
+    <PageContainer>
+      {/* ── Page Header ── */}
+      <PageHeader
+        eyebrow="OneVishwam · Finance"
+        title="Finance & Loans"
+        subtitle="Find trusted financial services, loans, insurance, and investment options near you."
+      />
 
         {/* ── Category Tabs ── */}
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -108,6 +126,13 @@ function FinanceGallery() {
             );
           })}
         </div>
+      {/* ── Category Tabs ── */}
+      <CategoryPillStrip
+        items={financeTabItems}
+        selected={activeTab}
+        onSelect={setActiveTab}
+        className="mt-6"
+      />
 
         {/* ── Search & Sort Bar ── */}
         <div className="mt-5 flex items-center gap-3">
@@ -198,6 +223,12 @@ function FinanceGallery() {
                   Reset Filters
                 </button>
               </div>
+              <EmptyStateCard
+                icon="fa-building-columns"
+                title="No services found"
+                subtitle="Try adjusting your filters or search terms."
+                onReset={resetFilters}
+              />
             )}
           </div>
         </div>
@@ -221,6 +252,7 @@ function FinanceGallery() {
         resultCount={filteredServices.length} resultLabel="Services"
       />
     </div>
+    </PageContainer>
   );
 }
 

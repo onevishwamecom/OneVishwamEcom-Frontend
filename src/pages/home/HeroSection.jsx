@@ -124,6 +124,7 @@ export default function HeroSection() {
                   }`}
                   loading={idx === 0 ? 'eager' : 'lazy'}
                   fetchPriority={idx === 0 ? 'high' : 'auto'}
+                  fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
 

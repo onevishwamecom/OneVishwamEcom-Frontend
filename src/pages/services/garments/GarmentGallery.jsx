@@ -8,6 +8,11 @@ import SearchSortBar from '../../../components/SearchSortBar';
 import FilterSidebar from '../../../components/FilterSidebar';
 import MobileFilterDrawer from '../../../components/MobileFilterDrawer';
 import SlideinPanel from '../../../components/SlideinPanel';
+import PageContainer from '../../../components/common/PageContainer';
+import PageHeader from '../../../components/common/PageHeader';
+import CategoryPillStrip from '../../../components/common/CategoryPillStrip';
+import EmptyStateCard from '../../../components/common/EmptyStateCard';
+import FloatingActionButton from '../../../components/common/FloatingActionButton';
 
 const TABS = ['All', 'Men', 'Women', 'Kids', 'Ethnic Wear', 'Western', 'Formals', 'Casuals', 'Sportswear', 'Accessories'];
 
@@ -195,11 +200,19 @@ function GarmentGallery() {
     );
   };
 
+  const tabPillItems = useMemo(() => TABS.map((t) => ({ id: t, label: t })), []);
+
   return (
-    <div className="pb-24 pt-16 lg:pt-14">
+    <div className="pb-24 pt-4 sm:pt-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">Fashion & Lifestyle</h1>
         <h1 className="text-3xl font-bold tracking-tight text-brand-charcoal sm:text-4xl">Clothes & Fashion</h1>
+    <PageContainer>
+      <PageHeader
+        eyebrow="OneVishwam · Clothes & Fashion"
+        title="Clothes & Fashion"
+        subtitle="Men's, women's, and kids' clothing, ethnic wear, western wear, formals, and accessories."
+      />
 
         {/* Category Tabs */}
         <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
@@ -212,6 +225,13 @@ function GarmentGallery() {
             </button>
           ))}
         </div>
+      {/* Category Tabs */}
+      <CategoryPillStrip
+        items={tabPillItems}
+        selected={activeTab}
+        onSelect={setActiveTab}
+        className="mt-6"
+      />
 
         {/* Search + Sort */}
         <SearchSortBar
@@ -229,7 +249,7 @@ function GarmentGallery() {
         {/* Main Layout */}
         <div className="mt-6 flex gap-8">
           <aside className="hidden lg:block w-72 shrink-0">
-            <div className="lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
+            <div className="lg:sticky lg:top-[132px] lg:self-start max-h-[calc(100vh-9.5rem)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-5">
               {filterContent}
             </div>
           </aside>
@@ -290,6 +310,17 @@ function GarmentGallery() {
                 <p className="text-lg font-medium">No items found.</p>
                 <p className="text-sm mt-1">Try adjusting your filters.</p>
               </div>
+              <EmptyStateCard
+                icon="fa-shirt"
+                title="No items found."
+                subtitle="Try adjusting your filters or search terms."
+                onReset={() => {
+                  setActiveTab('All');
+                  setSearchTerm('');
+                  setSortBy('relevance');
+                  setFilters({ gender: '', category: '', brand: '', locality: '', budgetMin: '', budgetMax: '' });
+                }}
+              />
             )}
           </div>
         </div>
@@ -312,6 +343,12 @@ function GarmentGallery() {
           <i className="fa-solid fa-heart" />
           Wishlist ({wishlist.length})
         </button>
+        <FloatingActionButton
+          icon="fa-heart"
+          label={`Wishlist (${wishlist.length})`}
+          onClick={() => setShowWishlist(true)}
+          className="bg-pink-600 hover:bg-pink-700"
+        />
       )}
 
       {/* Wishlist Slide-in */}
@@ -341,6 +378,7 @@ function GarmentGallery() {
         ))}
       </SlideinPanel>
     </div>
+    </PageContainer>
   );
 }
 

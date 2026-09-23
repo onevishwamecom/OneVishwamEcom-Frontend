@@ -35,7 +35,7 @@ function ServiceDetails({ service }) {
   if (service.id === 'finance-lending') return <Suspense fallback={galleryFallback}><FinanceLoanGallery /></Suspense>;
 
   return (
-    <div className="pt-16 lg:pt-14">
+    <div>
       <PageHero
         eyebrow="Service Details"
         title={service.title}

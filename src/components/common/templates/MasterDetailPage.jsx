@@ -352,7 +352,7 @@ export default function MasterDetailPage({
 
       {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
       <div
-        className={`fixed top-14 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
+        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
           scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -391,7 +391,7 @@ export default function MasterDetailPage({
       </div>
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
-      <div className="bg-white border-b border-gray-100 pt-16 lg:pt-14">
+      <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-gray-500">
