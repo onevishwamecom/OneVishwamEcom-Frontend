@@ -66,9 +66,9 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
-  // Attribute Pills (cardPills) - max 2 pills to keep card neat and avoid line-wrapping clutter
+  // Attribute Pills (cardPills) - max 3 pills to keep card neat and avoid line-wrapping clutter
   const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
-  const pills = (rawPills || []).slice(0, 2);
+  const pills = (rawPills || []).slice(0, 3);
 
   // Trust highlight banner
   const bannerText =
@@ -176,11 +176,21 @@ export default React.memo(function CategoryListingCard({
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {pills.map((pill, idx) => {
               const label = typeof pill === 'string' ? pill : `${pill.label ? `${pill.label}: ` : ''}${pill.value}`;
+              const isFacing = label.toLowerCase().includes('facing');
+              const isCorner = label.toLowerCase().includes('corner');
               return (
                 <span
                   key={idx}
-                  className="bg-gray-100 text-gray-700 font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full"
+                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1 ${
+                    isCorner
+                      ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
+                      : isFacing
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
                 >
+                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-[10px]" />}
+                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-[10px]" />}
                   {label}
                 </span>
               );

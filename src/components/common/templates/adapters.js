@@ -60,6 +60,20 @@ export function mapPropertyToEntityItem(property) {
     badges.push({ label: 'Featured', className: 'bg-amber-500 text-white' });
   }
 
+  const details = property.details || {};
+  const isCorner =
+    property.isCornerPlot ||
+    property.cornerPlot ||
+    property.isCornerSite ||
+    property.cornerSite ||
+    property.cornerPlotAvailable ||
+    details.cornerPlot ||
+    details.isCornerPlot;
+
+  if (isCorner) {
+    badges.push({ label: 'Corner Site', className: 'bg-purple-600 text-white font-bold' });
+  }
+
   // Key Attributes (Dynamic Highlights)
   const keyAttributes = [];
   const pType = property.propertyType || property.category || property.type;
@@ -80,7 +94,11 @@ export function mapPropertyToEntityItem(property) {
 
   const facing = details.facing || property.facing;
   if (facing) {
-    keyAttributes.push({ label: 'Facing', value: String(facing) });
+    keyAttributes.push({ label: 'Door Facing', value: String(facing) });
+  }
+
+  if (isCorner) {
+    keyAttributes.push({ label: 'Corner Site', value: 'Yes' });
   }
 
   // Specifications Breakdown mapped over groups

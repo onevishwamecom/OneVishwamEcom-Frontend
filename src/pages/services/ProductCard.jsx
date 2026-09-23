@@ -93,7 +93,6 @@ export default React.memo(function ProductCard({
         <div className="min-h-[2.5rem] flex items-start">
           {title && (
             <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
-              {title}
               {cleanProductName(title)}
             </h3>
           )}
@@ -113,16 +112,28 @@ export default React.memo(function ProductCard({
         {/* Specs / Detail Tags */}
         {tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            {tags.map((t, i) => (
-              t && String(t).trim().toLowerCase() !== 'plots' && String(t).trim().toLowerCase() !== 'plot' && (
+            {tags.map((t, i) => {
+              if (!t || String(t).trim().toLowerCase() === 'plots' || String(t).trim().toLowerCase() === 'plot') return null;
+              const isFacing = String(t).startsWith('Door Facing') || String(t).startsWith('Facing');
+              const isCorner = String(t).startsWith('Corner');
+              return (
                 <span
                   key={i}
-                  className="bg-gray-100 text-gray-700 font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap"
+                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1 ${
+                    isFacing
+                    isCorner
+                      ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
+                      : isFacing
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
                 >
+                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-[10px]" />}
+                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-[10px]" />}
                   {t}
                 </span>
-              )
-            ))}
+              );
+            })}
           </div>
         )}
 

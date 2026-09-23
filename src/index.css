@@ -59,3 +59,21 @@ body {
     transform: scale(1);
   }
 }
+
+@keyframes ribbon-rotate-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.3333%);
+  }
+}
+
+.animate-ribbon-rtl {
+  animation: ribbon-rotate-rtl 38s linear infinite;
+}
+
+.animate-ribbon-rtl:hover,
+.ribbon-paused {
+  animation-play-state: paused !important;
+}

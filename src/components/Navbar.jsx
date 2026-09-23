@@ -7,6 +7,7 @@ import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
+import VerticalRibbonBar from './VerticalRibbonBar';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -479,6 +480,7 @@ function Navbar() {
             </button>
           </div>
         </div>
+        <VerticalRibbonBar />
       </header>
 
       {/* Mobile overlay */}
@@ -596,8 +598,6 @@ function Navbar() {
               </div>
             )}
           </div>
-
-
         </nav>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../GalleryComponents';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
 import { cleanProductName } from '../../../utils/searchUtils';
 import EnquiryModal from '../../../components/EnquiryModal';
 import oneVishwamLogo from '../../../assets/logo.png';
@@ -48,7 +48,8 @@ const AMENITY_ICONS = {
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
   { key: 'area', label: 'Super Built-up Area', icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' },
-  { key: 'facing', label: 'Facing Direction', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'facing', label: 'Door Facing', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'isCornerPlot', label: 'Corner Site / Plot', icon: 'fa-draw-polygon', color: 'text-purple-600 bg-purple-50' },
   { key: 'status', label: 'Possession Status', icon: 'fa-key', color: 'text-purple-600 bg-purple-50' },
   { key: 'furnishing', label: 'Furnishing State', icon: 'fa-couch', color: 'text-indigo-600 bg-indigo-50' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath', color: 'text-cyan-600 bg-cyan-50' },
@@ -169,7 +170,6 @@ function PropertyCard({ property }) {
             {property.propertyType || 'Property'}
           </span>
           <h4 className="text-sm font-bold text-brand-charcoal leading-snug line-clamp-1 group-hover:text-brand-blue transition-colors">
-            {property.title}
             {cleanProductName(property.title)}
           </h4>
           <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
@@ -421,6 +421,9 @@ export default function PropertyDetails() {
     if (meta.key === 'bhk' && isPlot) return null;
     let value = property[meta.key];
     if (meta.key === 'facing' && property.facing) value = property.facing;
+    if (meta.key === 'isCornerPlot') {
+      value = isCornerProperty(property) ? (isPlot ? 'Yes (Corner Site Available)' : 'Yes (Corner Plot Available)') : null;
+    }
     if (meta.key === 'area' && value) {
       value = String(value).split('·')[0].trim();
     }
@@ -582,6 +585,16 @@ export default function PropertyDetails() {
                 {property.recentlyAdded && (
                   <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5">
                     New Listing
+                  </span>
+                )}
+                {property.facing && (
+                  <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-compass text-amber-600 text-[10px]" /> Door Facing: {property.facing}
+                  </span>
+                )}
+                {isCornerProperty(property) && (
+                  <span className="rounded-full bg-purple-50 text-purple-800 border border-purple-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-draw-polygon text-purple-600 text-[10px]" /> {isPlot ? 'Corner Site' : 'Corner Plot'}
                   </span>
                 )}
               </div>
