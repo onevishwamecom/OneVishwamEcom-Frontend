@@ -4,70 +4,54 @@ import { marketplaceCategories } from '../data/categoriesData';
 
 /**
  * VerticalRibbonBar:
- * Interactive Ribbon menu bar for all business verticals.
- * Rotates continuously from right to left (RTL).
- * Pauses on hover/click and navigates directly to selected vertical.
+ * Clean, lightweight rotating ribbon menu for all business verticals.
+ * Rotates continuously from right to left (RTL), pauses on hover/click.
  */
 export default function VerticalRibbonBar() {
   const [isHovered, setIsHovered] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
   const location = useLocation();
-  const scrollContainerRef = useRef(null);
+  const scrollRef = useRef(null);
 
-  // Check if a vertical link is active
   const isVerticalActive = (href) => {
     if (!href) return false;
     return location.pathname === href || (href !== '/' && location.pathname.startsWith(href));
   };
 
-  // Duplicate items 3 times for seamless RTL infinite loop
+  // Triple the items for a smooth infinite marquee loop
   const ribbonItems = [...marketplaceCategories, ...marketplaceCategories, ...marketplaceCategories];
 
-  const isPaused = isHovered || userPaused;
-
-  const handleManualScroll = (direction) => {
-    if (scrollContainerRef.current) {
-      const distance = direction === 'left' ? -240 : 240;
-      scrollContainerRef.current.scrollBy({ left: distance, behavior: 'smooth' });
+  const handleScroll = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="w-full bg-slate-900 border-t border-b border-slate-800 text-white shadow-md relative z-40 select-none overflow-hidden">
-      <div className="max-w-[1400px] mx-auto flex items-center justify-between px-2 sm:px-4 py-1.5 gap-2">
-        
-        {/* Ribbon Header Tag */}
-        <div className="flex items-center gap-1.5 shrink-0 bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-700/80 shadow-2xs">
-          <i className="fa-solid fa-layer-group text-amber-400 text-xs animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-100 hidden sm:inline">
-            Verticals Ribbon
-          </span>
-          <span className="text-[9px] font-extrabold bg-brand-blue/90 text-white px-1.5 py-0.5 rounded tracking-wide">
-            RTL
-          </span>
-        </div>
+    <div className="w-full bg-white/95 border-t border-b border-gray-200/80 shadow-2xs select-none relative z-30">
+      <div className="max-w-[1400px] mx-auto flex items-center px-2 sm:px-4 py-1.5 gap-2">
 
-        {/* Manual Scroll Left Button */}
+        {/* Left Arrow Button */}
         <button
           type="button"
-          onClick={() => handleManualScroll('left')}
-          className="shrink-0 w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs border border-slate-700 cursor-pointer"
-          title="Scroll Ribbon Left"
+          onClick={() => handleScroll('left')}
+          className="shrink-0 w-6 h-6 rounded-md bg-gray-100 hover:bg-brand-blue hover:text-white text-gray-500 flex items-center justify-center transition-colors text-[10px] cursor-pointer"
+          title="Scroll Left"
           aria-label="Scroll Ribbon Left"
         >
           <i className="fa-solid fa-chevron-left" />
         </button>
 
-        {/* Ribbon Rotator Container */}
+        {/* Ribbon Marquee Track */}
         <div
-          ref={scrollContainerRef}
+          ref={scrollRef}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className="flex-1 overflow-hidden relative py-0.5"
         >
           <div
             className={`flex items-center gap-2 whitespace-nowrap w-max transition-all ${
-              isPaused ? 'ribbon-paused' : 'animate-ribbon-rtl'
+              isHovered ? 'ribbon-paused' : 'animate-ribbon-rtl'
             }`}
           >
             {ribbonItems.map((cat, idx) => {
@@ -77,57 +61,31 @@ export default function VerticalRibbonBar() {
                   key={`${cat.id}-${idx}`}
                   to={cat.href}
                   onClick={() => setIsHovered(true)}
-                  className={`group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
                     active
-                      ? 'bg-brand-blue text-white shadow-md ring-2 ring-brand-blue/60 font-bold scale-[1.02]'
-                      : 'bg-slate-800/90 text-slate-200 hover:bg-slate-700 hover:text-white hover:scale-[1.02] border border-slate-700/80'
+                      ? 'bg-brand-blue text-white shadow-xs font-bold'
+                      : 'bg-gray-100/90 text-gray-700 hover:bg-brand-blue/10 hover:text-brand-blue border border-gray-200/60'
                   }`}
                 >
-                  <i
-                    className={`${cat.icon} text-xs transition-colors ${
-                      active ? 'text-amber-300' : 'text-blue-400 group-hover:text-amber-400'
-                    }`}
-                  />
-                  <span className="whitespace-nowrap">{cat.label}</span>
-                  {cat.disabled && (
-                    <span className="text-[9px] font-bold bg-slate-700/90 text-slate-300 px-1.5 py-0.2 rounded border border-slate-600/50">
-                      Soon
-                    </span>
-                  )}
+                  <i className={`${cat.icon} text-[11px] ${active ? 'text-amber-300' : 'text-brand-blue'}`} />
+                  <span>{cat.label}</span>
                 </Link>
               );
             })}
           </div>
         </div>
 
-        {/* Manual Scroll Right Button */}
+        {/* Right Arrow Button */}
         <button
           type="button"
-          onClick={() => handleManualScroll('right')}
-          className="shrink-0 w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors text-xs border border-slate-700 cursor-pointer"
-          title="Scroll Ribbon Right"
+          onClick={() => handleScroll('right')}
+          className="shrink-0 w-6 h-6 rounded-md bg-gray-100 hover:bg-brand-blue hover:text-white text-gray-500 flex items-center justify-center transition-colors text-[10px] cursor-pointer"
+          title="Scroll Right"
           aria-label="Scroll Ribbon Right"
         >
           <i className="fa-solid fa-chevron-right" />
-        </button>
-
-        {/* Auto-Rotation Play/Pause Toggle */}
-        <button
-          type="button"
-          onClick={() => setUserPaused(!userPaused)}
-          className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border cursor-pointer ${
-            isPaused
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-              : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
-          }`}
-          title={isPaused ? 'Resume Rotation' : 'Pause Rotation'}
-          aria-label="Toggle Ribbon Rotation"
-        >
-          <i className={`fa-solid ${isPaused ? 'fa-play text-amber-400' : 'fa-pause text-blue-400'} text-[10px]`} />
-          <span className="hidden md:inline">{isPaused ? 'Paused' : 'Rotating'}</span>
         </button>
       </div>
     </div>
   );
 }
-
