@@ -25,6 +25,8 @@ import {
   getPropertyCoverImage,
   sortPropertiesWithPriority,
   getPropertiesSizeBounds,
+  isCornerProperty,
+  isPlotOrLand,
 } from "./propertyHelpers";
 
 const PER_PAGE = 9;
@@ -486,13 +488,21 @@ function PropertyGallery() {
                       priceSuffix={p.priceSuffix}
                       priceType={p.priceType}
                       location={p.location || p.city}
-                      tags={[typeLabel, ...tags.slice(0, 2)]}
+                      tags={[typeLabel, ...tags]}
                       badges={[
                         ...(p.recentlyAdded
                           ? [
                               {
                                 label: "New",
                                 className: "bg-blue-600 text-white",
+                              },
+                            ]
+                          : []),
+                        ...(isCornerProperty(p)
+                          ? [
+                              {
+                                label: isPlotOrLand(p) ? "Corner Site" : "Corner Plot",
+                                className: "bg-purple-600 text-white font-bold shadow-xs",
                               },
                             ]
                           : []),

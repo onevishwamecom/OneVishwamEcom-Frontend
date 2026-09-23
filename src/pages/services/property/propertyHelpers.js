@@ -478,6 +478,38 @@ export function getBuildingType(property) {
   return 'Residential';
 }
 
+export function isCornerProperty(property) {
+  if (!property) return false;
+  if (
+    property.isCornerPlot ||
+    property.cornerPlot ||
+    property.isCornerSite ||
+    property.cornerSite ||
+    property.cornerPlotAvailable ||
+    property.details?.cornerPlot ||
+    property.details?.isCornerPlot ||
+    property.details?.cornerSite
+  ) {
+    return true;
+  }
+
+  if (Array.isArray(property.amenities)) {
+    const hasCornerAmenity = property.amenities.some((a) => {
+      const lower = String(a).toLowerCase();
+      return lower.includes('corner plot') || lower.includes('corner site') || lower === 'corner';
+    });
+    if (hasCornerAmenity) return true;
+  }
+
+  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.subcategory || ''}`.toLowerCase();
+  return (
+    fullText.includes('corner plot') ||
+    fullText.includes('corner site') ||
+    fullText.includes('corner lot') ||
+    fullText.includes('corner property')
+  );
+}
+
 export function getDetailTags(property) {
   if (!property) return [];
   const tags = [];
@@ -502,12 +534,19 @@ export function getDetailTags(property) {
   }
 
   if (property.area) tags.push(property.area);
+  const facingVal = property.facing || property.details?.facing;
+  if (facingVal && facingVal !== 'N/A' && facingVal !== 'NA') {
+    tags.push(`Door Facing: ${facingVal}`);
+  }
+  if (isCornerProperty(property)) {
+    tags.push(isPlot ? 'Corner Site' : 'Corner Plot');
+  }
   if (property.furnishing && property.furnishing !== 'NA' && property.furnishing !== 'N/A' && !isPlot) {
     tags.push(property.furnishing);
   }
   if (property.floor && !isPlot) tags.push(property.floor);
   if (property.parking && property.parking !== 'N/A' && !isPlot) tags.push(property.parking);
-  return tags.slice(0, 3);
+  return tags.slice(0, 4);
 }
 
 export function getCardType(property) {
