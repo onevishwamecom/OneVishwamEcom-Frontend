@@ -39,18 +39,6 @@ const HERO_SLIDES = [
     disabled: false,
     alt: 'Comfortable and affordable mattress and bedding',
   },
-  {
-    id: 'electronics',
-    category: 'Consumer Electronics',
-    title: 'Everyday Electronics, Mobiles & Home Appliances',
-    subtitle: 'Quality smartphones, laptops, smart TVs & home essentials with easy no-cost EMI and zero down payment.',
-    link: '/our-services/consumer-electronics',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-tv',
-    ctaText: 'Coming Soon',
-    disabled: true,
-    alt: 'Affordable electronics, smartphones and laptops',
-  },
 ];
 
 /* ═══════════════════════════════════════════════════════════

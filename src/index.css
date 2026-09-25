@@ -65,15 +65,16 @@ body {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-33.3333%);
+    transform: translateX(-16.6667%);
   }
 }
 
 .animate-ribbon-rtl {
-  animation: ribbon-rotate-rtl 38s linear infinite;
+  animation: ribbon-rotate-rtl 60s linear infinite;
+  will-change: transform;
 }
 
 .animate-ribbon-rtl:hover,
-.ribbon-paused {
+.ribbon-track:hover .animate-ribbon-rtl {
   animation-play-state: paused !important;
 }

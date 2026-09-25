@@ -3,19 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
-import { dummyGrocery } from '../../data/dummyGrocery';
-import { dummyGarments } from '../../data/dummyGarments';
-import { dummyJewellery } from '../../data/dummyJewellery';
 import { useProperties } from '../../hooks/useProperties';
-import { financeServices as rawFinanceServices } from '../../data/dummyFinanceServices';
-import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
 import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
-import { PROPERTIES_ONLY } from '../../config/appConfig';
-
-const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Beverages', 'Packaged Foods', 'Spices'];
 
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors';
 const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors';
@@ -26,9 +18,6 @@ function Home() {
   const navigate = useNavigate();
   const { selectedCity } = useLocation();
   const { properties: dummyProperties } = useProperties();
-  const [financeServices] = useState(() => rawFinanceServices.map(s => ({ ...s, id: s.id })));
-
-  const foodGrocery = dummyGrocery.filter((g) => FOOD_CATEGORIES.includes(g.category));
   const heroProp = dummyProperties[0];
   const locationName = selectedCity ? getCityLabel(selectedCity) : 'Your Area';
 
@@ -187,7 +176,6 @@ function Home() {
         </section>
 
         {/* ── Module 2: Vehicles Corner ── */}
-        {!PROPERTIES_ONLY && (
         <section className="pt-14 sm:pt-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="flex items-end justify-between">
@@ -236,135 +224,8 @@ function Home() {
             </div>
           </div>
         </section>
-        )}
 
-        {/* ── Module 3: Finance & Loan Services ── */}
-        {!PROPERTIES_ONLY && (
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-building-columns mr-1.5" /> Finance & Loans
-                </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Finance & Loan Services</h2>
-                <p className="mt-1 text-sm text-gray-500">Find trusted financial services, loans, insurance, and investment options near you.</p>
-              </div>
-              <Link
-                to="/our-services/finance-lending"
-                className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
-              >
-                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
-              {financeServices.slice(0, 5).map((s) => (
-                <div key={s.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/finance-service/${s.id}`}
-                    image={s.banner}
-                    alt={s.serviceName}
-                    title={s.serviceName}
-                    overline={s.companyName}
-                    price={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? s.interestRate : undefined}
-                    priceSuffix=""
-                    priceOverride={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? undefined : (
-                      <p className="mt-0.5 text-sm font-bold text-brand-blue">{formatFinanceAmount(s.minAmount)} – {formatFinanceAmount(s.maxAmount)}</p>
-                    )}
-                    location={s.location}
-                    tags={[s.category, s.providerType].filter(Boolean)}
-                    badges={[
-                      ...(s.featured ? [{ label: 'Featured', className: 'bg-yellow-500 text-white' }] : []),
-                      ...(s.availability === 'Available Now' ? [{ label: 'Available', className: 'bg-green-500 text-white' }] : []),
-                    ]}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5 text-center sm:hidden">
-              <Link
-                to="/our-services/finance-lending"
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
-              >
-                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
-          </div>
-        </section>
-        )}
-
-        {/* ── Module 4: People Are Buying ── */}
-        {!PROPERTIES_ONLY && (
-        <section className="mt-14 sm:mt-16 bg-gradient-to-br from-white to-gray-50 py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                <i className="fa-solid fa-store mr-1.5" /> What People Are Buying
-              </p>
-              <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Popular in Your Area</h2>
-              <p className="mt-1 text-sm text-gray-500">Products people are viewing and buying right now.</p>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
-              {dummyGarments.slice(0, 2).map((g) => (
-                <div key={`pop-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/garment/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={`${g.brand} ${g.name}`}
-                    price={g.finalPrice}
-                    location={g.store?.city || ''}
-                    badges={[{ label: g.trending ? 'Trending' : 'Popular', className: g.trending ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {foodGrocery.slice(0, 2).map((g) => (
-                <div key={`pop-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit}
-                    priceSuffix={`/ ${g.unit}`}
-                    location={`${g.location?.area || ''}, ${g.location?.city || ''}`}
-                    badges={[g.freshToday ? { label: 'Fresh', className: 'bg-green-500 text-white' } : { label: 'Popular', className: 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {dummyJewellery.slice(0, 1).map((j) => (
-                <div key={`pop-jew-${j.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/jewellery/${j.id}`}
-                    image={j.images[0]}
-                    alt={j.name}
-                    title={j.name}
-                    price={j.price}
-                    location={j.store?.city || ''}
-                    badges={[{ label: 'Popular', className: 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {dummyGrocery.slice(0, 1).map((g) => (
-                <div key={`pop-elec-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id}`}
-                    image={g.images[0]}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit}
-                    location=""
-                    badges={[{ label: g.recentlyAdded ? 'New' : 'Trending', className: g.recentlyAdded ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white' }]}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        )}
 
         {/* ── Module 4: Fresh Arrivals ── */}
         <section className="pt-14 sm:pt-16">
@@ -393,46 +254,22 @@ function Home() {
                   </div>
                 </Link>
               ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {dummyAutomobiles.slice(5, 6).map((v) => (
-                    <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
-                      <div className="aspect-[16/9] overflow-hidden shrink-0">
-                        <img src={v.images?.[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                      <div className="p-3 flex flex-col flex-1">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 self-start">
-                          <i className="fa-solid fa-clock" /> Added Today
-                        </span>
-                        <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{v.brand} {v.model}</h3>
-                        <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
-                        <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{v.location} · {v.fuelType}</p>
-                      </div>
-                    </Link>
-                  ))}
-                  {dummyGarments.slice(5, 6).map((g) => (
-                    <Link key={`fresh-garm-${g.id}`} to={`/garment/${g.id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
-                      <div className="aspect-[16/9] overflow-hidden shrink-0">
-                        <img src={g.images?.[0]} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                      <div className="p-3 flex flex-col flex-1">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 self-start">
-                          <i className="fa-solid fa-clock" /> Added Yesterday
-                        </span>
-                        <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{g.brand} {g.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-blue">{g.finalPrice || g.price}</span>
-                          <span className="text-xs text-gray-400 line-through">{g.originalPrice}</span>
-                          <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{g.store?.city || g.city || ''} · {g.category}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </>
-              )}
+              {dummyAutomobiles.slice(5, 6).map((v) => (
+                <Link key={`fresh-veh-${v.id}`} to={`/vehicle/${v.id}`}
+                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start flex flex-col">
+                  <div className="aspect-[16/9] overflow-hidden shrink-0">
+                    <img src={v.images?.[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="p-3 flex flex-col flex-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 self-start">
+                      <i className="fa-solid fa-clock" /> Added Today
+                    </span>
+                    <h3 className="mt-1.5 text-sm font-bold text-brand-charcoal line-clamp-1">{v.brand} {v.model}</h3>
+                    <p className="text-sm font-semibold text-brand-blue">{v.price}</p>
+                    <p className="text-xs text-gray-500 mt-auto pt-1 truncate">{v.location} · {v.fuelType}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
