@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
@@ -9,6 +9,7 @@ import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortProperties
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
+import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
 import { heroImage } from '../../utils/imageOptimizer';
 
@@ -19,6 +20,8 @@ const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-x
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeZone, setActiveZone] = useState('All');
+  const navigate = useNavigate();
   const { selectedCity } = useLocation();
   const { data, loading } = useHomepageData();
 
@@ -95,7 +98,7 @@ function Home() {
                 {propertyResults.length} propert{propertyResults.length === 1 ? 'y' : 'ies'} found for "<strong>{searchQuery}</strong>"
               </p>
               {propertyResults.length > 0 && (
-                <Link to={`/our-services/real-estate-property?q=${encodeURIComponent(searchQuery)}`}
+                <Link to={`/property?q=${encodeURIComponent(searchQuery)}`}
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:underline">
                   View All Results <i className="fa-solid fa-arrow-right text-[10px]" />
                 </Link>
@@ -128,8 +131,26 @@ function Home() {
 
       <div className="bg-gray-50 pb-16 sm:pb-20">
 
+        {/* ── Bangalore Bird's-Eye View Map Section (Comes First) ── */}
+        <section className="pt-8 sm:pt-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <BangalorePropertyPieMap
+              properties={latestProperties}
+              activeZone={activeZone}
+              onSelectZone={(zone) => {
+                setActiveZone(zone);
+                if (zone && zone !== 'All') {
+                  navigate(`/property?zone=${encodeURIComponent(zone)}`);
+                } else {
+                  navigate('/property');
+                }
+              }}
+            />
+          </div>
+        </section>
+
         {/* ── Module 1: Dream Home ── */}
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden mt-10 sm:mt-12">
           <div className="absolute inset-0">
               
               <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/60" />
@@ -144,7 +165,7 @@ function Home() {
                 <p className="mt-1.5 text-sm text-white/70">Houses, Plots, Automobiles, Jewellery, anything you need, just a click away!</p>
               </div>
               <Link
-                to="/our-services/real-estate-property"
+                to="/property"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2.5 text-xs font-bold text-brand-navy hover:bg-yellow-300 transition-colors shrink-0"
               >
                 Explore <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -174,7 +195,7 @@ function Home() {
 
             <div className="mt-5 text-center sm:hidden">
               <Link
-                to="/our-services/real-estate-property"
+                to="/property"
                 className={BTN_SECONDARY}
               >
                 Explore <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -195,7 +216,7 @@ function Home() {
                 <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Cars, bikes and commercial vehicles available nearby.</h2>
               </div>
               <Link
-                to="/our-services/automobile"
+                to="/automobile"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
               >
                 See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -225,7 +246,7 @@ function Home() {
 
             <div className="mt-5 text-center sm:hidden">
               <Link
-                to="/our-services/automobile"
+                to="/automobile"
                 className={BTN_SECONDARY}
               >
                 See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -248,7 +269,7 @@ function Home() {
                 <p className="mt-1 text-sm text-gray-500">Find trusted financial services, loans, insurance, and investment options near you.</p>
               </div>
               <Link
-                to="/our-services/finance-lending"
+                to="/finance"
                 className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
               >
                 Show More <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -282,7 +303,7 @@ function Home() {
 
             <div className="mt-5 text-center sm:hidden">
               <Link
-                to="/our-services/finance-lending"
+                to="/finance"
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
               >
                 Show More <i className="fa-solid fa-arrow-right text-[10px]" />

@@ -130,51 +130,67 @@ export default function PromoModal() {
               id="promo-modal-title"
               className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 leading-tight"
             >
-              PAY 1 EMI,{' '}
+              PAY EMI,{' '}
               <span className="bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
-                BUY PROPERTY!
+                OWN PROPERTY!
               </span>
             </h2>
             <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600 max-w-md mx-auto leading-relaxed">
-              Convert your monthly rent expense into your own property asset with Onevishwam.
+              Convert your monthly housing expense into an asset you can own with Onevishwam.
             </p>
           </div>
 
-          {/* 2-Column Value Comparison (Bright & High Contrast) */}
-          <div className="mt-4 sm:mt-5 grid grid-cols-2 gap-3 sm:gap-4">
-            {/* Left: Renting (Muted / Soft Rose) */}
-            <div className="rounded-2xl bg-rose-50/80 border border-rose-200/80 p-3.5 sm:p-4 text-left flex flex-col justify-between relative overflow-hidden shadow-2xs">
+          {/* 2-Column Value Comparison (Side-by-Side) */}
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            {/* LEFT SIDE — CURRENT RENT */}
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 sm:p-5 text-left flex flex-col justify-between relative shadow-2xs">
               <div>
-                <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-100/90 px-2 py-0.5 rounded-md border border-rose-200">
-                  Current Rent
+                <span className="inline-block text-[11px] font-black uppercase tracking-wider text-slate-700 bg-slate-200/80 px-2.5 py-1 rounded-md">
+                  CURRENT RENT
                 </span>
-                <p className="mt-2 text-sm sm:text-base font-bold text-slate-800">
-                  0% Asset Building
+                <p className="mt-3 text-base sm:text-lg font-black text-rose-600 tracking-tight">
+                  No asset building
                 </p>
-                <p className="mt-1 text-[11px] sm:text-xs text-slate-600 leading-snug">
-                  100% loss to landlord with zero equity or ownership.
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-rose-200/60 flex items-center gap-1 text-[11px] font-bold text-rose-600">
-                <i className="fa-solid fa-circle-xmark text-[10px]" /> Money Gone Forever
+                <ul className="mt-3 space-y-2 text-xs sm:text-[13px] text-slate-600 font-medium">
+                  <li className="flex items-start gap-2">
+                    <i className="fa-solid fa-circle-xmark text-rose-400 mt-0.5 text-xs shrink-0" />
+                    <span>No ownership over the residence</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <i className="fa-solid fa-circle-xmark text-rose-400 mt-0.5 text-xs shrink-0" />
+                    <span>No asset gained</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
-            {/* Right: Onevishwam EMI (Warm Golden Highlight) */}
-            <div className="rounded-2xl bg-gradient-to-b from-amber-50 via-yellow-50/50 to-amber-100/60 border-2 border-amber-400 p-3.5 sm:p-4 text-left flex flex-col justify-between relative overflow-hidden shadow-sm">
+            {/* RIGHT SIDE — ONEVISHWAM EMI */}
+            <div className="rounded-2xl bg-gradient-to-b from-amber-50/90 to-amber-100/70 border-2 border-amber-400 p-4 sm:p-5 text-left flex flex-col justify-between relative shadow-sm">
               <div>
-                <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-200/90 px-2 py-0.5 rounded-md border border-amber-300">
-                  Onevishwam EMI
+                <span className="inline-block text-[11px] font-black uppercase tracking-wider text-amber-950 bg-amber-200 px-2.5 py-1 rounded-md border border-amber-300">
+                  ONEVISHWAM EMI
                 </span>
-                <p className="mt-2 text-sm sm:text-base font-black text-amber-900">
-                  100% Owned Asset
+                <p className="mt-3 text-base sm:text-lg font-black text-amber-900 tracking-tight">
+                  Own your asset
                 </p>
-                <p className="mt-1 text-[11px] sm:text-xs text-slate-700 leading-snug font-medium">
-                  Direct property title, clear ownership &amp; capital gains.
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-amber-300/80 flex items-center gap-1 text-[11px] font-black text-amber-800">
-                <i className="fa-solid fa-circle-check text-[10px] text-amber-600" /> Lifetime Wealth Asset
+                <ul className="mt-3 space-y-2 text-xs sm:text-[13px] text-slate-800 font-semibold">
+                  <li className="flex items-start gap-2">
+                    <i className="fa-solid fa-circle-check text-amber-600 mt-0.5 text-xs shrink-0" />
+                    <span>Direct property title</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <i className="fa-solid fa-circle-check text-amber-600 mt-0.5 text-xs shrink-0" />
+                    <span>Clear ownership</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <i className="fa-solid fa-circle-check text-amber-600 mt-0.5 text-xs shrink-0" />
+                    <span>Long-term asset value</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-amber-950 font-bold">
+                    <i className="fa-solid fa-circle-check text-amber-600 mt-0.5 text-xs shrink-0" />
+                    <span>Lifetime asset</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
@@ -209,7 +225,7 @@ export default function PromoModal() {
               type="button"
               onClick={() => {
                 handleClose();
-                navigate('/our-services/real-estate-property');
+                navigate('/property');
               }}
               className="w-full inline-flex justify-center items-center gap-2 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-800 active:scale-[0.98] px-5 py-3.5 text-sm font-extrabold transition-all shadow-xs cursor-pointer"
             >
