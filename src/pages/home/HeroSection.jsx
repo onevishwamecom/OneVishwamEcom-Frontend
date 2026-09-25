@@ -95,7 +95,7 @@ export default function HeroSection() {
       {/* ── Fixed-height viewport ──
           Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group">
+      <div className="relative w-full h-[320px] sm:h-[360px] md:h-[400px] lg:h-[440px] overflow-hidden group">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {
