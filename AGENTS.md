@@ -1,11 +1,18 @@
 # AI & LLM Operating Instructions
 
-> **IMPORTANT NOTICE FOR ALL AI / LLM CODING ASSISTANTS:**
-> Read these rules carefully before executing any commands, creating commits, or modifying code in this workspace.
+> **MANDATORY NOTICE FOR ALL AI / LLM CODING ASSISTANTS:**
+> Read and adhere strictly to these instructions on **EVERY PROMPT RUN** before executing commands, inspecting files, creating commits, or modifying code in this workspace.
 
 ---
 
-## 1. Strict Git & Version Control Guidelines
+## 1. Mandatory Pre-Execution Rule
+
+- **MUST READ AGENTS.MD ON EVERY RUN:**
+  - AI assistants MUST read and enforce all instructions in `AGENTS.md` before performing any tasks or edits.
+
+---
+
+## 2. Strict Git & Version Control Guidelines
 
 - **NO PERMISSION, NO GIT ACTIONS:**
   - **DO NOT** run `git add`, `git commit`, `git push`, or `git merge` without explicit permission from the user.
@@ -22,7 +29,22 @@
 
 ---
 
-## 2. Testing & Verification
+## 3. Branch & Data Source Policy
+
+- **STATIC SITE BRANCH (`StaticSite`):**
+  - **ONLY** the `StaticSite` branch is permitted to use local dummy data files (`dummyProperties`, `dummyAutomobiles`, `dummyBedding`, etc.).
+
+- **ALL OTHER BRANCHES (`fix/*`, `feature/*`, `develop`, `qa`, `main`, etc.):**
+  - **MUST** connect to and rely on pure API backend endpoints for all product listings, properties, vehicles, categories, and marketplace data.
+  - **NEVER** replace API hooks or backend calls with local dummy data files in non-`StaticSite` branches.
+
+- **PORTING COMMITS / CHERRY-PICKING TO NON-STATIC BRANCHES:**
+  - When asked to port changes from a commit ID (e.g., from `StaticSite` to `fix/*`, `feature/*`, `develop`, `qa`, `main`), **ONLY apply UI, structural, styling, and functional component changes**.
+  - **NEVER** copy or introduce local product dummy data files or replace API hooks with dummy data imports when porting commits to non-`StaticSite` branches.
+
+---
+
+## 4. Testing & Verification
+
 - Test code changes with `npm run build` or appropriate unit tests before declaring completion.
 - Keep the working directory clean and do not leave untracked temporary scripts or files.
-
