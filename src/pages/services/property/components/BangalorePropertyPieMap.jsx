@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone } from '../propertyHelpers';
-import bangaloreBbmpMap from '../../../../assets/maps/bangalore_bbmp_map.jpg';
+import bangaloreBbmpMap from '../../../../assets/maps/bangalore_bbmp_map.png';
 
 // 8 Official BBMP Administrative Zones with exact hotspot centers and bounding coordinates on 1024x982 map
 export const BBMP_ZONES = {
@@ -308,9 +308,19 @@ export default function BangalorePropertyPieMap({ properties = [], activeZone, o
             {/* Interactive SVG Overlay for Invisible Hitboxes & Pin Plotting (viewBox: 1024 x 982) */}
             <svg viewBox="0 0 1024 982" className="relative z-10 w-full h-full drop-shadow-sm">
               <defs>
-                <filter id="pinGlow" x="-25%" y="-25%" width="150%" height="150%">
+                <filter id="pinGlow" x="-40%" y="-40%" width="180%" height="180%">
                   <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.4" />
                 </filter>
+                <linearGradient id="googleMapsOrangePink" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ff4b4b" />
+                  <stop offset="45%" stopColor="#f43f5e" />
+                  <stop offset="100%" stopColor="#ea580c" />
+                </linearGradient>
+                <linearGradient id="googleMapsPinkHover" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#f472b6" />
+                  <stop offset="50%" stopColor="#ec4899" />
+                  <stop offset="100%" stopColor="#db2777" />
+                </linearGradient>
               </defs>
 
               {/* ── Invisible Interactive Zone Hitboxes (NO hover effect on map; triggers pie chart highlight) ── */}
@@ -333,10 +343,9 @@ export default function BangalorePropertyPieMap({ properties = [], activeZone, o
                 );
               })}
 
-              {/* ── Interactive Property Pins Plotted Accurately by Address ── */}
+              {/* ── Google Maps Shaped Property Pins in Vibrant Pink / Orange ── */}
               {propertyPins.map((pin, i) => {
                 const isPinHovered = hoveredProperty?.id === pin.item.id;
-                const meta = BBMP_ZONES[pin.zoneId] || BBMP_ZONES.south;
 
                 return (
                   <g
@@ -356,11 +365,31 @@ export default function BangalorePropertyPieMap({ properties = [], activeZone, o
                       navigate(`/property/${pin.item.id}`);
                     }}
                   >
+                    {/* Ripple Ping Animation on Hover */}
                     {isPinHovered && (
-                      <circle r="16" fill={meta.color} opacity="0.4" className="animate-ping" />
+                      <circle cx="0" cy="0" r="15" fill="#f43f5e" opacity="0.45" className="animate-ping" />
                     )}
-                    <circle r="8.5" fill="#ffffff" stroke={meta.color} strokeWidth="3" filter="url(#pinGlow)" />
-                    <circle r="4" fill={meta.color} />
+
+                    {/* Ground Drop Shadow Ellipse */}
+                    <ellipse cx="0" cy="1" rx="4" ry="1.8" fill="rgba(0,0,0,0.35)" />
+
+                    {/* Google Maps Teardrop Pin Marker */}
+                    <g
+                      transform={isPinHovered ? "scale(1.25) translate(0, -2)" : "scale(1)"}
+                      style={{ transformOrigin: '0px 0px', transition: 'transform 0.2s ease-out' }}
+                    >
+                      <path
+                        d="M 0 0 C -2.5 -4.5 -9 -11 -9 -17.5 A 9 9 0 1 1 9 -17.5 C 9 -11 2.5 -4.5 0 0 Z"
+                        fill={isPinHovered ? "url(#googleMapsPinkHover)" : "url(#googleMapsOrangePink)"}
+                        stroke="#ffffff"
+                        strokeWidth="1.6"
+                        strokeLinejoin="round"
+                        filter="url(#pinGlow)"
+                      />
+                      {/* Inner Circular Eye */}
+                      <circle cx="0" cy="-17.5" r="3.2" fill="#ffffff" />
+                      <circle cx="0" cy="-17.5" r="1.5" fill={isPinHovered ? "#db2777" : "#ea580c"} />
+                    </g>
                   </g>
                 );
               })}
