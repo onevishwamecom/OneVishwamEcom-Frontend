@@ -274,13 +274,16 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 450) {
-        setScrolledPastHero(true);
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        // Only show sticky bar when bottom of hero gallery section scrolls past header (<= 90px)
+        setScrolledPastHero(rect.bottom <= 90);
       } else {
-        setScrolledPastHero(false);
+        setScrolledPastHero(window.scrollY > 750);
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -488,7 +491,7 @@ export default function PropertyDetails() {
 
       {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
       <div
-        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
+        className={`fixed top-[92px] lg:top-[84px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
           scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >

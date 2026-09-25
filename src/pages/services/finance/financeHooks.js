@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { FINANCE_CATEGORIES } from './financeConstants';
+import { financeServices } from '../../../data/dummyFinanceServices';
 import { matchesSearch } from '../../../utils/searchUtils';
+
+export function useFinanceServices() {
+  return { services: financeServices || [], loading: false, error: null };
+}
 
 function parsePriceRange(amountStr) {
   const cleaned = amountStr.replace(/[₹,\s]/g, '');

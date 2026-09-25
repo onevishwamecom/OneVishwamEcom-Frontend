@@ -236,9 +236,7 @@ export default function MarketplaceCategoryGallery({
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-24 relative">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <PageContainer>
+    <PageContainer className="min-h-screen bg-[#f8fafc] pb-24 relative">
 
         {/* ── Top Navigation & Title Bar ── */}
         <div className="pt-4 pb-2">
@@ -552,9 +550,6 @@ export default function MarketplaceCategoryGallery({
             </div>
           </div>
         )}
-
-      </div>
-    </div>
     </PageContainer>
   );
 }

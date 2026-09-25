@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../data/locations';
 import { dummyAutomobiles } from '../../data/dummyAutomobiles';
@@ -12,6 +12,7 @@ import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
+import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
 
 const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Beverages', 'Packaged Foods', 'Spices'];
@@ -21,6 +22,8 @@ const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-x
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeZone, setActiveZone] = useState('All');
+  const navigate = useNavigate();
   const { selectedCity } = useLocation();
   const { properties: dummyProperties } = useProperties();
   const [financeServices] = useState(() => rawFinanceServices.map(s => ({ ...s, id: s.id })));
@@ -109,8 +112,26 @@ function Home() {
 
       <div className="bg-gray-50 pb-16 sm:pb-20">
 
-        {/* ── Module 1: Dream Home ── */}
-        <section className="relative overflow-hidden bg-brand-navy">
+        {/* ── Bangalore Bird's-Eye View Map Section (Comes First) ── */}
+        <section className="pt-8 sm:pt-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <BangalorePropertyPieMap
+              properties={dummyProperties}
+              activeZone={activeZone}
+              onSelectZone={(zone) => {
+                setActiveZone(zone);
+                if (zone && zone !== 'All') {
+                  navigate(`/our-services/real-estate-property?zone=${encodeURIComponent(zone)}`);
+                } else {
+                  navigate('/our-services/real-estate-property');
+                }
+              }}
+            />
+          </div>
+        </section>
+
+        {/* ── Module 1: Dream Home (Property Showcase List) ── */}
+        <section className="relative overflow-hidden bg-brand-navy mt-10 sm:mt-12">
           {heroProp && (
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gray-900/80" />
@@ -133,9 +154,9 @@ function Home() {
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
-              {dreamHomes.map((p) => (
-                <div key={p.id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
+            <div className="mt-6 flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-2 xl:grid-cols-4">
+              {dreamHomes.slice(0, 4).map((p) => (
+                <div key={p.id} className="group shrink-0 snap-start w-[72vw] sm:w-[50vw] md:w-[38vw] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id}`}
                     image={getPropertyCoverImage(p)}

@@ -25,6 +25,7 @@ import {
   getPropertyCoverImage,
   sortPropertiesWithPriority,
   getPropertiesSizeBounds,
+  getBangaloreZone,
   isCornerProperty,
   isPlotOrLand,
 } from "./propertyHelpers";
@@ -50,6 +51,7 @@ function PropertyGallery() {
   const [quickMatchOpen, setQuickMatchOpen] = useState(false);
   const [familyLocationsOnly, setFamilyLocationsOnly] = useState(false);
   const [preApprovedMode, setPreApprovedMode] = useState(false);
+  const [activeZone, setActiveZone] = useState(null);
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,6 +62,11 @@ function PropertyGallery() {
     const q = (searchParams.get("q") || "").trim();
     if (q) {
       setSearchTerm(q);
+      setPage(1);
+    }
+    const z = (searchParams.get("zone") || "").trim();
+    if (z) {
+      setActiveZone(z);
       setPage(1);
     }
   }, [searchParams]);
@@ -186,10 +193,18 @@ function PropertyGallery() {
     setSelectedCardType("All");
     setFamilyLocationsOnly(false);
     setPreApprovedMode(false);
+    setActiveZone(null);
   };
 
-  /* ── Active chips derived via hook ── */
-  const activeChips = useActiveChips(filters);
+  /* ── Active chips derived via hook + activeZone chip ── */
+  const baseActiveChips = useActiveChips(filters);
+  const activeChips = useMemo(() => {
+    const list = [...baseActiveChips];
+    if (activeZone && activeZone !== "All") {
+      list.unshift({ key: "zone", label: `BBMP Zone: ${activeZone}` });
+    }
+    return list;
+  }, [baseActiveChips, activeZone]);
 
   /* ── Filtered properties derived via hook ── */
   const filteredProperties = useFilteredProperties(properties, {
@@ -207,8 +222,16 @@ function PropertyGallery() {
 
   /* ── Priority sort (Onevishwam top priority -> Images first) + pagination ── */
   const sortedProperties = useMemo(() => {
-    return sortPropertiesWithPriority(filteredProperties);
-  }, [filteredProperties]);
+    let list = sortPropertiesWithPriority(filteredProperties);
+    if (activeZone && activeZone !== "All") {
+      const normActive = activeZone.toLowerCase().replace(/[\s_-]/g, "");
+      list = list.filter((p) => {
+        const pZone = getBangaloreZone(p);
+        return pZone && pZone.toLowerCase().replace(/[\s_-]/g, "") === normActive;
+      });
+    }
+    return list;
+  }, [filteredProperties, activeZone]);
 
   const totalPages = Math.max(1, Math.ceil(sortedProperties.length / PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -229,7 +252,9 @@ function PropertyGallery() {
 
   /* ── Chip removal ── */
   const removeChip = (chip) => {
-    if (chip.key === "size") {
+    if (chip.key === "zone") {
+      setActiveZone(null);
+    } else if (chip.key === "size") {
       updateFilter("sizeMin", "");
       updateFilter("sizeMax", "");
     } else if (chip.key === "budget") {

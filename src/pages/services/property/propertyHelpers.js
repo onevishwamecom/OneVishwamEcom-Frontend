@@ -705,3 +705,150 @@ export function sortPropertiesWithPriority(list = []) {
     return (b.id || 0) - (a.id || 0);
   });
 }
+
+/**
+ * Official 8 BBMP Administrative Zones in Bangalore
+ */
+export const BBMP_ZONE_NAMES = [
+  'Byatarayanapura',
+  'Dasarahalli',
+  'West',
+  'East',
+  'Mahadevapura',
+  'South',
+  'Bommanahalli',
+  'RR Nagara',
+];
+
+/**
+ * Classifies a property or locality string into the 8 official Bangalore BBMP zones:
+ * 'Byatarayanapura', 'Dasarahalli', 'West', 'East', 'Mahadevapura', 'South', 'Bommanahalli', 'RR Nagara'
+ */
+export function getBangaloreZone(item) {
+  if (!item) return 'South';
+  const str = String(
+    (item.locality || '') + ' ' +
+    (item.location || '') + ' ' +
+    (item.address || '') + ' ' +
+    (item.title || '')
+  ).toLowerCase();
+
+  // 1. Dasarahalli (North-West)
+  if (
+    str.includes('dasarahalli') || str.includes('peenya') || str.includes('jalahalli') ||
+    str.includes('tumkur') || str.includes('bagalagunte') || str.includes('chikkabanavara') ||
+    str.includes('nelamangala') || str.includes('yeshwanthpur') || str.includes('mathikere') ||
+    str.includes('goraguntepalya') || str.includes('dhabaspet') || str.includes('dobbaspet')
+  ) {
+    return 'Dasarahalli';
+  }
+
+  // 2. Byatarayanapura (North)
+  if (
+    str.includes('byatarayanapura') || str.includes('yelahanka') || str.includes('hebbal') ||
+    str.includes('sahakar') || str.includes('amruthahalli') || str.includes('jakkur') ||
+    str.includes('thanisandra') || str.includes('manyata') || str.includes('nagawara') ||
+    str.includes('hegde nagar') || str.includes('hennur') || str.includes('kothanur') ||
+    str.includes('horamavu') || str.includes('devanahalli') || str.includes('airport') ||
+    str.includes('chikkajala') || str.includes('siddlaghata') || str.includes('kaiwara') ||
+    str.includes('chikkaballapura') || str.includes('kogilu') || str.includes('bagalur') ||
+    str.includes('north east properties') || str.includes('swasthik')
+  ) {
+    return 'Byatarayanapura';
+  }
+
+  // 3. RR Nagara (South-West)
+  if (
+    str.includes('rajarajeshwari') || str.includes('rr nagar') || str.includes('ideal homes') ||
+    str.includes('kengeri') || str.includes('mysore road') || str.includes('chikkanahalli') ||
+    str.includes('kumbalgodu') || str.includes('bidadi') || str.includes('ramnagar') ||
+    str.includes('nagarbhavi') || str.includes('ullal') || str.includes('mallathahalli') ||
+    str.includes('jnana bharathi') || str.includes('nada prabhu') || str.includes('kempegowda layout') ||
+    str.includes('ags layout') || str.includes('nandakumar') || str.includes('vasundhanra') ||
+    str.includes('rr bhoo') || str.includes('rr mathrushree')
+  ) {
+    return 'RR Nagara';
+  }
+
+  // 4. Mahadevapura (East IT Corridor)
+  if (
+    str.includes('mahadevapura') || str.includes('whitefield') || str.includes('itpl') ||
+    str.includes('k.r. pura') || str.includes('kr puram') || str.includes('ramamurthy') ||
+    str.includes('tc palya') || str.includes('battarahalli') || str.includes('seegehalli') ||
+    str.includes('budigere') || str.includes('hoskote') || str.includes('hosakote') ||
+    str.includes('hoodi') || str.includes('kadugodi') || str.includes('hope farm') ||
+    str.includes('chikkathirupathi') || str.includes('brookefield') || str.includes('kundalahalli') ||
+    str.includes('marathahalli') || str.includes('panathur') || str.includes('varthur') ||
+    str.includes('gunjur') || str.includes('balagere') || str.includes('sarjapur') ||
+    str.includes('dommasandra') || str.includes('kasavanahalli') || str.includes('mullur') ||
+    str.includes('kodathi') || str.includes('carmelaram') || str.includes('nexon') ||
+    str.includes('ramky') || str.includes('aquapolis') || str.includes('purvankar') ||
+    str.includes('nambiar') || str.includes('urban forest')
+  ) {
+    return 'Mahadevapura';
+  }
+
+  // 5. East Zone (Central-East)
+  if (
+    str.includes('east') || str.includes('shivajinagar') || str.includes('commercial street') ||
+    str.includes('cantonment') || str.includes('cubbon') || str.includes('vasanth nagar') ||
+    str.includes('cunningham') || str.includes('gandhi nagar') || str.includes('majestic') ||
+    str.includes('seshadripuram') || str.includes('chickpet') || str.includes('mg road') ||
+    str.includes('brigade') || str.includes('richmond') || str.includes('residency') ||
+    str.includes('indiranagar') || str.includes('ulsoor') || str.includes('halasuru') ||
+    str.includes('domlur') || str.includes('cv raman') || str.includes('koramangala') ||
+    str.includes('ejipura')
+  ) {
+    return 'East';
+  }
+
+  // 6. West Zone
+  if (
+    str.includes('west') || str.includes('malleshwaram') || str.includes('sadashivanagar') ||
+    str.includes('sankey') || str.includes('mahalakshmi') || str.includes('nandini layout') ||
+    str.includes('kurubarahalli') || str.includes('rajaji nagar') || str.includes('rajajinagar') ||
+    str.includes('govindraj') || str.includes('magadi') || str.includes('vijay nagar') ||
+    str.includes('vijayanagar') || str.includes('rpc layout') || str.includes('attiguppe') ||
+    str.includes('chandra layout') || str.includes('hampi nagar') || str.includes('chamrajpet') ||
+    str.includes('shankarpuram') || str.includes('basavanagudi') || str.includes('gandhi bazaar') ||
+    str.includes('hanumanth nagar')
+  ) {
+    return 'West';
+  }
+
+  // 7. Bommanahalli (South-East)
+  if (
+    str.includes('bommanahalli') || str.includes('hongasandra') || str.includes('garvebhavipalya') ||
+    str.includes('madiwala') || str.includes('hsr') || str.includes('haralur') ||
+    str.includes('bellandur') || str.includes('begur') || str.includes('kudlu') ||
+    str.includes('singasandra') || str.includes('hosa road') || str.includes('electronic city') ||
+    str.includes('e-city') || str.includes('neotown') || str.includes('bommasandra') ||
+    str.includes('chandapura') || str.includes('bannerghatta') || str.includes('gottigere') ||
+    str.includes('hulimavu') || str.includes('arekere') || str.includes('jigani') ||
+    str.includes('anekal') || str.includes('vedant') || str.includes('bren') ||
+    str.includes('whispering waves')
+  ) {
+    return 'Bommanahalli';
+  }
+
+  // 8. South Zone
+  if (
+    str.includes('south') || str.includes('jayanagar') || str.includes('tilak nagar') ||
+    str.includes('byrasandra') || str.includes('jp nagar') || str.includes('sarakki') ||
+    str.includes('puttenahalli') || str.includes('b.t.m') || str.includes('btm') ||
+    str.includes('mico layout') || str.includes('banashankari') || str.includes('isro layout') ||
+    str.includes('kumaraswamy') || str.includes('bikashipura') || str.includes('padmanaba') ||
+    str.includes('padmanabhanagar') || str.includes('kanakapura') || str.includes('thalaghattapura') ||
+    str.includes('konanakunte') || str.includes('harohalli') || str.includes('sathanur') ||
+    str.includes('kaggalipura') || str.includes('tataguni') || str.includes('oraiyan') ||
+    str.includes('royal kadhambas')
+  ) {
+    return 'South';
+  }
+
+  // Deterministic fallback based on title / id
+  const idNum = Number(item.id) || 1;
+  const fallbacks = ['South', 'Bommanahalli', 'RR Nagara', 'Dasarahalli', 'Byatarayanapura', 'Mahadevapura', 'West', 'East'];
+  return fallbacks[idNum % fallbacks.length];
+}
+
