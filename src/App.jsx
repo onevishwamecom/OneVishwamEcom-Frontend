@@ -19,6 +19,13 @@ const ContactPage = lazy(() => import('./pages/contact'));
 const Home = lazy(() => import('./pages/home'));
 const ServicesPage = lazy(() => import('./pages/services'));
 const CareersPage = lazy(() => import('./pages/careers'));
+const PropertyGallery = lazy(() => import('./pages/services/property/PropertyGallery'));
+const AutomobileGallery = lazy(() => import('./pages/services/automobile/AutomobileGallery'));
+const BeddingGallery = lazy(() => import('./pages/services/bedding/BeddingGallery'));
+const ElectronicsGallery = lazy(() => import('./pages/services/electronics/ElectronicsGallery'));
+const GroceryGallery = lazy(() => import('./pages/services/grocery/GroceryGallery'));
+const GarmentGallery = lazy(() => import('./pages/services/garments/GarmentGallery'));
+const JewelleryGallery = lazy(() => import('./pages/services/jewellery/JewelleryGallery'));
 const PropertyDetails = lazy(() => import('./pages/services/property/PropertyDetails'));
 const PostRequirement = lazy(() => import('./pages/services/property/PostRequirement'));
 const RequirementSuccess = lazy(() => import('./pages/services/property/RequirementSuccess'));
@@ -31,6 +38,7 @@ const JewelleryDetails = lazy(() => import('./pages/services/jewellery/Jewellery
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
+const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
@@ -201,25 +209,53 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about-us/*" element={<AboutPage />} />
-            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
-            <Route path="/our-services/*" element={<ServicesPage location={location} />} />
             <Route path="/enquiry/*" element={<ContactPage location={location} />} />
             <Route path="/enquiry" element={<ContactPage location={location} />} />
             <Route path="/contact-us/*" element={<ContactPage location={location} />} />
             <Route path="/contact-us" element={<ContactPage location={location} />} />
             <Route path="/careers/*" element={<CareersPage />} />
+
+            {/* Top-Level Clean Category Galleries */}
+            <Route path="/property" element={<PropertyGallery />} />
+            <Route path="/automobile" element={<AutomobileGallery />} />
+            <Route path="/bedding" element={<BeddingGallery />} />
+            <Route path="/electronics" element={<ElectronicsGallery />} />
+            <Route path="/grocery" element={<GroceryGallery />} />
+            <Route path="/garment" element={<GarmentGallery />} />
+            <Route path="/jewellery" element={<JewelleryGallery />} />
+            <Route path="/finance" element={<FinanceGallery />} />
+
+            {/* Top-Level Detail & Action Routes */}
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />
-            <Route path="/property/*" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
-            <Route path="/finance/*" element={<RequireAuth><LoanDetails location={location} /></RequireAuth>} />
+            <Route path="/property/:id" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
+            <Route path="/vehicle/:id" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
+            <Route path="/bedding/:id" element={<RequireAuth><BeddingDetails location={location} /></RequireAuth>} />
+            <Route path="/electronics/:id" element={<RequireAuth><ElectronicsDetails location={location} /></RequireAuth>} />
+            <Route path="/grocery/:id" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
+            <Route path="/garment/:id" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
+            <Route path="/jewellery/:id" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
+            <Route path="/finance/post-service/success" element={<FinanceServiceSuccess />} />
+            <Route path="/finance/:id" element={<RequireAuth><LoanDetails location={location} /></RequireAuth>} />
+            <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<RequireAuth><FinanceDetails location={location} /></RequireAuth>} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
-            <Route path="/grocery/*" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
-            <Route path="/vehicle/*" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
-            <Route path="/electronics/*" element={<RequireAuth><ElectronicsDetails location={location} /></RequireAuth>} />
-            <Route path="/bedding/*" element={<RequireAuth><BeddingDetails location={location} /></RequireAuth>} />
-            <Route path="/jewellery/*" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
-            <Route path="/garment/*" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
+
+            {/* Backward-Compatibility /our-services/* Aliases */}
+            <Route path="/our-services/real-estate-property/requirement/success" element={<RequirementSuccess />} />
+            <Route path="/our-services/real-estate-property/requirement" element={<PostRequirement />} />
+            <Route path="/our-services/real-estate-property/:id" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
+            <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
+            <Route path="/our-services/automobile" element={<AutomobileGallery />} />
+            <Route path="/our-services/bedding-comfort" element={<BeddingGallery />} />
+            <Route path="/our-services/consumer-electronics" element={<ElectronicsGallery />} />
+            <Route path="/our-services/consumer-marketplace" element={<GroceryGallery />} />
+            <Route path="/our-services/garments-fashion-lifestyle" element={<GarmentGallery />} />
+            <Route path="/our-services/jewellery-gold" element={<JewelleryGallery />} />
+            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
+            <Route path="/our-services/*" element={<ServicesPage location={location} />} />
+
+            {/* Auth & Utility Routes */}
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/reset-password" element={<ResetPassword />} />

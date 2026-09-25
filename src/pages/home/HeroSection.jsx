@@ -8,7 +8,7 @@ const HERO_SLIDES = [
     category: 'Houses & Land',
     title: 'Affordable Homes, Plots & Apartments in Bengaluru',
     subtitle: 'Verified residential plots, budget-friendly flats, gated layouts & commercial spaces with easy loan support.',
-    link: '/our-services/real-estate-property',
+    link: '/property',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-house-chimney',
     ctaText: 'Explore Properties',
@@ -20,7 +20,7 @@ const HERO_SLIDES = [
     category: 'Vehicles',
     title: 'Affordable Cars, Bikes & Commercial Vehicles',
     subtitle: 'Quality new and verified pre-owned vehicles with low down payments, easy EMI options and trusted dealers.',
-    link: '/our-services/automobile',
+    link: '/automobile',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-car',
     ctaText: 'Explore Vehicles',
@@ -32,7 +32,7 @@ const HERO_SLIDES = [
     category: 'Bedding & Comfort',
     title: 'Affordable Mattresses, Pillows & Sleep Comfort',
     subtitle: 'Comfortable orthopedic mattresses, bedsheets & pillows designed for great sleep at honest, budget-friendly prices.',
-    link: '/our-services/bedding-comfort',
+    link: '/bedding',
     image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-bed',
     ctaText: 'Explore Bedding',
@@ -44,7 +44,7 @@ const HERO_SLIDES = [
     category: 'Consumer Electronics',
     title: 'Everyday Electronics, Mobiles & Home Appliances',
     subtitle: 'Quality smartphones, laptops, smart TVs & home essentials with easy no-cost EMI and zero down payment.',
-    link: '/our-services/consumer-electronics',
+    link: '/electronics',
     image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-tv',
     ctaText: 'Coming Soon',
@@ -95,7 +95,7 @@ export default function HeroSection() {
       {/* ── Fixed-height viewport ──
           Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group">
+      <div className="relative w-full h-[320px] sm:h-[360px] md:h-[400px] lg:h-[440px] overflow-hidden group">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {

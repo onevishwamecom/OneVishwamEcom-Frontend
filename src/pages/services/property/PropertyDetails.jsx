@@ -206,7 +206,7 @@ export default function PropertyDetails() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
-  const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
+  const propertySlug = pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
 
   const rawProperty = properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
@@ -286,7 +286,7 @@ export default function PropertyDetails() {
 
   const goBack = () => {
     if (window.history.length > 1) navigate(-1);
-    else navigateTo('/our-services/real-estate-property');
+    else navigateTo('/property');
   };
 
   const handleShare = async () => {
@@ -536,7 +536,7 @@ export default function PropertyDetails() {
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Houses & Land</Link>
+              <Link to="/property" className="hover:text-brand-blue">Houses & Land</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{property.title}</span>
             </div>

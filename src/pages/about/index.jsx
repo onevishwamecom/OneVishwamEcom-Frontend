@@ -61,7 +61,7 @@ function AboutPage() {
         subtitle="One Stop Solution for finance and products to build your life. Lower prices, direct from manufacturers, backed by co-operative finance."
         ctas={[
           { label: 'Enquiry', href: '/enquiry/', primary: true, icon: 'fa-solid fa-envelope' },
-          { label: 'Explore Services', href: '/our-services/real-estate-property', primary: false, icon: 'fa-solid fa-compass' },
+          { label: 'Explore Services', href: '/property', primary: false, icon: 'fa-solid fa-compass' },
         ]}
       />
 
@@ -237,7 +237,7 @@ function AboutPage() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
               <Link
-                to="/our-services/real-estate-property"
+                to="/property"
                 className="inline-flex items-center gap-2 bg-yellow-400 text-brand-navy px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-yellow-300 transition-colors shadow-md"
               >
                 <i className="fa-solid fa-house-chimney" /> Explore Properties
