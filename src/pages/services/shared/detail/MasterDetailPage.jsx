@@ -64,7 +64,7 @@ export default function MasterDetailPage({
   hooks = {},
   authTitle = 'Login to View Details',
   authMessage = 'Please log in to view complete details, specifications, and contact info.',
-  backUrl = '/property',
+  backUrl = '/our-services',
   backLabel = 'Back to Listings',
   notFoundMessage = 'Item not found',
   customHero,

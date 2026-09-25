@@ -44,7 +44,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <Link to="/finance" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
@@ -53,7 +53,7 @@ function LoanDetails() {
     return (
       <div className="py-32 text-center">
         <h1 className="text-2xl font-bold text-gray-400">Loan not found</h1>
-        <Link to="/finance" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</Link>
+        <a href="/our-services/finance-lending" className="mt-4 inline-block text-brand-blue font-semibold">&larr; Back to Finance & Loans</a>
       </div>
     );
   }
@@ -67,7 +67,7 @@ function LoanDetails() {
       {/* ── Gradient Hero Banner ── */}
       <div className="bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-12 sm:pb-16">
-          <Link to="/finance"
+          <Link to="/our-services/finance-lending"
             className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors">
             <i className="fa-solid fa-arrow-left" /> Back to Loan Products
           </Link>
@@ -369,10 +369,10 @@ function LoanDetails() {
                 <div className="rounded-xl border border-gray-100 bg-white p-3">
                   <p className="text-sm font-bold text-brand-charcoal">NRI Loans</p>
                   <p className="text-xs text-gray-500">For non-resident Indians</p>
-                  <Link to="/finance"
+                  <a href="/our-services/finance-lending"
                     className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline">
                     Explore <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

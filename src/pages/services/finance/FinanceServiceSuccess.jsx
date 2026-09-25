@@ -13,7 +13,7 @@ function FinanceServiceSuccess() {
             Your financial service has been submitted successfully. It will be reviewed and published shortly.
           </p>
           <div className="mt-8 flex flex-col gap-3">
-            <Link to="/finance"
+            <Link to="/our-services/finance-lending"
               className="w-full rounded-xl bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
               Browse Finance Services
             </Link>

@@ -148,7 +148,7 @@ function GalleryModal({ items = [], index, onClose, onPrev, onNext }) {
 export default function MasterDetailPage({
   item,
   categoryName = 'Marketplace',
-  categoryLink = '/property',
+  categoryLink = '/our-services/real-estate-property',
   similarItems = [],
   itemLinkPrefix = '/property/',
   loading = false,

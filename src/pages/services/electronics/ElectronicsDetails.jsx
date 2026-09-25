@@ -6,7 +6,7 @@ export default function ElectronicsDetails({ item = null, similarItems = [] }) {
     <MasterDetailPage
       item={item}
       categoryName="Consumer Electronics"
-      categoryLink="/electronics"
+      categoryLink="/our-services/consumer-electronics"
       similarItems={similarItems}
       itemLinkPrefix="/electronics/"
       bentoTitle="Product Key Specifications & Verified Details"

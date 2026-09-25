@@ -26,7 +26,7 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
  */
 export default function ProductDetailTemplate({
   item,
-  backLink = '/property',
+  backLink = '/our-services/real-estate-property',
   backLabel = 'Back to Listings',
   onCall,
   onWhatsApp,

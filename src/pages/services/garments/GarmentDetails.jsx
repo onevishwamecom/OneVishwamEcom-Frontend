@@ -20,7 +20,7 @@ export default function GarmentDetails() {
       }}
       authTitle="Login to View Garment Details"
       authMessage="Please log in or create an account to view available sizes, fabrics, pricing, colors, and order options."
-      backUrl="/garment"
+      backUrl="/our-services/garments-fashion-lifestyle"
       backLabel="Back to Garments & Fashion"
       notFoundMessage="Garment not found"
       sidebarSlot={({ item }) => (

@@ -20,7 +20,7 @@ export default function JewelleryDetails() {
       }}
       authTitle="Login to View Jewellery Details"
       authMessage="Please log in or create an account to view carat specifications, certification details, pricing, and certified jeweller info."
-      backUrl="/jewellery"
+      backUrl="/our-services/jewellery-gold"
       backLabel="Back to Jewellery & Gold"
       notFoundMessage="Jewellery not found"
       sidebarSlot={({ item }) => (
