@@ -40,7 +40,7 @@ function FinanceDashboard() {
     const params = new URLSearchParams();
     if (reqType) params.set('type', reqType);
     if (reqBudget) params.set('budget', reqBudget);
-    navigateTo(`/our-services/real-estate-property?${params.toString()}`);
+    navigateTo(`/property?${params.toString()}`);
   };
 
   const BADGE_COLORS = {

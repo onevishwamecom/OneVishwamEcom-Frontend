@@ -20,7 +20,7 @@ export default function GroceryDetails() {
       }}
       authTitle="Login to View Grocery Details"
       authMessage="Please log in or create an account to view fresh batch availability, nutritional info, pricing, and order options."
-      backUrl="/our-services/consumer-marketplace"
+      backUrl="/grocery"
       backLabel="Back to Groceries & Daily Needs"
       notFoundMessage="Grocery item not found"
       sidebarSlot={({ item }) => <GroceryVendorCard item={item} />}

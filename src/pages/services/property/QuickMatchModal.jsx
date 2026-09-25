@@ -54,7 +54,7 @@ function QuickMatchModal({ onClose }) {
 
   const handleBrowseAll = () => {
     onClose();
-    navigateTo('/our-services/real-estate-property');
+    navigateTo('/property');
   };
 
   const handleClose = () => {

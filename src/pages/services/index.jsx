@@ -5,6 +5,17 @@ import PageHero from '../../components/PageHero';
 
 const ACTIVE_SERVICE_IDS = ['real-estate-property', 'automobile', 'bedding-comfort'];
 
+const SERVICE_ROUTES = {
+  'real-estate-property': '/property',
+  'automobile': '/automobile',
+  'bedding-comfort': '/bedding',
+  'consumer-electronics': '/electronics',
+  'consumer-marketplace': '/grocery',
+  'garments-fashion-lifestyle': '/garment',
+  'jewellery-gold': '/jewellery',
+  'finance-lending': '/finance',
+};
+
 function ServicesPage() {
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
@@ -73,7 +84,7 @@ function ServicesPage() {
               return (
                 <Link
                   key={item.id}
-                  to={`/our-services/${item.id}`}
+                  to={SERVICE_ROUTES[item.id] || `/our-services/${item.id}`}
                   className="group bg-white rounded-xl border border-gray-100 p-6 cursor-pointer hover:shadow-lg hover:border-brand-blue/20 transition-all block"
                 >
                   <div className="aspect-[16/10] overflow-hidden rounded-lg bg-gray-100 mb-4">

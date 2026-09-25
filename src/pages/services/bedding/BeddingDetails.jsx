@@ -282,7 +282,7 @@ export default function BeddingDetails({ item = null, similarItems = [] }) {
     <MasterDetailPage
       item={displayedItem}
       categoryName="Bedding & Comfort"
-      categoryLink="/our-services/bedding-comfort"
+      categoryLink="/bedding"
       similarItems={similarItems}
       itemLinkPrefix="/bedding/"
       bentoTitle="Product Key Specifications & Mattress Dimensions"

@@ -137,14 +137,14 @@ function Navbar() {
   const isCategoryActive =
     currentLocation.pathname.startsWith('/our-services') ||
     currentLocation.pathname.startsWith('/property') ||
+    currentLocation.pathname.startsWith('/automobile') ||
     currentLocation.pathname.startsWith('/vehicle') ||
-    currentLocation.pathname.startsWith('/grocery') ||
-    currentLocation.pathname.startsWith('/jewellery') ||
-    currentLocation.pathname.startsWith('/garment') ||
-    currentLocation.pathname.startsWith('/finance');
-    currentLocation.pathname.startsWith('/finance') ||
+    currentLocation.pathname.startsWith('/bedding') ||
     currentLocation.pathname.startsWith('/electronics') ||
-    currentLocation.pathname.startsWith('/bedding');
+    currentLocation.pathname.startsWith('/grocery') ||
+    currentLocation.pathname.startsWith('/garment') ||
+    currentLocation.pathname.startsWith('/jewellery') ||
+    currentLocation.pathname.startsWith('/finance');
 
   const isActive = (link) => {
     const path = currentLocation.pathname;

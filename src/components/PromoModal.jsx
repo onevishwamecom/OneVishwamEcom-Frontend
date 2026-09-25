@@ -209,7 +209,7 @@ export default function PromoModal() {
               type="button"
               onClick={() => {
                 handleClose();
-                navigate('/our-services/real-estate-property');
+                navigate('/property');
               }}
               className="w-full inline-flex justify-center items-center gap-2 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-800 active:scale-[0.98] px-5 py-3.5 text-sm font-extrabold transition-all shadow-xs cursor-pointer"
             >
