@@ -1,17 +1,10 @@
-import { useEffect, useRef, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase/config';
-import { NAVIGATION_EVENT } from './config/navigation';
-const Footer = lazy(() => import('./components/Footer'));
-import BrandLoader from './components/ui/BrandLoader';
-import { useAuth, setUser, forceLogout } from './store/authSlice';
-import store from './store';
-import API from './services/api';
-import AuthModals from './components/auth/AuthModals';
+import Footer from './components/Footer';
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
+import { setNavigate } from './config/navigation';
+import PageSkeleton from './components/ui/PageSkeleton';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -20,46 +13,48 @@ const Home = lazy(() => import('./pages/home'));
 const ServicesPage = lazy(() => import('./pages/services'));
 const CareersPage = lazy(() => import('./pages/careers'));
 const PropertyGallery = lazy(() => import('./pages/services/property/PropertyGallery'));
-const AutomobileGallery = lazy(() => import('./pages/services/automobile/AutomobileGallery'));
-const BeddingGallery = lazy(() => import('./pages/services/bedding/BeddingGallery'));
-const ElectronicsGallery = lazy(() => import('./pages/services/electronics/ElectronicsGallery'));
-const GroceryGallery = lazy(() => import('./pages/services/grocery/GroceryGallery'));
-const GarmentGallery = lazy(() => import('./pages/services/garments/GarmentGallery'));
-const JewelleryGallery = lazy(() => import('./pages/services/jewellery/JewelleryGallery'));
 const PropertyDetails = lazy(() => import('./pages/services/property/PropertyDetails'));
 const PostRequirement = lazy(() => import('./pages/services/property/PostRequirement'));
 const RequirementSuccess = lazy(() => import('./pages/services/property/RequirementSuccess'));
+const AutomobileGallery = lazy(() => import('./pages/services/automobile/AutomobileGallery'));
+const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
+const BeddingGallery = lazy(() => import('./pages/services/bedding/BeddingGallery'));
+const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const LoanDetails = lazy(() => import('./pages/services/finance/LoanDetails'));
 const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetails'));
-const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
 const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
-const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
-const VerifyOtp = lazy(() => import('./pages/auth/VerifyOtp'));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
-const ResetSuccess = lazy(() => import('./pages/auth/ResetSuccess'));
-const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
-const NotificationsPage = lazy(() => import('./pages/notifications'));
 const ComingSoon = lazy(() => import('./pages/coming-soon/ComingSoon'));
 
-function ScrollToTopAndNavHelper() {
+/**
+ * Registers React Router's navigate function with the navigateTo() utility so that
+ * any component calling navigateTo() gets true client-side SPA navigation instead of
+ * going through the DOM CustomEvent indirection layer.
+ *
+ * Also handles scroll-to-top on every route change.
+ */
+function RouterSyncEffect() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { openAuthModal, isLoggedIn } = useAuth();
 
+  // Register navigate with the module-level utility on mount and whenever it changes.
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
+  // Scroll to top on route change (unless navigating to a hash anchor) and track Meta Pixel PageView.
   useEffect(() => {
     if (!location.hash) {
       window.scrollTo(0, 0);
     } else {
       const targetId = location.hash.replace('#', '');
       requestAnimationFrame(() => {
-        document.getElementById(targetId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
 
@@ -68,209 +63,63 @@ function ScrollToTopAndNavHelper() {
     }
   }, [location.pathname, location.hash]);
 
-  useEffect(() => {
-    const handleCustomNav = (e) => {
-      navigate(e.detail);
-    };
-    window.addEventListener(NAVIGATION_EVENT, handleCustomNav);
-    return () => window.removeEventListener(NAVIGATION_EVENT, handleCustomNav);
-  }, [navigate]);
-
-  // Listen for forced logout from token refresh failure
-  useEffect(() => {
-    const handleForceLogout = () => {
-      store.dispatch(forceLogout());
-    };
-    window.addEventListener('auth:logout', handleForceLogout);
-    return () => window.removeEventListener('auth:logout', handleForceLogout);
-  }, []);
-
   return null;
 }
 
-/**
- * RequireAuth - guards protected detail/listing pages.
- * Unauthenticated users see a "please log in" placeholder and an auth modal
- * is opened automatically on first visit so they can log in without losing context.
- */
-function RequireAuth({ children }) {
-  const { isLoggedIn, openAuthModal } = useAuth();
-  const navigate = useNavigate();
-  const promptedRef = useRef(false);
-
-  useEffect(() => {
-    if (!isLoggedIn && !promptedRef.current) {
-      promptedRef.current = true;
-      openAuthModal('login');
-    }
-  }, [isLoggedIn, openAuthModal]);
-
-  if (isLoggedIn) return children;
-
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 pt-16 lg:pt-14">
-      <div className="max-w-md w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <div className="w-14 h-14 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue mx-auto mb-4">
-          <i className="fa-solid fa-lock text-2xl" />
-        </div>
-        <h2 className="text-2xl font-bold text-brand-charcoal">Login Required</h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Please log in to view this property. We&rsquo;ll keep everything ready so you can come right back here.
-        </p>
-        <button
-          onClick={() => openAuthModal('login')}
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-6 py-3 text-sm font-bold hover:bg-brand-navy transition-colors"
-        >
-          <i className="fa-solid fa-arrow-right-to-bracket" /> Log In to Continue
-        </button>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-3 block w-full text-sm font-semibold text-gray-500 hover:text-brand-blue transition-colors"
-        >
-          Go Back
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function App() {
-  const location = useLocation();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Optimistically preserve cached user details (like phone/role) while refreshing
-        let parsedStored = null;
-        try {
-          const existingStored = localStorage.getItem('user');
-          if (existingStored && existingStored !== 'undefined' && existingStored !== 'null') {
-            parsedStored = JSON.parse(existingStored);
-          }
-        } catch {
-          parsedStored = null;
-        }
-
-        const baseUser = {
-          ...parsedStored,
-          firebaseUid: firebaseUser.uid,
-          email: firebaseUser.email,
-          fullName: firebaseUser.displayName || parsedStored?.fullName || parsedStored?.name || 'User',
-          name: firebaseUser.displayName || parsedStored?.fullName || parsedStored?.name || 'User',
-          role: parsedStored?.role || 'user',
-        };
-        dispatch(setUser(baseUser));
-
-        // Enrich with latest MongoDB Atlas profile from backend
-        try {
-          const idToken = await firebaseUser.getIdToken(true);
-          const res = await API.get('/auth/me', {
-            headers: { Authorization: `Bearer ${idToken}` },
-          });
-          if (res.data?.data) {
-            dispatch(setUser(res.data.data));
-          }
-        } catch {
-          try {
-            const idToken = await firebaseUser.getIdToken();
-            const syncRes = await API.post(
-              '/auth/sync',
-              {
-                firebaseUid: firebaseUser.uid,
-                email: firebaseUser.email,
-                fullName: firebaseUser.displayName,
-              },
-              {
-                headers: { Authorization: `Bearer ${idToken}` },
-              }
-            );
-            if (syncRes.data?.data) {
-              dispatch(setUser(syncRes.data.data));
-            }
-          } catch {
-            // Retain optimistic baseUser
-          }
-        }
-      } else {
-        dispatch(setUser(null));
-      }
-    });
-
-    return () => unsubscribe();
-  }, [dispatch]);
-
   return (
     <>
-      <ScrollToTopAndNavHelper />
+      <RouterSyncEffect />
       <main>
-        <Suspense fallback={<BrandLoader />}>
+        <Suspense fallback={<PageSkeleton />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about-us/*" element={<AboutPage />} />
-            <Route path="/enquiry/*" element={<ContactPage location={location} />} />
-            <Route path="/enquiry" element={<ContactPage location={location} />} />
-            <Route path="/contact-us/*" element={<ContactPage location={location} />} />
-            <Route path="/contact-us" element={<ContactPage location={location} />} />
-            <Route path="/careers/*" element={<CareersPage />} />
+            <Route path="/enquiry/*" element={<ContactPage />} />
+            <Route path="/enquiry" element={<ContactPage />} />
+            <Route path="/contact-us/*" element={<ContactPage />} />
+            <Route path="/contact-us" element={<ContactPage />} />
 
-            {/* Top-Level Clean Category Galleries */}
+            {/* Real Estate / Property Routes */}
+            <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
+            <Route path="/houseandland" element={<PropertyGallery />} />
             <Route path="/property" element={<PropertyGallery />} />
-            <Route path="/automobile" element={<AutomobileGallery />} />
-            <Route path="/bedding" element={<BeddingGallery />} />
-            <Route path="/electronics" element={<ElectronicsGallery />} />
-            <Route path="/grocery" element={<GroceryGallery />} />
-            <Route path="/garment" element={<GarmentGallery />} />
-            <Route path="/jewellery" element={<JewelleryGallery />} />
-            <Route path="/finance" element={<FinanceGallery />} />
-
-            {/* Top-Level Detail & Action Routes */}
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />
-            <Route path="/property/:id" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
-            <Route path="/vehicle/:id" element={<RequireAuth><VehicleDetails location={location} /></RequireAuth>} />
-            <Route path="/bedding/:id" element={<RequireAuth><BeddingDetails location={location} /></RequireAuth>} />
-            <Route path="/electronics/:id" element={<RequireAuth><ElectronicsDetails location={location} /></RequireAuth>} />
-            <Route path="/grocery/:id" element={<RequireAuth><GroceryDetails location={location} /></RequireAuth>} />
-            <Route path="/garment/:id" element={<RequireAuth><GarmentDetails location={location} /></RequireAuth>} />
-            <Route path="/jewellery/:id" element={<RequireAuth><JewelleryDetails location={location} /></RequireAuth>} />
-            <Route path="/finance/post-service/success" element={<FinanceServiceSuccess />} />
-            <Route path="/finance/:id" element={<RequireAuth><LoanDetails location={location} /></RequireAuth>} />
-            <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
-            <Route path="/finance-service/:id" element={<RequireAuth><FinanceDetails location={location} /></RequireAuth>} />
-            <Route path="/finance-flow" element={<FinanceFlow />} />
+            <Route path="/property/:id" element={<PropertyDetails />} />
 
-            {/* Backward-Compatibility /our-services/* Aliases */}
-            <Route path="/our-services/real-estate-property/requirement/success" element={<RequirementSuccess />} />
-            <Route path="/our-services/real-estate-property/requirement" element={<PostRequirement />} />
-            <Route path="/our-services/real-estate-property/:id" element={<RequireAuth><PropertyDetails location={location} /></RequireAuth>} />
-            <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
+            {/* Vehicles / Automobile Routes */}
             <Route path="/our-services/automobile" element={<AutomobileGallery />} />
-            <Route path="/our-services/bedding-comfort" element={<BeddingGallery />} />
-            <Route path="/our-services/consumer-electronics" element={<ElectronicsGallery />} />
-            <Route path="/our-services/consumer-marketplace" element={<GroceryGallery />} />
-            <Route path="/our-services/garments-fashion-lifestyle" element={<GarmentGallery />} />
-            <Route path="/our-services/jewellery-gold" element={<JewelleryGallery />} />
-            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
-            <Route path="/our-services/*" element={<ServicesPage location={location} />} />
+            <Route path="/automobile" element={<AutomobileGallery />} />
+            <Route path="/vehicles" element={<AutomobileGallery />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/automobile/:id" element={<VehicleDetails />} />
 
-            {/* Auth & Utility Routes */}
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-success" element={<ResetSuccess />} />
-            <Route path="/profile/settings" element={<RequireAuth><ProfileSettings /></RequireAuth>} />
-            <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+            {/* Bedding & Comfort Routes */}
+            <Route path="/our-services/bedding-comfort" element={<BeddingGallery />} />
+            <Route path="/bedding-comfort" element={<BeddingGallery />} />
+            <Route path="/bedding" element={<BeddingGallery />} />
+            <Route path="/bedding/:id" element={<BeddingDetails />} />
+            <Route path="/bedding-comfort/:id" element={<BeddingDetails />} />
+
+            {/* Finance & Other Verticals */}
+            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
+            <Route path="/our-services/*" element={<ServicesPage />} />
+            <Route path="/careers/*" element={<CareersPage />} />
+            <Route path="/finance/*" element={<LoanDetails />} />
+            <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
+            <Route path="/finance-service/:id" element={<FinanceDetails />} />
+            <Route path="/finance-flow" element={<FinanceFlow />} />
+            <Route path="/grocery/*" element={<GroceryDetails />} />
+            <Route path="/electronics/*" element={<ElectronicsDetails />} />
+            <Route path="/jewellery/*" element={<JewelleryDetails />} />
+            <Route path="/garment/*" element={<GarmentDetails />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
-            <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
       </main>
-      <Suspense fallback={null}>
-        <Footer />
-      </Suspense>
-      <AuthModals />
+      <Footer />
       <PromoToast />
       <PromoModal />
     </>
