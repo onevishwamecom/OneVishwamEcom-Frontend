@@ -9,11 +9,10 @@ export const footerSummary =
 export const footerQuickLinks = primaryNavigation;
 
 export const footerServiceLinks = [
-  { label: 'Properties', href: '/our-services/real-estate-property' },
-  { label: 'Houses & Land', href: '/our-services/real-estate-property' },
-  { label: 'Vehicles', href: '/our-services/automobile' },
-  { label: 'Bedding & Comfort', href: '/our-services/bedding-comfort' },
-  { label: 'Consumer Electronics', href: '/our-services/consumer-electronics' },
+  { label: 'Properties', href: '/property' },
+  { label: 'Houses & Land', href: '/property' },
+  { label: 'Vehicles', href: '/automobile' },
+  { label: 'Bedding & Comfort', href: '/bedding' },
 ];
 
 export const footerSocialLinks = [

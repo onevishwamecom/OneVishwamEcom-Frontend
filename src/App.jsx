@@ -12,14 +12,17 @@ const ContactPage = lazy(() => import('./pages/contact'));
 const Home = lazy(() => import('./pages/home'));
 const ServicesPage = lazy(() => import('./pages/services'));
 const CareersPage = lazy(() => import('./pages/careers'));
+const PropertyGallery = lazy(() => import('./pages/services/property/PropertyGallery'));
 const PropertyDetails = lazy(() => import('./pages/services/property/PropertyDetails'));
 const PostRequirement = lazy(() => import('./pages/services/property/PostRequirement'));
 const RequirementSuccess = lazy(() => import('./pages/services/property/RequirementSuccess'));
+const AutomobileGallery = lazy(() => import('./pages/services/automobile/AutomobileGallery'));
+const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
+const BeddingGallery = lazy(() => import('./pages/services/bedding/BeddingGallery'));
+const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const LoanDetails = lazy(() => import('./pages/services/finance/LoanDetails'));
 const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetails'));
-const VehicleDetails = lazy(() => import('./pages/services/automobile/VehicleDetails'));
 const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
-const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
 const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
@@ -77,20 +80,39 @@ function App() {
             <Route path="/enquiry" element={<ContactPage />} />
             <Route path="/contact-us/*" element={<ContactPage />} />
             <Route path="/contact-us" element={<ContactPage />} />
+
+            {/* Real Estate / Property Routes */}
+            <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
+            <Route path="/houseandland" element={<PropertyGallery />} />
+            <Route path="/property" element={<PropertyGallery />} />
+            <Route path="/property/requirement/success" element={<RequirementSuccess />} />
+            <Route path="/property/requirement" element={<PostRequirement />} />
+            <Route path="/property/:id" element={<PropertyDetails />} />
+
+            {/* Vehicles / Automobile Routes */}
+            <Route path="/our-services/automobile" element={<AutomobileGallery />} />
+            <Route path="/automobile" element={<AutomobileGallery />} />
+            <Route path="/vehicles" element={<AutomobileGallery />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/automobile/:id" element={<VehicleDetails />} />
+
+            {/* Bedding & Comfort Routes */}
+            <Route path="/our-services/bedding-comfort" element={<BeddingGallery />} />
+            <Route path="/bedding-comfort" element={<BeddingGallery />} />
+            <Route path="/bedding" element={<BeddingGallery />} />
+            <Route path="/bedding/:id" element={<BeddingDetails />} />
+            <Route path="/bedding-comfort/:id" element={<BeddingDetails />} />
+
+            {/* Finance & Other Verticals */}
             <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
             <Route path="/our-services/*" element={<ServicesPage />} />
             <Route path="/careers/*" element={<CareersPage />} />
-            <Route path="/property/requirement/success" element={<RequirementSuccess />} />
-            <Route path="/property/requirement" element={<PostRequirement />} />
-            <Route path="/property/*" element={<PropertyDetails />} />
             <Route path="/finance/*" element={<LoanDetails />} />
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<FinanceDetails />} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
             <Route path="/grocery/*" element={<GroceryDetails />} />
-            <Route path="/vehicle/*" element={<VehicleDetails />} />
             <Route path="/electronics/*" element={<ElectronicsDetails />} />
-            <Route path="/bedding/*" element={<BeddingDetails />} />
             <Route path="/jewellery/*" element={<JewelleryDetails />} />
             <Route path="/garment/*" element={<GarmentDetails />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
