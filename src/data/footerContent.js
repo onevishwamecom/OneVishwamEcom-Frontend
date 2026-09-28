@@ -1,4 +1,3 @@
-import { dummyProperties } from './dummyProperties';
 import { primaryNavigation } from './siteContent';
 
 export const footerBrandName = 'Vishwam';
@@ -74,7 +73,7 @@ export function getPropertyContactInfo(item) {
   const title = typeof item === 'string' ? item : (item.title || item.name || '');
   const tLower = title.toLowerCase().trim();
 
-  if (!propObj && tLower) {
+  if (!propObj && tLower && typeof dummyProperties !== 'undefined' && Array.isArray(dummyProperties)) {
     propObj = dummyProperties.find((p) => {
       const pTitle = (p.title || p.name || '').toLowerCase().trim();
       return pTitle === tLower || pTitle.includes(tLower) || tLower.includes(pTitle);
