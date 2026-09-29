@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { dummyElectronics } from '../../../data/dummyElectronics';
 import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
 import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 const FILTER_GROUPS = [
   {
@@ -52,7 +54,7 @@ function parseNumericPrice(str) {
   return num;
 }
 
-export default function ElectronicsGallery({ items = [] }) {
+export default function ElectronicsGallery() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({
     budgetMin: '',
@@ -107,17 +109,20 @@ export default function ElectronicsGallery({ items = [] }) {
   };
 
   const filteredItems = useMemo(() => {
-    const list = Array.isArray(items) ? items : [];
-    return list.filter((item) => {
+    return dummyElectronics.filter((item) => {
       // Search
       if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const matchTitle = (item.title || '').toLowerCase().includes(q);
-        const matchBrand = (item.brand || '').toLowerCase().includes(q);
-        const matchModel = (item.model || '').toLowerCase().includes(q);
-        const matchCategory = (item.category || '').toLowerCase().includes(q);
-        const matchLocation = (item.location || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchBrand && !matchModel && !matchCategory && !matchLocation) {
+        if (!matchesSearch(
+          searchTerm,
+          item.title,
+          item.brand,
+          item.model,
+          item.category,
+          item.location,
+          item.subtitle,
+          item.specs,
+          item.description
+        )) {
           return false;
         }
       }
@@ -147,7 +152,7 @@ export default function ElectronicsGallery({ items = [] }) {
 
       return true;
     });
-  }, [items, searchTerm, activeFilters]);
+  }, [searchTerm, activeFilters]);
 
   return (
     <MarketplaceCategoryGallery
@@ -165,19 +170,18 @@ export default function ElectronicsGallery({ items = [] }) {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search electronics by brand, model, category, or locality (e.g. Sony OLED, MacBook M3, Indiranagar)..."
-      postRequirementLink="/property/requirement"
       customCardRenderer={(item) => (
         <CategoryListingCard
-          key={item.id || item._id}
+          key={item.id}
           item={item}
-          link={`/electronics/${item.id || item._id}`}
+          link={`/electronics/${item.id}`}
           title={item.title}
           price={item.price}
           priceSuffix={item.priceSuffix}
           location={item.location}
           pincode={item.pincode}
           statusBadges={item.statusBadges}
-          keyAttributes={item.cardPills || item.keyAttributes}
+          keyAttributes={item.cardPills}
           highlightBanner={item.highlightBanner}
         />
       )}

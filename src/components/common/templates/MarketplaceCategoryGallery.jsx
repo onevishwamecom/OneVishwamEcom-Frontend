@@ -136,7 +136,7 @@ export default function MarketplaceCategoryGallery({
   searchTerm = '',
   onSearchChange,
   searchPlaceholder = 'Search inventory by title, brand, locality, or keyword...',
-  postRequirementLink = '/property/requirement',
+  postRequirementLink = null,
   onQuickMatch,
   quickMatchLabel = 'Quick Match',
   customSidebar,
@@ -236,7 +236,7 @@ export default function MarketplaceCategoryGallery({
   );
 
   return (
-    <PageContainer>
+    <PageContainer className="min-h-screen bg-[#f8fafc] pb-24 relative">
 
         {/* ── Top Navigation & Title Bar ── */}
         <div className="pt-4 pb-2">

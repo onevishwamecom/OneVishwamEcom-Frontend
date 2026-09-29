@@ -3,6 +3,8 @@
  * from their respective database / mock structures into the unified EntityItem contract.
  */
 
+import { cleanProductName } from '../../../utils/searchUtils';
+
 function isPerSqft(priceStr = '', suffix = '') {
   const combined = `${priceStr} ${suffix}`.toLowerCase();
   return (
@@ -24,7 +26,7 @@ export function mapPropertyToEntityItem(property) {
   if (!property) return null;
 
   const id = property.id || property._id || '';
-  const title = property.propertyName || property.title || 'Featured Property';
+  const title = cleanProductName(property.propertyName || property.title || 'Featured Property');
   const rawPrice = property.rawPrice || property.price || property.expectedPrice || property.priceRange?.formattedMin || '';
   const rawSuffix = property.rawPriceSuffix || property.priceSuffix || '';
   const inSqft = isPerSqft(rawPrice, rawSuffix);
@@ -142,6 +144,7 @@ export function mapPropertyToEntityItem(property) {
     type: property.channelPartnerName ? 'Channel Partner' : (property.builderName ? 'Verified Builder' : 'Authorized Associate'),
     phone: property.contactPhone || '8546996622',
     whatsapp: property.whatsapp || property.contactPhone || '8546996622',
+    email: property.email || 'ceo@onevishwam.com',
     verified: true,
   };
 
@@ -173,9 +176,11 @@ export function mapVehicleToEntityItem(vehicle) {
   if (!vehicle) return null;
 
   const id = vehicle.id || vehicle._id || '';
-  const title = vehicle.brand && vehicle.model
-    ? `${vehicle.brand} ${vehicle.model}`
-    : (vehicle.title || 'Vehicle Listing');
+  const title = cleanProductName(
+    vehicle.brand && vehicle.model
+      ? `${vehicle.brand} ${vehicle.model}`
+      : (vehicle.title || 'Vehicle Listing')
+  );
 
   const price = vehicle.price || 'Price on Request';
   const priceSubtext = vehicle.condition === 'old' ? 'Pre-Owned' : 'Ex-Showroom';
@@ -199,15 +204,11 @@ export function mapVehicleToEntityItem(vehicle) {
   }
 
   // Key Attributes
-  const keyAttributes = (vehicle.keyAttributes && vehicle.keyAttributes.length > 0)
-    ? [...vehicle.keyAttributes]
-    : [];
-  if (keyAttributes.length === 0) {
-    if (vehicle.fuelType) keyAttributes.push({ label: 'Fuel', value: vehicle.fuelType });
-    if (vehicle.year) keyAttributes.push({ label: 'Year', value: String(vehicle.year) });
-    if (vehicle.kmDriven !== undefined) keyAttributes.push({ label: 'KM Driven', value: `${vehicle.kmDriven} km` });
-    if (vehicle.category) keyAttributes.push({ label: 'Type', value: vehicle.category });
-  }
+  const keyAttributes = [];
+  if (vehicle.fuelType) keyAttributes.push({ label: 'Fuel', value: vehicle.fuelType });
+  if (vehicle.year) keyAttributes.push({ label: 'Year', value: String(vehicle.year) });
+  if (vehicle.kmDriven !== undefined) keyAttributes.push({ label: 'KM Driven', value: `${vehicle.kmDriven} km` });
+  if (vehicle.category) keyAttributes.push({ label: 'Type', value: vehicle.category });
 
   // Specifications Breakdown
   const specs = [
@@ -248,6 +249,7 @@ export function mapVehicleToEntityItem(vehicle) {
     type: 'Authorized Automobile Dealer',
     phone: vehicle.showroom?.phone || '8546996622',
     whatsapp: '8546996622',
+    email: vehicle.showroom?.email || 'ceo@onevishwam.com',
     verified: true,
   };
 
