@@ -8,6 +8,7 @@ import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import VerticalRibbonBar from './VerticalRibbonBar';
+import { useAuth } from '../store/authSlice';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,6 +21,7 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
+  const { isLoggedIn, user, openAuthModal, logout } = useAuth();
 
   const visibleNavLinks = navLinks;
 
@@ -470,6 +472,36 @@ function Navbar() {
                   </div>
                 )}
               </div>
+
+              {/* Login / Profile CTA */}
+              {isLoggedIn ? (
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-charcoal bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <i className="fa-solid fa-user text-brand-blue" />
+                    <span className="truncate max-w-[100px]">{user?.name || user?.fullName || 'Profile'}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="p-1.5 text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+                    title="Logout"
+                  >
+                    <i className="fa-solid fa-right-from-bracket text-xs" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-brand-blue bg-brand-blue/5 hover:bg-brand-blue/15 border border-brand-blue/20 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs"
+                >
+                  <i className="fa-solid fa-right-to-bracket text-xs text-brand-blue" />
+                  <span>Login</span>
+                </button>
+              )}
             </div>
 
             <button onClick={() => setMenuOpen(!menuOpen)}
@@ -495,6 +527,35 @@ function Navbar() {
           <button onClick={() => setMenuOpen(false)} className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
             <i className="fa-solid fa-xmark" />
           </button>
+        </div>
+
+        {/* Mobile Login / Account Bar */}
+        <div className="p-4 border-b bg-gray-50/50">
+          {isLoggedIn ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-user text-brand-blue text-sm" />
+                <span className="text-sm font-bold text-brand-charcoal truncate max-w-[140px]">
+                  {user?.name || user?.fullName || 'My Account'}
+                </span>
+              </div>
+              <button
+                onClick={() => { setMenuOpen(false); logout(); }}
+                className="text-xs font-semibold text-rose-600 hover:underline"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-brand-blue bg-white border border-brand-blue/30 rounded-xl hover:bg-brand-blue/5 transition-colors cursor-pointer shadow-2xs"
+            >
+              <i className="fa-solid fa-right-to-bracket text-sm text-brand-blue" />
+              <span>Login / Register</span>
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-b">
