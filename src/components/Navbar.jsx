@@ -5,22 +5,21 @@ import { marketplaceCategories } from '../data/categoriesData';
 import { cities, getCityLabel } from '../data/locations';
 import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
+import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
-import { useAuth } from '../store/authSlice';
 import VerticalRibbonBar from './VerticalRibbonBar';
-import HitCounterBanner from './HitCounterBanner';
+import { useAuth } from '../store/authSlice';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const currentLocation = useRouterLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null); // 'categories', 'more', 'location', 'account', or null
+  const [openDropdown, setOpenDropdown] = useState(null); // 'categories', 'more', 'location', or null
   const menuRef = useRef(null);
   const categoryRef = useRef(null);
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
-  const accountRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
   const { isLoggedIn, user, openAuthModal, logout } = useAuth();
 
@@ -139,14 +138,14 @@ function Navbar() {
   const isCategoryActive =
     currentLocation.pathname.startsWith('/our-services') ||
     currentLocation.pathname.startsWith('/property') ||
-    currentLocation.pathname.startsWith('/automobile') ||
     currentLocation.pathname.startsWith('/vehicle') ||
-    currentLocation.pathname.startsWith('/bedding') ||
-    currentLocation.pathname.startsWith('/electronics') ||
     currentLocation.pathname.startsWith('/grocery') ||
-    currentLocation.pathname.startsWith('/garment') ||
     currentLocation.pathname.startsWith('/jewellery') ||
+    currentLocation.pathname.startsWith('/garment') ||
     currentLocation.pathname.startsWith('/finance');
+    currentLocation.pathname.startsWith('/finance') ||
+    currentLocation.pathname.startsWith('/electronics') ||
+    currentLocation.pathname.startsWith('/bedding');
 
   const isActive = (link) => {
     const path = currentLocation.pathname;
@@ -259,7 +258,6 @@ function Navbar() {
   return (
     <div>
       <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-md' : 'bg-white shadow-xs'}`}>
-        <HitCounterBanner />
         <div className="max-w-[1400px] mx-auto px-4">
           <div className="flex items-center justify-between h-16 lg:h-14">
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
@@ -475,63 +473,32 @@ function Navbar() {
                 )}
               </div>
 
-              {/* Auth / Login Button */}
+              {/* Login / Profile CTA */}
               {isLoggedIn ? (
-                <div
-                  className="relative"
-                  ref={accountRef}
-                  onMouseEnter={() => showDropdown('account')}
-                  onMouseLeave={hideDropdown}
-                >
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-charcoal bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <i className="fa-solid fa-user text-brand-blue" />
+                    <span className="truncate max-w-[100px]">{user?.name || user?.fullName || 'Profile'}</span>
+                  </Link>
                   <button
                     type="button"
-                    id="account-dropdown-trigger"
-                    onClick={() => toggleDropdown('account')}
-                    className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-brand-charcoal hover:border-brand-blue/40 shadow-2xs transition-all"
+                    onClick={logout}
+                    className="p-1.5 text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+                    title="Logout"
                   >
-                    <div className="w-6 h-6 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-bold text-xs">
-                      {user?.name ? user.name.charAt(0).toUpperCase() : <i className="fa-solid fa-user text-[10px]" />}
-                    </div>
-                    <span className="max-w-[100px] truncate">{user?.name || user?.email?.split('@')[0] || 'My Account'}</span>
-                    <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform ${openDropdown === 'account' ? 'rotate-180' : ''}`} />
+                    <i className="fa-solid fa-right-from-bracket text-xs" />
                   </button>
-                  {openDropdown === 'account' && (
-                    <div className="absolute right-0 top-full pt-1.5 w-48 z-50 animate-fade-in">
-                      <div className="rounded-xl border border-gray-100 bg-white shadow-lg py-1.5">
-                        <div className="px-3.5 py-2 border-b border-gray-100">
-                          <p className="text-xs font-bold text-brand-charcoal truncate">{user?.name || 'User'}</p>
-                          <p className="text-[11px] text-gray-400 truncate">{user?.email || user?.phone || ''}</p>
-                        </div>
-                        <Link
-                          to="/settings"
-                          onClick={() => setOpenDropdown(null)}
-                          className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition-colors"
-                        >
-                          <i className="fa-solid fa-gear text-gray-400 w-4" />
-                          Settings
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenDropdown(null);
-                            logout();
-                          }}
-                          className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left"
-                        >
-                          <i className="fa-solid fa-arrow-right-from-bracket w-4" />
-                          Logout
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => openAuthModal('login')}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy shadow-xs transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-brand-blue bg-brand-blue/5 hover:bg-brand-blue/15 border border-brand-blue/20 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs"
                 >
-                  <i className="fa-solid fa-user text-[11px]" />
+                  <i className="fa-solid fa-right-to-bracket text-xs text-brand-blue" />
                   <span>Login</span>
                 </button>
               )}
@@ -560,6 +527,35 @@ function Navbar() {
           <button onClick={() => setMenuOpen(false)} className="h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
             <i className="fa-solid fa-xmark" />
           </button>
+        </div>
+
+        {/* Mobile Login / Account Bar */}
+        <div className="p-4 border-b bg-gray-50/50">
+          {isLoggedIn ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-user text-brand-blue text-sm" />
+                <span className="text-sm font-bold text-brand-charcoal truncate max-w-[140px]">
+                  {user?.name || user?.fullName || 'My Account'}
+                </span>
+              </div>
+              <button
+                onClick={() => { setMenuOpen(false); logout(); }}
+                className="text-xs font-semibold text-rose-600 hover:underline"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-brand-blue bg-white border border-brand-blue/30 rounded-xl hover:bg-brand-blue/5 transition-colors cursor-pointer shadow-2xs"
+            >
+              <i className="fa-solid fa-right-to-bracket text-sm text-brand-blue" />
+              <span>Login / Register</span>
+            </button>
+          )}
         </div>
 
         <div className="p-4 border-b">
@@ -664,51 +660,6 @@ function Navbar() {
             )}
           </div>
         </nav>
-
-        {/* Mobile Auth Button */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50 mt-auto">
-          {isLoggedIn ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2.5 px-1 py-1">
-                <div className="w-8 h-8 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center font-bold text-sm">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : <i className="fa-solid fa-user text-xs" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-brand-charcoal truncate">{user?.name || 'My Account'}</p>
-                  <p className="text-[10px] text-gray-400 truncate">{user?.email || ''}</p>
-                </div>
-              </div>
-              <Link
-                to="/settings"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs"
-              >
-                <i className="fa-solid fa-gear text-gray-400" /> Account Settings
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  logout();
-                }}
-                className="flex items-center justify-center gap-2 w-full rounded-xl bg-rose-50 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors"
-              >
-                <i className="fa-solid fa-arrow-right-from-bracket" /> Logout
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                openAuthModal('login');
-              }}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-blue py-3 text-xs font-bold text-white hover:bg-brand-navy shadow-xs transition-colors"
-            >
-              <i className="fa-solid fa-arrow-right-to-bracket" /> Login / Sign In
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

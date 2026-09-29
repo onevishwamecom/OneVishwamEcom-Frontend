@@ -22,6 +22,7 @@ const BeddingGallery = lazy(() => import('./pages/services/bedding/BeddingGaller
 const BeddingDetails = lazy(() => import('./pages/services/bedding/BeddingDetails'));
 const LoanDetails = lazy(() => import('./pages/services/finance/LoanDetails'));
 const GroceryDetails = lazy(() => import('./pages/services/grocery/GroceryDetails'));
+const ElectronicsGallery = lazy(() => import('./pages/services/electronics/ElectronicsGallery'));
 const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
@@ -111,8 +112,13 @@ function App() {
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<FinanceDetails />} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
+            {/* Consumer Electronics Routes */}
+            <Route path="/our-services/consumer-electronics" element={<ElectronicsGallery />} />
+            <Route path="/consumer-electronics" element={<ElectronicsGallery />} />
+            <Route path="/electronics" element={<ElectronicsGallery />} />
+            <Route path="/electronics/:id" element={<ElectronicsDetails />} />
+
             <Route path="/grocery/*" element={<GroceryDetails />} />
-            <Route path="/electronics/*" element={<ElectronicsDetails />} />
             <Route path="/jewellery/*" element={<JewelleryDetails />} />
             <Route path="/garment/*" element={<GarmentDetails />} />
             <Route path="/coming-soon" element={<ComingSoon />} />

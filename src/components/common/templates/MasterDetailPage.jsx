@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import EnquiryModal from '../../EnquiryModal';
-import CategoryListingCard from './CategoryListingCard';
+import CategoryListingCard, { FALLBACK_IMG } from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
@@ -239,7 +239,7 @@ export default function MasterDetailPage({
     if (item.videoUrl && typeof item.videoUrl === 'string' && item.videoUrl.trim() !== '') {
       imgs.push({ type: 'video', url: item.videoUrl });
     }
-    return imgs.length > 0 ? imgs : [{ type: 'image', url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80' }];
+    return imgs.length > 0 ? imgs : [{ type: 'image', url: FALLBACK_IMG }];
   }, [item]);
 
   const goPrev = useCallback(() => {
@@ -362,7 +362,6 @@ export default function MasterDetailPage({
               <i className="fa-solid fa-arrow-left" />
             </button>
             <div className="min-w-0">
-              <h4 className="text-sm font-bold text-brand-charcoal truncate">{item.title}</h4>
               <h4 className="text-sm font-bold text-brand-charcoal truncate">{itemTitle}</h4>
               <p className="text-xs text-gray-500 truncate">{item.location || item.city}</p>
             </div>
@@ -403,7 +402,6 @@ export default function MasterDetailPage({
               <span>/</span>
               <Link to={categoryLink} className="hover:text-brand-blue">{categoryName}</Link>
               <span>/</span>
-              <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{item.title}</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{itemTitle}</span>
             </div>
 
@@ -466,7 +464,6 @@ export default function MasterDetailPage({
               </div>
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-charcoal tracking-tight leading-tight">
-                {item.title}
                 {itemTitle}
               </h1>
 
