@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
+import AuthModals from './components/auth/AuthModals';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
 
@@ -31,6 +32,7 @@ const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetail
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
 const ComingSoon = lazy(() => import('./pages/coming-soon/ComingSoon'));
+const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
 
 /**
  * Registers React Router's navigate function with the navigateTo() utility so that
@@ -121,6 +123,8 @@ function App() {
             <Route path="/grocery/*" element={<GroceryDetails />} />
             <Route path="/jewellery/*" element={<JewelleryDetails />} />
             <Route path="/garment/*" element={<GarmentDetails />} />
+            <Route path="/profile" element={<ProfileSettings />} />
+            <Route path="/profile/settings" element={<ProfileSettings />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
           </Routes>
         </Suspense>
@@ -128,6 +132,7 @@ function App() {
       <Footer />
       <PromoToast />
       <PromoModal />
+      <AuthModals />
     </>
   );
 }
