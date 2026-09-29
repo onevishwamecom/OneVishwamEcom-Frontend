@@ -362,7 +362,6 @@ export default function MasterDetailPage({
               <i className="fa-solid fa-arrow-left" />
             </button>
             <div className="min-w-0">
-              <h4 className="text-sm font-bold text-brand-charcoal truncate">{item.title}</h4>
               <h4 className="text-sm font-bold text-brand-charcoal truncate">{itemTitle}</h4>
               <p className="text-xs text-gray-500 truncate">{item.location || item.city}</p>
             </div>
@@ -403,7 +402,6 @@ export default function MasterDetailPage({
               <span>/</span>
               <Link to={categoryLink} className="hover:text-brand-blue">{categoryName}</Link>
               <span>/</span>
-              <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{item.title}</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{itemTitle}</span>
             </div>
 
@@ -466,7 +464,6 @@ export default function MasterDetailPage({
               </div>
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-charcoal tracking-tight leading-tight">
-                {item.title}
                 {itemTitle}
               </h1>
 
