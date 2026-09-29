@@ -39,6 +39,18 @@ const HERO_SLIDES = [
     disabled: false,
     alt: 'Comfortable and affordable mattress and bedding',
   },
+  {
+    id: 'electronics',
+    category: 'Consumer Electronics',
+    title: 'Air Conditioners, Refrigerators, Washing Machines & Smart TVs',
+    subtitle: 'Explore verified ACs, double door refrigerators, washing machines, 4K LED TVs & home appliances from top brands like Godrej, Haier & Whirlpool.',
+    link: '/electronics',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-tv',
+    ctaText: 'Explore Electronics',
+    disabled: false,
+    alt: 'Air Conditioners, Refrigerators, Washing Machines and Smart TVs',
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════

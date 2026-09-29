@@ -18,6 +18,15 @@ export const marketplaceCategories = [
     disabled: false,
   },
   {
+    id: 'consumer-electronics',
+    label: 'Consumer Electronics',
+    shortDesc: 'TVs, Mobiles, Air Conditioners & Appliances',
+    href: '/electronics',
+    icon: 'fa-solid fa-tv',
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=600&q=80',
+    disabled: false,
+  },
+  {
     id: 'bedding-comfort',
     label: 'Bedding & Comfort',
     shortDesc: 'Mattresses, pillows, bedsheets & linen',
