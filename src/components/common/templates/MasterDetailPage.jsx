@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import EnquiryModal from '../../EnquiryModal';
-import CategoryListingCard from './CategoryListingCard';
+import CategoryListingCard, { FALLBACK_IMG } from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
@@ -239,7 +239,7 @@ export default function MasterDetailPage({
     if (item.videoUrl && typeof item.videoUrl === 'string' && item.videoUrl.trim() !== '') {
       imgs.push({ type: 'video', url: item.videoUrl });
     }
-    return imgs.length > 0 ? imgs : [{ type: 'image', url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80' }];
+    return imgs.length > 0 ? imgs : [{ type: 'image', url: FALLBACK_IMG }];
   }, [item]);
 
   const goPrev = useCallback(() => {

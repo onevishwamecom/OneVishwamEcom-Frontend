@@ -1,13 +1,16 @@
 import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
 import logoName from '../assets/Logo_name.png';
 import { Link } from 'react-router-dom';
+import HitCounterBanner from './HitCounterBanner';
 
 function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-brand-navy text-white">
-      <div className="h-1 bg-gradient-to-r from-brand-blue via-yellow-400 to-brand-blue" />
+    <>
+      <HitCounterBanner />
+      <footer className="bg-brand-navy text-white">
+        <div className="h-1 bg-gradient-to-r from-brand-blue via-yellow-400 to-brand-blue" />
       <div className="mx-auto max-w-7xl px-4 pt-10 pb-6 sm:pt-12 sm:pb-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Brand Info */}
@@ -81,7 +84,8 @@ function Footer() {
         </div>
       </div>
     </footer>
-  );
+  </>
+);
 }
 
 export default Footer;

@@ -136,7 +136,7 @@ export default function MarketplaceCategoryGallery({
   searchTerm = '',
   onSearchChange,
   searchPlaceholder = 'Search inventory by title, brand, locality, or keyword...',
-  postRequirementLink = '/property/requirement',
+  postRequirementLink = null,
   onQuickMatch,
   quickMatchLabel = 'Quick Match',
   customSidebar,

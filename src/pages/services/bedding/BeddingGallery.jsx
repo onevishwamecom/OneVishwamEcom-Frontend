@@ -188,7 +188,6 @@ export default function BeddingGallery() {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search mattresses by brand, material, size, or locality (e.g. Orthopedic King, Latex, Indiranagar)..."
-      postRequirementLink="/property/requirement"
       perPage={10}
       customCardRenderer={(item) => (
         <CategoryListingCard

@@ -145,6 +145,7 @@ export function mapPropertyToEntityItem(property) {
     type: property.channelPartnerName ? 'Channel Partner' : (property.builderName ? 'Verified Builder' : 'Authorized Associate'),
     phone: property.contactPhone || '8546996622',
     whatsapp: property.whatsapp || property.contactPhone || '8546996622',
+    email: property.email || 'ceo@onevishwam.com',
     verified: true,
   };
 
@@ -249,6 +250,7 @@ export function mapVehicleToEntityItem(vehicle) {
     type: 'Authorized Automobile Dealer',
     phone: vehicle.showroom?.phone || '8546996622',
     whatsapp: '8546996622',
+    email: vehicle.showroom?.email || 'ceo@onevishwam.com',
     verified: true,
   };
 

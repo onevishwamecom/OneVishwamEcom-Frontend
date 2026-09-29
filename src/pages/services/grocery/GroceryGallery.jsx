@@ -121,7 +121,6 @@ export default function GroceryGallery() {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search organic staples, cold-pressed oils, millets, spices..."
-      postRequirementLink="/property/requirement"
       perPage={10}
       customCardRenderer={(item) => (
         <CategoryListingCard

@@ -170,7 +170,6 @@ export default function ElectronicsGallery() {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search electronics by brand, model, category, or locality (e.g. Sony OLED, MacBook M3, Indiranagar)..."
-      postRequirementLink="/property/requirement"
       customCardRenderer={(item) => (
         <CategoryListingCard
           key={item.id}

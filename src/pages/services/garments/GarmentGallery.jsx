@@ -137,7 +137,6 @@ export default function GarmentGallery() {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search apparel by category, brand, fabric, or style..."
-      postRequirementLink="/property/requirement"
       perPage={10}
       customCardRenderer={(item) => (
         <CategoryListingCard

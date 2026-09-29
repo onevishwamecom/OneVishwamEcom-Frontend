@@ -205,7 +205,6 @@ export default function AutomobileGallery() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search vehicles by model, fuel, or transmission (e.g. Swift, Brezza, Ertiga CNG, Automatic)..."
-        postRequirementLink="/property/requirement"
         onQuickMatch={() => setQuickMatchOpen(true)}
         quickMatchLabel="Vehicle Match"
         customCardRenderer={(vehicle) => (

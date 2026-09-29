@@ -137,7 +137,6 @@ export default function JewelleryGallery() {
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       searchPlaceholder="Search jewellery by metal, purity, or design (e.g. 22K Gold Necklace, Solitaire Ring)..."
-      postRequirementLink="/property/requirement"
       perPage={10}
       customCardRenderer={(item) => (
         <CategoryListingCard

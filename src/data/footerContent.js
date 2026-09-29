@@ -12,6 +12,7 @@ export const footerServiceLinks = [
   { label: 'Properties', href: '/property' },
   { label: 'Houses & Land', href: '/property' },
   { label: 'Vehicles', href: '/automobile' },
+  { label: 'Consumer Electronics', href: '/electronics' },
   { label: 'Bedding & Comfort', href: '/bedding' },
 ];
 
