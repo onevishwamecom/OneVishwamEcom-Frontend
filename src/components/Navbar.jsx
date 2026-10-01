@@ -8,10 +8,12 @@ import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import VerticalRibbonBar from './VerticalRibbonBar';
+import ListProductModal from './ListProductModal';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
+  const [listModalOpen, setListModalOpen] = useState(false);
   const currentLocation = useRouterLocation();
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null); // 'categories', 'more', 'location', or null
@@ -420,6 +422,15 @@ function Navbar() {
                 )}
               </div>
 
+              {/* List Your Product Button */}
+              <button
+                type="button"
+                onClick={() => setListModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-brand-blue bg-brand-blue/10 hover:bg-brand-blue hover:text-white rounded-lg transition-all cursor-pointer shadow-xs ml-1"
+              >
+                <i className="fa-solid fa-plus-circle text-xs" />
+                <span>List Your Product?</span>
+              </button>
 
             </nav>
 
@@ -598,8 +609,30 @@ function Navbar() {
               </div>
             )}
           </div>
+
+          {/* List Your Product Mobile Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              setListModalOpen(true);
+            }}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-brand-blue to-blue-700 hover:from-blue-600 hover:to-blue-800 transition-all shadow-md my-3 cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <i className="fa-solid fa-plus-circle" />
+              <span>List Your Product?</span>
+            </span>
+            <i className="fa-solid fa-chevron-right text-xs opacity-80" />
+          </button>
         </nav>
       </div>
+
+      {/* List Product Modal */}
+      <ListProductModal
+        isOpen={listModalOpen}
+        onClose={() => setListModalOpen(false)}
+      />
     </div>
   );
 }
