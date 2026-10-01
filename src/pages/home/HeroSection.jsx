@@ -93,9 +93,9 @@ export default function HeroSection() {
       aria-label="Featured Categories"
     >
       {/* ── Fixed-height viewport ──
-          Desktop ≈ 580–620px  |  Tablet ≈ 520px  |  Mobile ≈ 450px
+          Desktop ≈ 480px  |  Tablet ≈ 440px  |  Mobile ≈ 360px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[450px] sm:h-[520px] md:h-[580px] lg:h-[620px] overflow-hidden group">
+      <div className="relative w-full h-[360px] sm:h-[420px] md:h-[460px] lg:h-[480px] overflow-hidden group">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {

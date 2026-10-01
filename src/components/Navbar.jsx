@@ -9,6 +9,7 @@ import { PROPERTIES_ONLY } from '../config/appConfig';
 import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import VerticalRibbonBar from './VerticalRibbonBar';
 import { useAuth } from '../store/authSlice';
+import Swal from 'sweetalert2';
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,6 +23,37 @@ function Navbar() {
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
   const { isLoggedIn, user, openAuthModal, logout } = useAuth();
+
+  const handleLogoutConfirm = async () => {
+    const result = await Swal.fire({
+      title: 'Log out of your account?',
+      text: 'Are you sure you want to log out?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0a1f3f',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Yes, Log Out',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'rounded-3xl',
+        confirmButton: 'rounded-xl px-5 py-2.5 font-bold',
+        cancelButton: 'rounded-xl px-5 py-2.5 font-bold',
+      },
+    });
+
+    if (result.isConfirmed) {
+      logout();
+      Swal.fire({
+        icon: 'success',
+        title: 'Logged Out',
+        text: 'You have been logged out successfully.',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+    }
+  };
 
   const visibleNavLinks = navLinks;
 
@@ -485,7 +517,7 @@ function Navbar() {
                   </Link>
                   <button
                     type="button"
-                    onClick={logout}
+                    onClick={handleLogoutConfirm}
                     className="p-1.5 text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Logout"
                   >
@@ -540,7 +572,7 @@ function Navbar() {
                 </span>
               </div>
               <button
-                onClick={() => { setMenuOpen(false); logout(); }}
+                onClick={() => { setMenuOpen(false); handleLogoutConfirm(); }}
                 className="text-xs font-semibold text-rose-600 hover:underline"
               >
                 Logout
