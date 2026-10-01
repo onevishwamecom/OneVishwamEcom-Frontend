@@ -256,133 +256,9 @@ function Home() {
         </section>
         )}
 
-        {/* ── Module 3: Finance & Loan Services ── */}
-        {!PROPERTIES_ONLY && (
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-building-columns mr-1.5" /> Finance & Loans
-                </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Finance & Loan Services</h2>
-                <p className="mt-1 text-sm text-gray-500">Find trusted financial services, loans, insurance, and investment options near you.</p>
-              </div>
-              <Link
-                to="/finance"
-                className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
-              >
-                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
-              {latestFinance.slice(0, 5).map((s) => (
-                <div key={s.id || s._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/finance-service/${s.id || s._id}`}
-                    image={s.banner || s.logo}
-                    alt={s.serviceName}
-                    title={s.serviceName}
-                    overline={s.companyName}
-                    price={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? s.interestRate : undefined}
-                    priceSuffix=""
-                    priceOverride={s.interestRate !== 'N/A' && s.interestRate !== 'Varies' ? undefined : (
-                      <p className="mt-0.5 text-sm font-bold text-brand-blue">{formatFinanceAmount(s.minAmount)} – {formatFinanceAmount(s.maxAmount)}</p>
-                    )}
-                    location={s.location || s.city}
-                    tags={[s.category, s.providerType].filter(Boolean)}
-                    badges={[
-                      ...(s.featured ? [{ label: 'Featured', className: 'bg-yellow-500 text-white' }] : []),
-                      ...(s.availability === 'Available Now' ? [{ label: 'Available', className: 'bg-green-500 text-white' }] : []),
-                    ]}
-                  />
-                </div>
-              ))}
-            </div>
 
-            <div className="mt-5 text-center sm:hidden">
-              <Link
-                to="/finance"
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
-              >
-                Show More <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
-          </div>
-        </section>
-        )}
 
-        {/* ── Module 4: People Are Buying ── */}
-        {!PROPERTIES_ONLY && (
-        <section className="mt-14 sm:mt-16 bg-gradient-to-br from-white to-gray-50 py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                <i className="fa-solid fa-store mr-1.5" /> What People Are Buying
-              </p>
-              <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Popular in Your Area</h2>
-              <p className="mt-1 text-sm text-gray-500">Products people are viewing and buying right now.</p>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
-              {latestGarments.slice(0, 2).map((g) => (
-                <div key={`pop-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/garment/${g.id || g._id}`}
-                    image={g.images?.[0] || g.image}
-                    alt={g.name}
-                    title={`${g.brand || ''} ${g.name || ''}`}
-                    price={g.finalPrice || g.price}
-                    location={g.store?.city || g.city || ''}
-                    badges={[{ label: g.trending ? 'Trending' : 'Popular', className: g.trending ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {foodGrocery.slice(0, 2).map((g) => (
-                <div key={`pop-groc-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id || g._id}`}
-                    image={g.images?.[0] || g.image}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit || g.price}
-                    priceSuffix={g.unit ? `/ ${g.unit}` : ''}
-                    location={g.location || g.city || ''}
-                    badges={[g.freshToday ? { label: 'Fresh', className: 'bg-green-500 text-white' } : { label: 'Popular', className: 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {latestJewellery.slice(0, 1).map((j) => (
-                <div key={`pop-jew-${j.id || j._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/jewellery/${j.id || j._id}`}
-                    image={j.images?.[0] || j.image}
-                    alt={j.name}
-                    title={j.name}
-                    price={j.price}
-                    location={j.store?.city || j.city || ''}
-                    badges={[{ label: 'Popular', className: 'bg-amber-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {latestGroceries.slice(0, 1).map((g) => (
-                <div key={`pop-elec-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/grocery/${g.id || g._id}`}
-                    image={g.images?.[0] || g.image}
-                    alt={g.name}
-                    title={g.name}
-                    price={g.pricePerUnit || g.price}
-                    location={g.location || g.city || ''}
-                    badges={[{ label: g.recentlyAdded ? 'New' : 'Trending', className: g.recentlyAdded ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white' }]}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        )}
 
         {/* ── Module 4: Fresh Arrivals ── */}
         <section className="pt-14 sm:pt-16">
@@ -488,41 +364,41 @@ function Home() {
               ))}
               {!PROPERTIES_ONLY && (
                 <>
-                  {dummyAutomobiles.slice(3, 5).map((v) => (
-                    <div key={`near-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestVehicles.slice(0, 2).map((v) => (
+                    <div key={`near-veh-${v._id || v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/vehicle/${v.id}`}
-                        image={v.images[0]}
-                        alt={`${v.brand} ${v.model}`}
-                        title={`${v.brand} ${v.model}`}
+                        link={`/vehicle/${v._id || v.id}`}
+                        image={Array.isArray(v.images) ? v.images[0] : v.image}
+                        alt={`${v.brand || ''} ${v.model || v.title || ''}`}
+                        title={`${v.brand || ''} ${v.model || v.title || ''}`}
                         price={v.price}
-                        location={v.location}
-                        tags={[v.fuelType]}
+                        location={v.location || v.city || ''}
+                        tags={v.fuelType ? [v.fuelType] : []}
                       />
                     </div>
                   ))}
                   {foodGrocery.slice(2, 4).map((g) => (
-                    <div key={`near-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                    <div key={`near-groc-${g._id || g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/grocery/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={g.name}
-                        price={g.pricePerUnit}
-                        priceSuffix={`/ ${g.unit}`}
-                        location={`${g.location?.area || ''}`}
+                        link={`/grocery/${g._id || g.id}`}
+                        image={Array.isArray(g.images) ? g.images[0] : g.image}
+                        alt={g.name || g.title}
+                        title={g.name || g.title}
+                        price={g.pricePerUnit || g.price}
+                        priceSuffix={g.unit ? `/ ${g.unit}` : ''}
+                        location={g.location?.area || g.area || g.city || ''}
                       />
                     </div>
                   ))}
-                  {dummyGarments.slice(2, 3).map((g) => (
-                    <div key={`near-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestGarments.slice(0, 2).map((g) => (
+                    <div key={`near-garm-${g._id || g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/garment/${g.id}`}
-                        image={g.images[0]}
-                        alt={g.name}
-                        title={`${g.brand} ${g.name}`}
-                        price={g.finalPrice}
-                        location={g.store?.city || ''}
+                        link={`/garment/${g._id || g.id}`}
+                        image={Array.isArray(g.images) ? g.images[0] : g.image}
+                        alt={g.name || g.title}
+                        title={`${g.brand || ''} ${g.name || g.title || ''}`}
+                        price={g.finalPrice || g.price}
+                        location={g.store?.city || g.city || ''}
                         badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
                       />
                     </div>
@@ -545,11 +421,11 @@ function Home() {
             </div>
 
             <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-4 touch-pan-y">
-              {dummyProperties.slice(2, 4).map((p) => (
-                <div key={`deal-prop-${p.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+              {latestProperties.slice(2, 4).map((p) => (
+                <div key={`deal-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                   <ProductCard
-                    link={`/property/${p.id}`}
-                    image={p.images[0]}
+                    link={`/property/${p.id || p._id}`}
+                    image={p.images?.[0]}
                     alt={p.title}
                     title={p.title}
                     price={p.price}
@@ -561,40 +437,40 @@ function Home() {
               ))}
               {!PROPERTIES_ONLY && (
                 <>
-                  {dummyAutomobiles.slice(1, 3).map((v) => (
-                    <div key={`deal-veh-${v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestVehicles.slice(1, 3).map((v) => (
+                    <div key={`deal-veh-${v.id || v._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/vehicle/${v.id}`}
-                        image={v.images[0]}
-                        alt={`${v.brand} ${v.model}`}
-                        title={`${v.brand} ${v.model}`}
+                        link={`/vehicle/${v.id || v._id}`}
+                        image={v.images?.[0]}
+                        alt={`${v.brand || ''} ${v.model || ''}`}
+                        title={`${v.brand || ''} ${v.model || ''}`}
                         price={v.price}
                         location={v.location}
-                        badges={[{ label: v.id % 2 === 0 ? 'Hot Deal' : 'Recommended', className: v.id % 2 === 0 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' }]}
+                        badges={[{ label: 'Hot Deal', className: 'bg-rose-500 text-white' }]}
                       />
                     </div>
                   ))}
-                  {dummyGarments.slice(0, 2).map((g) => (
-                    <div key={`deal-garm-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                  {latestGarments.slice(0, 2).map((g) => (
+                    <div key={`deal-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/garment/${g.id}`}
-                        image={g.images[0]}
+                        link={`/garment/${g.id || g._id}`}
+                        image={g.images?.[0]}
                         alt={g.name}
-                        title={`${g.brand} ${g.name}`}
-                        price={g.finalPrice}
+                        title={`${g.brand || ''} ${g.name || ''}`}
+                        price={g.finalPrice || g.price}
                         location={g.store?.city || ''}
                         badges={[{ label: 'Recommended', className: 'bg-amber-500 text-white' }]}
                       />
                     </div>
                   ))}
                   {foodGrocery.slice(0, 2).map((g) => (
-                    <div key={`deal-groc-${g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                    <div key={`deal-groc-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
                       <ProductCard
-                        link={`/grocery/${g.id}`}
-                        image={g.images[0]}
+                        link={`/grocery/${g.id || g._id}`}
+                        image={g.images?.[0]}
                         alt={g.name}
                         title={g.name}
-                        price={g.pricePerUnit}
+                        price={g.pricePerUnit || g.price}
                         priceSuffix={`/ ${g.unit}`}
                         location={`${g.location?.area || ''}`}
                         badges={[{ label: g.organic ? 'Great Price' : 'Hot Deal', className: g.organic ? 'bg-red-500 text-white' : 'bg-rose-500 text-white' }]}
