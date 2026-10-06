@@ -25,9 +25,21 @@ export default React.memo(function ProductCard({
   showButton = true,
   theme,
   children,
+  hidePrice = false,
 }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
+
+  const isPropertyOrVehicle =
+    hidePrice ||
+    (link && (link.includes('/property') || link.includes('/vehicle') || link.includes('/automobile'))) ||
+    (overline && (
+      overline.toLowerCase().includes('property') ||
+      overline.toLowerCase().includes('house') ||
+      overline.toLowerCase().includes('vehicle') ||
+      overline.toLowerCase().includes('car') ||
+      overline.toLowerCase().includes('automobile')
+    ));
 
   return (
     <div
@@ -59,7 +71,7 @@ export default React.memo(function ProductCard({
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
             >
               {b.label}
             </span>
@@ -81,18 +93,18 @@ export default React.memo(function ProductCard({
       </div>
 
       {/* ── Card Body ── */}
-      <div className="p-4 flex flex-col flex-1 gap-2">
+      <div className="p-4 flex flex-col flex-1 gap-2.5">
         {/* Overline / Property Type */}
         {overline && (
-          <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">
+          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
             {overline}
           </p>
         )}
 
         {/* Title */}
-        <div className="min-h-[2.5rem] flex items-start">
+        <div className="min-h-[2.75rem] flex items-start">
           {title && (
-            <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
+            <h3 className="font-extrabold text-brand-charcoal text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {cleanProductName(title)}
             </h3>
           )}
@@ -100,8 +112,8 @@ export default React.memo(function ProductCard({
 
         {/* Location */}
         {location && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
+          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {location}
               {pincode ? ` · ${pincode}` : ""}
@@ -119,7 +131,7 @@ export default React.memo(function ProductCard({
               return (
                 <span
                   key={i}
-                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1 ${
+                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1.5 ${
                     isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
@@ -127,8 +139,8 @@ export default React.memo(function ProductCard({
                       : 'bg-gray-100 text-gray-700'
                   }`}
                 >
-                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-[10px]" />}
-                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-[10px]" />}
+                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
+                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
                   {t}
                 </span>
               );
@@ -139,33 +151,50 @@ export default React.memo(function ProductCard({
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
 
-        {/* ── Card Footer: Price ── */}
+        {/* ── Card Footer: Contact Us / Price ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {/* Price */}
-          <div className="min-w-0">
-            {priceOverride ? (
-              priceOverride
-            ) : (
-              price && (
-                <div>
-                  <span
-                    className={`leading-tight block truncate ${
-                      String(price).trim().toLowerCase() === 'this is negotiable'
-                        ? 'text-sm font-normal text-gray-500'
-                        : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                    }`}
-                  >
-                    {price}
-                  </span>
-                  {priceSuffix && (
-                    <span className="text-[11px] font-semibold text-gray-400 block truncate">
-                      {priceSuffix}
+          {isPropertyOrVehicle ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: title || 'Property / Vehicle Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
+            >
+              <i className="fa-solid fa-envelope text-xs" />
+              <span>Contact Us</span>
+            </button>
+          ) : (
+            <div className="min-w-0">
+              {priceOverride ? (
+                priceOverride
+              ) : (
+                price && (
+                  <div>
+                    <span
+                      className={`leading-tight block truncate ${
+                        String(price).trim().toLowerCase() === 'this is negotiable'
+                          ? 'text-sm font-normal text-gray-500'
+                          : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
+                      }`}
+                    >
+                      {price}
                     </span>
-                  )}
-                </div>
-              )
-            )}
-          </div>
+                    {priceSuffix && (
+                      <span className="text-xs font-semibold text-gray-400 block truncate">
+                        {priceSuffix}
+                      </span>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

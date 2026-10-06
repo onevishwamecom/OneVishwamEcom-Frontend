@@ -9,6 +9,7 @@ import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortProperties
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
+import CategorySearchHero from './CategorySearchHero';
 import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
 import { heroImage } from '../../utils/imageOptimizer';
@@ -39,7 +40,10 @@ function Home() {
   const latestFinance = useMemo(() => filterAvailable(data?.latestFinance), [data?.latestFinance, filterAvailable]);
   const financeOfferings = useMemo(() => filterAvailable(data?.financeOfferings), [data?.financeOfferings, filterAvailable]);
   const stats = data?.stats || {};
-  const featured = useMemo(() => filterAvailable(data?.featured), [data?.featured, filterAvailable]);
+  const featured = useMemo(
+    () => filterAvailable(data?.featured || data?.featuredProperties),
+    [data?.featured, data?.featuredProperties, filterAvailable]
+  );
 
   const foodGrocery = useMemo(() => 
     latestGroceries.filter((g) => FOOD_CATEGORIES.includes(g.category)),
@@ -66,10 +70,19 @@ function Home() {
     () => sortPropertiesImagesFirst(latestProperties).slice(0, 6),
     [latestProperties, sortPropertiesImagesFirst],
   );
-  const dreamHomes = useMemo(
-    () => sortPropertiesImagesFirst(featured).slice(0, 5),
-    [featured, sortPropertiesImagesFirst],
-  );
+  const dreamHomes = useMemo(() => {
+    let combined = featured.length > 0 ? [...featured] : [];
+    if (combined.length < 5 && latestProperties.length > 0) {
+      const existingIds = new Set(combined.map((p) => p.id || p._id));
+      for (const prop of latestProperties) {
+        if (!existingIds.has(prop.id || prop._id)) {
+          combined.push(prop);
+          if (combined.length >= 5) break;
+        }
+      }
+    }
+    return sortPropertiesImagesFirst(combined).slice(0, 5);
+  }, [featured, latestProperties, sortPropertiesImagesFirst]);
 
   const propertyResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -89,6 +102,9 @@ function Home() {
   return (
     <div>
       <HeroSection />
+
+      {/* Universal Search Hero */}
+      <CategorySearchHero />
 
       {searchQuery && (
         <section className="border-b bg-gray-50">
@@ -130,24 +146,6 @@ function Home() {
       )}
 
       <div className="bg-gray-50 pb-16 sm:pb-20">
-
-        {/* ── Bangalore Bird's-Eye View Map Section (Comes First) ── */}
-        <section className="pt-8 sm:pt-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <BangalorePropertyPieMap
-              properties={latestProperties}
-              activeZone={activeZone}
-              onSelectZone={(zone) => {
-                setActiveZone(zone);
-                if (zone && zone !== 'All') {
-                  navigate(`/property?zone=${encodeURIComponent(zone)}`);
-                } else {
-                  navigate('/property');
-                }
-              }}
-            />
-          </div>
-        </section>
 
         {/* ── Module 1: Dream Home ── */}
         <section className="relative overflow-hidden mt-10 sm:mt-12">
@@ -285,8 +283,24 @@ function Home() {
                       <i className="fa-solid fa-clock" /> Added Recently
                     </span>
                     <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
-                    <p className="text-sm font-semibold text-brand-blue">{withRupeeSymbol(p.price)} {p.priceSuffix}</p>
-                    <p className="text-xs text-gray-500 mt-1">{p.location || p.city} · {p.bhk} · {p.area}</p>
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.dispatchEvent(
+                            new CustomEvent('onevishwam:open_enquiry_modal', {
+                              detail: { title: p.title || 'Property Enquiry' },
+                            })
+                          );
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <i className="fa-solid fa-envelope text-[10px]" /> Contact Us
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">{[p.location || p.city, p.bhk, p.area].filter(Boolean).join(' · ')}</p>
                   </div>
                 </Link>
               ))}
@@ -303,8 +317,24 @@ function Home() {
                           <i className="fa-solid fa-clock" /> Added Today
                         </span>
                         <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
-                        <p className="text-sm font-semibold text-brand-blue">{withRupeeSymbol(v.price)}</p>
-                        <p className="text-xs text-gray-500 mt-1">{v.location || v.city} · {v.fuelType} · {v.year}</p>
+                        <div className="mt-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.dispatchEvent(
+                                new CustomEvent('onevishwam:open_enquiry_modal', {
+                                  detail: { title: `${v.brand} ${v.model}` || 'Vehicle Enquiry' },
+                                })
+                              );
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                          >
+                            <i className="fa-solid fa-envelope text-[10px]" /> Contact Us
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">{[v.location || v.city, v.fuelType, v.year ? `${v.year}` : ''].filter(Boolean).join(' · ')}</p>
                       </div>
                     </Link>
                   ))}
@@ -481,7 +511,23 @@ function Home() {
               )}
             </div>
           </div>
-        </section> */}
+        {/* ── Bangalore Bird's-Eye View Map & Regional Distribution (Placed Just Before Footer) ── */}
+        <section className="pt-14 sm:pt-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <BangalorePropertyPieMap
+              properties={latestProperties}
+              activeZone={activeZone}
+              onSelectZone={(zone) => {
+                setActiveZone(zone);
+                if (zone && zone !== 'All') {
+                  navigate(`/property?zone=${encodeURIComponent(zone)}`);
+                } else {
+                  navigate('/property');
+                }
+              }}
+            />
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -33,6 +33,15 @@ export default React.memo(function ListingCard({
   const badges = item?.badges || [];
   const keyAttributes = (item?.keyAttributes || []).slice(0, 3);
 
+  const isPropertyOrVehicle =
+    (targetLink && (targetLink.includes('/property') || targetLink.includes('/vehicle') || targetLink.includes('/automobile'))) ||
+    (item?.category && (
+      String(item.category).toLowerCase().includes('property') ||
+      String(item.category).toLowerCase().includes('real-estate') ||
+      String(item.category).toLowerCase().includes('automobile') ||
+      String(item.category).toLowerCase().includes('vehicle')
+    ));
+
   const handleClick = () => {
     if (onSelect) {
       onSelect(item);
@@ -78,7 +87,7 @@ export default React.memo(function ListingCard({
               return (
                 <span
                   key={i}
-                  className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs ${className}`}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs ${className}`}
                 >
                   {label}
                 </span>
@@ -94,7 +103,7 @@ export default React.memo(function ListingCard({
             e.stopPropagation();
             setFaved(!faved);
           }}
-          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10"
+          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10 cursor-pointer"
           aria-label="Save to favorites"
         >
           <Heart
@@ -106,7 +115,7 @@ export default React.memo(function ListingCard({
 
         {/* Multi-image count indicator */}
         {item?.images && item.images.length > 1 && (
-          <span className="absolute bottom-2.5 right-3 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-semibold backdrop-blur-xs">
+          <span className="absolute bottom-2.5 right-3 px-2 py-0.5 rounded-md bg-black/60 text-white text-xs font-semibold backdrop-blur-xs">
             1/{item.images.length}
           </span>
         )}
@@ -114,30 +123,32 @@ export default React.memo(function ListingCard({
 
       {/* ── Content Body ── */}
       <div className="p-4 sm:p-4.5 flex flex-col flex-1 justify-between gap-3">
-        <div className="space-y-1.5">
-          {/* Price Header */}
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                {price}
-              </span>
-              {priceSubtext && (
-                <span className="text-xs font-normal text-slate-500">
-                  {priceSubtext}
+        <div className="space-y-2">
+          {/* Price Header / Contact Us */}
+          {!isPropertyOrVehicle && (
+            <div className="flex items-baseline justify-between gap-2">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                  {price}
                 </span>
-              )}
+                {priceSubtext && (
+                  <span className="text-xs font-normal text-slate-500">
+                    {priceSubtext}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Title */}
-          <h3 className="text-sm font-bold text-slate-900 group-hover:text-brand-blue transition-colors duration-200 line-clamp-1">
+          <h3 className="text-base font-extrabold text-slate-900 group-hover:text-brand-blue transition-colors duration-200 line-clamp-2 leading-snug">
             {title}
           </h3>
 
           {/* Location */}
           {location && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <div className="flex items-center gap-1.5 text-sm text-slate-600 font-medium">
+              <MapPin className="w-4 h-4 text-brand-blue shrink-0" />
               <span className="truncate">
                 {location}
                 {pincode ? ` - ${pincode}` : ''}
@@ -152,22 +163,40 @@ export default React.memo(function ListingCard({
             {keyAttributes.map((attr, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/70 text-[11px] font-medium text-slate-600 truncate max-w-full"
+                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-xs font-semibold text-slate-700 truncate max-w-full"
               >
-                <span className="font-semibold text-slate-700 mr-1">{attr.label}:</span>
+                <span className="font-bold text-slate-800 mr-1">{attr.label}:</span>
                 <span>{attr.value}</span>
               </span>
             ))}
           </div>
         )}
 
-        {/* Optional Custom Slots / CTA */}
+        {/* Optional Custom Slots / CTA / Contact Us */}
         {children ? (
           <div className="pt-2 border-t border-slate-100 mt-auto">{children}</div>
+        ) : isPropertyOrVehicle ? (
+          <div className="pt-2 border-t border-slate-100 mt-auto">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: title || 'Property / Vehicle Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
+            >
+              <i className="fa-solid fa-envelope text-xs" />
+              <span>Contact Us</span>
+            </button>
+          </div>
         ) : showButton ? (
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-brand-blue group-hover:text-blue-700 mt-auto">
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-brand-blue group-hover:text-blue-700 mt-auto">
             <span>{buttonText}</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </div>
         ) : null}
       </div>
