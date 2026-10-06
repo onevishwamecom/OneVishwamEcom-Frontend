@@ -78,6 +78,22 @@ export default React.memo(function CategoryListingCard({
         item?.trustBannerText ||
         (item?.loanApproved ? '100% Pre-Approved Loan Available' : null));
 
+  const isPropertyOrVehicle =
+    (cardLink && (cardLink.includes('/property') || cardLink.includes('/vehicle') || cardLink.includes('/automobile'))) ||
+    (cardOverline && (
+      cardOverline.toLowerCase().includes('property') ||
+      cardOverline.toLowerCase().includes('house') ||
+      cardOverline.toLowerCase().includes('vehicle') ||
+      cardOverline.toLowerCase().includes('car') ||
+      cardOverline.toLowerCase().includes('automobile')
+    )) ||
+    (item?.category && (
+      String(item.category).toLowerCase().includes('property') ||
+      String(item.category).toLowerCase().includes('real-estate') ||
+      String(item.category).toLowerCase().includes('automobile') ||
+      String(item.category).toLowerCase().includes('vehicle')
+    ));
+
   const handleClick = () => {
     if (onSelect) {
       onSelect(item);
@@ -120,7 +136,7 @@ export default React.memo(function CategoryListingCard({
             {badges.map((b, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap ${b.className}`}
+                className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap ${b.className}`}
               >
                 {b.label}
               </span>
@@ -143,18 +159,18 @@ export default React.memo(function CategoryListingCard({
       </div>
 
       {/* ── Card Body (matches ProductCard.jsx 1:1) ── */}
-      <div className="p-4 flex flex-col flex-1 gap-2">
+      <div className="p-4 flex flex-col flex-1 gap-2.5">
         {/* Overline / Category */}
         {cardOverline && (
-          <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">
+          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
             {cardOverline}
           </p>
         )}
 
         {/* Title */}
-        <div className="min-h-[2.5rem] flex items-start">
+        <div className="min-h-[2.75rem] flex items-start">
           {cardTitle && (
-            <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
+            <h3 className="font-extrabold text-brand-charcoal text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {cardTitle}
             </h3>
           )}
@@ -162,8 +178,8 @@ export default React.memo(function CategoryListingCard({
 
         {/* Location */}
         {cardLocation && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
+          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {cardLocation}
               {cardPincode ? ` · ${cardPincode}` : ''}
@@ -181,7 +197,7 @@ export default React.memo(function CategoryListingCard({
               return (
                 <span
                   key={idx}
-                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1 ${
+                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1.5 ${
                     isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
@@ -189,8 +205,8 @@ export default React.memo(function CategoryListingCard({
                       : 'bg-gray-100 text-gray-700'
                   }`}
                 >
-                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-[10px]" />}
-                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-[10px]" />}
+                  {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
+                  {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
                   {label}
                 </span>
               );
@@ -201,41 +217,61 @@ export default React.memo(function CategoryListingCard({
         {/* Highlight Trust Banner (Green) */}
         {bannerText && (
           <div className="mt-1 flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200/60 px-2.5 py-1">
-            <i className="fa-solid fa-circle-check text-[10px] text-emerald-600 shrink-0" />
-            <span className="text-[10px] font-bold text-emerald-700 truncate">
+            <i className="fa-solid fa-circle-check text-xs text-emerald-600 shrink-0" />
+            <span className="text-xs font-bold text-emerald-700 truncate">
               {bannerText}
             </span>
           </div>
         )}
 
-        {/* ── Card Footer: Price + View Details CTA ── */}
+        {/* ── Card Footer: Contact Us / Price ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {/* Price */}
-          <div className="min-w-0">
-            <span
-              className={`leading-tight block truncate ${
-                String(cardPrice).trim().toLowerCase() === 'this is negotiable'
-                  ? 'text-sm font-normal text-gray-500'
-                  : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-              }`}
+          {isPropertyOrVehicle ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new CustomEvent('onevishwam:open_enquiry_modal', {
+                    detail: { title: cardTitle || item?.title || 'Property / Vehicle Enquiry' },
+                  })
+                );
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
             >
-              {cardPrice}
-            </span>
-            {cardPriceSuffix && (
-              <span className="text-[11px] font-semibold text-gray-400 block truncate">
-                {cardPriceSuffix}
-              </span>
-            )}
-          </div>
-
-          {/* Right Action / "View Details →" */}
-          {children ? (
-            <div>{children}</div>
+              <i className="fa-solid fa-envelope text-xs" />
+              <span>Contact Us</span>
+            </button>
           ) : (
-            <div className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
-              <span>View Details</span>
-              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <>
+              {/* Price */}
+              <div className="min-w-0">
+                <span
+                  className={`leading-tight block truncate ${
+                    String(cardPrice).trim().toLowerCase() === 'this is negotiable'
+                      ? 'text-sm font-normal text-gray-500'
+                      : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
+                  }`}
+                >
+                  {cardPrice}
+                </span>
+                {cardPriceSuffix && (
+                  <span className="text-xs font-semibold text-gray-400 block truncate">
+                    {cardPriceSuffix}
+                  </span>
+                )}
+              </div>
+
+              {/* Right Action / "View Details →" */}
+              {children ? (
+                <div>{children}</div>
+              ) : (
+                <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
+                  <span>View Details</span>
+                  <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

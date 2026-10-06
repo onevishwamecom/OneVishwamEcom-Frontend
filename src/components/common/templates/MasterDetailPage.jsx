@@ -328,6 +328,15 @@ export default function MasterDetailPage({
   // Specification Sections normalization
   const specSections = item.specifications || [];
 
+  const isPropertyOrVehicle =
+    (pathname && (pathname.includes('/property') || pathname.includes('/vehicle') || pathname.includes('/automobile'))) ||
+    (item?.category && (
+      String(item.category).toLowerCase().includes('property') ||
+      String(item.category).toLowerCase().includes('real-estate') ||
+      String(item.category).toLowerCase().includes('automobile') ||
+      String(item.category).toLowerCase().includes('vehicle')
+    ));
+
   return (
     <div className="min-h-screen bg-[#f8fafc]">
       {/* Lightbox Modal */}
@@ -367,10 +376,12 @@ export default function MasterDetailPage({
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden sm:block text-right">
-              <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{item.price}</span>
-              {item.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>}
-            </div>
+            {!isPropertyOrVehicle && (
+              <div className="hidden sm:block text-right">
+                <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{item.price}</span>
+                {item.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>}
+              </div>
+            )}
             <button
               onClick={() => setEnquiryOpen(true)}
               className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs cursor-pointer"
@@ -517,19 +528,21 @@ export default function MasterDetailPage({
                 </span>
               </div>
 
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
-                    {item.price}
-                  </span>
-                  {item.priceSuffix && (
-                    <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
+              {!isPropertyOrVehicle && (
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
+                      {item.price}
+                    </span>
+                    {item.priceSuffix && (
+                      <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
+                    )}
+                  </div>
+                  {item.priceNote && (
+                    <p className="text-[11px] text-gray-400 mt-0.5">{item.priceNote}</p>
                   )}
                 </div>
-                {item.priceNote && (
-                  <p className="text-[11px] text-gray-400 mt-0.5">{item.priceNote}</p>
-                )}
-              </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button

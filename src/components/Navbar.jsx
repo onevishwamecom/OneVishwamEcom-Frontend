@@ -371,34 +371,6 @@ function Navbar() {
                         {marketplaceCategories.map((cat) => {
                           const isItemActive = currentLocation.pathname === cat.href;
 
-                          if (cat.disabled) {
-                            return (
-                              <div
-                                key={cat.id}
-                                role="menuitem"
-                                aria-disabled="true"
-                                className="flex items-start gap-3 p-2.5 rounded-xl opacity-40 cursor-not-allowed select-none bg-gray-50/50"
-                              >
-                                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-sm bg-gray-100 text-gray-400">
-                                  <i className={cat.icon} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="text-sm font-medium text-gray-500 truncate">
-                                      {cat.label}
-                                    </h4>
-                                    <span className="text-[10px] font-semibold text-gray-400 bg-gray-200/70 px-1.5 py-0.5 rounded">
-                                      Coming Soon
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-gray-400 truncate mt-0.5">
-                                    {cat.shortDesc}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          }
-
                           return (
                             <Link
                               key={cat.id}
@@ -427,7 +399,13 @@ function Navbar() {
                                   }`}>
                                     {cat.label}
                                   </h4>
-                                  <i className="fa-solid fa-chevron-right text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                  {cat.hasNoData ? (
+                                    <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded shrink-0">
+                                      Coming Soon
+                                    </span>
+                                  ) : (
+                                    <i className="fa-solid fa-chevron-right text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                  )}
                                 </div>
                                 <p className="text-xs text-gray-500 truncate mt-0.5">
                                   {cat.shortDesc}

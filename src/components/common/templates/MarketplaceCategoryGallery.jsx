@@ -5,6 +5,7 @@ import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
 import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../data/locations';
 import PageContainer from '../PageContainer';
+import LottieComingSoon from '../LottieComingSoon';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -422,40 +423,12 @@ export default function MarketplaceCategoryGallery({
                 ))}
               </div>
             ) : (
-              <div className="rounded-3xl bg-white border border-gray-200/80 p-8 sm:p-12 text-center shadow-xs">
-                <div className="w-16 h-16 rounded-3xl bg-blue-50 text-brand-blue flex items-center justify-center mx-auto mb-4 text-2xl">
-                  <i className="fa-solid fa-layer-group" />
-                </div>
-                <h3 className="text-lg font-bold text-brand-charcoal">
-                  No Matching {breadcrumbCategory} Found
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-6 max-w-md mx-auto">
-                  We couldn't find any listings matching your current search or filter criteria. Try adjusting your filters or search terms.
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {onResetFilters && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentPage(1);
-                        onResetFilters();
-                      }}
-                      className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-xs font-bold text-brand-charcoal hover:bg-gray-50 transition-colors shadow-2xs"
-                    >
-                      <i className="fa-solid fa-rotate-left" />
-                      Reset All Filters
-                    </button>
-                  )}
-                  {postRequirementLink && (
-                    <Link
-                      to={postRequirementLink}
-                      className="inline-flex items-center gap-2 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs"
-                    >
-                      <i className="fa-solid fa-circle-plus" />
-                      Post Custom Requirement
-                    </Link>
-                  )}
-                </div>
+              <div className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 text-center shadow-xs">
+                <LottieComingSoon
+                  title={`No ${categoryTitle || breadcrumbCategory} Listed Yet`}
+                  description="We couldn't find any active listings for this category or filter criteria. We are working with partners to onboard verified items shortly!"
+                  icon="fa-solid fa-layer-group"
+                />
               </div>
             )}
 
