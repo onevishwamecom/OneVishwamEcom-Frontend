@@ -7,13 +7,13 @@ import { useProperties } from '../../hooks/useProperties';
 import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import HeroSection from './HeroSection';
+import CategorySearchHero from './CategorySearchHero';
 import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
 
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors';
 const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors';
 
 function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeZone, setActiveZone] = useState('All');
   const navigate = useNavigate();
   const { selectedCity } = useLocation();
@@ -45,82 +45,18 @@ function Home() {
     [dummyProperties],
   );
 
-  const propertyResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    const matched = dummyProperties.filter((p) =>
-      [p.title, p.subtitle, p.location, p.bhk, p.area, p.propertyType]
-        .filter(Boolean)
-        .some((f) => String(f).toLowerCase().includes(q)),
-    );
-    return sortPropertiesImagesFirst(matched).slice(0, 5);
-  }, [searchQuery, dummyProperties]);
-
   return (
     <div>
+      {/* ── Present Hero Carousel Component ── */}
       <HeroSection />
 
-      {searchQuery && (
-        <section className="border-b bg-gray-50">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <p className="text-sm text-gray-600">
-                {propertyResults.length} propert{propertyResults.length === 1 ? 'y' : 'ies'} found for "<strong>{searchQuery}</strong>"
-              </p>
-              {propertyResults.length > 0 && (
-                <Link to={`/our-services/real-estate-property?q=${encodeURIComponent(searchQuery)}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:underline">
-                  View All Results <i className="fa-solid fa-arrow-right text-[10px]" />
-                </Link>
-              )}
-            </div>
-            {propertyResults.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6">
-                {propertyResults.map((p) => (
-                  <div key={p.id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                    <ProductCard
-                      link={`/property/${p.id}`}
-                      image={getPropertyCoverImage(p)}
-                      alt={p.title}
-                      title={p.title}
-                      price={p.price}
-                      location={p.location}
-                      tags={getDetailTags(p)}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">
-                No properties match "<strong>{searchQuery}</strong>". Try a different search.
-              </p>
-            )}
-          </div>
-        </section>
-      )}
+      {/* ── Universal Search Hero (self-contained with inline results dropdown) ── */}
+      <CategorySearchHero />
 
       <div className="bg-gray-50 pb-16 sm:pb-20">
 
-        {/* ── Bangalore Bird's-Eye View Map Section (Comes First) ── */}
-        <section className="pt-8 sm:pt-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <BangalorePropertyPieMap
-              properties={dummyProperties}
-              activeZone={activeZone}
-              onSelectZone={(zone) => {
-                setActiveZone(zone);
-                if (zone && zone !== 'All') {
-                  navigate(`/our-services/real-estate-property?zone=${encodeURIComponent(zone)}`);
-                } else {
-                  navigate('/our-services/real-estate-property');
-                }
-              }}
-            />
-          </div>
-        </section>
-
         {/* ── Module 1: Dream Home (Property Showcase List) ── */}
-        <section className="relative overflow-hidden bg-brand-navy mt-10 sm:mt-12">
+        <section className="relative overflow-hidden bg-brand-navy">
           {heroProp && (
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gray-900/80" />
@@ -388,6 +324,24 @@ function Home() {
             </div>
           </div>
         </section> */}
+
+        {/* ── Bangalore Bird's-Eye View Map & Regional Distribution (Placed Just Before Footer) ── */}
+        <section className="pt-14 sm:pt-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <BangalorePropertyPieMap
+              properties={dummyProperties}
+              activeZone={activeZone}
+              onSelectZone={(zone) => {
+                setActiveZone(zone);
+                if (zone && zone !== 'All') {
+                  navigate(`/our-services/real-estate-property?zone=${encodeURIComponent(zone)}`);
+                } else {
+                  navigate('/our-services/real-estate-property');
+                }
+              }}
+            />
+          </div>
+        </section>
 
       </div>
     </div>

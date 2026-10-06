@@ -282,19 +282,21 @@ export default function ProductDetailTemplate({
             {/* Price & Primary CTA Card */}
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-lg shadow-slate-200/50 space-y-5">
               <div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Listed Price
-                </span>
-                <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-slate-500" : "text-3xl font-extrabold text-slate-900 tracking-tight"}>
-                    {item.price}
-                  </span>
-                  {item.priceSubtext && (
-                    <span className="text-sm font-medium text-slate-500">
-                      {item.priceSubtext}
+                {item.price && item.price !== 'This is negotiable' && !`${item.price}`.toLowerCase().includes('sq') && (
+                  <div>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Listed Price
                     </span>
-                  )}
-                </div>
+                    <div className="mt-1 flex items-baseline gap-2 flex-wrap">
+                      <span className="text-3xl font-extrabold text-slate-900 tracking-tight">{item.price}</span>
+                      {item.priceSubtext && (
+                        <span className="text-sm font-medium text-slate-500">
+                          {item.priceSubtext}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Seller Profile Block */}

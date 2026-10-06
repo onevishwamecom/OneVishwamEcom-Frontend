@@ -1,21 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getPropertyContactInfo } from '../data/footerContent';
 
 function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
-  const isModalOpen = open ?? isOpen ?? false;
+  const [localOpen, setLocalOpen] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+
+  const isModalOpen = open ?? isOpen ?? localOpen;
+  const activeTitle = propertyTitle || eventTitle;
   const [copied, setCopied] = useState(false);
-  const activeContact = getPropertyContactInfo(propertyTitle);
+  const activeContact = getPropertyContactInfo(activeTitle);
+
+  const handleCloseModal = useCallback(() => {
+    setLocalOpen(false);
+    if (onClose) onClose();
+  }, [onClose]);
+
+  // Listen for global custom event to trigger modal anywhere
+  useEffect(() => {
+    const handleGlobalOpen = (e) => {
+      setEventTitle(e?.detail?.title || e?.detail?.propertyTitle || '');
+      setLocalOpen(true);
+    };
+    window.addEventListener('onevishwam:open_enquiry_modal', handleGlobalOpen);
+    return () => window.removeEventListener('onevishwam:open_enquiry_modal', handleGlobalOpen);
+  }, []);
 
   useEffect(() => {
     if (!isModalOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => { if (e.key === 'Escape') handleCloseModal(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
     };
-  }, [isModalOpen, onClose]);
+  }, [isModalOpen, handleCloseModal]);
 
   useEffect(() => {
     if (!isModalOpen) setCopied(false);
@@ -34,24 +53,24 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={handleCloseModal}>
       <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
+        className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-gradient-to-br from-brand-navy to-brand-blue px-6 py-5 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <i className="fa-solid fa-paper-plane" /> Enquire Now
+                <i className="fa-solid fa-location-dot text-amber-400" /> Contact & Visit Details
               </h2>
-              {propertyTitle && (
-                <p className="mt-1 text-xs text-white/80 line-clamp-2">{propertyTitle}</p>
+              {activeTitle && (
+                <p className="mt-1 text-xs text-white/80 line-clamp-2">{activeTitle}</p>
               )}
             </div>
             <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors shrink-0"
+              onClick={handleCloseModal}
+              className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors shrink-0 cursor-pointer"
             >
               <i className="fa-solid fa-xmark" />
             </button>
@@ -60,7 +79,7 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
 
         <div className="px-6 py-5 space-y-4">
           <p className="text-sm text-gray-600">
-            Our {activeContact.brandName} team will help you with this property. Reach us on the official contact number below.
+            Visit our office or get in touch with our {activeContact.brandName} team for pricing, plot visits, and legal documentation.
           </p>
 
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
@@ -77,8 +96,9 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={copyPhone}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-blue text-white hover:bg-brand-navy'}`}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors cursor-pointer ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-blue text-white hover:bg-brand-navy'}`}
               >
                 <i className={`fa-solid ${copied ? 'fa-check' : 'fa-copy'}`} />
                 {copied ? 'Copied!' : 'Copy'}
@@ -101,17 +121,18 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
           </div>
 
           <a
-            href={`https://wa.me/${activeContact.whatsapp}${propertyTitle ? `?text=${encodeURIComponent(`Hi, I would like to enquire about ${propertyTitle}.`)}` : ''}`}
+            href={`https://wa.me/${activeContact.whatsapp}${activeTitle ? `?text=${encodeURIComponent(`Hi, I would like to visit and enquire about ${activeTitle}.`)}` : ''}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 text-white px-4 py-3 text-sm font-bold hover:bg-emerald-700 transition-colors shadow-xs"
           >
-            <i className="fa-brands fa-whatsapp" /> Chat on WhatsApp
+            <i className="fa-brands fa-whatsapp text-base" /> Chat on WhatsApp
           </a>
 
           <button
-            onClick={onClose}
-            className="w-full rounded-xl border border-gray-200 text-gray-600 px-4 py-2.5 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            type="button"
+            onClick={handleCloseModal}
+            className="w-full rounded-xl border border-gray-200 text-gray-600 px-4 py-2.5 text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
           >
             Close
           </button>

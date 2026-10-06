@@ -474,7 +474,7 @@ export default function BangalorePropertyPieMap({ properties = [], activeZone, o
           </div>
 
           {/* 8 Slices Legend Grid */}
-          <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-gray-100 text-xs max-h-[160px] overflow-y-auto">
+          <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-gray-100 text-xs">
             {pieSlices.map((slice) => {
               const isSelected = activeZone === slice.key || activeZone === slice.name;
               const isHovered = hoveredZone === slice.key;

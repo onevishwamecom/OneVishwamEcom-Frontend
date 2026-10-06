@@ -368,8 +368,14 @@ export default function MasterDetailPage({
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{item.price}</span>
-              {item.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>}
+              {item.price && item.price !== 'This is negotiable' && !`${item.price}`.toLowerCase().includes('sq') && (
+                <>
+                  <span className="text-sm font-extrabold text-brand-charcoal">{item.price}</span>
+                  {item.priceSuffix && !`${item.priceSuffix}`.toLowerCase().includes('sq') && (
+                    <span className="text-[11px] text-gray-400 ml-1">{item.priceSuffix}</span>
+                  )}
+                </>
+              )}
             </div>
             <button
               onClick={() => setEnquiryOpen(true)}
@@ -432,8 +438,8 @@ export default function MasterDetailPage({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
 
           {/* Title, Badges & Price Bar */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6">
-            <div className="space-y-2.5 max-w-3xl">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 pb-4">
+            <div className="space-y-2.5 flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-brand-blue/10 text-brand-blue text-[11px] font-bold px-3 py-0.5">
                   {item.category || item.brand || categoryName}
@@ -477,12 +483,6 @@ export default function MasterDetailPage({
                   {item.location}{item.zone ? ` (${item.zone})` : ''}{item.pincode ? ` — ${item.pincode}` : ''}
                 </span>
               </p>
-
-              {headerExtra && (
-                <div className="pt-2">
-                  {headerExtra}
-                </div>
-              )}
             </div>
 
             {/* Price & Primary CTAs */}
@@ -518,15 +518,22 @@ export default function MasterDetailPage({
               </div>
 
               <div>
-                <div className="flex items-baseline gap-2">
-                  <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
-                    {item.price}
-                  </span>
-                  {item.priceSuffix && (
-                    <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
-                  )}
-                </div>
-                {item.priceNote && (
+                {item.price && item.price !== 'This is negotiable' && !`${item.price}`.toLowerCase().includes('sq') ? (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                      {item.price}
+                    </span>
+                    {item.priceSuffix && !`${item.priceSuffix}`.toLowerCase().includes('sq') && (
+                      <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200/80 px-3 py-1 shadow-2xs">
+                    <i className="fa-solid fa-store text-amber-600 text-xs" />
+                    <span className="text-xs font-bold text-amber-900">Authorized Dealership Listing</span>
+                  </div>
+                )}
+                {item.priceNote && item.price && item.price !== 'This is negotiable' && !`${item.price}`.toLowerCase().includes('sq') && (
                   <p className="text-[11px] text-gray-400 mt-0.5">{item.priceNote}</p>
                 )}
               </div>
@@ -548,6 +555,13 @@ export default function MasterDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Full Width Header Extra (e.g. Variant Dropdown Bar) */}
+          {headerExtra && (
+            <div className="pb-4 w-full">
+              {headerExtra}
+            </div>
+          )}
 
           {/* ─── MOSAIC LUXURY PHOTO GALLERY ─── */}
           <div className="mt-2">
@@ -970,8 +984,12 @@ export default function MasterDetailPage({
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 sm:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className={item.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{item.price}</span>
+            {item.price && item.price !== 'This is negotiable' && !`${item.price}`.toLowerCase().includes('sq') && (
+              <>
+                <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
+                <span className="text-base font-extrabold text-brand-charcoal leading-tight">{item.price}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button

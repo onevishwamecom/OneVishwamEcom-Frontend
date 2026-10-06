@@ -177,8 +177,12 @@ function PropertyCard({ property }) {
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
-              <span className={display.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-base font-extrabold text-brand-charcoal"}>{display.price}</span>
-              {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
+              {display.price && display.price !== 'This is negotiable' && !`${display.price}`.toLowerCase().includes('sq') && (
+                <>
+                  <span className="text-base font-extrabold text-brand-charcoal">{display.price}</span>
+                  {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
+                </>
+              )}
             </div>
             {property.bhk && <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">{property.bhk}</span>}
           </div>
@@ -507,8 +511,14 @@ export default function PropertyDetails() {
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block text-right">
-              <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
+              {property.price && property.price !== 'This is negotiable' && !`${property.price}`.toLowerCase().includes('sq') && (
+                <>
+                  <span className="text-sm font-extrabold text-brand-charcoal">{property.price}</span>
+                  {property.priceSuffix && !`${property.priceSuffix}`.toLowerCase().includes('sq') && (
+                    <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>
+                  )}
+                </>
+              )}
             </div>
             <button
               onClick={() => setEnquiryOpen(true)}
@@ -651,16 +661,15 @@ export default function PropertyDetails() {
               </div>
 
               <div>
-                <div className="flex items-baseline gap-2">
-                  <span className={property.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
-                    {property.price}
-                  </span>
-                  {property.priceSuffix && (
-                    <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
-                  )}
-                </div>
-                {property.priceNote && property.price !== 'This is negotiable' && (
-                  <p className="text-[11px] text-gray-400 mt-0.5">{property.priceNote}</p>
+                {property.price && property.price !== 'This is negotiable' && !`${property.price}`.toLowerCase().includes('sq') && (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
+                      {property.price}
+                    </span>
+                    {property.priceSuffix && !`${property.priceSuffix}`.toLowerCase().includes('sq') && (
+                      <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1130,8 +1139,12 @@ export default function PropertyDetails() {
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 sm:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{property.price}</span>
+            {property.price && property.price !== 'This is negotiable' && !`${property.price}`.toLowerCase().includes('sq') && (
+              <>
+                <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
+                <span className="text-base font-extrabold text-brand-charcoal leading-tight">{property.price}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button

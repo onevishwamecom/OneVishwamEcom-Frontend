@@ -6,6 +6,19 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#f8fafc"/><rect x="1" y="1" width="598" height="398" stroke="#e2e8f0" stroke-width="2"/><g transform="translate(260, 130)" opacity="0.35"><rect x="10" y="10" width="60" height="45" rx="6" stroke="#334155" stroke-width="3.5" fill="none"/><path d="M25 55 v10 h30 v-10" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><line x1="15" y1="65" x2="65" y2="65" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/></g><text x="300" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="middle" letter-spacing="0.5">ONEVISHWAM VERIFIED PRODUCT</text><text x="300" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Official Authorized Listing</text></svg>`
 );
 
+function isSqftOrNegotiable(price = '', suffix = '') {
+  const combined = `${price || ''} ${suffix || ''}`.toLowerCase();
+  return (
+    !price ||
+    combined.includes('negotiable') ||
+    combined.includes('sq.ft') ||
+    combined.includes('sqft') ||
+    combined.includes('per sq') ||
+    combined.includes('/sq') ||
+    combined.includes('sq ft')
+  );
+}
+
 /**
  * Modern Generic Product / Listing Card.
  */
@@ -84,7 +97,7 @@ export default React.memo(function ProductCard({
       <div className="p-4 flex flex-col flex-1 gap-2">
         {/* Overline / Property Type */}
         {overline && (
-          <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">
+          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
             {overline}
           </p>
         )}
@@ -92,7 +105,7 @@ export default React.memo(function ProductCard({
         {/* Title */}
         <div className="min-h-[2.5rem] flex items-start">
           {title && (
-            <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
+            <h3 className="font-bold text-brand-charcoal text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {cleanProductName(title)}
             </h3>
           )}
@@ -100,8 +113,8 @@ export default React.memo(function ProductCard({
 
         {/* Location */}
         {location && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {location}
               {pincode ? ` · ${pincode}` : ""}
@@ -119,7 +132,7 @@ export default React.memo(function ProductCard({
               return (
                 <span
                   key={i}
-                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1 ${
+                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1 ${
                     isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
@@ -139,33 +152,46 @@ export default React.memo(function ProductCard({
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
 
-        {/* ── Card Footer: Price ── */}
+        {/* ── Card Footer: Price or Visit Us CTA ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {/* Price */}
-          <div className="min-w-0">
-            {priceOverride ? (
-              priceOverride
-            ) : (
-              price && (
-                <div>
-                  <span
-                    className={`leading-tight block truncate ${
-                      String(price).trim().toLowerCase() === 'this is negotiable'
-                        ? 'text-sm font-normal text-gray-500'
-                        : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                    }`}
-                  >
-                    {price}
+          {priceOverride ? (
+            priceOverride
+          ) : isSqftOrNegotiable(price, priceSuffix) ? (
+            <div className="w-full flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-2 text-xs font-black shadow-2xs transition-all group-hover:shadow-xs">
+                <i className="fa-solid fa-location-dot text-[11px]" />
+                <span>Visit Dealer</span>
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('onevishwam:open_enquiry_modal', { detail: { title } }));
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 hover:border-brand-blue bg-slate-50 hover:bg-white text-slate-700 hover:text-brand-blue px-3 py-2 text-xs font-bold transition-all cursor-pointer shrink-0"
+              >
+                <i className="fa-solid fa-phone text-[10px]" />
+                <span>Contact</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="min-w-0">
+                <span className="text-lg sm:text-xl font-extrabold text-brand-charcoal leading-tight block truncate">
+                  {price}
+                </span>
+                {priceSuffix && (
+                  <span className="text-xs font-semibold text-gray-400 block truncate">
+                    {priceSuffix}
                   </span>
-                  {priceSuffix && (
-                    <span className="text-[11px] font-semibold text-gray-400 block truncate">
-                      {priceSuffix}
-                    </span>
-                  )}
-                </div>
-              )
-            )}
-          </div>
+                )}
+              </div>
+              <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
+                <span>View Details</span>
+                <i className="fa-solid fa-arrow-right text-[11px] group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

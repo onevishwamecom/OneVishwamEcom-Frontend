@@ -214,8 +214,8 @@ export default function AutomobileGallery() {
             link={`/vehicle/${vehicle.id}`}
             overline={vehicle.brand ? `${vehicle.brand} · ${vehicle.bodyType || vehicle.category}` : vehicle.category}
             title={vehicle.title}
-            price={vehicle.price}
-            priceSuffix={vehicle.priceSuffix}
+            price="This is negotiable"
+            priceSuffix=""
             location={vehicle.location}
             pincode={vehicle.pincode}
             statusBadges={vehicle.statusBadges}

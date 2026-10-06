@@ -146,7 +146,7 @@ export default React.memo(function CategoryListingCard({
       <div className="p-4 flex flex-col flex-1 gap-2">
         {/* Overline / Category */}
         {cardOverline && (
-          <p className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">
+          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
             {cardOverline}
           </p>
         )}
@@ -154,7 +154,7 @@ export default React.memo(function CategoryListingCard({
         {/* Title */}
         <div className="min-h-[2.5rem] flex items-start">
           {cardTitle && (
-            <h3 className="font-bold text-brand-charcoal text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
+            <h3 className="font-bold text-brand-charcoal text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {cardTitle}
             </h3>
           )}
@@ -162,8 +162,8 @@ export default React.memo(function CategoryListingCard({
 
         {/* Location */}
         {cardLocation && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 min-w-0">
+            <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {cardLocation}
               {cardPincode ? ` · ${cardPincode}` : ''}
@@ -181,7 +181,7 @@ export default React.memo(function CategoryListingCard({
               return (
                 <span
                   key={idx}
-                  className={`font-semibold text-[11px] rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1 ${
+                  className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1 ${
                     isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
@@ -201,41 +201,54 @@ export default React.memo(function CategoryListingCard({
         {/* Highlight Trust Banner (Green) */}
         {bannerText && (
           <div className="mt-1 flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200/60 px-2.5 py-1">
-            <i className="fa-solid fa-circle-check text-[10px] text-emerald-600 shrink-0" />
-            <span className="text-[10px] font-bold text-emerald-700 truncate">
+            <i className="fa-solid fa-circle-check text-xs text-emerald-600 shrink-0" />
+            <span className="text-xs font-bold text-emerald-700 truncate">
               {bannerText}
             </span>
           </div>
         )}
 
-        {/* ── Card Footer: Price + View Details CTA ── */}
+        {/* ── Card Footer: Price or Visit Us CTA ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {/* Price */}
-          <div className="min-w-0">
-            <span
-              className={`leading-tight block truncate ${
-                String(cardPrice).trim().toLowerCase() === 'this is negotiable'
-                  ? 'text-sm font-normal text-gray-500'
-                  : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-              }`}
-            >
-              {cardPrice}
-            </span>
-            {cardPriceSuffix && (
-              <span className="text-[11px] font-semibold text-gray-400 block truncate">
-                {cardPriceSuffix}
+          {(!cardPrice || String(cardPrice).trim().toLowerCase() === 'this is negotiable' || `${cardPrice} ${cardPriceSuffix}`.toLowerCase().includes('sq')) ? (
+            <div className="w-full flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-2 text-xs font-black shadow-2xs transition-all group-hover:shadow-xs">
+                <i className="fa-solid fa-location-dot text-[11px]" />
+                <span>Visit Dealer</span>
               </span>
-            )}
-          </div>
-
-          {/* Right Action / "View Details →" */}
-          {children ? (
-            <div>{children}</div>
-          ) : (
-            <div className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
-              <span>View Details</span>
-              <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent('onevishwam:open_enquiry_modal', { detail: { title: cardTitle } }));
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 hover:border-brand-blue bg-slate-50 hover:bg-white text-slate-700 hover:text-brand-blue px-3 py-2 text-xs font-bold transition-all cursor-pointer shrink-0"
+              >
+                <i className="fa-solid fa-phone text-[10px]" />
+                <span>Contact</span>
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="min-w-0">
+                <span className="text-lg sm:text-xl font-extrabold text-brand-charcoal leading-tight block truncate">
+                  {cardPrice}
+                </span>
+                {cardPriceSuffix && (
+                  <span className="text-xs font-semibold text-gray-400 block truncate">
+                    {cardPriceSuffix}
+                  </span>
+                )}
+              </div>
+              {children ? (
+                <div>{children}</div>
+              ) : (
+                <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
+                  <span>View Details</span>
+                  <i className="fa-solid fa-arrow-right text-[11px] group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

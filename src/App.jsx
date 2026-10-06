@@ -1,8 +1,9 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
+import EnquiryModal from './components/EnquiryModal';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
 
@@ -105,7 +106,7 @@ function App() {
             <Route path="/bedding-comfort/:id" element={<BeddingDetails />} />
 
             {/* Finance & Other Verticals */}
-            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
+            <Route path="/our-services/finance-lending" element={<Navigate to="/coming-soon?sector=finance-lending" replace />} />
             <Route path="/our-services/*" element={<ServicesPage />} />
             <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/finance/*" element={<LoanDetails />} />
@@ -128,6 +129,7 @@ function App() {
       <Footer />
       <PromoToast />
       <PromoModal />
+      <EnquiryModal />
     </>
   );
 }
