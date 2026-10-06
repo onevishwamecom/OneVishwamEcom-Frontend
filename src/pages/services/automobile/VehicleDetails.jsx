@@ -81,9 +81,6 @@ export default function VehicleDetails() {
     return {
       ...mappedVehicle,
       subtitle: `${currentVariant.variant} · ${transmissionText} · ${fuelText} · Kalyani Motors Bangalore`,
-      price: currentVariant.exShowroom || mappedVehicle.price,
-      priceSuffix: '(Ex-Showroom)',
-      priceNote: `Ex-Showroom price for ${currentVariant.variant} · Kalyani Motors Bangalore`,
       fuelType: fuelText,
       transmission: transmissionText,
       statusBadges: [
@@ -95,14 +92,12 @@ export default function VehicleDetails() {
       cardPills: [transmissionText, fuelText],
       keyAttributes: [
         { label: 'Selected Variant', value: currentVariant.variant },
-        { label: 'Ex-Showroom Price', value: currentVariant.exShowroom },
         { label: 'Transmission', value: transmissionText },
         { label: 'Fuel System', value: isCNG ? 'Bi-Fuel S-CNG & Petrol' : 'Petrol' },
         { label: 'Dealership', value: 'Kalyani Motors, Bangalore' },
       ],
       overviewHighlights: [
         { label: 'Selected Variant', value: currentVariant.variant, icon: 'fa-car-side', color: 'text-blue-600 bg-blue-50' },
-        { label: 'Ex-Showroom Price', value: currentVariant.exShowroom, icon: 'fa-tag', color: 'text-emerald-600 bg-emerald-50' },
         { label: 'Powertrain & Gearbox', value: `${fuelText} · ${transmissionText}`, icon: 'fa-gear', color: 'text-cyan-600 bg-cyan-50' },
         { label: 'Standard Safety', value: '6 Airbags Standard Across All Variants', icon: 'fa-shield-halved', color: 'text-indigo-600 bg-indigo-50' },
         { label: 'Authorized Dealership', value: 'Kalyani Motors Pvt Ltd, Bangalore', icon: 'fa-building', color: 'text-teal-600 bg-teal-50' },
@@ -118,11 +113,6 @@ export default function VehicleDetails() {
           <i className="fa-solid fa-car-side text-brand-blue" />
           <span>Select Variant ({variants.length} Trims Available):</span>
         </label>
-        {currentVariant && (
-          <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/70 border border-emerald-300/80 px-2.5 py-0.5 rounded-full">
-            Ex-Showroom: {currentVariant.exShowroom}
-          </span>
-        )}
       </div>
 
       <div className="relative">
@@ -134,7 +124,7 @@ export default function VehicleDetails() {
         >
           {variants.map((v, idx) => (
             <option key={idx} value={idx}>
-              {v.variant} — {v.exShowroom}
+              {v.variant}
             </option>
           ))}
         </select>
@@ -158,21 +148,21 @@ export default function VehicleDetails() {
     </div>
   );
 
-  // Dedicated Variant Dashboard & Pricing Table
+  // Dedicated Variant Dashboard & Specs Table
   const variantDashboard = variants.length > 0 && currentVariant && (
     <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
       {/* Module Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
-            <i className="fa-solid fa-tag" />
+            <i className="fa-solid fa-car" />
           </div>
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">
-              Variant Lineup & Ex-Showroom Pricing
+              Variant Lineup & Specifications
             </h2>
             <p className="text-xs text-gray-500">
-              Official Kalyani Motors Bangalore Ex-Showroom Price Schedule
+              Official Kalyani Motors Bangalore Schedule
             </p>
           </div>
         </div>
@@ -186,7 +176,7 @@ export default function VehicleDetails() {
           >
             {variants.map((v, idx) => (
               <option key={idx} value={idx}>
-                {v.variant} ({v.exShowroom})
+                {v.variant}
               </option>
             ))}
           </select>
@@ -218,12 +208,20 @@ export default function VehicleDetails() {
           </div>
         </div>
 
-        <div className="text-left sm:text-right">
-          <span className="text-xs font-semibold text-gray-500 block">Ex-Showroom Price</span>
-          <span className="text-2xl sm:text-3xl font-black text-brand-charcoal tracking-tight">
-            {currentVariant.exShowroom}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent('onevishwam:open_enquiry_modal', {
+                detail: { title: `${vehicle?.title || 'Vehicle'} - ${currentVariant.variant}` },
+              })
+            );
+          }}
+          className="rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2.5 text-xs font-extrabold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+        >
+          <i className="fa-solid fa-envelope" />
+          <span>Contact Us</span>
+        </button>
       </div>
 
       {/* Variant Filter Tabs & Table */}
@@ -303,7 +301,6 @@ export default function VehicleDetails() {
                 <th className="py-3 px-4">Variant Name</th>
                 <th className="py-3 px-3">Fuel</th>
                 <th className="py-3 px-3">Transmission</th>
-                <th className="py-3 px-4 text-brand-charcoal">Ex-Showroom Price</th>
                 <th className="py-3 px-3 text-right">Action</th>
               </tr>
             </thead>
@@ -340,7 +337,6 @@ export default function VehicleDetails() {
                         {isAutoVariant(item.variant) ? 'Automatic' : 'Manual'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-extrabold text-brand-charcoal">{item.exShowroom}</td>
                     <td className="py-3 px-3 text-right">
                       {isSelected ? (
                         <span className="rounded-lg bg-emerald-600 text-white px-2.5 py-1 text-[10px] font-extrabold inline-flex items-center gap-1 shadow-2xs">

@@ -40,33 +40,32 @@ function ServicesPage() {
 
               if (!isActive) {
                 return (
-                  <div
+                  <Link
                     key={item.id}
-                    className="bg-white/60 rounded-xl border border-gray-100 p-6 opacity-45 cursor-not-allowed select-none block"
+                    to={`/coming-soon?sector=${item.id}`}
+                    className="group bg-white rounded-xl border border-amber-200/60 p-6 cursor-pointer hover:shadow-lg hover:border-amber-400 transition-all block relative"
                   >
-                    <div className="aspect-[16/10] overflow-hidden rounded-lg bg-gray-100 mb-4 grayscale">
-                      <img src={item.image} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+                    <div className="aspect-[16/10] overflow-hidden rounded-lg bg-gray-100 mb-4 relative">
+                      <img src={item.image} alt={item.title} className="h-full w-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105" loading="lazy" />
+                      <span className="absolute top-2 right-2 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full shadow-xs">
+                        Coming Soon
+                      </span>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 mt-0.5">
+                      <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
                         <i className={serviceIconMap[item.id] || 'fa-solid fa-circle'} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <h2 className="font-semibold text-gray-600 text-sm leading-snug truncate">
-                            {item.title}
-                          </h2>
-                          <span className="text-[10px] font-semibold text-gray-400 bg-gray-200/70 px-1.5 py-0.5 rounded shrink-0">
-                            Coming Soon
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-gray-400 line-clamp-2">{item.description}</p>
-                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gray-400">
-                          Unavailable
+                        <h2 className="font-semibold text-brand-charcoal text-sm leading-snug group-hover:text-brand-blue transition-colors truncate">
+                          {item.title}
+                        </h2>
+                        <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.description}</p>
+                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-amber-600 group-hover:text-brand-blue transition-colors">
+                          Coming Soon <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               }
 

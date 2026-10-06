@@ -503,10 +503,6 @@ export default function PropertyDetails() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden sm:block text-right">
-              <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-sm font-extrabold text-brand-charcoal"}>{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
-            </div>
             <button
               onClick={() => setEnquiryOpen(true)}
               className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs cursor-pointer"
@@ -615,7 +611,7 @@ export default function PropertyDetails() {
               </p>
             </div>
 
-            {/* Price & Primary CTAs */}
+            {/* Primary CTAs */}
             <div className="flex flex-col sm:flex-row lg:flex-col lg:items-end gap-3 shrink-0">
               {/* Co-Branding: OneVishwam + Company / Enterprise Logo */}
               <div className="inline-flex items-center gap-2 rounded-xl bg-slate-50/90 border border-slate-200/80 px-3 py-1.5 shadow-2xs">
@@ -645,20 +641,6 @@ export default function PropertyDetails() {
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100/70 border border-amber-300/60 px-2 py-0.5 rounded-md">
                   Verified
                 </span>
-              </div>
-
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className={property.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
-                    {property.price}
-                  </span>
-                  {property.priceSuffix && (
-                    <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
-                  )}
-                </div>
-                {property.priceNote && property.price !== 'This is negotiable' && (
-                  <p className="text-[11px] text-gray-400 mt-0.5">{property.priceNote}</p>
-                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
