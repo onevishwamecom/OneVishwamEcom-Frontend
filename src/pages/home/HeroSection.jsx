@@ -72,7 +72,7 @@ export default function HeroSection() {
     if (isPaused || total <= 1) return;
     timerRef.current = setInterval(next, 5000);
     return () => clearInterval(timerRef.current);
-  }, [isPaused, current, next, total]);
+  }, [isPaused, next, total]);
 
   /* Touch swiping */
   const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
