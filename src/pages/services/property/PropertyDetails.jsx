@@ -274,11 +274,14 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 450) {
-        setScrolledPastHero(true);
+      let isPast = false;
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        isPast = rect.bottom <= 90;
       } else {
-        setScrolledPastHero(false);
+        isPast = window.scrollY > 450;
       }
+      setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
