@@ -198,11 +198,8 @@ export default function MasterDetailPage({
   // Scroll listener for sticky floating quick-action bar
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 450) {
-        setScrolledPastHero(true);
-      } else {
-        setScrolledPastHero(false);
-      }
+      const isPast = window.scrollY > 450;
+      setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);

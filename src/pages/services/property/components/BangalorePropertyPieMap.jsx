@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone } from '../propertyHelpers';
 import bangaloreBbmpMap from '../../../../assets/maps/bangalore_bbmp_map.png';
@@ -197,7 +197,7 @@ function describePieSlice(x, y, radius, startAngle, endAngle) {
   ].join(' ');
 }
 
-export default function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) {
+function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) {
   const navigate = useNavigate();
   const [hoveredZone, setHoveredZone] = useState(null);
   const [hoveredProperty, setHoveredProperty] = useState(null);
@@ -516,3 +516,5 @@ export default function BangalorePropertyPieMap({ properties = [], activeZone, o
     </div>
   );
 }
+
+export default memo(BangalorePropertyPieMap);
