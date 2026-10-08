@@ -278,13 +278,15 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     const handleScroll = () => {
+      let isPast = false;
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect();
         // Only show sticky bar when bottom of hero gallery section scrolls past header (<= 90px)
-        setScrolledPastHero(rect.bottom <= 90);
+        isPast = rect.bottom <= 90;
       } else {
-        setScrolledPastHero(window.scrollY > 750);
+        isPast = window.scrollY > 750;
       }
+      setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();

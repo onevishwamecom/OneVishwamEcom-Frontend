@@ -1,3 +1,5 @@
+import React, { memo } from 'react';
+
 /**
  * Reusable CategoryPillStrip component for horizontal category/filter pill strips.
  *
@@ -43,5 +45,5 @@ function CategoryPillStrip({ items = [], selected, onSelect, className = 'mt-5' 
   );
 }
 
-export default CategoryPillStrip;
+export default memo(CategoryPillStrip);
 
