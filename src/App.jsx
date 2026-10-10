@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import Footer from './components/Footer';
+
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
 import EnquiryModal from './components/EnquiryModal';
@@ -130,7 +130,7 @@ function App() {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
+      
       <PromoToast />
       <PromoModal />
       <AuthModals />
