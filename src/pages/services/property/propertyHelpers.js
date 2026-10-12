@@ -42,11 +42,7 @@ export function parseAreaRange(areaOrProperty) {
   let str = '';
   if (typeof areaOrProperty === 'object') {
     str = String(
-      areaOrProperty.plotSize ||
-      areaOrProperty.sizeRange ||
-      (isPlotOrLand(areaOrProperty) && areaOrProperty.bhk ? areaOrProperty.bhk : '') ||
       areaOrProperty.area ||
-      areaOrProperty.size ||
       areaOrProperty.dimensions ||
       ''
     ).trim();
@@ -312,16 +308,14 @@ export function getPropertyType(property) {
   if (!property) return 'Flats';
 
   const type = String(
-    property.propertyType ||
     property.subcategory ||
-    property.subCategory ||
+    property.propertyType ||
     property.category ||
-    property.buildingType ||
     ''
   ).toLowerCase().trim();
 
   const sub = String(property.subtitle || '').toLowerCase();
-  const title = String(property.title || property.name || '').toLowerCase();
+  const title = String(property.title || '').toLowerCase();
   const bhk = String(property.bhk || '').toLowerCase();
   const fullText = `${type} ${sub} ${title} ${bhk}`;
 
@@ -480,16 +474,7 @@ export function getBuildingType(property) {
 
 export function isCornerProperty(property) {
   if (!property) return false;
-  if (
-    property.isCornerPlot ||
-    property.cornerPlot ||
-    property.isCornerSite ||
-    property.cornerSite ||
-    property.cornerPlotAvailable ||
-    property.details?.cornerPlot ||
-    property.details?.isCornerPlot ||
-    property.details?.cornerSite
-  ) {
+  if (property.cornerPlot) {
     return true;
   }
 
@@ -534,7 +519,7 @@ export function getDetailTags(property) {
   }
 
   if (property.area) tags.push(property.area);
-  const facingVal = property.facing || property.details?.facing;
+  const facingVal = property.facing;
   if (facingVal && facingVal !== 'N/A' && facingVal !== 'NA') {
     tags.push(`Door Facing: ${facingVal}`);
   }

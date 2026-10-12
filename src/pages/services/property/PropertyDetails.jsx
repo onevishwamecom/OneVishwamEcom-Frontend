@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../../../utils/formatters';
-import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { navigateTo } from '../../../config/navigation';
 import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
 import { cleanProductName } from '../../../utils/searchUtils';
@@ -227,14 +227,14 @@ export default function PropertyDetails() {
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
   const activeId = property ? (property._id || property.id) : null;
-  const currentSubcat = property ? (property.subcategory || property.subCategory || property.propertyType || '') : '';
+  const currentSubcat = property ? (property.subcategory || property.propertyType || '') : '';
 
   const similarProperties = useMemo(() => {
     if (!property) return [];
     const matched = properties.filter((p) => {
       const pId = p._id || p.id;
       if (String(pId) === String(activeId)) return false;
-      const pSubcat = p.subcategory || p.subCategory || p.propertyType || '';
+      const pSubcat = p.subcategory || p.propertyType || '';
       return (
         pSubcat.toLowerCase() === currentSubcat.toLowerCase() ||
         (p.city && property.city && p.city.toLowerCase() === property.city.toLowerCase())
@@ -396,29 +396,16 @@ export default function PropertyDetails() {
   const statusPill = getPropertyStatusPill(property);
 
   const enterpriseLogo =
-    property.enterpriseLogo ||
-    property.companyLogo ||
-    property.developerLogo ||
-    property.builderLogo ||
-    property.projectLogo ||
-    property.logo ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.logo
-      : property.channelPartner?.logo) ||
     property.agent?.avatar ||
-    property.agent?.logo ||
+    property.logo ||
+    (property.channelPartner?.logo) ||
     null;
 
   const enterpriseName =
-    property.enterpriseName ||
-    property.companyName ||
-    property.developer ||
-    property.builder ||
+    property.channelPartnerName ||
+    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null) ||
     property.agent?.name ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.name
-      : property.channelPartner?.name) ||
-    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null);
+    null;
 
   const renderHighlightCard = (meta) => {
     if (meta.key === 'bhk' && isPlot) return null;

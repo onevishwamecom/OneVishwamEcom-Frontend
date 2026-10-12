@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getPropertyContactInfo } from '../data/footerContent';
+import { getPropertyContactInfo } from '../constants/footerContent';
 
 function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
   const [localOpen, setLocalOpen] = useState(false);
@@ -18,7 +18,7 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
   // Listen for global custom event to trigger modal anywhere
   useEffect(() => {
     const handleGlobalOpen = (e) => {
-      setEventTitle(e?.detail?.title || e?.detail?.propertyTitle || '');
+      setEventTitle(e?.detail?.title || '');
       setLocalOpen(true);
     };
     window.addEventListener('onevishwam:open_enquiry_modal', handleGlobalOpen);

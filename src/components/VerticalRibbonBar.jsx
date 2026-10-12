@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { marketplaceCategories } from '../data/categoriesData';
+import { marketplaceCategories } from '../constants/categoriesData';
 
 /**
  * VerticalRibbonBar:

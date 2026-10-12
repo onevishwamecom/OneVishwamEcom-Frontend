@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import logo from '../assets/logo.png';
-import { navLinks } from '../data/siteContent';
-import { marketplaceCategories } from '../data/categoriesData';
-import { cities, getCityLabel } from '../data/locations';
+import { navLinks } from '../constants/siteContent';
+import { marketplaceCategories } from '../constants/categoriesData';
+import { cities, getCityLabel } from '../constants/locations';
 import { useLocation } from '../store/locationSlice';
 import { detectCurrentLocation } from '../utils/detectLocation';
 import { PROPERTIES_ONLY } from '../config/appConfig';

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { navigateTo } from '../../../config/navigation';
 import { useProperties } from '../../../hooks/useProperties';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 import { getTotalPropertyPrice, getNumericPrice, matchesBudgetRange } from './propertyHelpers';
 
 function getCardType(property) {
