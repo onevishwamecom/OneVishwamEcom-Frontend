@@ -86,6 +86,8 @@ function App() {
             <Route path="/contact-us" element={<ContactPage />} />
 
             {/* Real Estate / Property Routes */}
+            <Route path="/our-services/properties" element={<PropertyGallery />} />
+            <Route path="/properties" element={<PropertyGallery />} />
             <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
             <Route path="/houseandland" element={<PropertyGallery />} />
             <Route path="/property" element={<PropertyGallery />} />

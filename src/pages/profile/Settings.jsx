@@ -277,7 +277,7 @@ function ProfileSettings() {
                   >
                     <option value="Buyer / Customer">Buyer / Looking to Buy</option>
                     <option value="Property Owner / Seller">Property Owner / Seller</option>
-                    <option value="Dealer / Agent">Dealer / Real Estate Agent</option>
+                    <option value="Dealer / Agent">Dealer / Property Agent</option>
                     <option value="Retail Partner">Retail Partner</option>
                   </select>
                 </div>
