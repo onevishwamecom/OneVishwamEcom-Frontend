@@ -27,10 +27,11 @@ function extractProperties(res) {
 }
 
 export function useProperties(params = {}) {
-  const key = `properties:${deterministicKey(params)}`;
+  const mergedParams = { limit: 100, ...params };
+  const key = `properties:${deterministicKey(mergedParams)}`;
   const { data, loading, error, retry } = useCachedData(
     key,
-    () => API.get('/api/properties', { params }).then(extractProperties),
+    () => API.get('/api/properties', { params: mergedParams }).then(extractProperties),
     { ttl: CACHE_TTL.products, fallback: [] }
   );
 
