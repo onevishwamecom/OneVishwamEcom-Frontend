@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
-import { cities, getCityLabel } from "../../../data/locations";
+import { cities, getCityLabel } from "../../../constants/locations";
 import { ActiveChip } from "../../../components/ui";
 import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import CategoryListingCard from './CategoryListingCard';
 import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 import PageContainer from '../PageContainer';
 import LottieComingSoon from '../LottieComingSoon';
 

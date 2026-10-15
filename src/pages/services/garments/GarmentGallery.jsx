@@ -10,7 +10,7 @@ import {
 } from '../shared';
 import GarmentFilterSidebar from './components/GarmentFilterSidebar';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 
 const INITIAL_FILTERS = {
   budgetMin: '',

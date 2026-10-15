@@ -1,9 +1,9 @@
 export const marketplaceCategories = [
   {
-    id: 'real-estate-property',
-    label: 'Houses & Land',
+    id: 'properties',
+    label: 'Properties',
     shortDesc: 'Houses, flats, lands, plots & commercial',
-    href: '/our-services/real-estate-property',
+    href: '/our-services/properties',
     icon: 'fa-solid fa-house-chimney',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
     disabled: false,

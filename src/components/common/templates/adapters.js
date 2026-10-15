@@ -26,9 +26,9 @@ export function mapPropertyToEntityItem(property) {
   if (!property) return null;
 
   const id = property.id || property._id || '';
-  const title = cleanProductName(property.propertyName || property.title || 'Featured Property');
-  const rawPrice = property.rawPrice || property.price || property.expectedPrice || property.priceRange?.formattedMin || '';
-  const rawSuffix = property.rawPriceSuffix || property.priceSuffix || '';
+  const title = cleanProductName(property.title || 'Featured Property');
+  const rawPrice = property.price || property.rawPrice || '';
+  const rawSuffix = property.priceSuffix || '';
   const inSqft = isPerSqft(rawPrice, rawSuffix);
   const price = inSqft ? rawPrice : 'This is negotiable';
   const priceSubtext = inSqft ? (rawSuffix || (property.negotiable ? 'Negotiable' : (property.priceRange?.isRange ? 'Onwards' : ''))) : '';
@@ -61,14 +61,7 @@ export function mapPropertyToEntityItem(property) {
   }
 
   const details = property.details || {};
-  const isCorner =
-    property.isCornerPlot ||
-    property.cornerPlot ||
-    property.isCornerSite ||
-    property.cornerSite ||
-    property.cornerPlotAvailable ||
-    details.cornerPlot ||
-    details.isCornerPlot;
+  const isCorner = Boolean(property.cornerPlot);
 
   if (isCorner) {
     badges.push({ label: 'Corner Site', className: 'bg-purple-600 text-white font-bold' });
@@ -76,22 +69,22 @@ export function mapPropertyToEntityItem(property) {
 
   // Key Attributes (Dynamic Highlights)
   const keyAttributes = [];
-  const pType = property.propertyType || property.category || property.type;
+  const pType = property.subcategory || property.propertyType || property.category;
   if (pType) {
     keyAttributes.push({ label: 'Type', value: String(pType) });
   }
 
-  const bhk = details.bhk || property.bhk;
+  const bhk = property.bhk;
   if (bhk) {
     keyAttributes.push({ label: 'Configuration', value: String(bhk) });
   }
 
-  const area = details.superBuiltUpArea || details.totalLandArea || details.totalLandExtent || property.superBuiltUpArea || property.dimensions;
+  const area = property.area || property.area_sqft || property.dimensions;
   if (area) {
     keyAttributes.push({ label: 'Area / Dimensions', value: String(area) });
   }
 
-  const facing = details.facing || property.facing;
+  const facing = property.facing;
   if (facing) {
     keyAttributes.push({ label: 'Door Facing', value: String(facing) });
   }
@@ -140,10 +133,10 @@ export function mapPropertyToEntityItem(property) {
 
   // Seller Information
   const seller = {
-    name: property.vendorName || property.channelPartnerName || property.builderName || 'OneVishwam Partner',
-    type: property.channelPartnerName ? 'Channel Partner' : (property.builderName ? 'Verified Builder' : 'Authorized Associate'),
-    phone: property.contactPhone || '8546996622',
-    whatsapp: property.whatsapp || property.contactPhone || '8546996622',
+    name: property.vendorName || property.channelPartnerName || 'OneVishwam Partner',
+    type: property.channelPartnerName ? 'Channel Partner' : 'Authorized Associate',
+    phone: property.contact || '8546996622',
+    whatsapp: property.whatsapp || property.contact || '8546996622',
     email: property.email || 'ceo@onevishwam.com',
     verified: true,
   };
@@ -158,7 +151,7 @@ export function mapPropertyToEntityItem(property) {
     images,
     badges,
     keyAttributes,
-    description: property.description || property.overviewText || 'Verified residential/commercial property listed under the OneVishwam network with complete legal and bank loan assistance.',
+    description: property.description || 'Verified residential/commercial property listed under the OneVishwam network with complete legal and bank loan assistance.',
     specs,
     seller,
     raw: property,

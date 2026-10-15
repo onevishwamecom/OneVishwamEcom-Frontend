@@ -1,4 +1,4 @@
-import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../data/footerContent';
+import { footerBrandName, footerSummary, footerQuickLinks, footerServiceLinks, footerSocialLinks, footerLocations } from '../constants/footerContent';
 import logoName from '../assets/Logo_name.png';
 import { Link } from 'react-router-dom';
 import HitCounterBanner from './HitCounterBanner';

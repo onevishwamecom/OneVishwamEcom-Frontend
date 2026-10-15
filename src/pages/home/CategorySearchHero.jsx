@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cities, getCityLabel } from '../../data/locations';
+import { cities, getCityLabel } from '../../constants/locations';
 import { useLocation } from '../../store/locationSlice';
 import { matchesSearch } from '../../utils/searchUtils';
 

@@ -10,7 +10,7 @@ import {
 } from '../shared';
 import JewelleryFilterSidebar from './components/JewelleryFilterSidebar';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 
 const INITIAL_FILTERS = {
   budgetMin: '',

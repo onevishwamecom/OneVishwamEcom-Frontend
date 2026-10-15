@@ -1,7 +1,7 @@
 export const serviceItems = [
   {
-    id: 'real-estate-property',
-    title: 'Houses & Land',
+    id: 'properties',
+    title: 'Properties',
     description: 'Find houses, flats, lands, plots, and commercial properties.',
     image: 'https://images.pexels.com/photos/8470806/pexels-photo-8470806.jpeg?cs=srgb&dl=pexels-thirdman-8470806.jpg&fm=jpg',
     details: {
@@ -269,6 +269,7 @@ export const serviceItems = [
 
 export const serviceIconMap = {
   'finance-lending': 'fa-solid fa-building-columns',
+  'properties': 'fa-solid fa-house-chimney',
   'real-estate-property': 'fa-solid fa-house-chimney',
   'jewellery-gold': 'fa-solid fa-gem',
   'automobile': 'fa-solid fa-car',

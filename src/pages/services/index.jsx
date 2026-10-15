@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import ServiceDetails from './ServiceDetails';
-import { serviceItems, serviceIconMap } from '../../data/servicesContent';
+import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 import PageHero from '../../components/PageHero';
 
 const ACTIVE_SERVICE_IDS = ['real-estate-property', 'automobile', 'consumer-electronics', 'bedding-comfort'];

@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { dummyElectronics } from '../../../data/dummyElectronics';
 import MarketplaceCategoryGallery from '../../../components/common/templates/MarketplaceCategoryGallery';
 import CategoryListingCard from '../../../components/common/templates/CategoryListingCard';
 import { matchesSearch } from '../../../utils/searchUtils';
@@ -54,7 +53,7 @@ function parseNumericPrice(str) {
   return num;
 }
 
-export default function ElectronicsGallery() {
+export default function ElectronicsGallery({ items = [] }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({
     budgetMin: '',
@@ -109,7 +108,7 @@ export default function ElectronicsGallery() {
   };
 
   const filteredItems = useMemo(() => {
-    return dummyElectronics.filter((item) => {
+    return items.filter((item) => {
       // Search
       if (searchTerm.trim()) {
         if (!matchesSearch(

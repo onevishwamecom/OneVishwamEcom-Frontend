@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../../../utils/formatters';
-import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { navigateTo } from '../../../config/navigation';
 import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
 import { cleanProductName } from '../../../utils/searchUtils';
@@ -227,14 +227,14 @@ export default function PropertyDetails() {
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
   const activeId = property ? (property._id || property.id) : null;
-  const currentSubcat = property ? (property.subcategory || property.subCategory || property.propertyType || '') : '';
+  const currentSubcat = property ? (property.subcategory || property.propertyType || '') : '';
 
   const similarProperties = useMemo(() => {
     if (!property) return [];
     const matched = properties.filter((p) => {
       const pId = p._id || p.id;
       if (String(pId) === String(activeId)) return false;
-      const pSubcat = p.subcategory || p.subCategory || p.propertyType || '';
+      const pSubcat = p.subcategory || p.propertyType || '';
       return (
         pSubcat.toLowerCase() === currentSubcat.toLowerCase() ||
         (p.city && property.city && p.city.toLowerCase() === property.city.toLowerCase())
@@ -396,29 +396,16 @@ export default function PropertyDetails() {
   const statusPill = getPropertyStatusPill(property);
 
   const enterpriseLogo =
-    property.enterpriseLogo ||
-    property.companyLogo ||
-    property.developerLogo ||
-    property.builderLogo ||
-    property.projectLogo ||
-    property.logo ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.logo
-      : property.channelPartner?.logo) ||
     property.agent?.avatar ||
-    property.agent?.logo ||
+    property.logo ||
+    (property.channelPartner?.logo) ||
     null;
 
   const enterpriseName =
-    property.enterpriseName ||
-    property.companyName ||
-    property.developer ||
-    property.builder ||
+    property.channelPartnerName ||
+    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null) ||
     property.agent?.name ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.name
-      : property.channelPartner?.name) ||
-    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null);
+    null;
 
   const renderHighlightCard = (meta) => {
     if (meta.key === 'bhk' && isPlot) return null;
@@ -574,7 +561,7 @@ export default function PropertyDetails() {
                   {property.propertyType || 'Property'}
                 </span>
                 <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${statusPill?.cls || 'bg-emerald-100 text-emerald-700'}`}>
-                  {statusPill?.label || property.possession || 'Ready to Occupy'}
+                  {statusPill?.label || property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Occupy')}
                 </span>
                 {property.loanApproved && (
                   <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
@@ -832,9 +819,9 @@ export default function PropertyDetails() {
                 <i className="fa-solid fa-stamp" /> {property.approval} Approved
               </span>
             )}
-            {property.possession && (
+            {(property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession) && (
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-calendar-check" /> {property.possession}
+                <i className="fa-solid fa-calendar-check" /> {property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession}
               </span>
             )}
             {property.postedBy && (

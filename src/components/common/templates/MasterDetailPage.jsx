@@ -3,7 +3,7 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import EnquiryModal from '../../EnquiryModal';
 import CategoryListingCard, { FALLBACK_IMG } from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
-import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
