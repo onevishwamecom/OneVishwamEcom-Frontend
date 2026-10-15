@@ -590,7 +590,7 @@ export default function PropertyDetails() {
                   {property.propertyType || 'Property'}
                 </span>
                 <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${statusPill?.cls || 'bg-emerald-100 text-emerald-700'}`}>
-                  {statusPill?.label || property.possession || 'Ready to Occupy'}
+                  {statusPill?.label || property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Occupy')}
                 </span>
                 {property.loanApproved && (
                   <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
@@ -861,9 +861,9 @@ export default function PropertyDetails() {
                 <i className="fa-solid fa-stamp" /> {property.approval} Approved
               </span>
             )}
-            {property.possession && (
+            {(property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession) && (
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-calendar-check" /> {property.possession}
+                <i className="fa-solid fa-calendar-check" /> {property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession}
               </span>
             )}
             {property.postedBy && (

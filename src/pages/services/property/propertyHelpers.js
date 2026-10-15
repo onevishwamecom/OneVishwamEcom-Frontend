@@ -416,8 +416,17 @@ export function getPropertyStatusPill(property) {
     return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
   }
 
-  const raw = String(property.possession || property.possessionStatus || '').trim();
-  return { label: raw || 'Ready to Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+  const raw = String(
+    property.possession ||
+    property.possessionStatus ||
+    property.details?.possessionStatus ||
+    property.details?.possession ||
+    ''
+  ).trim();
+  return {
+    label: raw || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Occupy'),
+    cls: 'bg-emerald-100 text-emerald-700',
+  };
 }
 
 export function getBedrooms(bhk, property) {
@@ -578,20 +587,32 @@ export function getStatusBadge(property) {
 
 export function getCanonicalPossession(property) {
   if (!property) return '';
-  if (isPlotOrLand(property)) {
-    return 'ready_for_registration';
+
+  const val = String(
+    property.possession ||
+    property.possessionStatus ||
+    property.details?.possessionStatus ||
+    property.details?.possession ||
+    ''
+  ).toLowerCase().trim();
+
+  // 1. Honor explicit possession status first
+  if (val.includes('construction')) {
+    return 'under_construction';
   }
-
-  const val = String(property.possession || property.possessionStatus || '').toLowerCase().trim();
-
   if (val.includes('registration') || val.includes('register')) {
     return 'ready_for_registration';
   }
   if (val.includes('occupy') || val.includes('move')) {
     return 'ready_for_occupy';
   }
-  if (val.includes('construction')) {
-    return 'under_construction';
+  if (val.includes('vacant')) {
+    return isPlotOrLand(property) ? 'ready_for_registration' : 'ready_for_occupy';
+  }
+
+  // 2. Fallback only if no explicit status was specified
+  if (isPlotOrLand(property)) {
+    return 'ready_for_registration';
   }
   return 'ready_for_occupy';
 }
