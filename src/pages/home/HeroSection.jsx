@@ -5,51 +5,51 @@ import { Link } from 'react-router-dom';
 const HERO_SLIDES = [
   {
     id: 'properties',
-    category: 'Real Estate & Properties',
-    title: 'Find Your Ideal Plot, Villa or Apartment',
-    subtitle: 'Verified residential plots, luxury flats, gated communities & prime commercial land across Bengaluru.',
-    link: '/our-services/real-estate-property',
+    category: 'Houses & Land',
+    title: 'Affordable Homes, Plots & Apartments in Bengaluru',
+    subtitle: 'Verified residential plots, budget-friendly flats, gated layouts & commercial spaces with easy loan support.',
+    link: '/property',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-house-chimney',
     ctaText: 'Explore Properties',
     disabled: false,
-    alt: 'Luxury villa and modern real estate property',
+    alt: 'Affordable homes, modern plots and apartments',
   },
   {
     id: 'automobile',
-    category: 'Automobiles & Vehicles',
-    title: 'Premium Cars, Bikes & Commercial Vehicles',
-    subtitle: 'Brand-new and certified pre-owned vehicles with hassle-free loan approvals and verified dealers.',
-    link: '/coming-soon?sector=automobile',
+    category: 'Vehicles',
+    title: 'Affordable Cars, Bikes & Commercial Vehicles',
+    subtitle: 'Quality new and verified pre-owned vehicles with low down payments, easy EMI options and trusted dealers.',
+    link: '/automobile',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=80',
     badgeIcon: 'fa-solid fa-car',
-    ctaText: 'Coming Soon',
-    disabled: true,
-    alt: 'Premium luxury vehicle on open road',
+    ctaText: 'Explore Vehicles',
+    disabled: false,
+    alt: 'Affordable family cars, two-wheelers and commercial vehicles',
   },
   {
-    id: 'jewellery',
-    category: 'Jewellery & Gold',
-    title: 'Exquisite Hallmarked Gold & Diamond Jewellery',
-    subtitle: 'Certified pure gold, designer bridal sets, diamond rings & flexible easy EMI options.',
-    link: '/coming-soon?sector=jewellery',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-gem',
-    ctaText: 'Coming Soon',
-    disabled: true,
-    alt: 'Exquisite hallmarked gold and diamond jewellery',
+    id: 'bedding',
+    category: 'Bedding & Comfort',
+    title: 'Affordable Mattresses, Pillows & Sleep Comfort',
+    subtitle: 'Comfortable orthopedic mattresses, bedsheets & pillows designed for great sleep at honest, budget-friendly prices.',
+    link: '/bedding',
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-bed',
+    ctaText: 'Explore Bedding',
+    disabled: false,
+    alt: 'Comfortable and affordable mattress and bedding',
   },
   {
     id: 'electronics',
-    category: 'Electronics & Gadgets',
-    title: 'Latest Smartphones, Laptops & Home Appliances',
-    subtitle: 'Top electronics brands, computers, smart 4K TVs & instant easy no-cost EMI payment schemes.',
-    link: '/coming-soon?sector=electronics',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1800&q=80',
-    badgeIcon: 'fa-solid fa-laptop',
-    ctaText: 'Coming Soon',
-    disabled: true,
-    alt: 'Modern smartphones, tech gadgets and laptops',
+    category: 'Consumer Electronics',
+    title: 'Air Conditioners, Refrigerators, Washing Machines & Smart TVs',
+    subtitle: 'Explore verified ACs, double door refrigerators, washing machines, 4K LED TVs & home appliances from top brands like Godrej, Haier & Whirlpool.',
+    link: '/electronics',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1800&q=80',
+    badgeIcon: 'fa-solid fa-tv',
+    ctaText: 'Explore Electronics',
+    disabled: false,
+    alt: 'Air Conditioners, Refrigerators, Washing Machines and Smart TVs',
   },
 ];
 
@@ -61,7 +61,6 @@ export default function HeroSection() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
 
   const total = HERO_SLIDES.length;
 
@@ -73,18 +72,14 @@ export default function HeroSection() {
     if (isPaused || total <= 1) return;
     timerRef.current = setInterval(next, 5000);
     return () => clearInterval(timerRef.current);
-  }, [isPaused, current, next, total]);
+  }, [isPaused, next, total]);
 
   /* Touch swiping */
-  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; touchStartY.current = e.changedTouches[0].screenY; };
+  const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
   const onTouchEnd = (e) => {
-    const diffX = touchStartX.current - e.changedTouches[0].screenX;
-    const diffY = touchStartY.current - e.changedTouches[0].screenY;
-    // Only trigger horizontal swipe if horizontal movement is significantly larger than vertical
-    if (Math.abs(diffX) > Math.abs(diffY) * 2) {
-      if (diffX > 50) next();
-      else if (diffX < -50) prev();
-    }
+    const diff = touchStartX.current - e.changedTouches[0].screenX;
+    if (diff > 50) next();
+    else if (diff < -50) prev();
   };
 
   return (
@@ -98,9 +93,9 @@ export default function HeroSection() {
       aria-label="Featured Categories"
     >
       {/* ── Fixed-height viewport ──
-          Desktop ≈ 420–460px  |  Tablet ≈ 380px  |  Mobile ≈ 320px
+          Desktop ≈ 480px  |  Tablet ≈ 440px  |  Mobile ≈ 360px
           Guarantees zero layout shift across slides regardless of content length. */}
-      <div className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden group touch-pan-y">
+      <div className="relative w-full h-[360px] sm:h-[420px] md:h-[460px] lg:h-[480px] overflow-hidden group">
 
         {/* ── Slides ── */}
         {HERO_SLIDES.map((slide, idx) => {
@@ -115,10 +110,10 @@ export default function HeroSection() {
               aria-hidden={!active}
             >
               <Link
-                to={slide.link}
+                to={slide.disabled ? '#' : slide.link}
+                onClick={slide.disabled ? (e) => e.preventDefault() : undefined}
                 aria-label={`${slide.title} – ${slide.category}`}
-                tabIndex={active ? 0 : -1}
-                className="relative block w-full h-full cursor-pointer"
+                className={`relative block w-full h-full ${slide.disabled ? 'cursor-default' : 'cursor-pointer'}`}
               >
                 {/* ── Image ── */}
                 <img
@@ -222,6 +217,18 @@ export default function HeroSection() {
         >
           <i className="fa-solid fa-chevron-right text-xs" />
         </button>
+
+        {/* ── Floating Activity Stats (bottom-left) ── */}
+        <div className="absolute bottom-3 sm:bottom-5 left-4 sm:left-8 z-30 hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-brand-navy/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white/90 shadow-md">
+            <i className="fa-solid fa-layer-group text-yellow-400 text-xs" />
+            <span><strong className="text-white font-bold">70</strong> listings added today</span>
+          </div>
+          <div className="flex items-center gap-2 bg-brand-navy/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-semibold text-white/90 shadow-md">
+            <i className="fa-solid fa-users text-blue-400 text-xs" />
+            <span><strong className="text-white font-bold">250+</strong> people visited today</span>
+          </div>
+        </div>
 
         {/* ── Indicators (bottom-right) ── */}
         <div className="absolute bottom-3 sm:bottom-5 right-4 sm:right-8 z-30 flex items-center gap-2 bg-brand-navy/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/15">

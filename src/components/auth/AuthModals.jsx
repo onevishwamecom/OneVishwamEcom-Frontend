@@ -333,6 +333,7 @@ function RegisterForm({ onSwitch, onClose }) {
     if (Object.keys(v).length) return;
     try {
       await register({
+        name: form.name,
         fullName: form.name,
         email: form.email,
         phoneNumber: form.phone,
@@ -943,7 +944,7 @@ export default function AuthModals() {
                 Unlock Your Next Chapter
               </h3>
               <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xs drop-shadow-xs">
-                Your all-in-one destination for verified Real Estate, Smart Finance, and Lifestyle Services.
+                Your all-in-one destination for verified Properties, Smart Finance, and Lifestyle Services.
               </p>
             </div>
           </div>
@@ -952,7 +953,7 @@ export default function AuthModals() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/20 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Real Estate • Finance • Marketplace</span>
+              <span>Properties • Finance • Marketplace</span>
             </div>
           </div>
         </div>

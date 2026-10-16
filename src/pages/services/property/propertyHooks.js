@@ -3,7 +3,8 @@ import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
-  matchesBudgetRange, getTotalPropertyPrice, parsePriceRange,
+  matchesBudgetRange, matchesSizeRange, getTotalPropertyPrice, parsePriceRange,
+  getPriorityScore, PRIORITY_TITLES,
 } from './propertyHelpers';
 
 /**
@@ -32,12 +33,12 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
 export function useActiveChips(filters) {
   return useMemo(() => {
     const chips = [];
-    if (filters.budgetMin || filters.budgetMax) {
+    if (filters.sizeMin || filters.sizeMax) {
       const label = [
-        filters.budgetMin && `Min ₹${(+filters.budgetMin / 100000).toFixed(1)}L`,
-        filters.budgetMax && `Max ₹${(+filters.budgetMax / 100000).toFixed(1)}L`,
+        filters.sizeMin && `Min ${Number(filters.sizeMin).toLocaleString('en-IN')} sq.ft`,
+        filters.sizeMax && `Max ${Number(filters.sizeMax).toLocaleString('en-IN')} sq.ft`,
       ].filter(Boolean).join(' – ');
-      chips.push({ key: 'budget', label: `Budget: ${label}` });
+      chips.push({ key: 'size', label: `Size: ${label}` });
     }
     filters.buildingType.forEach((t)     => chips.push({ key: `bt-${t}`,    label: t }));
     filters.propertyType.forEach((t)     => chips.push({ key: `pt-${t}`,    label: t }));
@@ -104,9 +105,7 @@ export function useFilteredProperties(arg1, arg2) {
 
         const matchBudget = matchesBudgetRange(p, filters.budgetMin, filters.budgetMax);
 
-        const matchSize =
-          (!filters.sizeMin || area >= +filters.sizeMin) &&
-          (!filters.sizeMax || area <= +filters.sizeMax);
+        const matchSize = matchesSizeRange(p, filters.sizeMin, filters.sizeMax);
 
         const matchBuildingType =
           filters.buildingType.length === 0 ||
@@ -230,14 +229,19 @@ export function useFilteredProperties(arg1, arg2) {
         );
       })
       .sort((a, b) => {
-        const isOneVishwam = (p) => {
-          const v = String(p.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-          const s = String(p.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-          return v === 'onevishwam' || s === 'onevishwam' ? 1 : 0;
-        };
-        const aOv = isOneVishwam(a);
-        const bOv = isOneVishwam(b);
-        if (aOv !== bOv) return bOv - aOv;
+        const aScore = getPriorityScore(a);
+        const bScore = getPriorityScore(b);
+        if (aScore !== bScore) return bScore - aScore;
+
+        if (aScore === 3 && bScore === 3) {
+          const aTitle = String(a.title || a.name || '').trim().toLowerCase();
+          const bTitle = String(b.title || b.name || '').trim().toLowerCase();
+          const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
+          const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+          if (aPriIndex !== -1 && bPriIndex !== -1) return aPriIndex - bPriIndex;
+          if (aPriIndex !== -1) return -1;
+          if (bPriIndex !== -1) return 1;
+        }
 
         if (sortBy === 'price-low')  return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
         if (sortBy === 'price-high') return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);

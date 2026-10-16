@@ -11,25 +11,30 @@
  *   children    – CollapsibleSection elements to render inside
  */
 export default function FilterSidebar({ filters, hasActiveFilters, onReset, children }) {
-  // Fall back to computing active state from filters object if not explicitly provided
-  const isActive = hasActiveFilters !== undefined
-    ? hasActiveFilters
-    : filters
-      ? Object.values(filters).some((v) =>
-          v !== '' && (!Array.isArray(v) || v.length > 0)
-        )
-      : false;
+  // Compute active filter count
+  const activeCount = filters
+    ? Object.values(filters).filter((v) => v !== '' && v !== null && (!Array.isArray(v) || v.length > 0)).length
+    : 0;
+
+  const isActive = hasActiveFilters !== undefined ? hasActiveFilters : activeCount > 0;
 
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-bold text-brand-charcoal">Filters</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-brand-charcoal">Filters</span>
+          {activeCount > 0 && (
+            <span className="inline-flex items-center justify-center bg-brand-blue text-white text-[10px] font-bold w-5 h-5 rounded-full">
+              {activeCount}
+            </span>
+          )}
+        </div>
         {isActive && onReset && (
           <button
             onClick={onReset}
-            className="text-xs text-brand-blue font-semibold hover:underline"
+            className="text-xs text-brand-blue font-semibold hover:text-brand-navy hover:underline cursor-pointer transition-colors"
           >
-            Reset All
+            Clear All
           </button>
         )}
       </div>

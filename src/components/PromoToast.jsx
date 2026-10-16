@@ -59,12 +59,13 @@ export default function PromoToast() {
       }
     }
 
-    // 2. Listen for modal closure event
-    const handleModalClosed = (e) => {
-      const timestamp = e?.detail?.timestamp || Date.now();
-      const elapsed = Date.now() - timestamp;
-      const remaining = Math.max(0, TOAST_DELAY_AFTER_MODAL_MS - elapsed);
-      scheduleToast(remaining);
+    // 2. Listen for modal closure event -> hide toast completely
+    const handleModalClosed = () => {
+      setVisible(false);
+      sessionStorage.setItem('onevishwam_toast_dismissed_at', Date.now().toString());
+      if (retriggerTimerRef.current) {
+        clearTimeout(retriggerTimerRef.current);
+      }
     };
 
     window.addEventListener('onevishwam:promomodal_closed', handleModalClosed);
@@ -77,9 +78,14 @@ export default function PromoToast() {
     };
   }, [scheduleToast]);
 
-  const handleAction = () => {
-    handleDismiss();
-    navigate('/enquiry/');
+  // Open Promo Modal when toast or CTA is clicked
+  const handleToastClick = (e) => {
+    if (e.target.closest('button[aria-label="Dismiss offer notification"]')) {
+      handleDismiss();
+      return;
+    }
+    setVisible(false);
+    window.dispatchEvent(new CustomEvent('onevishwam:open_promomodal'));
   };
 
   return (
@@ -91,8 +97,11 @@ export default function PromoToast() {
           : 'translate-y-6 opacity-0 scale-95 pointer-events-none'
       }`}
     >
-      {/* Toast Card (Bright Luxury Theme matching PromoModal) */}
-      <div className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-amber-300/85 shadow-[0_15px_45px_rgba(0,0,0,0.18),0_0_20px_rgba(245,158,11,0.12)] p-4 sm:p-4.5">
+      {/* Toast Card (Clicking opens Promo Modal) */}
+      <div
+        onClick={handleToastClick}
+        className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-amber-300/85 shadow-[0_15px_45px_rgba(0,0,0,0.18),0_0_20px_rgba(245,158,11,0.12)] p-4 sm:p-4.5 cursor-pointer group/toast"
+      >
         {/* Subtle Ambient Corner Glow */}
         <div className="absolute -top-10 -right-10 w-28 h-28 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
@@ -103,7 +112,10 @@ export default function PromoToast() {
         {/* Close Button */}
         <button
           type="button"
-          onClick={handleDismiss}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDismiss();
+          }}
           className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100/90 text-slate-500 hover:text-slate-900 hover:bg-slate-200/90 transition-all border border-slate-200 shadow-2xs cursor-pointer"
           aria-label="Dismiss offer notification"
         >
@@ -116,7 +128,7 @@ export default function PromoToast() {
           <img
             src={logoIcon}
             alt="Onevishwam"
-            className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0 mt-0.5 drop-shadow-xs"
+            className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0 mt-0.5 drop-shadow-xs group-hover/toast:scale-105 transition-transform"
           />
 
           {/* Text Content */}
@@ -128,7 +140,7 @@ export default function PromoToast() {
               </span>
             </div>
 
-            <h3 className="text-sm font-black text-slate-900 tracking-tight leading-snug">
+            <h3 className="text-sm font-black text-slate-900 tracking-tight leading-snug group-hover/toast:text-amber-700 transition-colors">
               PAY 1 EMI,{' '}
               <span className="bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
                 BUY PROPERTY!
@@ -143,16 +155,19 @@ export default function PromoToast() {
             <div className="mt-3 flex items-center gap-2">
               <button
                 type="button"
-                onClick={handleAction}
+                onClick={handleToastClick}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:scale-95 text-slate-950 px-3.5 py-1.5 text-xs font-black shadow-md shadow-amber-500/25 transition-all cursor-pointer"
               >
-                <span>Claim Offer</span>
+                <span>View Offer Details</span>
                 <i className="fa-solid fa-arrow-right text-[10px]" />
               </button>
 
               <button
                 type="button"
-                onClick={handleDismiss}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDismiss();
+                }}
                 className="text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-1 transition-colors cursor-pointer"
               >
                 Later

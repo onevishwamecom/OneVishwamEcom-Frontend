@@ -15,12 +15,12 @@ function RequirementSuccess() {
             We have received your requirement. Matching properties and sellers will be shown or shared once available.
           </p>
           <div className="space-y-3">
-            <Link to="/our-services/real-estate-property"
+            <Link to="/property"
               className="block w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-brand-navy transition-colors"
             >
               Continue Browsing
             </Link>
-            <Link to="/our-services/real-estate-property"
+            <Link to="/property"
               className="block w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
             >
               View Property Listings

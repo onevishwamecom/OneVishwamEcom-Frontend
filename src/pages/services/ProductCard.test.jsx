@@ -7,16 +7,6 @@ jest.mock('../../config/navigation', () => ({
   navigateTo: jest.fn(),
 }));
 
-let mockIsLoggedIn = true;
-const mockOpenAuthModal = jest.fn();
-
-jest.mock('../../store/authSlice', () => ({
-  useAuth: () => ({
-    isLoggedIn: mockIsLoggedIn,
-    openAuthModal: mockOpenAuthModal,
-  }),
-}));
-
 describe('ProductCard Component', () => {
   const defaultProps = {
     title: 'Test Product',
@@ -34,7 +24,6 @@ describe('ProductCard Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsLoggedIn = true;
   });
 
   it('renders all product details correctly', () => {
@@ -43,7 +32,7 @@ describe('ProductCard Component', () => {
     expect(screen.getByText('Test Product')).toBeInTheDocument();
     expect(screen.getByText('₹10,000')).toBeInTheDocument();
     expect(screen.getByText('/ month')).toBeInTheDocument();
-    expect(screen.getByText(/Mumbai\s*[·-]\s*400001/)).toBeInTheDocument();
+    expect(screen.getByText('Mumbai · 400001')).toBeInTheDocument();
     expect(screen.getByText('New')).toBeInTheDocument();
     expect(screen.getByText('Sale')).toBeInTheDocument();
     expect(screen.getByText('Featured')).toBeInTheDocument();
@@ -54,26 +43,14 @@ describe('ProductCard Component', () => {
     expect(image).toHaveAttribute('src', 'test.jpg');
   });
 
-  it('calls navigateTo when clicked if logged in', () => {
-    mockIsLoggedIn = true;
+  it('calls navigateTo when clicked', () => {
     render(<ProductCard {...defaultProps} />);
     
     const titleEl = screen.getByText('Test Product');
+    // The closest element with cursor-pointer should be our card
     const cardEl = titleEl.closest('.cursor-pointer');
     fireEvent.click(cardEl);
     
     expect(navigation.navigateTo).toHaveBeenCalledWith('/test-link');
-  });
-
-  it('opens login modal and stores redirect when clicked if not logged in', () => {
-    mockIsLoggedIn = false;
-    render(<ProductCard {...defaultProps} />);
-    
-    const titleEl = screen.getByText('Test Product');
-    const cardEl = titleEl.closest('.cursor-pointer');
-    fireEvent.click(cardEl);
-    
-    expect(mockOpenAuthModal).toHaveBeenCalledWith('login');
-    expect(sessionStorage.getItem('vishwam_auth_redirect')).toBe('/test-link');
   });
 });

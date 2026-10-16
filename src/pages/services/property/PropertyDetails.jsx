@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useProperties } from '../../../hooks/useProperties';
-import { contactInfo, getPropertyContactInfo } from '../../../data/footerContent';
+import { getNumericPrice } from '../../../utils/formatters';
+import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, getNumericPrice } from './propertyHelpers';
+import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
+import { cleanProductName } from '../../../utils/searchUtils';
 import EnquiryModal from '../../../components/EnquiryModal';
 import oneVishwamLogo from '../../../assets/logo.png';
 
@@ -43,20 +45,12 @@ const AMENITY_ICONS = {
   'Wi-Fi': 'fa-wifi',
 };
 
-const PROPERTY_FALLBACK_IMG =
-  'data:image/svg+xml,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" fill="none"><rect width="800" height="600" fill="#f8fafc"/><path fill="#cbd5e1" d="M360 260h80v-20l-40-40-40 40v20zm-40 80h160v-80l-60-60-40 40-20-20-40 40v80z"/><text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="22" font-weight="600">Property Preview</text></svg>`
-  );
-
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
   { key: 'area', label: 'Super Built-up Area', icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' },
-  { key: 'facing', label: 'Facing Direction', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'facing', label: 'Door Facing', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
+  { key: 'isCornerPlot', label: 'Corner Site / Plot', icon: 'fa-draw-polygon', color: 'text-purple-600 bg-purple-50' },
   { key: 'status', label: 'Possession Status', icon: 'fa-key', color: 'text-purple-600 bg-purple-50' },
-  { key: 'floors', label: 'Floors / Structure', icon: 'fa-building', color: 'text-sky-600 bg-sky-50' },
-  { key: 'towers', label: 'Towers', icon: 'fa-city', color: 'text-indigo-600 bg-indigo-50' },
-  { key: 'approval', label: 'Approval Authority', icon: 'fa-stamp', color: 'text-blue-600 bg-blue-50' },
   { key: 'furnishing', label: 'Furnishing State', icon: 'fa-couch', color: 'text-indigo-600 bg-indigo-50' },
   { key: 'bathrooms', label: 'Bathrooms', icon: 'fa-bath', color: 'text-cyan-600 bg-cyan-50' },
   { key: 'floor', label: 'Floor Level', icon: 'fa-layer-group', color: 'text-rose-600 bg-rose-50' },
@@ -138,6 +132,7 @@ function PropertyCard({ property }) {
   const [faved, setFaved] = useState(false);
   if (!property) return null;
   const imgSrc = resolveImage(getPropertyCoverImage(property));
+  const display = formatPropertyDisplayPrice(property);
 
   return (
     <div className="w-[260px] sm:w-[290px] lg:w-[310px] flex-shrink-0 snap-start">
@@ -175,15 +170,15 @@ function PropertyCard({ property }) {
             {property.propertyType || 'Property'}
           </span>
           <h4 className="text-sm font-bold text-brand-charcoal leading-snug line-clamp-1 group-hover:text-brand-blue transition-colors">
-            {property.title}
+            {cleanProductName(property.title)}
           </h4>
           <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
             <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" /> {property.location || property.city}
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
-              <span className="text-base font-extrabold text-brand-charcoal">{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
+              <span className={display.price === 'This is negotiable' ? "text-sm font-normal text-gray-500" : "text-base font-extrabold text-brand-charcoal"}>{display.price}</span>
+              {display.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{display.priceSuffix}</span>}
             </div>
             {property.bhk && <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">{property.bhk}</span>}
           </div>
@@ -211,23 +206,35 @@ export default function PropertyDetails() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const pathParts = pathname.split('/').filter(Boolean);
-  const propertySlug = pathParts.length > 1 ? pathParts[1] : null;
+  const propertySlug = pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
 
-  const property = properties.find(
+  const rawProperty = properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
   ) || null;
+
+  const property = useMemo(() => {
+    if (!rawProperty) return null;
+    const display = formatPropertyDisplayPrice(rawProperty);
+    return {
+      ...rawProperty,
+      title: cleanProductName(rawProperty.title),
+      price: display.price,
+      priceSuffix: display.priceSuffix,
+    };
+  }, [rawProperty]);
+
   const loading = listLoading;
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
   const activeId = property ? (property._id || property.id) : null;
-  const currentSubcat = property ? (property.subcategory || property.subCategory || property.propertyType || '') : '';
+  const currentSubcat = property ? (property.subcategory || property.propertyType || '') : '';
 
   const similarProperties = useMemo(() => {
     if (!property) return [];
     const matched = properties.filter((p) => {
       const pId = p._id || p.id;
       if (String(pId) === String(activeId)) return false;
-      const pSubcat = p.subcategory || p.subCategory || p.propertyType || '';
+      const pSubcat = p.subcategory || p.propertyType || '';
       return (
         pSubcat.toLowerCase() === currentSubcat.toLowerCase() ||
         (p.city && property.city && p.city.toLowerCase() === property.city.toLowerCase())
@@ -266,15 +273,15 @@ export default function PropertyDetails() {
   }, [propertySlug]);
 
   useEffect(() => {
-    let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        window.requestAnimationFrame(() => {
-          setScrolledPastHero(window.scrollY > 450);
-          ticking = false;
-        });
+      let isPast = false;
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        isPast = rect.bottom <= 90;
+      } else {
+        isPast = window.scrollY > 450;
       }
+      setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -282,7 +289,7 @@ export default function PropertyDetails() {
 
   const goBack = () => {
     if (window.history.length > 1) navigate(-1);
-    else navigateTo('/our-services/real-estate-property');
+    else navigateTo('/property');
   };
 
   const handleShare = async () => {
@@ -305,18 +312,12 @@ export default function PropertyDetails() {
     }
   };
 
-  const resolvedVideoUrl =
-    property?.videoUrl ||
-    property?.video ||
-    (Array.isArray(property?.videos) && property.videos.find((v) => typeof v === 'string' && v.trim())) ||
-    null;
-
   const hasVideo = Boolean(
-    resolvedVideoUrl &&
-    typeof resolvedVideoUrl === 'string' &&
-    resolvedVideoUrl.trim() !== '' &&
-    !resolvedVideoUrl.startsWith('WhatsApp') &&
-    !resolvedVideoUrl.includes('youtu')
+    property?.videoUrl &&
+    typeof property.videoUrl === 'string' &&
+    property.videoUrl.trim() !== '' &&
+    !property.videoUrl.startsWith('WhatsApp') &&
+    !property.videoUrl.includes('youtu')
   );
 
   const floorPlanImages = useMemo(() => {
@@ -327,22 +328,13 @@ export default function PropertyDetails() {
     return [];
   }, [property]);
 
-  const pdfUrl =
-    property?.brochure ||
-    property?.pdfUrl ||
-    property?.floorPlanPdf ||
-    property?.pdf ||
-    (Array.isArray(property?.documents) && property.documents[0]?.url) ||
-    null;
+  const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
-  const rawImages = (property?.images || []).filter(Boolean);
   const mediaItems = property
     ? [
-        ...(rawImages.length > 0
-          ? rawImages.map((img) => ({ type: 'image', url: img }))
-          : [{ type: 'image', url: property.image || PROPERTY_FALLBACK_IMG }]),
-        ...(hasVideo ? [{ type: 'video', url: resolvedVideoUrl }] : []),
+        ...(property.images || []).filter(Boolean).map((img) => ({ type: 'image', url: img })),
+        ...(hasVideo ? [{ type: 'video', url: property.videoUrl }] : []),
       ]
     : [];
 
@@ -391,7 +383,7 @@ export default function PropertyDetails() {
             onClick={goBack}
             className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors"
           >
-            &larr; Back to Real Estate
+            &larr; Back to Houses & Land
           </button>
         </div>
       </div>
@@ -404,42 +396,36 @@ export default function PropertyDetails() {
   const statusPill = getPropertyStatusPill(property);
 
   const enterpriseLogo =
-    property.enterpriseLogo ||
-    property.companyLogo ||
-    property.developerLogo ||
-    property.builderLogo ||
-    property.projectLogo ||
-    property.logo ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.logo
-      : property.channelPartner?.logo) ||
     property.agent?.avatar ||
-    property.agent?.logo ||
+    property.logo ||
+    (property.channelPartner?.logo) ||
     null;
 
+  const agentDisplayName =
+    typeof property.agent === 'object'
+      ? (typeof property.agent.name === 'object'
+          ? property.agent.name?.name || property.agent.name?.email || ''
+          : property.agent.name || '')
+      : property.agent || '';
+
   const enterpriseName =
-    property.enterpriseName ||
-    property.companyName ||
-    property.developer ||
-    property.builder ||
-    property.agent?.name ||
-    (property.channelPartner && Array.isArray(property.channelPartner)
-      ? property.channelPartner[0]?.name
-      : property.channelPartner?.name) ||
-    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null);
+    property.channelPartnerName ||
+    (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null) ||
+    agentDisplayName ||
+    null;
 
   const renderHighlightCard = (meta) => {
     if (meta.key === 'bhk' && isPlot) return null;
     let value = property[meta.key];
     if (meta.key === 'facing' && property.facing) value = property.facing;
+    if (meta.key === 'isCornerPlot') {
+      value = isCornerProperty(property) ? (isPlot ? 'Yes (Corner Site Available)' : 'Yes (Corner Plot Available)') : null;
+    }
     if (meta.key === 'area' && value) {
       value = String(value).split('·')[0].trim();
     }
-    if (meta.key === 'approval' && property.approval) {
-      value = `${property.approval} Approved`;
-    }
     if (meta.key === 'status') {
-      value = property.possession || statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
+      value = statusPill?.label || (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Occupy') : value) || 'Ready to Occupy';
     }
     if (!value || value === 'N/A' || value === '') return null;
 
@@ -499,7 +485,7 @@ export default function PropertyDetails() {
 
       {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
       <div
-        className={`fixed top-14 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
+        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
           scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -514,10 +500,6 @@ export default function PropertyDetails() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden sm:block text-right">
-              <span className="text-sm font-extrabold text-brand-charcoal">{property.price}</span>
-              {property.priceSuffix && <span className="text-[11px] text-gray-400 ml-1">{property.priceSuffix}</span>}
-            </div>
             <button
               onClick={() => setEnquiryOpen(true)}
               className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs cursor-pointer"
@@ -537,17 +519,17 @@ export default function PropertyDetails() {
       </div>
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
-      <div className="bg-white border-b border-gray-100 pt-16 lg:pt-14">
+      <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-gray-500">
               <button onClick={goBack} className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline">
-                <i className="fa-solid fa-arrow-left" /> Back to Properties
+                <i className="fa-solid fa-arrow-left" /> Back
               </button>
               <span>/</span>
               <Link to="/home" className="hover:text-brand-blue">Home</Link>
               <span>/</span>
-              <Link to="/our-services/real-estate-property" className="hover:text-brand-blue">Real Estate</Link>
+              <Link to="/property" className="hover:text-brand-blue">Houses & Land</Link>
               <span>/</span>
               <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{property.title}</span>
             </div>
@@ -586,7 +568,7 @@ export default function PropertyDetails() {
                   {property.propertyType || 'Property'}
                 </span>
                 <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${statusPill?.cls || 'bg-emerald-100 text-emerald-700'}`}>
-                  {statusPill?.label || property.possession || 'Ready to Occupy'}
+                  {statusPill?.label || property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Occupy')}
                 </span>
                 {property.loanApproved && (
                   <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
@@ -596,6 +578,16 @@ export default function PropertyDetails() {
                 {property.recentlyAdded && (
                   <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5">
                     New Listing
+                  </span>
+                )}
+                {property.facing && (
+                  <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-compass text-amber-600 text-[10px]" /> Door Facing: {property.facing}
+                  </span>
+                )}
+                {isCornerProperty(property) && (
+                  <span className="rounded-full bg-purple-50 text-purple-800 border border-purple-200/80 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                    <i className="fa-solid fa-draw-polygon text-purple-600 text-[10px]" /> {isPlot ? 'Corner Site' : 'Corner Plot'}
                   </span>
                 )}
               </div>
@@ -616,7 +608,7 @@ export default function PropertyDetails() {
               </p>
             </div>
 
-            {/* Price & Primary CTAs */}
+            {/* Primary CTAs */}
             <div className="flex flex-col sm:flex-row lg:flex-col lg:items-end gap-3 shrink-0">
               {/* Co-Branding: OneVishwam + Company / Enterprise Logo */}
               <div className="inline-flex items-center gap-2 rounded-xl bg-slate-50/90 border border-slate-200/80 px-3 py-1.5 shadow-2xs">
@@ -646,20 +638,6 @@ export default function PropertyDetails() {
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100/70 border border-amber-300/60 px-2 py-0.5 rounded-md">
                   Verified
                 </span>
-              </div>
-
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">
-                    {property.price}
-                  </span>
-                  {property.priceSuffix && (
-                    <span className="text-sm font-semibold text-gray-500">{property.priceSuffix}</span>
-                  )}
-                </div>
-                {property.priceNote && (
-                  <p className="text-[11px] text-gray-400 mt-0.5">{property.priceNote}</p>
-                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -818,31 +796,23 @@ export default function PropertyDetails() {
             </div>
           </div>
 
-          {(() => {
-            const desc = property.details || property.description || '';
-            if (!desc) return null;
-            return (
-              <>
-                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
-                  <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
-                    {showFullDesc || desc.length < 350
-                      ? desc
-                      : desc.slice(0, 350) + '...'}
-                  </p>
-                </div>
+          <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
+            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {showFullDesc || !property.description || property.description.length < 350
+                ? property.description
+                : property.description.slice(0, 350) + '...'}
+            </p>
+          </div>
 
-                {desc.length > 350 && (
-                  <button
-                    onClick={() => setShowFullDesc(!showFullDesc)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
-                  >
-                    {showFullDesc ? 'Show Less' : 'Read Full Description'}
-                    <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
-                  </button>
-                )}
-              </>
-            );
-          })()}
+          {property.description && property.description.length > 350 && (
+            <button
+              onClick={() => setShowFullDesc(!showFullDesc)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2"
+            >
+              {showFullDesc ? 'Show Less' : 'Read Full Description'}
+              <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
+            </button>
+          )}
 
           {/* Quick tags / attributes */}
           <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
@@ -856,9 +826,9 @@ export default function PropertyDetails() {
                 <i className="fa-solid fa-stamp" /> {property.approval} Approved
               </span>
             )}
-            {property.possession && (
+            {(property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession) && (
               <span className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-calendar-check" /> {property.possession}
+                <i className="fa-solid fa-calendar-check" /> {property.possession || property.possessionStatus || property.details?.possessionStatus || property.details?.possession}
               </span>
             )}
             {property.postedBy && (
@@ -1023,7 +993,7 @@ export default function PropertyDetails() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-white">
-                      {enterpriseName || property.agent?.name || 'Verified Enterprise'}
+                      {enterpriseName || agentDisplayName || 'Verified Enterprise'}
                     </h3>
                     <span className="rounded-full bg-yellow-400 text-brand-navy text-[10px] font-extrabold px-2.5 py-0.5">
                       {property.agent?.type || 'Enterprise Partner'}
@@ -1046,7 +1016,7 @@ export default function PropertyDetails() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-white/80 max-w-xl">
-                Get direct pricing, unit selection, site visit scheduling, and official documentation assistance through OneVishwam.
+                Get direct pricing, unit selection, site visit scheduling, and documentation assistance through OneVishwam.
               </p>
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
@@ -1137,7 +1107,7 @@ export default function PropertyDetails() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className="text-base font-extrabold text-brand-charcoal leading-tight">{property.price}</span>
+            <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{property.price}</span>
           </div>
           <div className="flex items-center gap-2">
             <button

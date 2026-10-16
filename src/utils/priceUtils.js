@@ -93,11 +93,16 @@ export function formatDisplayPrice(listing) {
 
   if (listing.priceType === 'on-request') return 'Price on Request';
 
+  if (listing.price && String(listing.price).toLowerCase().includes('negotiable')) {
+    return String(listing.price);
+  }
+
   const num = listing.numericPrice || listing.priceValue || parseIndianPrice(listing.price);
   if (!num || num === 0) {
     // Fallback: if price is already a formatted string, use it
     if (listing.price && String(listing.price).trim()) {
       const p = String(listing.price).trim();
+      if (p.toLowerCase().includes('negotiable') || p.toLowerCase().includes('on request')) return p;
       const base = p.startsWith('₹') ? p : `₹${p}`;
       const suffix = listing.priceSuffix ? ` ${listing.priceSuffix}` : '';
       return `${base}${suffix}`;
@@ -123,6 +128,7 @@ export function withRupeeSymbol(value) {
   if (typeof value === 'number') return formatINR(value, { compact: false });
   const s = String(value).trim();
   if (!s) return '';
+  if (s.toLowerCase().includes('negotiable') || s.toLowerCase().includes('on request')) return s;
   if (s.startsWith('₹') || s.toLowerCase().startsWith('rs') || s.startsWith('INR')) return s;
   if (/^[\d,]+(\.\d+)?$/.test(s.replace(/\s/g, ''))) {
     return formatINR(s.replace(/,/g, ''), { compact: false });

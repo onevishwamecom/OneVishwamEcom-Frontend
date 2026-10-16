@@ -12,7 +12,7 @@ export default function VehicleLoanCard({ loanApproved }) {
       </div>
       <p className="text-xs text-emerald-600 mb-3">Get instant loan approval for this vehicle.</p>
       <Link
-        to="/our-services/finance-lending"
+        to="/finance"
         className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors"
       >
         ⚡ Apply for Loan

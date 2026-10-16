@@ -7,9 +7,11 @@ export const footerSummary =
 
 export const footerQuickLinks = primaryNavigation;
 
-
 export const footerServiceLinks = [
-  { label: 'Properties', href: '/our-services/real-estate-property' },
+  { label: 'Properties', href: '/property' },
+  { label: 'Houses & Land', href: '/property' },
+  { label: 'Vehicles', href: '/automobile' },
+  { label: 'Bedding & Comfort', href: '/bedding' },
 ];
 
 export const footerSocialLinks = [
@@ -62,30 +64,13 @@ export const GROUP_B_PROPERTY_TITLES = [
   'TRU Aquapolis',
   'North East Properties',
   'SWASTHIK VENTURES',
-  'Royal Kadhambas',
-  'Golden City',
-  'Nambiar District 25',
-  'DS-MAX Samyak',
-  'DS MAX Skysisira',
-  'The Urban Forest',
-  'Sindhoor Nature Pearl',
-  'Vasudha',
-  'Unique Enclave',
-  'Vinra Alora',
-  'Green Valley',
-  'Elite Gardenia',
-  'Giri Green Park Phase II',
-  'Pavani Park West',
-  'SLV Lakeview Apartment',
-  'Nandi Meadows',
-  'Shubha Shanthi Greens',
 ];
 
 export function getPropertyContactInfo(item) {
   if (!item) return contactInfo;
 
-  const propObj = typeof item === 'object' ? item : null;
-  const title = typeof item === 'string' ? item : (item.title || item.name || '');
+  let propObj = typeof item === 'object' ? item : null;
+  const title = typeof item === 'string' ? item : (item?.title || item?.name || '');
   const tLower = title.toLowerCase().trim();
 
   // 1. Channel Partner Override (Highest Priority)
@@ -141,26 +126,4 @@ export function getPropertyContactInfo(item) {
     return tLower.includes(gLower) || gLower.includes(tLower);
   });
   return isGroupB ? contactInfoGroupB : contactInfo;
-}
-
-export const getContactForProperty = getPropertyContactInfo;
-
-export function isGroupBProperty(propertyOrTitle) {
-  if (!propertyOrTitle) return false;
-  const title = typeof propertyOrTitle === 'string'
-    ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
-
-  const norm = title.trim().toLowerCase();
-  return GROUP_B_PROPERTY_TITLES.some((t) => t.trim().toLowerCase() === norm);
-}
-
-export function isVedantSuraksha(propertyOrTitle) {
-  if (!propertyOrTitle) return false;
-  const title = typeof propertyOrTitle === 'string'
-    ? propertyOrTitle
-    : (propertyOrTitle.title || propertyOrTitle.name || '');
-
-  const norm = title.trim().toLowerCase();
-  return norm.includes('vedant suraksha');
 }

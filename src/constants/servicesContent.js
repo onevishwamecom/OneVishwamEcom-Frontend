@@ -1,7 +1,7 @@
 export const serviceItems = [
   {
-    id: 'real-estate-property',
-    title: 'Houses & Land',
+    id: 'properties',
+    title: 'Properties',
     description: 'Find houses, flats, lands, plots, and commercial properties.',
     image: 'https://images.pexels.com/photos/8470806/pexels-photo-8470806.jpeg?cs=srgb&dl=pexels-thirdman-8470806.jpg&fm=jpg',
     details: {
@@ -74,6 +74,7 @@ export const serviceItems = [
   {
     id: 'investment-venture-capital',
     title: 'Investment & Business Help',
+    title: 'Investment & Funding',
     description: 'Get funding for your business, startup, or project. Find partners and investors.',
     image: 'https://images.pexels.com/photos/19856572/pexels-photo-19856572.jpeg?cs=srgb&dl=pexels-markus-winkler-1430818-19856572.jpg&fm=jpg',
     details: {
@@ -110,6 +111,7 @@ export const serviceItems = [
   {
     id: 'industrial-infrastructure',
     title: 'Building & Industry Supplies',
+    title: 'Building & Industry',
     description: 'Buy cement, steel, machinery, and other building or industrial materials.',
     image: 'https://images.pexels.com/photos/18734753/pexels-photo-18734753.jpeg?cs=srgb&dl=pexels-arturoaez225-18734753.jpg&fm=jpg',
     details: {
@@ -183,10 +185,91 @@ export const serviceItems = [
       ]
     }
   },
+  {
+    id: 'consumer-electronics',
+    title: 'Consumer Electronics',
+    description: 'Smartphones, laptops, 4K TVs, home audio, kitchen and smart home appliances on easy EMI.',
+    image: 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg?auto=compress&cs=tinysrgb&w=800',
+    details: {
+      overviewText: 'Discover the latest in consumer technology and home appliances. From cutting-edge smartphones and laptops to high-definition smart TVs and home entertainment systems, with flexible EMI and warranty support.',
+      sections: [
+        {
+          title: 'Consumer Electronics',
+          items: [
+            'Smartphones & Accessories', 'Laptops & Desktops', 'Smart TVs & Home Theatres',
+            'Refrigerators & Washing Machines', 'Air Conditioners', 'Kitchen Appliances',
+            'Smart Watches & Wearables', 'Audio & Speakers'
+          ]
+        },
+        {
+          title: 'Services & Benefits',
+          items: [
+            'Easy EMI & No-Cost EMI', 'Brand Warranty Support', 'Doorstep Delivery & Installation',
+            'Exchange Offers', 'Extended Warranty Options'
+          ]
+        }
+      ],
+      specialFeatures: ['Zero down-payment options and instant EMI approvals available.']
+    }
+  },
+  {
+    id: 'bedding-comfort',
+    title: 'Bedding & Comfort',
+    description: 'Affordable mattresses, orthopedic pillows, bedsheets, comforters, and everyday sleep essentials.',
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1800&q=80',
+    details: {
+      overviewText: 'Upgrade your sleep with affordable orthopedic mattresses, soft pillows, bedsheets, and everyday bedding essentials crafted for deep restorative rest at honest prices.',
+      sections: [
+        {
+          title: 'Bedding Collections',
+          items: [
+            'Orthopedic & Memory Foam Mattresses', 'Natural Latex Mattresses', 'Ergonomic Pillows & Cushions',
+            'Egyptian Cotton Bedsheets', 'Duvets & Comforters', 'Mattress Protectors',
+            'Blankets & Quilts', 'Recliners & Comfort Furniture'
+          ]
+        },
+        {
+          title: 'Our Promise',
+          items: [
+            '100-Night Sleep Trial on Mattresses', 'Hypoallergenic & Eco-Friendly Materials',
+            'Custom Dimensions & Made-to-Order', 'Free Home Delivery'
+          ]
+        }
+      ],
+      specialFeatures: ['Complimentary doorstep delivery and mattress trial on selected models.']
+    }
+  },
+  {
+    id: 'finance-lending',
+    title: 'Finance & Loans',
+    description: 'Personal loans, business loans, home loans, vehicle loans, and gold loans with quick approvals.',
+    image: 'https://images.pexels.com/photos/4386431/pexels-photo-4386431.jpeg?auto=compress&cs=tinysrgb&w=800',
+    details: {
+      overviewText: 'We help individuals and businesses secure funding with competitive interest rates and minimal documentation.',
+      sections: [
+        {
+          title: 'Loan Types',
+          items: [
+            'Home Loan', 'Personal Loan', 'Business Loan', 'Vehicle Loan',
+            'Gold Loan', 'Loan Against Property', 'Education Loan'
+          ]
+        },
+        {
+          title: 'Our Services',
+          items: [
+            'Quick Eligibility Check', 'Doorstep Assistance', 'Lowest Interest Rates',
+            'Flexible Repayment Tenure', 'Fast Disbursal'
+          ]
+        }
+      ],
+      specialFeatures: ['Quick approvals and doorstep documentation assistance.']
+    }
+  },
 ];
 
 export const serviceIconMap = {
   'finance-lending': 'fa-solid fa-building-columns',
+  'properties': 'fa-solid fa-house-chimney',
   'real-estate-property': 'fa-solid fa-house-chimney',
   'jewellery-gold': 'fa-solid fa-gem',
   'automobile': 'fa-solid fa-car',
@@ -194,6 +277,8 @@ export const serviceIconMap = {
   'garments-fashion-lifestyle': 'fa-solid fa-shirt',
   'industrial-infrastructure': 'fa-solid fa-industry',
   'consumer-marketplace': 'fa-solid fa-cart-shopping',
+  'consumer-electronics': 'fa-solid fa-tv',
+  'bedding-comfort': 'fa-solid fa-bed',
   'open-marketplace': 'fa-solid fa-store',
   'hr-staffing': 'fa-solid fa-users',
 };

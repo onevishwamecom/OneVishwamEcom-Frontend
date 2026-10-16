@@ -11,6 +11,36 @@ export const DEFAULT_SORT_OPTIONS = [
 ];
 
 /**
+ * Returns true if an item is an in-house project or posted by ceo@onevishwam.com
+ */
+export function isInHouseOrCeoListing(item) {
+  if (!item) return false;
+  if (item.priority && Number(item.priority) > 0) return true;
+  if (item.isPriority === true) return true;
+  if (item.origin === 'in_house_project' || item.details?.origin === 'in_house_project') return true;
+
+  const email = String(
+    item.contributor?.email ||
+    item.contributorEmail ||
+    item.contactEmail ||
+    item.email ||
+    ''
+  ).trim().toLowerCase();
+  if (email === 'ceo@onevishwam.com') return true;
+
+  const partner = String(
+    item.channelPartnerName ||
+    item.vendorName ||
+    item.vendor ||
+    item.subtitle ||
+    ''
+  ).trim().toLowerCase().replace(/\s+/g, '');
+  if (partner === 'onevishwam') return true;
+
+  return false;
+}
+
+/**
  * Compare two items by numeric price.
  */
 export function compareByPrice(a, b, ascending = true, getPrice = getNumericPrice) {
@@ -29,16 +59,23 @@ export function compareByDate(a, b, desc = true) {
 }
 
 /**
- * Sorts an array using standard sort criteria.
+ * Sorts an array using standard sort criteria with priority in-house listings at the top.
  */
 export function applySort(items = [], sortBy = SORT_LATEST, getPrice = getNumericPrice) {
   if (!Array.isArray(items)) return [];
   const copy = [...items];
-  if (sortBy === SORT_PRICE_LOW) {
-    return copy.sort((a, b) => compareByPrice(a, b, true, getPrice));
-  }
-  if (sortBy === SORT_PRICE_HIGH) {
-    return copy.sort((a, b) => compareByPrice(a, b, false, getPrice));
-  }
-  return copy.sort((a, b) => compareByDate(a, b, true));
+
+  return copy.sort((a, b) => {
+    const aPri = isInHouseOrCeoListing(a) ? 1 : 0;
+    const bPri = isInHouseOrCeoListing(b) ? 1 : 0;
+    if (aPri !== bPri) return bPri - aPri; // In-house / ceo@onevishwam.com always at top
+
+    if (sortBy === SORT_PRICE_LOW) {
+      return compareByPrice(a, b, true, getPrice);
+    }
+    if (sortBy === SORT_PRICE_HIGH) {
+      return compareByPrice(a, b, false, getPrice);
+    }
+    return compareByDate(a, b, true);
+  });
 }

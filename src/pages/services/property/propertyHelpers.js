@@ -42,11 +42,7 @@ export function parseAreaRange(areaOrProperty) {
   let str = '';
   if (typeof areaOrProperty === 'object') {
     str = String(
-      areaOrProperty.plotSize ||
-      areaOrProperty.sizeRange ||
-      (isPlotOrLand(areaOrProperty) && areaOrProperty.bhk ? areaOrProperty.bhk : '') ||
       areaOrProperty.area ||
-      areaOrProperty.size ||
       areaOrProperty.dimensions ||
       ''
     ).trim();
@@ -90,6 +86,52 @@ export function parseAreaRange(areaOrProperty) {
 
   const single = getNumericArea(str);
   return { min: single, max: single };
+}
+
+/**
+ * Checks whether a property price is quoted on a per square foot basis.
+ * E.g., "₹ 2,500/Sq.ft", "₹ 2500 / sqft", or priceSuffix containing "/ Sq.ft".
+ *
+ * @param {Object|string} property
+ * @returns {boolean}
+ */
+export function isPerSqftPrice(property) {
+  if (!property) return false;
+  const rawPriceStr = String(
+    (typeof property === 'object' ? (property.rawPrice || property.price || property.cost || property.amount) : property) || ''
+  ).trim();
+  const suffix = typeof property === 'object' ? String(property.rawPriceSuffix || property.priceSuffix || '') : '';
+  const combined = `${rawPriceStr} ${suffix}`.toLowerCase();
+
+  return (
+    /(?:\/|\bper\s*)(?:sq|sft|sqft|sq\.ft|square\s*feet|square\s*foot|feet|ft)/i.test(combined) ||
+    /rs\s*per/i.test(combined) ||
+    /\/\s*sq/i.test(combined) ||
+    /sq\.?\s*f?t/i.test(combined)
+  );
+}
+
+/**
+ * Returns the customer-facing display price and price suffix for a property.
+ * If price is in sq/ft, it leaves it as is. Otherwise, returns "This is negotiable".
+ *
+ * @param {Object|string} property
+ * @returns {{ price: string, priceSuffix: string }}
+ */
+export function formatPropertyDisplayPrice(property) {
+  if (!property) return { price: 'This is negotiable', priceSuffix: '' };
+
+  if (isPerSqftPrice(property)) {
+    const rawPrice = typeof property === 'object'
+      ? (property.rawPrice || property.price || property.cost || property.amount || '')
+      : String(property);
+    const suffix = typeof property === 'object'
+      ? (property.rawPriceSuffix || property.priceSuffix || '')
+      : '';
+    return { price: rawPrice, priceSuffix: suffix };
+  }
+
+  return { price: 'This is negotiable', priceSuffix: '' };
 }
 
 /**
@@ -213,29 +255,67 @@ export function matchesBudgetRange(property, budgetMin, budgetMax) {
  */
 export function matchesSizeRange(property, sizeMin, sizeMax) {
   if (!sizeMin && !sizeMax) return true;
-  const { min: aMin, max: aMax } = parseAreaRange(property.area || property.size || property.plotSize || '');
+  const { min: aMin, max: aMax } = parseAreaRange(property);
   if (aMin === 0 && aMax === 0) return true;
 
   const sMin = sizeMin ? +sizeMin : 0;
   const sMax = sizeMax ? +sizeMax : Infinity;
 
-  return (aMax || aMin) >= sMin && aMin <= sMax;
+  return (aMax || aMin) >= sMin && (aMin || aMax) <= sMax;
+}
+
+/**
+ * Calculates the minimum and maximum property size (in sq.ft)
+ * across a list of properties.
+ *
+ * @param {Array} properties
+ * @returns {{ min: number, max: number }}
+ */
+export function getPropertiesSizeBounds(properties = []) {
+  if (!Array.isArray(properties) || properties.length === 0) {
+    return { min: 600, max: 10000 };
+  }
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  properties.forEach((p) => {
+    if (!p) return;
+    const { min: pMin, max: pMax } = parseAreaRange(p);
+    const low = pMin || pMax;
+    const high = pMax || pMin;
+
+    if (low > 0 && low < min) {
+      min = low;
+    }
+    if (high > 0 && high > max) {
+      max = high;
+    }
+  });
+
+  if (min === Infinity || max === -Infinity) {
+    return { min: 600, max: 10000 };
+  }
+
+  if (min >= max) {
+    return { min: Math.max(0, min - 100), max: min + 500 };
+  }
+
+  return { min, max };
 }
 
 export function getPropertyType(property) {
   if (!property) return 'Flats';
 
   const type = String(
-    property.propertyType ||
     property.subcategory ||
-    property.subCategory ||
+    property.propertyType ||
     property.category ||
-    property.buildingType ||
     ''
   ).toLowerCase().trim();
 
   const sub = String(property.subtitle || '').toLowerCase();
-  const title = String(property.title || property.name || '').toLowerCase();
+  const title = String(property.title || '').toLowerCase();
   const bhk = String(property.bhk || '').toLowerCase();
   const fullText = `${type} ${sub} ${title} ${bhk}`;
 
@@ -334,8 +414,17 @@ export function getPropertyStatusPill(property) {
     return { label: 'Under Construction', cls: 'bg-amber-100 text-amber-700' };
   }
 
-  const raw = String(property.possession || property.possessionStatus || '').trim();
-  return { label: raw || 'Ready to Occupy', cls: 'bg-emerald-100 text-emerald-700' };
+  const raw = String(
+    property.possession ||
+    property.possessionStatus ||
+    property.details?.possessionStatus ||
+    property.details?.possession ||
+    ''
+  ).trim();
+  return {
+    label: raw || (isPlotOrLand(property) ? 'Ready for Registration' : 'Ready to Occupy'),
+    cls: 'bg-emerald-100 text-emerald-700',
+  };
 }
 
 export function getBedrooms(bhk, property) {
@@ -392,6 +481,29 @@ export function getBuildingType(property) {
   return 'Residential';
 }
 
+export function isCornerProperty(property) {
+  if (!property) return false;
+  if (property.cornerPlot) {
+    return true;
+  }
+
+  if (Array.isArray(property.amenities)) {
+    const hasCornerAmenity = property.amenities.some((a) => {
+      const lower = String(a).toLowerCase();
+      return lower.includes('corner plot') || lower.includes('corner site') || lower === 'corner';
+    });
+    if (hasCornerAmenity) return true;
+  }
+
+  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.subcategory || ''}`.toLowerCase();
+  return (
+    fullText.includes('corner plot') ||
+    fullText.includes('corner site') ||
+    fullText.includes('corner lot') ||
+    fullText.includes('corner property')
+  );
+}
+
 export function getDetailTags(property) {
   if (!property) return [];
   const tags = [];
@@ -416,12 +528,19 @@ export function getDetailTags(property) {
   }
 
   if (property.area) tags.push(property.area);
+  const facingVal = property.facing;
+  if (facingVal && facingVal !== 'N/A' && facingVal !== 'NA') {
+    tags.push(`Door Facing: ${facingVal}`);
+  }
+  if (isCornerProperty(property)) {
+    tags.push(isPlot ? 'Corner Site' : 'Corner Plot');
+  }
   if (property.furnishing && property.furnishing !== 'NA' && property.furnishing !== 'N/A' && !isPlot) {
     tags.push(property.furnishing);
   }
   if (property.floor && !isPlot) tags.push(property.floor);
   if (property.parking && property.parking !== 'N/A' && !isPlot) tags.push(property.parking);
-  return tags.slice(0, 3);
+  return tags.slice(0, 4);
 }
 
 export function getCardType(property) {
@@ -457,20 +576,32 @@ export function getStatusBadge(property) {
 
 export function getCanonicalPossession(property) {
   if (!property) return '';
-  if (isPlotOrLand(property)) {
-    return 'ready_for_registration';
+
+  const val = String(
+    property.possession ||
+    property.possessionStatus ||
+    property.details?.possessionStatus ||
+    property.details?.possession ||
+    ''
+  ).toLowerCase().trim();
+
+  // 1. Honor explicit possession status first
+  if (val.includes('construction')) {
+    return 'under_construction';
   }
-
-  const val = String(property.possession || property.possessionStatus || '').toLowerCase().trim();
-
   if (val.includes('registration') || val.includes('register')) {
     return 'ready_for_registration';
   }
   if (val.includes('occupy') || val.includes('move')) {
     return 'ready_for_occupy';
   }
-  if (val.includes('construction')) {
-    return 'under_construction';
+  if (val.includes('vacant')) {
+    return isPlotOrLand(property) ? 'ready_for_registration' : 'ready_for_occupy';
+  }
+
+  // 2. Fallback only if no explicit status was specified
+  if (isPlotOrLand(property)) {
+    return 'ready_for_registration';
   }
   return 'ready_for_occupy';
 }
@@ -539,47 +670,235 @@ export const PRIORITY_TITLES = [
   'Whispering Waves',
   'Bren Annanta',
   'Bren Avaana',
+  'Bren Park City',
 ];
 
 /**
- * Returns true if property subtitle or vendor is 'Onevishwam'.
- * Gives top priority placement in listings.
+ * Computes a priority score for a property:
+ * 3 = Direct in-house project from ceo@onevishwam.com, origin === 'in_house_project', priority > 0, isPriority === true, or in PRIORITY_TITLES
+ * 2 = Generic Onevishwam partner listing
+ * 0 = Standard listing
+ */
+export function getPriorityScore(property) {
+  if (!property) return 0;
+  if (property.priority && Number(property.priority) > 0) return 3;
+  if (property.isPriority === true) return 3;
+  if (property.origin === 'in_house_project' || property.details?.origin === 'in_house_project') return 3;
+
+  const email = String(
+    property.contributor?.email ||
+    property.contributorEmail ||
+    property.contactEmail ||
+    property.email ||
+    ''
+  ).trim().toLowerCase();
+  if (email === 'ceo@onevishwam.com' || (email.endsWith('@onevishwam.com') && !email.startsWith('admin@'))) return 3;
+
+  const title = String(property.title || property.name || '').trim().toLowerCase();
+  if (PRIORITY_TITLES.some((t) => t.toLowerCase() === title)) return 3;
+
+  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
+  const vendor = String(property.vendorName || property.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
+  const partner = String(property.channelPartnerName || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (sub === 'onevishwam' || vendor === 'onevishwam' || partner === 'onevishwam') return 2;
+
+  return 0;
+}
+
+/**
+ * Returns true if property is associated with Onevishwam or listed in-house.
  */
 export function isOneVishwamProperty(property) {
-  if (!property) return false;
-  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-  const vendor = String(property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-  return sub === 'onevishwam' || vendor === 'onevishwam';
+  return getPriorityScore(property) >= 2;
 }
 
 /**
  * Priority sort helper:
- * 1. Specific in-house projects ('VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana')
- * 2. Any other Onevishwam properties
- * 3. Has images priority
- * 4. Recent ID (b.id - a.id)
+ * 1. Highest priority score (in-house projects and ceo@onevishwam.com account listings at the top)
+ * 2. Designated PRIORITY_TITLES ordering
+ * 3. User sortBy option (price-low, price-high) or default (images first + newest date/id)
  */
-export function sortPropertiesWithPriority(list = []) {
+export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
   return [...list].sort((a, b) => {
-    const aTitle = String(a.title || a.name || '').trim().toLowerCase();
-    const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-    const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
-    const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+    const aScore = getPriorityScore(a);
+    const bScore = getPriorityScore(b);
 
-    if (aPriIndex !== -1 && bPriIndex !== -1) {
-      return aPriIndex - bPriIndex;
+    if (aScore !== bScore) {
+      return bScore - aScore; // Priority in-house listings always at the top
     }
-    if (aPriIndex !== -1) return -1;
-    if (bPriIndex !== -1) return 1;
 
-    const aOv = isOneVishwamProperty(a) ? 1 : 0;
-    const bOv = isOneVishwamProperty(b) ? 1 : 0;
-    if (aOv !== bOv) return bOv - aOv;
+    if (aScore === 3 && bScore === 3) {
+      const aTitle = String(a.title || a.name || '').trim().toLowerCase();
+      const bTitle = String(b.title || b.name || '').trim().toLowerCase();
+      const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
+      const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+
+      if (aPriIndex !== -1 && bPriIndex !== -1) {
+        return aPriIndex - bPriIndex;
+      }
+      if (aPriIndex !== -1) return -1;
+      if (bPriIndex !== -1) return 1;
+    }
+
+    if (sortBy === 'price-low') {
+      return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
+    }
+    if (sortBy === 'price-high') {
+      return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
+    }
 
     const aImg = hasPropertyImages(a) ? 1 : 0;
     const bImg = hasPropertyImages(b) ? 1 : 0;
     if (aImg !== bImg) return bImg - aImg;
 
-    return (b.id || 0) - (a.id || 0);
+    const bDate = new Date(b.createdAt || 0).getTime() || (typeof b.id === 'number' ? b.id : 0);
+    const aDate = new Date(a.createdAt || 0).getTime() || (typeof a.id === 'number' ? a.id : 0);
+    return bDate - aDate;
   });
+}
+
+/**
+ * Official 8 BBMP Administrative Zones in Bangalore
+ */
+export const BBMP_ZONE_NAMES = [
+  'Byatarayanapura',
+  'Dasarahalli',
+  'West',
+  'East',
+  'Mahadevapura',
+  'South',
+  'Bommanahalli',
+  'RR Nagara',
+];
+
+/**
+ * Classifies a property or locality string into the 8 official Bangalore BBMP zones:
+ * 'Byatarayanapura', 'Dasarahalli', 'West', 'East', 'Mahadevapura', 'South', 'Bommanahalli', 'RR Nagara'
+ */
+export function getBangaloreZone(item) {
+  if (!item) return 'South';
+  const str = String(
+    (item.locality || '') + ' ' +
+    (item.location || '') + ' ' +
+    (item.address || '') + ' ' +
+    (item.title || '')
+  ).toLowerCase();
+
+  // 1. Dasarahalli (North-West)
+  if (
+    str.includes('dasarahalli') || str.includes('peenya') || str.includes('jalahalli') ||
+    str.includes('tumkur') || str.includes('bagalagunte') || str.includes('chikkabanavara') ||
+    str.includes('nelamangala') || str.includes('yeshwanthpur') || str.includes('mathikere') ||
+    str.includes('goraguntepalya') || str.includes('dhabaspet') || str.includes('dobbaspet')
+  ) {
+    return 'Dasarahalli';
+  }
+
+  // 2. Byatarayanapura (North)
+  if (
+    str.includes('byatarayanapura') || str.includes('yelahanka') || str.includes('hebbal') ||
+    str.includes('sahakar') || str.includes('amruthahalli') || str.includes('jakkur') ||
+    str.includes('thanisandra') || str.includes('manyata') || str.includes('nagawara') ||
+    str.includes('hegde nagar') || str.includes('hennur') || str.includes('kothanur') ||
+    str.includes('horamavu') || str.includes('devanahalli') || str.includes('airport') ||
+    str.includes('chikkajala') || str.includes('siddlaghata') || str.includes('kaiwara') ||
+    str.includes('chikkaballapura') || str.includes('kogilu') || str.includes('bagalur') ||
+    str.includes('north east properties') || str.includes('swasthik')
+  ) {
+    return 'Byatarayanapura';
+  }
+
+  // 3. RR Nagara (South-West)
+  if (
+    str.includes('rajarajeshwari') || str.includes('rr nagar') || str.includes('ideal homes') ||
+    str.includes('kengeri') || str.includes('mysore road') || str.includes('chikkanahalli') ||
+    str.includes('kumbalgodu') || str.includes('bidadi') || str.includes('ramnagar') ||
+    str.includes('nagarbhavi') || str.includes('ullal') || str.includes('mallathahalli') ||
+    str.includes('jnana bharathi') || str.includes('nada prabhu') || str.includes('kempegowda layout') ||
+    str.includes('ags layout') || str.includes('nandakumar') || str.includes('vasundhanra') ||
+    str.includes('rr bhoo') || str.includes('rr mathrushree')
+  ) {
+    return 'RR Nagara';
+  }
+
+  // 4. Mahadevapura (East IT Corridor)
+  if (
+    str.includes('mahadevapura') || str.includes('whitefield') || str.includes('itpl') ||
+    str.includes('k.r. pura') || str.includes('kr puram') || str.includes('ramamurthy') ||
+    str.includes('tc palya') || str.includes('battarahalli') || str.includes('seegehalli') ||
+    str.includes('budigere') || str.includes('hoskote') || str.includes('hosakote') ||
+    str.includes('hoodi') || str.includes('kadugodi') || str.includes('hope farm') ||
+    str.includes('chikkathirupathi') || str.includes('brookefield') || str.includes('kundalahalli') ||
+    str.includes('marathahalli') || str.includes('panathur') || str.includes('varthur') ||
+    str.includes('gunjur') || str.includes('balagere') || str.includes('sarjapur') ||
+    str.includes('dommasandra') || str.includes('kasavanahalli') || str.includes('mullur') ||
+    str.includes('kodathi') || str.includes('carmelaram') || str.includes('nexon') ||
+    str.includes('ramky') || str.includes('aquapolis') || str.includes('purvankar') ||
+    str.includes('nambiar') || str.includes('urban forest')
+  ) {
+    return 'Mahadevapura';
+  }
+
+  // 5. East Zone (Central-East)
+  if (
+    str.includes('east') || str.includes('shivajinagar') || str.includes('commercial street') ||
+    str.includes('cantonment') || str.includes('cubbon') || str.includes('vasanth nagar') ||
+    str.includes('cunningham') || str.includes('gandhi nagar') || str.includes('majestic') ||
+    str.includes('seshadripuram') || str.includes('chickpet') || str.includes('mg road') ||
+    str.includes('brigade') || str.includes('richmond') || str.includes('residency') ||
+    str.includes('indiranagar') || str.includes('ulsoor') || str.includes('halasuru') ||
+    str.includes('domlur') || str.includes('cv raman') || str.includes('koramangala') ||
+    str.includes('ejipura')
+  ) {
+    return 'East';
+  }
+
+  // 6. West Zone
+  if (
+    str.includes('west') || str.includes('malleshwaram') || str.includes('sadashivanagar') ||
+    str.includes('sankey') || str.includes('mahalakshmi') || str.includes('nandini layout') ||
+    str.includes('kurubarahalli') || str.includes('rajaji nagar') || str.includes('rajajinagar') ||
+    str.includes('govindraj') || str.includes('magadi') || str.includes('vijay nagar') ||
+    str.includes('vijayanagar') || str.includes('rpc layout') || str.includes('attiguppe') ||
+    str.includes('chandra layout') || str.includes('hampi nagar') || str.includes('chamrajpet') ||
+    str.includes('shankarpuram') || str.includes('basavanagudi') || str.includes('gandhi bazaar') ||
+    str.includes('hanumanth nagar')
+  ) {
+    return 'West';
+  }
+
+  // 7. Bommanahalli (South-East)
+  if (
+    str.includes('bommanahalli') || str.includes('hongasandra') || str.includes('garvebhavipalya') ||
+    str.includes('madiwala') || str.includes('hsr') || str.includes('haralur') ||
+    str.includes('bellandur') || str.includes('begur') || str.includes('kudlu') ||
+    str.includes('singasandra') || str.includes('hosa road') || str.includes('electronic city') ||
+    str.includes('e-city') || str.includes('neotown') || str.includes('bommasandra') ||
+    str.includes('chandapura') || str.includes('bannerghatta') || str.includes('gottigere') ||
+    str.includes('hulimavu') || str.includes('arekere') || str.includes('jigani') ||
+    str.includes('anekal') || str.includes('vedant') || str.includes('bren') ||
+    str.includes('whispering waves')
+  ) {
+    return 'Bommanahalli';
+  }
+
+  // 8. South Zone
+  if (
+    str.includes('south') || str.includes('jayanagar') || str.includes('tilak nagar') ||
+    str.includes('byrasandra') || str.includes('jp nagar') || str.includes('sarakki') ||
+    str.includes('puttenahalli') || str.includes('b.t.m') || str.includes('btm') ||
+    str.includes('mico layout') || str.includes('banashankari') || str.includes('isro layout') ||
+    str.includes('kumaraswamy') || str.includes('bikashipura') || str.includes('padmanaba') ||
+    str.includes('padmanabhanagar') || str.includes('kanakapura') || str.includes('thalaghattapura') ||
+    str.includes('konanakunte') || str.includes('harohalli') || str.includes('sathanur') ||
+    str.includes('kaggalipura') || str.includes('tataguni') || str.includes('oraiyan') ||
+    str.includes('royal kadhambas')
+  ) {
+    return 'South';
+  }
+
+  // Deterministic fallback based on title / id
+  const idNum = Number(item.id) || 1;
+  const fallbacks = ['South', 'Bommanahalli', 'RR Nagara', 'Dasarahalli', 'Byatarayanapura', 'Mahadevapura', 'West', 'East'];
+  return fallbacks[idNum % fallbacks.length];
 }

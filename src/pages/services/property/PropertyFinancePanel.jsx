@@ -63,7 +63,7 @@ function FinanceCardsGrid() {
         <div className="mt-auto pt-4">
           <button
             type="button"
-            onClick={() => navigateTo('/our-services/finance-lending')}
+            onClick={() => navigateTo('/finance')}
             className="w-full rounded-xl border border-brand-blue px-4 py-2.5 text-sm font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
           >
             Know More

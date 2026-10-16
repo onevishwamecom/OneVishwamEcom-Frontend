@@ -1,1 +1,1 @@
-export const PROPERTIES_ONLY = true;
+export const PROPERTIES_ONLY = false;

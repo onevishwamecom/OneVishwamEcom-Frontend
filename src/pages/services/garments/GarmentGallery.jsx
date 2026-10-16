@@ -10,7 +10,7 @@ import {
 } from '../shared';
 import GarmentFilterSidebar from './components/GarmentFilterSidebar';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../data/locations';
+import { cities } from '../../../constants/locations';
 
 const INITIAL_FILTERS = {
   budgetMin: '',
@@ -117,13 +117,6 @@ export default function GarmentGallery() {
               </button>
             )}
           </div>
-          <Link
-            to="/post-requirement"
-            className="rounded-2xl bg-brand-blue hover:bg-brand-navy text-white font-bold px-5 py-3 text-xs sm:text-sm flex items-center justify-center gap-2 shrink-0 whitespace-nowrap shadow-xs hover:shadow transition-colors duration-200"
-          >
-            <i className="fa-solid fa-circle-plus text-xs" />
-            <span>Post Requirement</span>
-          </Link>
         </div>
       )}
       sidebarComponent={() => (

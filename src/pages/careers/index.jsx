@@ -4,7 +4,7 @@ import ApplicationForm from './ApplicationForm';
 
 function CareersPage() {
   return (
-    <div className="pt-16 lg:pt-14 bg-white min-h-screen">
+    <div className="bg-white min-h-screen">
       <CareersHero />
       <section className="py-10 sm:py-14 bg-brand-gray/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">

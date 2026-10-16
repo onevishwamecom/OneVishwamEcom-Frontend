@@ -5,20 +5,6 @@ import {
   AGE_OPTIONS, AVAILABILITY_OPTIONS,
 } from './propertyConstants';
 
-function formatPriceLabel(val) {
-  const num = Number(val);
-  if (!num || isNaN(num) || num <= 0) return '₹ 0';
-  if (num >= 10000000) {
-    const cr = (num / 10000000).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
-    return `₹ ${cr} Cr`;
-  }
-  if (num >= 100000) {
-    const lakh = (num / 100000).toFixed(1).replace(/\.0$/, '');
-    return `₹ ${lakh} L`;
-  }
-  return `₹ ${num.toLocaleString('en-IN')}`;
-}
-
 function formatSizeLabel(val) {
   const num = Number(val);
   if (!num || isNaN(num) || num <= 0) return '0 sq.ft';
@@ -26,20 +12,21 @@ function formatSizeLabel(val) {
 }
 
 function DualRangeSlider({
-  min = 0,
-  max = 50000000,
-  step = 500000,
+  min = 600,
+  max = 10000,
+  step = 50,
   minVal,
   maxVal,
   onChange,
-  formatLabel = formatPriceLabel,
-  maxLabel = '₹ 5 Cr+',
+  formatLabel = formatSizeLabel,
+  maxLabel,
 }) {
   const currentMin = minVal !== '' && !isNaN(minVal) ? Number(minVal) : min;
   const currentMax = maxVal !== '' && !isNaN(maxVal) ? Number(maxVal) : max;
 
-  const minPercent = Math.max(0, Math.min(100, ((currentMin - min) / (max - min)) * 100));
-  const maxPercent = Math.max(0, Math.min(100, ((currentMax - min) / (max - min)) * 100));
+  const rangeSpan = Math.max(1, max - min);
+  const minPercent = Math.max(0, Math.min(100, ((currentMin - min) / rangeSpan) * 100));
+  const maxPercent = Math.max(0, Math.min(100, ((currentMax - min) / rangeSpan) * 100));
 
   return (
     <div className="my-2.5 px-1">
@@ -47,7 +34,7 @@ function DualRangeSlider({
         <span className="bg-brand-blue/10 px-2 py-0.5 rounded-md">{formatLabel(currentMin)}</span>
         <span className="text-gray-400 font-normal text-[10px]">to</span>
         <span className="bg-brand-blue/10 px-2 py-0.5 rounded-md">
-          {currentMax >= max ? maxLabel : formatLabel(currentMax)}
+          {currentMax >= max && maxLabel ? maxLabel : formatLabel(currentMax)}
         </span>
       </div>
 
@@ -98,7 +85,10 @@ function DualRangeSlider({
 export default function PropertyFilterSidebar({
   filters, updateFilter, openSections, toggleSection,
   activeChips, resetFilters, cityAreas, noCityMessage,
+  sizeBounds = { min: 600, max: 10000 },
 }) {
+  const sizeStep = Math.max(10, (sizeBounds.max - sizeBounds.min) > 5000 ? 100 : 50);
+
   return (
     <div className="space-y-1">
       {/* Header */}
@@ -111,67 +101,17 @@ export default function PropertyFilterSidebar({
         )}
       </div>
 
-      {/* Budget */}
-      <CollapsibleSection id="budget" label="Budget" open={openSections.budget} onToggle={toggleSection}>
-        {/* Dual Range Budget Slider */}
-        <DualRangeSlider
-          min={0}
-          max={50000000}
-          step={500000}
-          minVal={filters.budgetMin}
-          maxVal={filters.budgetMax}
-          formatLabel={formatPriceLabel}
-          maxLabel="₹ 5 Cr+"
-          onChange={(minVal, maxVal) => {
-            updateFilter('budgetMin', minVal);
-            updateFilter('budgetMax', maxVal);
-          }}
-        />
-
-        <div className="flex gap-2 mt-3">
-          <div className="w-full">
-            <input
-              type="number"
-              placeholder="Min (₹)"
-              value={filters.budgetMin}
-              onChange={(e) => updateFilter('budgetMin', e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
-            />
-            {filters.budgetMin > 0 && (
-              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1">
-                {formatPriceLabel(filters.budgetMin)}
-              </span>
-            )}
-          </div>
-
-          <div className="w-full">
-            <input
-              type="number"
-              placeholder="Max (₹)"
-              value={filters.budgetMax}
-              onChange={(e) => updateFilter('budgetMax', e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
-            />
-            {filters.budgetMax > 0 && (
-              <span className="text-[10px] text-brand-blue font-semibold block mt-0.5 pl-1">
-                {formatPriceLabel(filters.budgetMax)}
-              </span>
-            )}
-          </div>
-        </div>
-      </CollapsibleSection>
-
       {/* Property Size */}
       <CollapsibleSection id="size" label="Property Size" open={openSections.size} onToggle={toggleSection}>
         {/* Dual Range Size Slider */}
         <DualRangeSlider
-          min={0}
-          max={10000}
-          step={100}
+          min={sizeBounds.min}
+          max={sizeBounds.max}
+          step={sizeStep}
           minVal={filters.sizeMin}
           maxVal={filters.sizeMax}
           formatLabel={formatSizeLabel}
-          maxLabel="10,000+ sq.ft"
+          maxLabel={formatSizeLabel(sizeBounds.max)}
           onChange={(minVal, maxVal) => {
             updateFilter('sizeMin', minVal);
             updateFilter('sizeMax', maxVal);
@@ -182,7 +122,7 @@ export default function PropertyFilterSidebar({
           <div className="w-full">
             <input
               type="number"
-              placeholder="Min sq.ft"
+              placeholder={`Min (${formatSizeLabel(sizeBounds.min)})`}
               value={filters.sizeMin}
               onChange={(e) => updateFilter('sizeMin', e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
@@ -197,7 +137,7 @@ export default function PropertyFilterSidebar({
           <div className="w-full">
             <input
               type="number"
-              placeholder="Max sq.ft"
+              placeholder={`Max (${formatSizeLabel(sizeBounds.max)})`}
               value={filters.sizeMax}
               onChange={(e) => updateFilter('sizeMax', e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand-blue"
