@@ -24,7 +24,7 @@ function ServiceDetails({ service }) {
     );
   }
 
-  if (service.id === 'real-estate-property') return <Suspense fallback={galleryFallback}><PropertyGallery /></Suspense>;
+  if (service.id === 'properties') return <Suspense fallback={galleryFallback}><PropertyGallery /></Suspense>;
   if (service.id === 'automobile') return <Suspense fallback={galleryFallback}><AutomobileGallery /></Suspense>;
   if (service.id === 'consumer-electronics') return <Suspense fallback={galleryFallback}><ElectronicsGallery /></Suspense>;
   if (service.id === 'bedding-comfort') return <Suspense fallback={galleryFallback}><BeddingGallery /></Suspense>;

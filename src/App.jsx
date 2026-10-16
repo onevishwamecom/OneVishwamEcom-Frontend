@@ -85,15 +85,16 @@ function App() {
             <Route path="/contact-us/*" element={<ContactPage />} />
             <Route path="/contact-us" element={<ContactPage />} />
 
-            {/* Real Estate / Property Routes */}
+            {/* Properties Routes */}
             <Route path="/our-services/properties" element={<PropertyGallery />} />
             <Route path="/properties" element={<PropertyGallery />} />
-            <Route path="/our-services/real-estate-property" element={<PropertyGallery />} />
-            <Route path="/houseandland" element={<PropertyGallery />} />
-            <Route path="/property" element={<PropertyGallery />} />
+            <Route path="/our-services/real-estate-property" element={<Navigate to="/our-services/properties" replace />} />
+            <Route path="/houseandland" element={<Navigate to="/our-services/properties" replace />} />
+            <Route path="/property" element={<Navigate to="/our-services/properties" replace />} />
             <Route path="/property/requirement/success" element={<RequirementSuccess />} />
             <Route path="/property/requirement" element={<PostRequirement />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
+            <Route path="/properties/:id" element={<PropertyDetails />} />
 
             {/* Vehicles / Automobile Routes */}
             <Route path="/our-services/automobile" element={<AutomobileGallery />} />

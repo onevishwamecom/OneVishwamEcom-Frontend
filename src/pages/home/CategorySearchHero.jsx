@@ -6,7 +6,7 @@ import { matchesSearch } from '../../utils/searchUtils';
 
 const CATEGORY_TABS = [
   { id: 'all',                    label: 'All',          icon: 'fa-solid fa-layer-group' },
-  { id: 'real-estate-property',   label: 'Houses & Land', icon: 'fa-solid fa-house-chimney', href: '/our-services/real-estate-property' },
+  { id: 'properties',             label: 'Properties',   icon: 'fa-solid fa-house-chimney', href: '/our-services/properties' },
   { id: 'automobile',             label: 'Vehicles',      icon: 'fa-solid fa-car',            href: '/our-services/automobile' },
   { id: 'consumer-electronics',   label: 'Electronics',   icon: 'fa-solid fa-tv',             href: '/our-services/consumer-electronics' },
   { id: 'bedding-comfort',        label: 'Bedding',       icon: 'fa-solid fa-bed',            href: '/our-services/bedding-comfort' },
@@ -22,6 +22,7 @@ const POPULAR_CHIPS = [
 ];
 
 const BADGE_CLS = {
+  Properties:       'bg-blue-100 text-blue-800 border-blue-200',
   'Houses & Land':  'bg-blue-100 text-blue-800 border-blue-200',
   Vehicles:         'bg-emerald-100 text-emerald-800 border-emerald-200',
   Electronics:      'bg-rose-100 text-rose-800 border-rose-200',
@@ -64,12 +65,13 @@ export default function CategorySearchHero() {
     setShowResultsDropdown(false);
     const q = internalQuery.trim();
     const routeMap = {
+      properties: '/our-services/properties',
       automobile: '/our-services/automobile',
       'consumer-electronics': '/our-services/consumer-electronics',
       'bedding-comfort': '/our-services/bedding-comfort',
       'finance-lending': '/our-services/finance-lending',
     };
-    const base = routeMap[activeCategory] || '/our-services/real-estate-property';
+    const base = routeMap[activeCategory] || '/our-services/properties';
     navigate(`${base}${q ? `?q=${encodeURIComponent(q)}` : ''}`);
   };
 

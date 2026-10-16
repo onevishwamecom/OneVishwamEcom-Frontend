@@ -84,7 +84,7 @@ export const serviceItems = [
           title: 'What We Offer',
           items: [
             'Business Funding', 'Startup Funding', 'Project Investment', 'Joint Venture',
-            'Find Investors', 'Real Estate Investment', 'Infrastructure Investment'
+            'Find Investors', 'Property Investment', 'Infrastructure Investment'
           ]
         }
       ]
