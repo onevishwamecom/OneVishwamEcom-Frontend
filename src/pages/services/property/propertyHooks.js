@@ -4,6 +4,7 @@ import {
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
   matchesBudgetRange, matchesSizeRange, getTotalPropertyPrice, parsePriceRange,
+  getPriorityScore, PRIORITY_TITLES,
 } from './propertyHelpers';
 
 /**
@@ -228,14 +229,19 @@ export function useFilteredProperties(arg1, arg2) {
         );
       })
       .sort((a, b) => {
-        const isOneVishwam = (p) => {
-          const v = String(p.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-          const s = String(p.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-          return v === 'onevishwam' || s === 'onevishwam' ? 1 : 0;
-        };
-        const aOv = isOneVishwam(a);
-        const bOv = isOneVishwam(b);
-        if (aOv !== bOv) return bOv - aOv;
+        const aScore = getPriorityScore(a);
+        const bScore = getPriorityScore(b);
+        if (aScore !== bScore) return bScore - aScore;
+
+        if (aScore === 3 && bScore === 3) {
+          const aTitle = String(a.title || a.name || '').trim().toLowerCase();
+          const bTitle = String(b.title || b.name || '').trim().toLowerCase();
+          const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
+          const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+          if (aPriIndex !== -1 && bPriIndex !== -1) return aPriIndex - bPriIndex;
+          if (aPriIndex !== -1) return -1;
+          if (bPriIndex !== -1) return 1;
+        }
 
         if (sortBy === 'price-low')  return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
         if (sortBy === 'price-high') return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);

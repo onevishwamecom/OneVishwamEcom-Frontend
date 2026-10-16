@@ -333,6 +333,7 @@ function RegisterForm({ onSwitch, onClose }) {
     if (Object.keys(v).length) return;
     try {
       await register({
+        name: form.name,
         fullName: form.name,
         email: form.email,
         phoneNumber: form.phone,

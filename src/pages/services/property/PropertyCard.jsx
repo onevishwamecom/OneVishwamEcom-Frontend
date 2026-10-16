@@ -189,7 +189,11 @@ function PropertyCardImpl({ property }) {
             {property.agent && (
               <span>
                 <i className="fa-solid fa-user mr-1 text-gray-400" />
-                {property.agent.name}
+                {typeof property.agent === 'object'
+                  ? (typeof property.agent.name === 'object'
+                      ? property.agent.name?.name || property.agent.name?.email || ''
+                      : property.agent.name || '')
+                  : property.agent}
               </span>
             )}
             {property.extraRoom && (

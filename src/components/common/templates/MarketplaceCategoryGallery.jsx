@@ -6,6 +6,7 @@ import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../constants/locations';
 import PageContainer from '../PageContainer';
 import LottieComingSoon from '../LottieComingSoon';
+import { isInHouseOrCeoListing } from '../../../pages/services/shared/sortBy';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -164,12 +165,22 @@ export default function MarketplaceCategoryGallery({
     else navigate('/');
   };
 
+  // Prioritize in-house / ceo@onevishwam.com listings at top
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aPri = isInHouseOrCeoListing(a) ? 1 : 0;
+      const bPri = isInHouseOrCeoListing(b) ? 1 : 0;
+      if (aPri !== bPri) return bPri - aPri;
+      return 0;
+    });
+  }, [items]);
+
   // Pagination calculation
-  const totalPages = Math.ceil(items.length / perPage) || 1;
+  const totalPages = Math.ceil(sortedItems.length / perPage) || 1;
   const pageItems = useMemo(() => {
     const start = (currentPage - 1) * perPage;
-    return items.slice(start, start + perPage);
-  }, [items, currentPage, perPage]);
+    return sortedItems.slice(start, start + perPage);
+  }, [sortedItems, currentPage, perPage]);
 
   const goToPage = (n) => {
     setCurrentPage(n);

@@ -670,48 +670,90 @@ export const PRIORITY_TITLES = [
   'Whispering Waves',
   'Bren Annanta',
   'Bren Avaana',
+  'Bren Park City',
 ];
 
 /**
- * Returns true if property subtitle or vendor is 'Onevishwam'.
- * Gives top priority placement in listings.
+ * Computes a priority score for a property:
+ * 3 = Direct in-house project from ceo@onevishwam.com, origin === 'in_house_project', priority > 0, isPriority === true, or in PRIORITY_TITLES
+ * 2 = Generic Onevishwam partner listing
+ * 0 = Standard listing
+ */
+export function getPriorityScore(property) {
+  if (!property) return 0;
+  if (property.priority && Number(property.priority) > 0) return 3;
+  if (property.isPriority === true) return 3;
+  if (property.origin === 'in_house_project' || property.details?.origin === 'in_house_project') return 3;
+
+  const email = String(
+    property.contributor?.email ||
+    property.contributorEmail ||
+    property.contactEmail ||
+    property.email ||
+    ''
+  ).trim().toLowerCase();
+  if (email === 'ceo@onevishwam.com' || (email.endsWith('@onevishwam.com') && !email.startsWith('admin@'))) return 3;
+
+  const title = String(property.title || property.name || '').trim().toLowerCase();
+  if (PRIORITY_TITLES.some((t) => t.toLowerCase() === title)) return 3;
+
+  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
+  const vendor = String(property.vendorName || property.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
+  const partner = String(property.channelPartnerName || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (sub === 'onevishwam' || vendor === 'onevishwam' || partner === 'onevishwam') return 2;
+
+  return 0;
+}
+
+/**
+ * Returns true if property is associated with Onevishwam or listed in-house.
  */
 export function isOneVishwamProperty(property) {
-  if (!property) return false;
-  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-  const vendor = String(property.vendorName || '').trim().toLowerCase().replace(/\s+/g, '');
-  return sub === 'onevishwam' || vendor === 'onevishwam';
+  return getPriorityScore(property) >= 2;
 }
 
 /**
  * Priority sort helper:
- * 1. Specific in-house projects ('VEDANT SURAKSHA', 'Whispering Waves', 'Bren Annanta', 'Bren Avaana')
- * 2. Any other Onevishwam properties
- * 3. Has images priority
- * 4. Recent ID (b.id - a.id)
+ * 1. Highest priority score (in-house projects and ceo@onevishwam.com account listings at the top)
+ * 2. Designated PRIORITY_TITLES ordering
+ * 3. User sortBy option (price-low, price-high) or default (images first + newest date/id)
  */
-export function sortPropertiesWithPriority(list = []) {
+export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
   return [...list].sort((a, b) => {
-    const aTitle = String(a.title || a.name || '').trim().toLowerCase();
-    const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-    const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
-    const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+    const aScore = getPriorityScore(a);
+    const bScore = getPriorityScore(b);
 
-    if (aPriIndex !== -1 && bPriIndex !== -1) {
-      return aPriIndex - bPriIndex;
+    if (aScore !== bScore) {
+      return bScore - aScore; // Priority in-house listings always at the top
     }
-    if (aPriIndex !== -1) return -1;
-    if (bPriIndex !== -1) return 1;
 
-    const aOv = isOneVishwamProperty(a) ? 1 : 0;
-    const bOv = isOneVishwamProperty(b) ? 1 : 0;
-    if (aOv !== bOv) return bOv - aOv;
+    if (aScore === 3 && bScore === 3) {
+      const aTitle = String(a.title || a.name || '').trim().toLowerCase();
+      const bTitle = String(b.title || b.name || '').trim().toLowerCase();
+      const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
+      const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+
+      if (aPriIndex !== -1 && bPriIndex !== -1) {
+        return aPriIndex - bPriIndex;
+      }
+      if (aPriIndex !== -1) return -1;
+      if (bPriIndex !== -1) return 1;
+    }
+
+    if (sortBy === 'price-low') {
+      return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
+    }
+    if (sortBy === 'price-high') {
+      return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
+    }
 
     const aImg = hasPropertyImages(a) ? 1 : 0;
     const bImg = hasPropertyImages(b) ? 1 : 0;
     if (aImg !== bImg) return bImg - aImg;
 
-    return (b.id || 0) - (a.id || 0);
+    const bDate = new Date(b.createdAt || 0).getTime() || (typeof b.id === 'number' ? b.id : 0);
+    const aDate = new Date(a.createdAt || 0).getTime() || (typeof a.id === 'number' ? a.id : 0);
+    return bDate - aDate;
   });
 }
 

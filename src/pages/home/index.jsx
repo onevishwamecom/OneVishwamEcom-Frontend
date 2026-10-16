@@ -5,7 +5,7 @@ import { getCityLabel } from '../../constants/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
-import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority } from '../services/property/propertyHelpers';
+import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority, getPriorityScore } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
@@ -56,6 +56,10 @@ function Home() {
   /* ── Property helpers: images-first priority, best cover image ── */
   const sortPropertiesImagesFirst = useCallback((list) =>
     [...list].sort((a, b) => {
+      const aScore = getPriorityScore(a);
+      const bScore = getPriorityScore(b);
+      if (aScore !== bScore) return bScore - aScore;
+
       const aImg = hasPropertyImages(a) ? 1 : 0;
       const bImg = hasPropertyImages(b) ? 1 : 0;
       if (aImg !== bImg) return bImg - aImg;

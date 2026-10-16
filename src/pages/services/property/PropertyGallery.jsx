@@ -207,8 +207,8 @@ function PropertyGallery() {
 
   /* ── Priority sort (Onevishwam top priority -> Images first) + pagination ── */
   const sortedProperties = useMemo(() => {
-    return sortPropertiesWithPriority(filteredProperties);
-  }, [filteredProperties]);
+    return sortPropertiesWithPriority(filteredProperties, sortBy);
+  }, [filteredProperties, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(sortedProperties.length / PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -515,7 +515,11 @@ function PropertyGallery() {
                         {p.agent && (
                           <span className="flex items-center gap-1">
                             <i className="fa-solid fa-user-tie text-gray-400 text-[10px]" />
-                            {p.agent.name}
+                            {typeof p.agent === 'object'
+                              ? (typeof p.agent.name === 'object'
+                                  ? p.agent.name?.name || p.agent.name?.email || ''
+                                  : p.agent.name || '')
+                              : p.agent}
                           </span>
                         )}
                         {p.extraRoom && (

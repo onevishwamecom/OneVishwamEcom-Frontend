@@ -3,6 +3,7 @@ import { SectorPageTemplate } from '../../../../components/templates/SectorPageT
 import { SectorPageHeader } from '../../../../components/ui/SectorPageHeader';
 import CategoryPillStrip from '../CategoryPillStrip';
 import ResultsBar from '../ResultsBar';
+import { applySort } from '../sortBy';
 import ListingGrid from './ListingGrid';
 import Fab from '../Fab';
 import Pagination from '../Pagination';
@@ -94,8 +95,8 @@ export default function MasterListingPage({
       });
     }
 
-    return list;
-  }, [items, selectedCategory, searchTerm]);
+    return applySort(list, sortBy);
+  }, [items, selectedCategory, searchTerm, sortBy]);
 
   // Paginated slice
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);

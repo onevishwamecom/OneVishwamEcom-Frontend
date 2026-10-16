@@ -27,6 +27,7 @@ export const loginWithEmail = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         role: 'user',
       };
@@ -68,16 +69,17 @@ export const loginUser = loginWithEmail;
 
 export const registerWithEmail = createAsyncThunk(
   'auth/registerWithEmail',
-  async ({ email, password, fullName, phoneNumber, mobile, role = 'user' }, { rejectWithValue }) => {
+  async ({ email, password, name, fullName, phoneNumber, mobile, role = 'user' }, { rejectWithValue }) => {
     try {
+      const resolvedName = (name || fullName || '').trim();
       // 1. Create account in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       // 2. Set Firebase displayName
-      if (fullName) {
+      if (resolvedName) {
         try {
-          await updateProfile(user, { displayName: fullName });
+          await updateProfile(user, { displayName: resolvedName });
         } catch (profileErr) {
           console.warn('[Firebase] updateProfile warning:', profileErr.message);
         }
@@ -89,8 +91,8 @@ export const registerWithEmail = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
-        fullName: fullName || user.displayName || 'User',
-        name: fullName || user.displayName || 'User',
+        name: resolvedName || user.displayName || 'User',
+        fullName: resolvedName || user.displayName || 'User',
         phoneNumber: phoneNumber || mobile || '',
         mobile: phoneNumber || mobile || '',
         role: role,
@@ -103,7 +105,8 @@ export const registerWithEmail = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
-            fullName,
+            name: resolvedName,
+            fullName: resolvedName,
             phoneNumber: phoneNumber || mobile,
             role,
           },
@@ -149,6 +152,7 @@ export const loginWithGoogle = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         avatar: user.photoURL || '',
         role: 'user',
@@ -160,6 +164,7 @@ export const loginWithGoogle = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
           },
@@ -201,6 +206,7 @@ export const loginWithFacebook = createAsyncThunk(
       let profileData = {
         firebaseUid: user.uid,
         email: user.email,
+        name: user.displayName || 'User',
         fullName: user.displayName || 'User',
         avatar: user.photoURL || '',
         role: 'user',
@@ -212,6 +218,7 @@ export const loginWithFacebook = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
           },
@@ -271,10 +278,11 @@ export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
   async (body, { rejectWithValue }) => {
     try {
-      // 1. If Firebase Auth has an active user and fullName was changed, sync Firebase displayName
-      if (auth.currentUser && body.fullName) {
+      const resolvedName = (body.name || body.fullName || '').trim();
+      // 1. If Firebase Auth has an active user and name was changed, sync Firebase displayName
+      if (auth.currentUser && resolvedName) {
         try {
-          await updateProfile(auth.currentUser, { displayName: body.fullName });
+          await updateProfile(auth.currentUser, { displayName: resolvedName });
         } catch (fbErr) {
           console.warn('[Firebase] updateProfile warning:', fbErr.message);
         }

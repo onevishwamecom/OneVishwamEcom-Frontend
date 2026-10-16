@@ -27,7 +27,7 @@ function ToggleSwitch({ checked, onChange, disabled }) {
 function ProfileSettings() {
   const { user, updateProfile, updateNotifications, forgotPassword, openAuthModal, loading, error, clearError } = useAuth();
 
-  const [name, setName] = useState(user?.fullName || user?.name || '');
+  const [name, setName] = useState(user?.name || user?.fullName || '');
   const [phone, setPhone] = useState(user?.phoneNumber || user?.mobile || user?.phone || '');
   const [role, setRole] = useState(user?.role || 'Buyer / Customer');
   const [city, setCity] = useState(user?.city || 'Bengaluru');
@@ -37,7 +37,7 @@ function ProfileSettings() {
   // Synchronize form state when user changes
   useEffect(() => {
     if (user) {
-      setName(user.fullName || '');
+      setName(user.name || user.fullName || '');
       setPhone(user.mobile || user.phoneNumber || '');
       setRole(user.role || 'Buyer / Customer');
       setCity(user.city || 'Bengaluru');
@@ -71,6 +71,7 @@ function ProfileSettings() {
 
     try {
       await updateProfile({
+        name,
         fullName: name,
         phoneNumber: phone,
         mobile: phone,
@@ -159,7 +160,7 @@ function ProfileSettings() {
     );
   }
 
-  const userInitial = (user.fullName || user.email || 'U').charAt(0).toUpperCase();
+  const userInitial = (user.name || user.fullName || user.email || 'U').charAt(0).toUpperCase();
 
   return (
     <div className="min-h-[85vh] bg-slate-50/70 py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
@@ -180,7 +181,7 @@ function ProfileSettings() {
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
                   <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                    {user.fullName || 'My Profile'}
+                    {user.name || user.fullName || 'My Profile'}
                   </h1>
                   <span className="rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[11px] font-bold px-3 py-0.5">
                     {role}

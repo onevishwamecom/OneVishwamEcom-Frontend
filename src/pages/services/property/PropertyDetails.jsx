@@ -401,10 +401,17 @@ export default function PropertyDetails() {
     (property.channelPartner?.logo) ||
     null;
 
+  const agentDisplayName =
+    typeof property.agent === 'object'
+      ? (typeof property.agent.name === 'object'
+          ? property.agent.name?.name || property.agent.name?.email || ''
+          : property.agent.name || '')
+      : property.agent || '';
+
   const enterpriseName =
     property.channelPartnerName ||
     (property.vendorName && property.vendorName.toLowerCase() !== 'onevishwam' ? property.vendorName : null) ||
-    property.agent?.name ||
+    agentDisplayName ||
     null;
 
   const renderHighlightCard = (meta) => {
@@ -986,7 +993,7 @@ export default function PropertyDetails() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-white">
-                      {enterpriseName || property.agent?.name || 'Verified Enterprise'}
+                      {enterpriseName || agentDisplayName || 'Verified Enterprise'}
                     </h3>
                     <span className="rounded-full bg-yellow-400 text-brand-navy text-[10px] font-extrabold px-2.5 py-0.5">
                       {property.agent?.type || 'Enterprise Partner'}

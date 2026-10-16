@@ -287,13 +287,20 @@ export default function MasterDetailPage({
   const statusPill = badges[0] || null;
 
   // Partner / Enterprise normalization
+  const agentDisplayName =
+    typeof item.agent === 'object'
+      ? (typeof item.agent?.name === 'object'
+          ? item.agent?.name?.name || item.agent?.name?.email || ''
+          : item.agent?.name || '')
+      : item.agent || '';
+
   const enterpriseName =
     item.showroom?.name ||
     item.enterpriseName ||
     item.companyName ||
     item.brand ||
     item.seller?.name ||
-    item.agent?.name ||
+    agentDisplayName ||
     null;
 
   const enterpriseLogo =
