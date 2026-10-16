@@ -3,7 +3,7 @@ import ServiceDetails from './ServiceDetails';
 import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 import PageHero from '../../components/PageHero';
 
-const ACTIVE_SERVICE_IDS = ['real-estate-property', 'automobile', 'consumer-electronics', 'bedding-comfort'];
+const ACTIVE_SERVICE_IDS = ['properties', 'automobile', 'consumer-electronics', 'bedding-comfort'];
 
 function ServicesPage() {
   const { pathname } = useLocation();
@@ -29,7 +29,7 @@ function ServicesPage() {
       <PageHero
         eyebrow="Our Services"
         title="A Comprehensive Multi Business Ecosystem"
-        subtitle="Explore our diverse divisions in one unified portal. From finance and real estate to consumer marketplaces and HR solutions — everything you need under a single ecosystem."
+        subtitle="Explore our diverse divisions in one unified portal. From finance and properties to consumer marketplaces and HR solutions — everything you need under a single ecosystem."
       />
 
       <section className="py-16 sm:py-20 bg-gray-50">

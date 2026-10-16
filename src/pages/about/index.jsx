@@ -10,7 +10,7 @@ const CORE_PILLARS = [
   {
     icon: 'fa-solid fa-chart-line',
     title: 'Value-Driven Investments',
-    desc: 'We assist individuals and families in cautiously investing their capital into high-growth, appreciating commodities and prime real estate that generate lasting wealth over the years.',
+    desc: 'We assist individuals and families in cautiously investing their capital into high-growth, appreciating commodities and prime properties that generate lasting wealth over the years.',
   },
   {
     icon: 'fa-solid fa-users',
@@ -28,7 +28,7 @@ const ROADMAP_STEPS = [
   {
     step: '01',
     title: 'Property Ecosystem',
-    desc: 'Establishing an integrated digital portal to discover, inspect, and purchase prime residential plots, luxury villas, and commercial real estate with full legal verification.',
+    desc: 'Establishing an integrated digital portal to discover, inspect, and purchase prime residential plots, luxury villas, and commercial properties with full legal verification.',
     icon: 'fa-solid fa-house-chimney',
   },
   {

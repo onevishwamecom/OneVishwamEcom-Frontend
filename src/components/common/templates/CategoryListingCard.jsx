@@ -8,7 +8,7 @@ export const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
 
 /**
  * CategoryListingCard:
- * Exact 1:1 replication of ProductCard topology from Real Estate Gallery:
+ * Exact 1:1 replication of ProductCard topology from Properties Gallery:
  * 1. Image container: aspect [16/10] with subtle black gradient overlay
  * 2. Top-left badges (blue, green, amber, slate)
  * 3. Top-right favorite wishlist button

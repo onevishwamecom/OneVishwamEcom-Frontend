@@ -115,7 +115,7 @@ export function DualRangeSlider({
 
 /**
  * MarketplaceCategoryGallery:
- * Master reusable template extracted directly from the Real Estate / Housing gallery page.
+ * Master reusable template extracted directly from the Properties gallery page.
  * Strictly preserves 100% of the visual styling, CSS classes, DOM hierarchy, and topology:
  * 1. Top Navigation & Action Header (Breadcrumb, Post Requirement, Quick Match, Count badge)
  * 2. Stretched Modern Unified Search Bar with blue Search button
