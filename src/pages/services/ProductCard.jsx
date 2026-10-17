@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { navigateTo } from "../../config/navigation";
 import { cleanProductName } from "../../utils/searchUtils";
+import { useAuth } from "../../store/authSlice";
 
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#f8fafc"/><rect x="1" y="1" width="598" height="398" stroke="#e2e8f0" stroke-width="2"/><g transform="translate(260, 130)" opacity="0.35"><rect x="10" y="10" width="60" height="45" rx="6" stroke="#334155" stroke-width="3.5" fill="none"/><path d="M25 55 v10 h30 v-10" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><line x1="15" y1="65" x2="65" y2="65" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/></g><text x="300" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="middle" letter-spacing="0.5">ONEVISHWAM VERIFIED PRODUCT</text><text x="300" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Official Authorized Listing</text></svg>`
@@ -29,6 +30,7 @@ export default React.memo(function ProductCard({
 }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
+  const { isLoggedIn, openAuthModal } = useAuth();
 
   const isPropertyOrVehicle =
     hidePrice ||
@@ -41,9 +43,20 @@ export default React.memo(function ProductCard({
       overline.toLowerCase().includes('automobile')
     ));
 
+  const handleCardClick = (e) => {
+    if (!link || link === '#') return;
+    if (!isLoggedIn) {
+      if (e && e.preventDefault) e.preventDefault();
+      sessionStorage.setItem('vishwam_auth_redirect', link);
+      openAuthModal('login');
+      return;
+    }
+    navigateTo(link);
+  };
+
   return (
     <div
-      onClick={link ? () => navigateTo(link) : undefined}
+      onClick={handleCardClick}
       className="group bg-white rounded-2xl border border-gray-200/80 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-xs"
     >
       {/* ── Image Container ── */}
@@ -116,7 +129,7 @@ export default React.memo(function ProductCard({
             <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {location}
-              {pincode ? ` · ${pincode}` : ""}
+              {pincode && !/\b\d{6}\b/.test(location) && !String(location).includes(pincode) ? ` · ${pincode}` : ""}
             </span>
           </div>
         )}

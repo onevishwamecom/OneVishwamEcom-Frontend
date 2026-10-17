@@ -1,12 +1,24 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { useProperties } from '../../../hooks/useProperties';
+import { useProperties, usePropertyById } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../../../utils/formatters';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { navigateTo } from '../../../config/navigation';
-import { getPropertyCoverImage, getPropertyStatusPill, isPlotOrLand, formatPropertyDisplayPrice, isCornerProperty } from './propertyHelpers';
+import {
+  getPropertyCoverImage,
+  getPropertyStatusPill,
+  isPlotOrLand,
+  formatPropertyDisplayPrice,
+  isCornerProperty,
+  formatPropertyAddress,
+  resolvePropertyLocality,
+  hasPincode,
+  getBangaloreZone,
+} from './propertyHelpers';
 import { cleanProductName } from '../../../utils/searchUtils';
 import EnquiryModal from '../../../components/EnquiryModal';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import oneVishwamLogo from '../../../assets/logo.png';
 
 const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
@@ -46,8 +58,14 @@ const AMENITY_ICONS = {
 };
 
 const PROPERTY_HIGHLIGHTS_META = [
-  { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
+  { key: 'address', label: 'Address', icon: 'fa-location-dot', color: 'text-rose-600 bg-rose-50' },
+  { key: 'locality', label: 'Locality', icon: 'fa-city', color: 'text-purple-600 bg-purple-50' },
   { key: 'area', label: 'Super Built-up Area', icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' },
+  { key: 'bhk', label: 'Configuration', icon: 'fa-bed', color: 'text-blue-600 bg-blue-50' },
+  { key: 'city', label: 'City', icon: 'fa-building-columns', color: 'text-blue-600 bg-blue-50' },
+  { key: 'pincode', label: 'Pincode', icon: 'fa-envelopes-bulk', color: 'text-teal-600 bg-teal-50' },
+  { key: 'state', label: 'State', icon: 'fa-map', color: 'text-indigo-600 bg-indigo-50' },
+  { key: 'country', label: 'Country', icon: 'fa-earth-americas', color: 'text-cyan-600 bg-cyan-50' },
   { key: 'facing', label: 'Door Facing', icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' },
   { key: 'isCornerPlot', label: 'Corner Site / Plot', icon: 'fa-draw-polygon', color: 'text-purple-600 bg-purple-50' },
   { key: 'status', label: 'Possession Status', icon: 'fa-key', color: 'text-purple-600 bg-purple-50' },
@@ -173,7 +191,7 @@ function PropertyCard({ property }) {
             {cleanProductName(property.title)}
           </h4>
           <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
-            <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" /> {property.location || property.city}
+            <i className="fa-solid fa-location-dot text-brand-blue text-[10px]" /> {formatPropertyAddress(property)}
           </p>
           <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
             <div>
@@ -208,22 +226,32 @@ export default function PropertyDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
 
-  const rawProperty = properties.find(
+  const { property: directProperty, loading: directLoading } = usePropertyById(propertySlug);
+
+  const rawProperty = directProperty || properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
   ) || null;
 
   const property = useMemo(() => {
     if (!rawProperty) return null;
     const display = formatPropertyDisplayPrice(rawProperty);
+    const resolvedAddress = formatPropertyAddress(rawProperty);
+    const cleanAddr = (rawProperty.address || '').trim().toLowerCase();
+    const isBareCity = !rawProperty.address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || (rawProperty.city && cleanAddr === rawProperty.city.toLowerCase());
     return {
       ...rawProperty,
       title: cleanProductName(rawProperty.title),
+      address: isBareCity ? resolvedAddress : rawProperty.address,
+      locality: rawProperty.locality || resolvePropertyLocality(rawProperty),
+      location: resolvedAddress,
+      formattedAddress: resolvedAddress,
+      zone: rawProperty.zone || getBangaloreZone(rawProperty),
       price: display.price,
       priceSuffix: display.priceSuffix,
     };
   }, [rawProperty]);
 
-  const loading = listLoading;
+  const loading = !property && (listLoading || directLoading);
   const error = !property && !listLoading ? new Error('Property not found') : null;
 
   const activeId = property ? (property._id || property.id) : null;
@@ -356,10 +384,25 @@ export default function PropertyDetails() {
     if (!fpMediaItems.length) return;
     setFpGalleryIndex((i) => (i === 0 ? fpMediaItems.length - 1 : i - 1));
   }, [fpMediaItems.length]);
-  const goFpNext = useCallback(() => {
-    if (!fpMediaItems.length) return;
-    setFpGalleryIndex((i) => (i === fpMediaItems.length - 1 ? 0 : i + 1));
-  }, [fpMediaItems.length]);
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname + window.location.search);
+      openAuthModal('login');
+    }
+  }, [isLoggedIn, openAuthModal]);
+
+  // Auth Protection Gate - require login before viewing property details
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login Required to View Property"
+        message="Please log in or register to view full property specifications, pricing, gallery photos, and contact details."
+        backUrl="/our-services/properties"
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -394,6 +437,7 @@ export default function PropertyDetails() {
   const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
   const isPlot = isPlotOrLand(property);
   const statusPill = getPropertyStatusPill(property);
+  const addressHasPincode = hasPincode(property.address) || hasPincode(property.location) || hasPincode(formatPropertyAddress(property));
 
   const enterpriseLogo =
     property.agent?.avatar ||
@@ -416,7 +460,25 @@ export default function PropertyDetails() {
 
   const renderHighlightCard = (meta) => {
     if (meta.key === 'bhk' && isPlot) return null;
+    if (meta.key === 'pincode' && (addressHasPincode || !property.pincode)) return null;
     let value = property[meta.key];
+    if (meta.key === 'address') {
+      const addr = property.address || formatPropertyAddress(property);
+      const clean = (addr || '').trim().toLowerCase();
+      const isBareCity = !addr || clean === 'bangalore' || clean === 'bengaluru';
+      value = isBareCity ? formatPropertyAddress(property) : addr;
+    }
+    if (meta.key === 'locality') {
+      value = property.locality || resolvePropertyLocality(property) || (property.address && property.address.includes(',') ? property.address.split(',')[0].trim() : '') || null;
+    }
+    if (meta.key === 'city' && property.city) {
+      value = property.city.charAt(0).toUpperCase() + property.city.slice(1).toLowerCase();
+    }
+    if (meta.key === 'state' && property.state) {
+      value = property.state.charAt(0).toUpperCase() + property.state.slice(1).toLowerCase();
+    }
+    if (meta.key === 'country') value = property.country || 'India';
+    if (meta.key === 'pincode') value = property.pincode;
     if (meta.key === 'facing' && property.facing) value = property.facing;
     if (meta.key === 'isCornerPlot') {
       value = isCornerProperty(property) ? (isPlot ? 'Yes (Corner Site Available)' : 'Yes (Corner Plot Available)') : null;
@@ -496,7 +558,7 @@ export default function PropertyDetails() {
             </button>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-brand-charcoal truncate">{property.title}</h4>
-              <p className="text-xs text-gray-500 truncate">{property.location || property.city}</p>
+              <p className="text-xs text-gray-500 truncate">{formatPropertyAddress(property)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -600,10 +662,11 @@ export default function PropertyDetails() {
                 <p className="text-sm font-medium text-gray-500">{property.subtitle}</p>
               )}
 
-              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5 pt-0.5">
-                <i className="fa-solid fa-location-dot text-brand-blue text-sm" />
-                <span>
-                  {property.location}{property.zone ? ` (${property.zone})` : ''}{property.pincode ? ` — ${property.pincode}` : ''}
+              <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-1.5 pt-0.5 flex-wrap">
+                <i className="fa-solid fa-location-dot text-brand-blue text-sm shrink-0" />
+                <span className="font-medium text-gray-700">
+                  {formatPropertyAddress(property) || property.address || property.location}
+                  {!addressHasPincode && property.pincode && !String(formatPropertyAddress(property) || property.address).includes(property.pincode) ? ` — ${property.pincode}` : ''}
                 </span>
               </p>
             </div>
@@ -839,6 +902,114 @@ export default function PropertyDetails() {
           </div>
         </section>
 
+        {/* ═══ MODULE: LOCATION & VERIFIED ADDRESS SPECIFICATIONS ═══ */}
+        <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">
+                <i className="fa-solid fa-map-location-dot" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">Location & Address Details</h2>
+                <p className="text-xs text-gray-500">Verified regional parameters, site address, and geographic attributes</p>
+              </div>
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((property.address || formatPropertyAddress(property)) + ' ' + (property.city || ''))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue px-4 py-2.5 text-xs font-bold transition-colors self-start sm:self-auto cursor-pointer shadow-2xs"
+            >
+              <i className="fa-solid fa-diamond-turn-right text-xs" />
+              <span>Get Directions / View on Google Maps</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Address */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-map-pin mr-1 text-rose-500" /> Address
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                {property.address || formatPropertyAddress(property) || 'Not specified'}
+              </p>
+            </div>
+
+            {/* 2. Locality */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-city mr-1 text-purple-600" /> Locality
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                {property.locality || (property.address && property.address.includes(',') ? property.address.split(',')[0].trim() : '') || property.area || property.city || 'Begur / Bangalore'}
+              </p>
+            </div>
+
+            {/* 3. Area / Dimensions */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-vector-square mr-1 text-emerald-600" /> Area
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                {property.area || property.details?.superBuiltUpArea || property.details?.totalLandArea || property.dimensions || 'N/A'}
+              </p>
+            </div>
+
+            {/* 4. Landmark */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-landmark mr-1 text-amber-600" /> Landmark
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                {property.landmark || property.details?.landmark || 'Near Main Access Road'}
+              </p>
+            </div>
+
+            {/* 5. City */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-building-columns mr-1 text-blue-600" /> City
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                {property.city || 'Bengaluru'}
+              </p>
+            </div>
+
+            {/* 6. State */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-map mr-1 text-indigo-600" /> State
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                {property.state || 'Karnataka'}
+              </p>
+            </div>
+
+            {/* 7. Pincode - only shown if address does NOT contain pincode and property has a real pincode */}
+            {!addressHasPincode && property.pincode ? (
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-envelopes-bulk mr-1 text-teal-600" /> Pincode
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                  {property.pincode}
+                </p>
+              </div>
+            ) : null}
+
+            {/* 8. Country */}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                <i className="fa-solid fa-earth-americas mr-1 text-rose-600" /> Country
+              </span>
+              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                {property.country || 'India'}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* ═══ MODULE 3: FLOOR PLANS & ARCHITECTURAL LAYOUTS ═══ */}
         {hasFloorPlans && (
           <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
@@ -1047,7 +1218,7 @@ export default function PropertyDetails() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-brand-charcoal">Similar Properties You May Like</h2>
-                  <p className="text-xs text-gray-500">Comparable properties in {property.location || property.city || 'Bangalore'}</p>
+                  <p className="text-xs text-gray-500">Comparable properties in {formatPropertyAddress(property) || 'Bangalore'}</p>
                 </div>
               </div>
 

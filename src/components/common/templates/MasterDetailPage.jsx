@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import EnquiryModal from '../../EnquiryModal';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../auth/AuthRequiredView';
 import CategoryListingCard, { FALLBACK_IMG } from './CategoryListingCard';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
@@ -248,6 +250,25 @@ export default function MasterDetailPage({
     if (!mediaItems.length) return;
     setCurrentImageIndex((i) => (i === mediaItems.length - 1 ? 0 : i + 1));
   }, [mediaItems.length]);
+
+  const { isLoggedIn, openAuthModal } = useAuth();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname + window.location.search);
+      openAuthModal('login');
+    }
+  }, [isLoggedIn, openAuthModal]);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title={`Login Required to View ${categoryName || 'Product'}`}
+        message="Please log in or register to view full specifications, pricing, gallery photos, and contact details."
+        backUrl={categoryLink}
+      />
+    );
+  }
 
   if (loading) {
     return (

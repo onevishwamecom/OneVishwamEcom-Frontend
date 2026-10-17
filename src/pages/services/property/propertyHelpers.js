@@ -777,8 +777,10 @@ export const BBMP_ZONE_NAMES = [
  */
 export function getBangaloreZone(item) {
   if (!item) return 'South';
+  const resolvedLoc = resolvePropertyLocality(item);
   const str = String(
     (item.locality || '') + ' ' +
+    resolvedLoc + ' ' +
     (item.location || '') + ' ' +
     (item.address || '') + ' ' +
     (item.title || '')
@@ -902,3 +904,119 @@ export function getBangaloreZone(item) {
   const fallbacks = ['South', 'Bommanahalli', 'RR Nagara', 'Dasarahalli', 'Byatarayanapura', 'Mahadevapura', 'West', 'East'];
   return fallbacks[idNum % fallbacks.length];
 }
+
+/**
+ * Resolves a property's authentic locality.
+ * Falls back to extracting well-known Bangalore neighborhoods from title/project/vendor
+ * if the listing has an empty locality or generic city address.
+ */
+export function resolvePropertyLocality(property) {
+  if (!property) return '';
+  const direct = (property.locality || property.details?.locality || property.details?.area || '').trim();
+  if (direct && direct.toLowerCase() !== 'bangalore' && direct.toLowerCase() !== 'bengaluru') {
+    return direct;
+  }
+
+  const title = String(property.title || property.name || property.details?.propertyName || '').toLowerCase();
+  const sub = String(property.subtitle || property.vendorName || '').toLowerCase();
+  const desc = String(property.description || '').toLowerCase();
+  const combined = `${title} ${sub} ${desc}`;
+
+  if (combined.includes('nelamangala') || combined.includes('bmrda')) return 'Nelamangala';
+  if (combined.includes('kempegowda layout') || combined.includes('nada prabhu') || combined.includes('bda')) return 'Nada Prabhu Kempegowda Layout';
+  if (combined.includes('kanakapura') || combined.includes('annanta') || combined.includes('avaana') || combined.includes('oraiyan') || combined.includes('harmony')) return 'Kanakapura Road';
+  if (combined.includes('begur') || combined.includes('bbmp enclave') || combined.includes('sp prime') || combined.includes('sp grand') || combined.includes('bbmp residential plot')) return 'Begur';
+  if (combined.includes('electronic city') || combined.includes('e-city') || combined.includes('showroom') || combined.includes('commercial space') || combined.includes('commercial plot')) return 'Electronic City';
+  if (combined.includes('sarjapur') || combined.includes('sylvan woods')) return 'Sarjapur Road';
+  if (combined.includes('whitefield') || combined.includes('fortuna') || combined.includes('vinra')) return 'Whitefield';
+  if (combined.includes('devanahalli') || combined.includes('airport') || combined.includes('artemis') || combined.includes('navakruthi')) return 'Devanahalli';
+  if (combined.includes('yelahanka') || combined.includes('employee association')) return 'Yelahanka';
+  if (combined.includes('thanisandra') || combined.includes('skysisira') || combined.includes('manyata')) return 'Thanisandra';
+  if (combined.includes('kengeri') || combined.includes('rr mathrushree') || combined.includes('samyak') || combined.includes('kns sampada')) return 'Kengeri';
+  if (combined.includes('bidadi') || combined.includes('vaibhav garden') || combined.includes('rr bhoo')) return 'Bidadi';
+  if (combined.includes('dobbaspet') || combined.includes('dhabaspet') || combined.includes('kiadb') || combined.includes('dtcp') || combined.includes('sp industrial')) return 'Dobbaspet';
+  if (combined.includes('gottigere') || combined.includes('vedanth') || combined.includes('suraksha') || combined.includes('bannerghatta')) return 'Gottigere';
+  if (combined.includes('jigani') || combined.includes('the clan') || combined.includes('anekal')) return 'Jigani';
+  if (combined.includes('doddaballapur') || combined.includes('slice of heaven')) return 'Doddaballapur Road';
+  if (combined.includes('mysore road') || combined.includes('panchamuki') || combined.includes('golden city') || combined.includes('nirvana')) return 'Mysore Road';
+  if (combined.includes('varthur') || combined.includes('aquapolis')) return 'Varthur';
+  if (combined.includes('hoskote') || combined.includes('nexon')) return 'Hoskote';
+  if (combined.includes('dommasandra') || combined.includes('nambiar')) return 'Dommasandra';
+  if (combined.includes('chikkathirupathi') || combined.includes('alora')) return 'Chikkathirupathi';
+  if (combined.includes('kaiwara') || combined.includes('chikkaballapura')) return 'Chikkaballapura';
+
+  return '';
+}
+
+/**
+ * Formats a comprehensive, human-readable address for a property.
+ * Fetches and unifies locality, landmark, address, city, state, and pincode
+ * rather than displaying a generic bare city string.
+ */
+export function formatPropertyAddress(property) {
+  if (!property) return '';
+
+  const address = (
+    property.address ||
+    property.location ||
+    property.details?.address ||
+    property.details?.location ||
+    ''
+  ).trim();
+
+  const locality = resolvePropertyLocality(property);
+  const landmark = (property.landmark || property.details?.landmark || '').trim();
+  const rawCity = (property.city || property.details?.city || '').trim();
+  const city = rawCity ? (rawCity.toLowerCase() === 'bengaluru' ? 'Bangalore' : rawCity.charAt(0).toUpperCase() + rawCity.slice(1).toLowerCase()) : 'Bangalore';
+  const pincode = (property.pincode || property.details?.pincode || '').trim();
+  const state = (property.state || property.details?.state || '').trim();
+
+  const cleanAddr = address.toLowerCase();
+  const isAddressJustCity = !address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || cleanAddr === city.toLowerCase();
+
+  const parts = [];
+
+  if (locality) {
+    parts.push(locality);
+  }
+
+  if (address && !isAddressJustCity) {
+    if (!locality || !address.toLowerCase().includes(locality.toLowerCase())) {
+      parts.push(address);
+    } else {
+      parts[0] = address;
+    }
+  } else {
+    if (landmark) parts.push(`Near ${landmark}`);
+    parts.push(city);
+  }
+
+  if (parts.length === 1 && !parts[0].toLowerCase().includes('bangalore') && !parts[0].toLowerCase().includes('bengaluru')) {
+    parts.push(city);
+  }
+
+  // If pincode is present and address does NOT already contain a pincode, append it
+  const addressAlreadyHasPincode = hasPincode(address) || parts.some((p) => hasPincode(p));
+  if (!addressAlreadyHasPincode && pincode && !parts.some((p) => String(p).includes(pincode))) {
+    parts.push(pincode);
+  }
+
+  const result = parts.filter(Boolean).join(', ');
+  if (result) return result;
+
+  return state ? `${city}, ${state}` : city;
+}
+
+/**
+ * Detects if a string or property address already contains a 6-digit postal pincode.
+ */
+export function hasPincode(target) {
+  if (!target) return false;
+  if (typeof target === 'string') {
+    return /\b\d{6}\b/.test(target);
+  }
+  const addr = String(target.address || target.location || target.formattedAddress || target.details?.address || '');
+  const pin = String(target.pincode || target.details?.pincode || '');
+  return /\b\d{6}\b/.test(addr) || (Boolean(pin) && addr.includes(pin));
+}
+

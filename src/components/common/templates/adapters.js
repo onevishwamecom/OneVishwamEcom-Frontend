@@ -4,6 +4,7 @@
  */
 
 import { cleanProductName } from '../../../utils/searchUtils';
+import { formatPropertyAddress } from '../../../pages/services/property/propertyHelpers';
 
 function isPerSqft(priceStr = '', suffix = '') {
   const combined = `${priceStr} ${suffix}`.toLowerCase();
@@ -32,7 +33,7 @@ export function mapPropertyToEntityItem(property) {
   const inSqft = isPerSqft(rawPrice, rawSuffix);
   const price = inSqft ? rawPrice : 'This is negotiable';
   const priceSubtext = inSqft ? (rawSuffix || (property.negotiable ? 'Negotiable' : (property.priceRange?.isRange ? 'Onwards' : ''))) : '';
-  const location = property.location || property.city || property.address || '';
+  const location = formatPropertyAddress(property) || property.location || property.city || property.address || '';
   const pincode = property.pincode || '';
 
   // Images resolution

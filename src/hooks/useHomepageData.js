@@ -45,7 +45,7 @@ export function useHomepageData() {
       };
 
       const result = await cache.fetch(PUBLIC_NAMESPACE, CACHE_KEY, fetcher, {
-        force: true,
+        force: Boolean(force),
         ttl: CACHE_TTL,
       });
 

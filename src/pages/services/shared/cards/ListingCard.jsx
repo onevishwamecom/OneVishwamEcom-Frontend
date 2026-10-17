@@ -249,7 +249,7 @@ export const ListingCard = React.memo(function ListingCard({
             <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate font-medium">
               {cardLocation}
-              {cardPincode ? ` · ${cardPincode}` : ''}
+              {cardPincode && !/\b\d{6}\b/.test(cardLocation) && !String(cardLocation).includes(cardPincode) ? ` · ${cardPincode}` : ''}
             </span>
           </div>
         )}

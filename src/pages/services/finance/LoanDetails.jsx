@@ -2,9 +2,29 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import useLoanProducts from './useLoanProducts';
 import { resolveLoan } from './loanUtils';
+import { useAuth } from '../../../store/authSlice';
+import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 
 function LoanDetails() {
+  const { isLoggedIn, openAuthModal } = useAuth();
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      sessionStorage.setItem('vishwam_auth_redirect', window.location.pathname + window.location.search);
+      openAuthModal('login');
+    }
+  }, [isLoggedIn, openAuthModal]);
+
+  if (!isLoggedIn) {
+    return (
+      <AuthRequiredView
+        title="Login to View Loan Details"
+        message="Please log in or create an account to view loan rates, calculators, eligibility criteria, and application assistance."
+        backUrl="/our-services/finance-lending"
+      />
+    );
+  }
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   const pathParts = pathname.split('/').filter(Boolean);

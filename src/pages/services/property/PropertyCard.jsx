@@ -9,6 +9,7 @@ import {
   getStatusBadge,
   getPropertyCoverImage,
   formatPropertyDisplayPrice,
+  formatPropertyAddress,
 } from './propertyHelpers';
 
 const FALLBACK_IMG =
@@ -159,12 +160,11 @@ function PropertyCardImpl({ property }) {
         </div>
 
         {/* Location */}
-        {(property.location || property.city) && !isSoldOut && !isInactive && (
+        {(property.location || property.city || property.address) && !isSoldOut && !isInactive && (
           <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
             <i className="fa-solid fa-location-dot text-brand-blue text-[11px] shrink-0" />
             <span className="truncate font-medium">
-              {property.location || property.city}
-              {property.pincode ? ` · ${property.pincode}` : ''}
+              {formatPropertyAddress(property)}
             </span>
           </div>
         )}

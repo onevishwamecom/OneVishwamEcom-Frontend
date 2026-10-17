@@ -5,6 +5,7 @@ import { cities, getCityLabel } from "../../../constants/locations";
 import { ActiveChip } from "../../../components/ui";
 import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";
+import BangalorePropertyPieMap from "./components/BangalorePropertyPieMap";
 
 import {
   CITY_OPTIONS,
@@ -27,6 +28,7 @@ import {
   getPropertiesSizeBounds,
   isCornerProperty,
   isPlotOrLand,
+  formatPropertyAddress,
 } from "./propertyHelpers";
 
 const PER_PAGE = 9;
@@ -52,14 +54,22 @@ function PropertyGallery() {
   const [preApprovedMode, setPreApprovedMode] = useState(false);
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedZone, setSelectedZone] = useState(() => (searchParams.get("zone") || "").trim());
+  const [showMap, setShowMap] = useState(() => Boolean((searchParams.get("zone") || "").trim()));
   const restoredRef = useRef(false);
 
-  /* ── URL search (e.g. homepage/hero search → ?q=...) ── */
+  /* ── URL search & zone (e.g. homepage/hero search → ?q=... or ?zone=...) ── */
   useEffect(() => {
     const q = (searchParams.get("q") || "").trim();
     if (q) {
       setSearchTerm(q);
+      setPage(1);
+    }
+    const z = (searchParams.get("zone") || "").trim();
+    if (z) {
+      setSelectedZone(z);
+      setShowMap(true);
       setPage(1);
     }
   }, [searchParams]);
@@ -186,10 +196,24 @@ function PropertyGallery() {
     setSelectedCardType("All");
     setFamilyLocationsOnly(false);
     setPreApprovedMode(false);
+    setSelectedZone("");
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("zone");
+      next.delete("q");
+      return next;
+    });
   };
 
   /* ── Active chips derived via hook ── */
-  const activeChips = useActiveChips(filters);
+  const baseActiveChips = useActiveChips(filters);
+  const activeChips = useMemo(() => {
+    const list = [...baseActiveChips];
+    if (selectedZone && selectedZone !== 'All') {
+      list.unshift({ key: 'zone', label: `Zone: ${selectedZone}` });
+    }
+    return list;
+  }, [baseActiveChips, selectedZone]);
 
   /* ── Filtered properties derived via hook ── */
   const filteredProperties = useFilteredProperties(properties, {
@@ -203,6 +227,7 @@ function PropertyGallery() {
     pincodeInput,
     familyLocationsOnly,
     preApprovedMode,
+    selectedZone,
   });
 
   /* ── Priority sort (Onevishwam top priority -> Images first) + pagination ── */
@@ -229,7 +254,15 @@ function PropertyGallery() {
 
   /* ── Chip removal ── */
   const removeChip = (chip) => {
-    if (chip.key === "size") {
+    if (chip.key === "zone") {
+      setSelectedZone("");
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("zone");
+        return next;
+      });
+      setPage(1);
+    } else if (chip.key === "size") {
       updateFilter("sizeMin", "");
       updateFilter("sizeMax", "");
     } else if (chip.key === "budget") {
@@ -405,6 +438,48 @@ function PropertyGallery() {
           </div>
         </div>
 
+        {/* Map Toggle & Quick Filters Row */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setShowMap((prev) => !prev)}
+            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition-all shadow-2xs border cursor-pointer ${
+              showMap || (selectedZone && selectedZone !== 'All')
+                ? 'bg-brand-blue text-white border-brand-blue shadow-sm'
+                : 'bg-white text-brand-charcoal border-gray-200/90 hover:border-brand-blue/40 hover:bg-gray-50'
+            }`}
+          >
+            <i className="fa-solid fa-map-location-dot" />
+            <span>{showMap ? 'Hide Bangalore Property Map' : 'Bangalore Property Map & Regional Distribution'}</span>
+            {selectedZone && selectedZone !== 'All' && (
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px]">
+                {selectedZone}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* ── Collapsible Bangalore Property Pie Map ── */}
+        {showMap && (
+          <div className="mt-4 mb-2 animate-fade-in">
+            <BangalorePropertyPieMap
+              properties={properties}
+              activeZone={selectedZone || 'All'}
+              onSelectZone={(zone) => {
+                const next = (!zone || zone === 'All' || zone === selectedZone) ? '' : zone;
+                setSelectedZone(next);
+                setSearchParams((prev) => {
+                  const p = new URLSearchParams(prev);
+                  if (next) p.set('zone', next);
+                  else p.delete('zone');
+                  return p;
+                });
+                setPage(1);
+              }}
+            />
+          </div>
+        )}
+
         {/* ── Active Filters & Mobile Trigger Bar ── */}
         {(activeChips.length > 0 || true) && (
           <div className="mt-4 flex items-center justify-between gap-3 pb-1">
@@ -487,7 +562,7 @@ function PropertyGallery() {
                       price={p.price}
                       priceSuffix={p.priceSuffix}
                       priceType={p.priceType}
-                      location={p.location || p.city}
+                      location={formatPropertyAddress(p)}
                       tags={[typeLabel, ...tags]}
                       badges={[
                         ...(p.recentlyAdded

@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../constants/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
+import { useProperties } from '../../hooks/useProperties';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
-import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority, getPriorityScore } from '../services/property/propertyHelpers';
+import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority, getPriorityScore, formatPropertyAddress } from '../services/property/propertyHelpers';
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
@@ -31,8 +32,17 @@ function Home() {
     []
   );
 
-  const rawProperties = useMemo(() => filterAvailable(data?.latestProperties), [data?.latestProperties, filterAvailable]);
+  const { properties: allProperties } = useProperties();
+  const rawProperties = useMemo(() => {
+    if (allProperties && allProperties.length > 0) {
+      return filterAvailable(allProperties);
+    }
+    return filterAvailable(data?.latestProperties);
+  }, [allProperties, data?.latestProperties, filterAvailable]);
   const latestProperties = useMemo(() => sortPropertiesWithPriority(rawProperties), [rawProperties]);
+  const mapProperties = useMemo(() => {
+    return (allProperties && allProperties.length > 0) ? allProperties : latestProperties;
+  }, [allProperties, latestProperties]);
   const latestVehicles = useMemo(() => filterAvailable(data?.latestVehicles), [data?.latestVehicles, filterAvailable]);
   const latestGroceries = useMemo(() => filterAvailable(data?.latestGroceries), [data?.latestGroceries, filterAvailable]);
   const latestGarments = useMemo(() => filterAvailable(data?.latestGarments), [data?.latestGarments, filterAvailable]);
@@ -134,7 +144,7 @@ function Home() {
                       alt={p.title}
                       title={p.title}
                       price={p.price}
-                      location={p.location || p.city}
+                      location={formatPropertyAddress(p)}
                       tags={[p.bhk || '', p.area || ''].filter(Boolean)}
                     />
                   </div>
@@ -184,7 +194,7 @@ function Home() {
                     title={p.title}
                     price={p.price}
                     priceSuffix={p.priceSuffix}
-                    location={p.location || p.city}
+                    location={formatPropertyAddress(p)}
                     tags={getDetailTags(p)}
                     badges={[
                       ...(p.recentlyAdded ? [{ label: 'New', className: 'bg-emerald-500 text-white' }] : []),
@@ -304,7 +314,7 @@ function Home() {
                         <i className="fa-solid fa-envelope text-[10px]" /> Contact Us
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">{[p.location || p.city, p.bhk, p.area].filter(Boolean).join(' · ')}</p>
+                    <p className="text-xs text-gray-500 mt-2">{[formatPropertyAddress(p), p.bhk, p.area].filter(Boolean).join(' · ')}</p>
                   </div>
                 </Link>
               ))}
@@ -464,7 +474,7 @@ function Home() {
                     title={p.title}
                     price={p.price}
                     priceSuffix={p.priceSuffix}
-                    location={p.location}
+                    location={formatPropertyAddress(p)}
                     badges={[{ label: 'Great Price', className: 'bg-red-500 text-white' }]}
                   />
                 </div>
@@ -519,7 +529,7 @@ function Home() {
         <section className="pt-14 sm:pt-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <BangalorePropertyPieMap
-              properties={latestProperties}
+              properties={mapProperties}
               activeZone={activeZone}
               onSelectZone={(zone) => {
                 setActiveZone(zone);

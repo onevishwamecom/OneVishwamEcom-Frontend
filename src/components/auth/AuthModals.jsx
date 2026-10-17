@@ -349,6 +349,11 @@ function RegisterForm({ onSwitch, onClose }) {
         position: 'top-end',
       });
       onClose();
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
     } catch {}
   };
 

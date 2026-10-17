@@ -1,10 +1,11 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
 import EnquiryModal from './components/EnquiryModal';
 import AuthModals from './components/auth/AuthModals';
+import SessionTracker from './components/auth/SessionTracker';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
 
@@ -137,6 +138,7 @@ function App() {
       <PromoToast />
       <PromoModal />
       <AuthModals />
+      <SessionTracker />
       <EnquiryModal />
     </>
   );

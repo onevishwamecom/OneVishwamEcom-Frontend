@@ -104,7 +104,7 @@ function ShowroomModal({ vehicle, onOpenLoan, onClose }) {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-gray-500">Address</label>
-              <p className="text-sm text-gray-600">{vehicle.showroom.address}{vehicle.pincode ? ` — ${vehicle.pincode}` : ''}</p>
+              <p className="text-sm text-gray-600">{vehicle.showroom.address}{vehicle.pincode && !/\b\d{6}\b/.test(vehicle.showroom.address || '') && !String(vehicle.showroom.address || '').includes(vehicle.pincode) ? ` — ${vehicle.pincode}` : ''}</p>
             </div>
 
             <div className="space-y-3">

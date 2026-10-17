@@ -4,7 +4,7 @@ import {
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
   matchesBudgetRange, matchesSizeRange, getTotalPropertyPrice, parsePriceRange,
-  getPriorityScore, PRIORITY_TITLES,
+  getPriorityScore, PRIORITY_TITLES, getBangaloreZone,
 } from './propertyHelpers';
 
 /**
@@ -76,6 +76,7 @@ export function useFilteredProperties(arg1, arg2) {
     pincodeInput = '',
     familyLocationsOnly = false,
     preApprovedMode = false,
+    selectedZone = '',
   } = options;
 
   return useMemo(() => {
@@ -218,6 +219,14 @@ export function useFilteredProperties(arg1, arg2) {
         const matchPreApproved    = !preApprovedMode || p.loanApproved === true;
         const matchLoanApproved   = !filters.loanApprovedOnly || p.loanApproved === true;
 
+        const zoneFilter = String(selectedZone || '').toLowerCase().trim();
+        const pZone = getBangaloreZone(p).toLowerCase();
+        const matchZone =
+          !zoneFilter ||
+          zoneFilter === 'all' ||
+          pZone === zoneFilter ||
+          (p.zone && String(p.zone).toLowerCase() === zoneFilter);
+
         return (
           matchCardType && matchSearch && matchRequirement && matchBudget && matchSize &&
           matchBuildingType && matchPropertyType && matchBedrooms &&
@@ -225,7 +234,8 @@ export function useFilteredProperties(arg1, arg2) {
           matchPostedBy && matchPossession && matchAmenities &&
           matchFacing && matchAge && matchAvailability &&
           matchCity && matchLocation && matchPincode &&
-          matchFamilyLocation && matchPreApproved && matchLoanApproved
+          matchFamilyLocation && matchPreApproved && matchLoanApproved &&
+          matchZone
         );
       })
       .sort((a, b) => {
@@ -250,6 +260,6 @@ export function useFilteredProperties(arg1, arg2) {
   }, [
     properties, selectedCardType, searchTerm, requirementText, sortBy, filters,
     selectedCity, locationInput, pincodeInput, familyLocationsOnly, preApprovedMode,
-    // filters.loanApprovedOnly is included via filters object
+    selectedZone,
   ]);
 }

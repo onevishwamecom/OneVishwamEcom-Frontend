@@ -1,6 +1,6 @@
 import React, { useState, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone } from '../propertyHelpers';
+import { getPropertyCoverImage, formatPropertyDisplayPrice, getBangaloreZone, formatPropertyAddress } from '../propertyHelpers';
 import bangaloreBbmpMap from '../../../../assets/maps/bangalore_bbmp_map.png';
 
 // 8 Official BBMP Administrative Zones with exact hotspot centers and bounding coordinates on 1024x982 map
@@ -254,11 +254,13 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
   const propertyPins = useMemo(() => {
     return properties.map((item, index) => {
       const coords = getAccurateCoordinates(item, index);
+      const itemId = item._id || item.id || `prop-${index}`;
       return {
         x: coords.x,
         y: coords.y,
-        item,
+        item: { ...item, id: itemId },
         zoneId: coords.zoneId,
+        zoneName: coords.zoneName,
       };
     });
   }, [properties]);
@@ -323,19 +325,23 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                 </linearGradient>
               </defs>
 
-              {/* ── Invisible Interactive Zone Hitboxes (NO hover effect on map; triggers pie chart highlight) ── */}
+              {/* ── Interactive Zone Hitboxes with Visual Tint on Hover & Select ── */}
               {Object.keys(BBMP_ZONES).map((key) => {
                 const zone = BBMP_ZONES[key];
-                const isSelected = activeZone === key || activeZone === zone.name;
+                const isSelected =
+                  String(activeZone || '').toLowerCase() === key.toLowerCase() ||
+                  String(activeZone || '').toLowerCase() === zone.name.toLowerCase();
+                const isHovered = hoveredZone === key;
 
                 return (
                   <path
                     key={zone.id}
                     d={zone.path}
-                    fill="transparent"
-                    stroke="transparent"
-                    strokeWidth={0}
-                    className="cursor-pointer"
+                    fill={isSelected ? `${zone.color}40` : (isHovered ? `${zone.color}25` : 'transparent')}
+                    stroke={isSelected ? zone.color : (isHovered ? zone.color : 'transparent')}
+                    strokeWidth={isSelected ? 3 : (isHovered ? 2 : 0)}
+                    strokeDasharray={isSelected ? '6 3' : 'none'}
+                    className="cursor-pointer transition-all duration-200"
                     onMouseEnter={() => setHoveredZone(key)}
                     onMouseLeave={() => setHoveredZone(null)}
                     onClick={() => onSelectZone?.(isSelected ? 'All' : zone.name)}
@@ -345,13 +351,19 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
 
               {/* ── Google Maps Shaped Property Pins in Vibrant Pink / Orange ── */}
               {propertyPins.map((pin, i) => {
-                const isPinHovered = hoveredProperty?.id === pin.item.id;
+                const pinId = pin.item.id || pin.item._id;
+                const isPinHovered = Boolean(hoveredProperty) && ((hoveredProperty.id || hoveredProperty._id) === pinId);
+                const isZoneSelected = activeZone && activeZone !== 'All';
+                const isMatch =
+                  !isZoneSelected ||
+                  String(activeZone).toLowerCase() === pin.zoneId.toLowerCase() ||
+                  String(activeZone).toLowerCase() === pin.zoneName.toLowerCase();
 
                 return (
                   <g
-                    key={`pin-${pin.item.id || i}`}
+                    key={`pin-${pinId || i}`}
                     transform={`translate(${pin.x}, ${pin.y})`}
-                    className="cursor-pointer"
+                    className={`cursor-pointer transition-all duration-300 ${!isMatch ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}
                     onMouseEnter={() => {
                       setHoveredProperty(pin.item);
                       setHoveredZone(pin.zoneId);
@@ -362,7 +374,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/property/${pin.item.id}`);
+                      navigate(`/property/${pinId}`);
                     }}
                   >
                     {/* Ripple Ping Animation on Hover */}
@@ -418,7 +430,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                 </h4>
                 <p className="text-[11px] text-gray-500 truncate">
                   <i className="fa-solid fa-location-dot text-brand-blue mr-1" />
-                  {hoveredProperty.locality || hoveredProperty.location}
+                  {formatPropertyAddress(hoveredProperty) || hoveredProperty.locality || hoveredProperty.location}
                 </p>
               </div>
             )}
@@ -447,7 +459,9 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
             <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-md overflow-visible">
               <g transform="rotate(-90 150 150)">
                 {pieSlices.map((slice) => {
-                  const isSelected = activeZone === slice.key || activeZone === slice.name;
+                  const isSelected =
+                    String(activeZone || '').toLowerCase() === slice.key.toLowerCase() ||
+                    String(activeZone || '').toLowerCase() === slice.name.toLowerCase();
                   const isHovered = hoveredZone === slice.key;
 
                   return (
@@ -476,7 +490,9 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
           {/* 8 Slices Legend Grid */}
           <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-gray-100 text-xs">
             {pieSlices.map((slice) => {
-              const isSelected = activeZone === slice.key || activeZone === slice.name;
+              const isSelected =
+                String(activeZone || '').toLowerCase() === slice.key.toLowerCase() ||
+                String(activeZone || '').toLowerCase() === slice.name.toLowerCase();
               const isHovered = hoveredZone === slice.key;
 
               return (
