@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import API from '../../../services/api';
 import { useProperties, usePropertyById } from '../../../hooks/useProperties';
 import { getNumericPrice } from '../../../utils/formatters';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
@@ -21,9 +22,9 @@ import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../../components/auth/AuthRequiredView';
 import oneVishwamLogo from '../../../assets/logo.png';
 
-const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
-  ? new URL(import.meta.env.VITE_API_BASE_URL).origin
-  : `http://${window.location.hostname}:5001`;
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)
+  ? new URL(import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL).origin
+  : 'https://asia-south1-onevishwam.cloudfunctions.net';
 
 function resolveImage(src) {
   if (!src) return '';
@@ -56,6 +57,19 @@ const AMENITY_ICONS = {
   Intercom: 'fa-phone',
   'Wi-Fi': 'fa-wifi',
 };
+
+function getGoogleMapsDirectUrl(locationUrl) {
+  if (!locationUrl || typeof locationUrl !== 'string') return '';
+  const trimmed = locationUrl.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const directCoord = trimmed.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+  if (directCoord) {
+    return `https://www.google.com/maps/search/?api=1&query=${directCoord[1]},${directCoord[2]}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+}
 
 const PROPERTY_HIGHLIGHTS_META = [
   { key: 'address', label: 'Address', icon: 'fa-location-dot', color: 'text-rose-600 bg-rose-50' },
@@ -218,6 +232,7 @@ export default function PropertyDetails() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [isSaved, setIsSaved] = useState(false);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [reachedFooter, setReachedFooter] = useState(false);
 
   const heroRef = useRef(null);
   const similarRef = useRef(null);
@@ -226,7 +241,7 @@ export default function PropertyDetails() {
   const pathParts = pathname.split('/').filter(Boolean);
   const propertySlug = pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
 
-  const { property: directProperty, loading: directLoading } = usePropertyById(propertySlug);
+  const { property: directProperty, loading: directLoading, error: directError } = usePropertyById(propertySlug);
 
   const rawProperty = directProperty || properties.find(
     (p) => p._id === propertySlug || String(p.id) === propertySlug
@@ -238,12 +253,38 @@ export default function PropertyDetails() {
     const resolvedAddress = formatPropertyAddress(rawProperty);
     const cleanAddr = (rawProperty.address || '').trim().toLowerCase();
     const isBareCity = !rawProperty.address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || (rawProperty.city && cleanAddr === rawProperty.city.toLowerCase());
+    const locUrl = (
+      rawProperty.locationUrl ||
+      rawProperty.googleMapsUrl ||
+      rawProperty.googleMapUrl ||
+      rawProperty.mapUrl ||
+      rawProperty.mapsUrl ||
+      rawProperty['Google Map URL'] ||
+      rawProperty['Location URL'] ||
+      rawProperty['Map URL'] ||
+      rawProperty.details?.locationUrl ||
+      rawProperty.details?.googleMapsUrl ||
+      rawProperty.details?.googleMapUrl ||
+      rawProperty.details?.mapUrl ||
+      rawProperty.details?.mapsUrl ||
+      rawProperty.details?.['Google Map URL'] ||
+      rawProperty.details?.['Location URL'] ||
+      rawProperty.details?.['Map URL'] ||
+      ''
+    ).trim();
+
     return {
       ...rawProperty,
       title: cleanProductName(rawProperty.title),
       address: isBareCity ? resolvedAddress : rawProperty.address,
       locality: rawProperty.locality || resolvePropertyLocality(rawProperty),
       location: resolvedAddress,
+      locationUrl: locUrl,
+      mapUrl: locUrl,
+      googleMapsUrl: locUrl,
+      googleMapUrl: locUrl,
+      mapEmbedUrl: rawProperty.mapEmbedUrl || rawProperty.details?.mapEmbedUrl || '',
+      resolvedLocationUrl: rawProperty.resolvedLocationUrl || rawProperty.details?.resolvedLocationUrl || '',
       formattedAddress: resolvedAddress,
       zone: rawProperty.zone || getBangaloreZone(rawProperty),
       price: display.price,
@@ -252,7 +293,7 @@ export default function PropertyDetails() {
   }, [rawProperty]);
 
   const loading = !property && (listLoading || directLoading);
-  const error = !property && !listLoading ? new Error('Property not found') : null;
+  const error = !property && !loading ? (directError ? new Error(directError) : new Error('Property not found')) : null;
 
   const activeId = property ? (property._id || property.id) : null;
   const currentSubcat = property ? (property.subcategory || property.propertyType || '') : '';
@@ -302,18 +343,45 @@ export default function PropertyDetails() {
 
   useEffect(() => {
     const handleScroll = () => {
-      let isPast = false;
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect();
-        isPast = rect.bottom <= 90;
+        const isPast = rect.bottom < 80;
+        setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
       } else {
-        isPast = window.scrollY > 450;
+        const isPast = window.scrollY > 450;
+        setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
       }
-      setScrolledPastHero((prev) => (prev !== isPast ? isPast : prev));
+
+      const footerEl = document.querySelector('footer');
+      if (footerEl) {
+        const fRect = footerEl.getBoundingClientRect();
+        const nearFooter = fRect.top <= window.innerHeight;
+        setReachedFooter((prev) => (prev !== nearFooter ? nearFooter : prev));
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // IntersectionObserver to instantly hide sticky bar as soon as footer enters viewport
+  useEffect(() => {
+    const footerEl = document.querySelector('footer');
+    if (!footerEl || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setReachedFooter(entry.isIntersecting);
+      },
+      { rootMargin: '0px 0px 0px 0px', threshold: 0 }
+    );
+
+    observer.observe(footerEl);
+    return () => observer.disconnect();
+  }, []);
+
+
 
   const goBack = () => {
     if (window.history.length > 1) navigate(-1);
@@ -358,6 +426,11 @@ export default function PropertyDetails() {
 
   const pdfUrl = property?.pdfUrl || property?.floorPlanPdf || property?.pdf || null;
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
+  const hasLocationUrl = Boolean(
+    property?.locationUrl &&
+    typeof property.locationUrl === 'string' &&
+    property.locationUrl.trim().length > 0
+  );
 
   const mediaItems = property
     ? [
@@ -545,40 +618,7 @@ export default function PropertyDetails() {
         propertyId={property.id || property._id}
       />
 
-      {/* ─── STICKY FLOATING QUICK-ACTION BAR (Shows on Scroll) ─── */}
-      <div
-        className={`fixed top-[122px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md transition-all duration-300 ${
-          scrolledPastHero ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button onClick={goBack} className="text-xs font-semibold text-gray-500 hover:text-brand-blue flex items-center gap-1.5 shrink-0">
-              <i className="fa-solid fa-arrow-left" />
-            </button>
-            <div className="min-w-0">
-              <h4 className="text-sm font-bold text-brand-charcoal truncate">{property.title}</h4>
-              <p className="text-xs text-gray-500 truncate">{formatPropertyAddress(property)}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-navy transition-colors shadow-xs cursor-pointer"
-            >
-              <i className="fa-solid fa-paper-plane mr-1.5" /> Enquire Now
-            </button>
-            <a
-              href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-              className="rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-xs flex items-center gap-1.5"
-            >
-              <i className="fa-solid fa-phone" />
-              <span className="hidden md:inline">Contact: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
-              <span className="md:hidden">Contact Us</span>
-            </a>
-          </div>
-        </div>
-      </div>
+
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
       <div className="bg-white border-b border-gray-100">
@@ -730,7 +770,7 @@ export default function PropertyDetails() {
                 className="relative h-[340px] sm:h-[460px] lg:h-[540px] rounded-3xl overflow-hidden bg-gray-900 shadow-sm cursor-pointer group"
               >
                 <img
-                  src={resolveImage(currentMedia?.url || currentMedia)}
+                  src={resolveImage(currentMedia?.url || currentMedia) || FALLBACK_IMG}
                   alt={property.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -751,7 +791,7 @@ export default function PropertyDetails() {
                     <video src={mediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   ) : (
                     <img
-                      src={resolveImage(mediaItems[0]?.url || mediaItems[0])}
+                      src={resolveImage(mediaItems[0]?.url || mediaItems[0]) || FALLBACK_IMG}
                       alt={property.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
@@ -823,7 +863,7 @@ export default function PropertyDetails() {
       </div>
 
       {/* ─── MAIN CONTENT CONTAINER (Full Width Max-7XL) ─── */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24 sm:pb-28">
 
         {/* ═══ MODULE 1: BENTO SPEC HIGHLIGHTS ═══ */}
         <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs">
@@ -902,113 +942,148 @@ export default function PropertyDetails() {
           </div>
         </section>
 
-        {/* ═══ MODULE: LOCATION & VERIFIED ADDRESS SPECIFICATIONS ═══ */}
-        <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">
-                <i className="fa-solid fa-map-location-dot" />
+        {/* ═══ MODULE: LOCATION & VERIFIED ADDRESS SPECIFICATIONS (Only shown when locationUrl is provided) ═══ */}
+        {hasLocationUrl && (
+          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">
+                  <i className="fa-solid fa-map-location-dot" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">Location & Address Details</h2>
+                  <p className="text-xs text-gray-500">Verified regional parameters, site address, and geographic attributes</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">Location & Address Details</h2>
-                <p className="text-xs text-gray-500">Verified regional parameters, site address, and geographic attributes</p>
-              </div>
-            </div>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((property.address || formatPropertyAddress(property)) + ' ' + (property.city || ''))}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue px-4 py-2.5 text-xs font-bold transition-colors self-start sm:self-auto cursor-pointer shadow-2xs"
-            >
-              <i className="fa-solid fa-diamond-turn-right text-xs" />
-              <span>Get Directions / View on Google Maps</span>
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Address */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-map-pin mr-1 text-rose-500" /> Address
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                {property.address || formatPropertyAddress(property) || 'Not specified'}
-              </p>
+              <a
+                href={getGoogleMapsDirectUrl(property.locationUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-700 text-white px-4 py-2.5 text-xs font-bold transition-colors self-start sm:self-auto cursor-pointer shadow-2xs"
+              >
+                <i className="fa-solid fa-map-location-dot text-sm" />
+                <span>View in Map</span>
+                <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
+              </a>
             </div>
 
-            {/* 2. Locality */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-city mr-1 text-purple-600" /> Locality
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                {property.locality || (property.address && property.address.includes(',') ? property.address.split(',')[0].trim() : '') || property.area || property.city || 'Begur / Bangalore'}
-              </p>
-            </div>
-
-            {/* 3. Area / Dimensions */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-vector-square mr-1 text-emerald-600" /> Area
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                {property.area || property.details?.superBuiltUpArea || property.details?.totalLandArea || property.dimensions || 'N/A'}
-              </p>
-            </div>
-
-            {/* 4. Landmark */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-landmark mr-1 text-amber-600" /> Landmark
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                {property.landmark || property.details?.landmark || 'Near Main Access Road'}
-              </p>
-            </div>
-
-            {/* 5. City */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-building-columns mr-1 text-blue-600" /> City
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
-                {property.city || 'Bengaluru'}
-              </p>
-            </div>
-
-            {/* 6. State */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-map mr-1 text-indigo-600" /> State
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
-                {property.state || 'Karnataka'}
-              </p>
-            </div>
-
-            {/* 7. Pincode - only shown if address does NOT contain pincode and property has a real pincode */}
-            {!addressHasPincode && property.pincode ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* 1. Address */}
               <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                  <i className="fa-solid fa-envelopes-bulk mr-1 text-teal-600" /> Pincode
+                  <i className="fa-solid fa-map-pin mr-1 text-rose-500" /> Address
                 </span>
                 <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                  {property.pincode}
+                  {property.address || formatPropertyAddress(property) || 'Not specified'}
                 </p>
               </div>
-            ) : null}
 
-            {/* 8. Country */}
-            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                <i className="fa-solid fa-earth-americas mr-1 text-rose-600" /> Country
-              </span>
-              <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
-                {property.country || 'India'}
-              </p>
+              {/* 2. Locality */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-city mr-1 text-purple-600" /> Locality
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                  {property.locality || resolvePropertyLocality(property) || (property.address && property.address.includes(',') ? property.address.split(',')[0].trim() : '') || property.city || 'Bangalore'}
+                </p>
+              </div>
+
+              {/* 3. Area / Dimensions */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-vector-square mr-1 text-emerald-600" /> Area
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                  {property.area || property.details?.superBuiltUpArea || property.details?.totalLandArea || property.dimensions || 'N/A'}
+                </p>
+              </div>
+
+              {/* 4. Landmark */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-landmark mr-1 text-amber-600" /> Landmark
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                  {property.landmark || property.details?.landmark || 'Near Main Access Road'}
+                </p>
+              </div>
+
+              {/* 5. City */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-building-columns mr-1 text-blue-600" /> City
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                  {property.city || 'Bengaluru'}
+                </p>
+              </div>
+
+              {/* 6. State */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-map mr-1 text-indigo-600" /> State
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                  {property.state || 'Karnataka'}
+                </p>
+              </div>
+
+              {/* 7. Pincode - only shown if address does NOT contain pincode and property has a real pincode */}
+              {!addressHasPincode && property.pincode ? (
+                <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                    <i className="fa-solid fa-envelopes-bulk mr-1 text-teal-600" /> Pincode
+                  </span>
+                  <p className="text-sm font-extrabold text-brand-charcoal break-words">
+                    {property.pincode}
+                  </p>
+                </div>
+              ) : null}
+
+              {/* 8. Google Maps Location Pin (if provided) */}
+              {property.locationUrl ? (
+                <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200/70 flex flex-col justify-between hover:bg-white hover:border-brand-blue/40 transition-all">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-blue block mb-1">
+                    <i className="fa-solid fa-map-location-dot mr-1" /> Google Maps Link
+                  </span>
+                  <a
+                    href={getGoogleMapsDirectUrl(property.locationUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold text-brand-blue hover:underline flex items-center gap-1.5 break-all"
+                  >
+                    <span className="truncate">View in Map</span>
+                    <i className="fa-solid fa-arrow-up-right-from-square text-[10px] shrink-0" />
+                  </a>
+                </div>
+              ) : null}
+
+              {/* 9. Country */}
+              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                  <i className="fa-solid fa-earth-americas mr-1 text-rose-600" /> Country
+                </span>
+                <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
+                  {property.country || 'India'}
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+
+            {/* ═══ VIEW IN MAP BUTTON ═══ */}
+            <div className="pt-1 flex">
+              <a
+                href={getGoogleMapsDirectUrl(property.locationUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
+              >
+                <i className="fa-solid fa-map-location-dot text-sm" />
+                <span>View in Map</span>
+                <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
+              </a>
+            </div>
+          </section>
+        )}
 
         {/* ═══ MODULE 3: FLOOR PLANS & ARCHITECTURAL LAYOUTS ═══ */}
         {hasFloorPlans && (
@@ -1273,25 +1348,71 @@ export default function PropertyDetails() {
         )}
       </div>
 
-      {/* ─── MOBILE BOTTOM BAR (Compact Floating) ─── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 sm:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 block leading-tight">Price</span>
-            <span className={property.price === 'This is negotiable' ? "text-sm font-normal text-gray-500 leading-tight" : "text-base font-extrabold text-brand-charcoal leading-tight"}>{property.price}</span>
+      {/* ─── SLEEK STICKY BOTTOM ACTION BAR (Shows cleanly on scroll, auto-hides at footer) ─── */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/80 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out ${
+          scrolledPastHero && !reachedFooter ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4">
+          {/* Left: Property Title, Locality & Price */}
+          <div className="flex items-center gap-3 min-w-0">
+            {mediaItems[0]?.url && (
+              <img
+                src={resolveImage(mediaItems[0].url)}
+                alt={property.title}
+                className="hidden sm:block w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-2xs"
+              />
+            )}
+            <div className="min-w-0">
+              <h4 className="text-xs sm:text-sm font-bold text-brand-charcoal truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+                {property.title}
+              </h4>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className={property.price === 'This is negotiable' ? "text-xs sm:text-sm font-normal text-gray-500" : "text-xs sm:text-sm font-extrabold text-brand-charcoal"}>
+                  {property.price}
+                </span>
+                {property.priceSuffix && (
+                  <span className="text-[10px] text-gray-400 hidden xs:inline">{property.priceSuffix}</span>
+                )}
+                {property.locality && (
+                  <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-gray-400 truncate">
+                    <span>•</span>
+                    <i className="fa-solid fa-location-dot text-[9px] text-rose-500" />
+                    <span>{property.locality}</span>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Right: Quick Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <button
+              onClick={() => setIsSaved(!isSaved)}
+              className={`hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-xl border transition-colors cursor-pointer ${
+                isSaved ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+              title={isSaved ? 'Saved' : 'Save'}
+            >
+              <i className={`${isSaved ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart text-sm`} />
+            </button>
+
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-brand-blue px-3.5 py-2.5 text-xs font-bold text-white shadow-xs cursor-pointer"
+              className="rounded-xl bg-brand-blue px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-navy transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             >
-              <i className="fa-solid fa-paper-plane mr-1" /> Enquire Now
+              <i className="fa-solid fa-paper-plane text-xs" />
+              <span>Enquire Now</span>
             </button>
+
             <a
               href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-              className="rounded-xl bg-amber-500 px-3.5 py-2.5 text-xs font-bold text-slate-950 shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="rounded-xl bg-amber-500 hover:bg-amber-400 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <i className="fa-solid fa-phone" /> Call
+              <i className="fa-solid fa-phone text-xs" />
+              <span className="hidden lg:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+              <span className="lg:hidden">Call</span>
             </a>
           </div>
         </div>

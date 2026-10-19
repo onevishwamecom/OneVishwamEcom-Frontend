@@ -96,9 +96,17 @@ export function useFilteredProperties(arg1, arg2) {
 
         const q = (searchTerm || '').toLowerCase().trim();
         const titleStr = String(p.title || p.name || '').toLowerCase();
-        const locStr = String(p.location || p.city || '').toLowerCase();
+        const locStr = String(p.location || p.locality || p.city || '').toLowerCase();
         const subStr = String(p.subtitle || p.propertyType || '').toLowerCase();
-        const matchSearch = !q || titleStr.includes(q) || locStr.includes(q) || subStr.includes(q);
+        const vendorStr = String(p.vendorName || p.channelPartnerName || '').toLowerCase();
+        const addrStr = String(p.address || '').toLowerCase();
+        const matchSearch =
+          !q ||
+          titleStr.includes(q) ||
+          locStr.includes(q) ||
+          subStr.includes(q) ||
+          vendorStr.includes(q) ||
+          addrStr.includes(q);
 
         const qReq = (requirementText || '').toLowerCase().trim();
         const descStr = String(p.description || '').toLowerCase();
@@ -197,14 +205,28 @@ export function useFilteredProperties(arg1, arg2) {
             return pNorm === aNorm || pNorm.includes(aNorm) || aNorm.includes(pNorm);
           });
 
-        const pCity = String(p.city || '').toLowerCase();
-        const sCity = String(selectedCity || '').toLowerCase();
+        const pCity = String(p.city || '').toLowerCase().trim();
+        const sCity = String(selectedCity || '').toLowerCase().trim();
+        const isNumericCity = /^\d+$/.test(pCity);
+        const isBangalore = sCity === 'bengaluru' || sCity === 'bangalore';
+        const isBangaloreProperty =
+          pCity === 'bengaluru' ||
+          pCity === 'bangalore' ||
+          isNumericCity ||
+          !pCity ||
+          String(p.state || '').toLowerCase().includes('karnataka') ||
+          String(p.details?.possessionStatus || '').toLowerCase().includes('bengaluru') ||
+          String(p.details?.parkingAvailability || '').toLowerCase().includes('white') ||
+          String(p.address || '').toLowerCase().includes('bangalore') ||
+          String(p.address || '').toLowerCase().includes('bengaluru');
+
         const matchCity =
           !sCity ||
           !pCity ||
+          isNumericCity ||
           pCity === sCity ||
-          (sCity === 'bengaluru' && pCity === 'bangalore') ||
-          (sCity === 'bangalore' && pCity === 'bengaluru');
+          (isBangalore && isBangaloreProperty) ||
+          (Boolean(searchTerm) && matchSearch);
 
         const locFilter = String(locationInput || '').toLowerCase().trim();
         const matchLocation =

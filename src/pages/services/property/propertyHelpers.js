@@ -967,12 +967,16 @@ export function formatPropertyAddress(property) {
   const locality = resolvePropertyLocality(property);
   const landmark = (property.landmark || property.details?.landmark || '').trim();
   const rawCity = (property.city || property.details?.city || '').trim();
-  const city = rawCity ? (rawCity.toLowerCase() === 'bengaluru' ? 'Bangalore' : rawCity.charAt(0).toUpperCase() + rawCity.slice(1).toLowerCase()) : 'Bangalore';
+  // Detect numeric-only city values (e.g. pincode "123453" entered in city field) and treat as Bangalore
+  const isNumericCity = /^\d+$/.test(rawCity);
+  const city = rawCity && !isNumericCity
+    ? (rawCity.toLowerCase() === 'bengaluru' ? 'Bangalore' : rawCity.charAt(0).toUpperCase() + rawCity.slice(1).toLowerCase())
+    : 'Bangalore';
   const pincode = (property.pincode || property.details?.pincode || '').trim();
   const state = (property.state || property.details?.state || '').trim();
 
   const cleanAddr = address.toLowerCase();
-  const isAddressJustCity = !address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || cleanAddr === city.toLowerCase();
+  const isAddressJustCity = !address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || cleanAddr === city.toLowerCase() || isNumericCity;
 
   const parts = [];
 

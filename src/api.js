@@ -2,7 +2,10 @@ import axios from 'axios';
 import { auth } from './firebase/config';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_URL ||
+    'https://asia-south1-onevishwam.cloudfunctions.net/api',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
   validateStatus: (status) => status >= 200 && status < 400,
@@ -24,6 +27,9 @@ function processQueue(error, token = null) {
 
 client.interceptors.request.use(async (config) => {
   try {
+    if (auth && typeof auth.authStateReady === 'function') {
+      await auth.authStateReady();
+    }
     const currentUser = auth?.currentUser;
     if (currentUser) {
       const idToken = await currentUser.getIdToken();

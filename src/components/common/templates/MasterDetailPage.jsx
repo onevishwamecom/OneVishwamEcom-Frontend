@@ -8,9 +8,9 @@ import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
 
-const API_ORIGIN = import.meta.env.VITE_API_BASE_URL
-  ? new URL(import.meta.env.VITE_API_BASE_URL).origin
-  : `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5001`;
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)
+  ? new URL(import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL).origin
+  : 'https://asia-south1-onevishwam.cloudfunctions.net';
 
 function resolveImage(src) {
   if (!src) return '';

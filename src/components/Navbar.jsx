@@ -252,7 +252,7 @@ function Navbar() {
       <Link
         key={link.id}
         to={link.href}
-        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${active ? 'text-brand-blue bg-brand-blue/5' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
+        className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${active ? 'text-brand-blue bg-brand-blue/5 font-semibold' : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'}`}
       >
         {link.label}
       </Link>
@@ -291,26 +291,43 @@ function Navbar() {
   };
 
   return (
-    <div>
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-md' : 'bg-white shadow-xs'}`}>
-        <div className="max-w-[1400px] mx-auto px-4">
-          <div className="flex items-center justify-between h-16 lg:h-14">
-            <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
-              <img src={logo} alt="Vishwam Logo" className="h-8 w-auto" />
-            </Link>
-
-            <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
-              {/* Home Link */}
-              <Link
-                to="/home"
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  currentLocation.pathname === '/' || currentLocation.pathname === '/home'
-                    ? 'text-brand-blue bg-brand-blue/5 font-semibold'
-                    : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
-                }`}
-              >
-                Home
+    <>
+      <div
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pointer-events-none ${
+          scrolled ? 'pt-3 sm:pt-4 px-3 sm:px-6' : 'pt-0 px-0'
+        }`}
+      >
+        <header
+          className={`pointer-events-auto transition-all duration-300 ease-in-out ${
+            scrolled
+              ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/95 backdrop-blur-md border border-gray-200/90 shadow-[0_8px_30px_rgba(0,0,0,0.12)] px-4 sm:px-6'
+              : 'w-full bg-white border-b border-gray-100 shadow-xs px-4 sm:px-6 lg:px-8 rounded-none'
+          }`}
+        >
+          <div className="w-full">
+            <div className={`flex items-center justify-between transition-all duration-300 ${
+              scrolled ? 'h-13 sm:h-14' : 'h-16 lg:h-14'
+            }`}>
+              <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Vishwam Home">
+                <img
+                  src={logo}
+                  alt="Vishwam Logo"
+                  className={`w-auto transition-all duration-300 ${scrolled ? 'h-7 sm:h-7.5' : 'h-8'}`}
+                />
               </Link>
+
+              <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Main navigation">
+                {/* Home Link */}
+                <Link
+                  to="/home"
+                  className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                    currentLocation.pathname === '/' || currentLocation.pathname === '/home'
+                      ? 'text-brand-blue bg-brand-blue/5 font-semibold'
+                      : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
+                  }`}
+                >
+                  Home
+                </Link>
 
               {/* Category Dropdown Menu */}
               {/* About Us Link */}
@@ -333,7 +350,7 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={openDropdown === 'categories'}
                   onClick={() => toggleDropdown('categories')}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
                     isCategoryActive
                       ? 'text-brand-blue bg-brand-blue/5 font-semibold'
                       : 'text-gray-700 hover:text-brand-blue hover:bg-gray-50'
@@ -452,7 +469,7 @@ function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={openDropdown === 'location'}
                   onClick={() => toggleDropdown('location')}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 rounded-full hover:bg-gray-50 transition-colors"
                 >
                   <i className="fa-solid fa-location-dot text-brand-blue" />
                   <span className="hidden sm:inline truncate max-w-[120px]">{getCityLabel(selectedCity)}</span>
@@ -509,7 +526,7 @@ function Navbar() {
                 <button
                   type="button"
                   onClick={() => openAuthModal('login')}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-brand-blue bg-brand-blue/5 hover:bg-brand-blue/15 border border-brand-blue/20 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-brand-blue bg-brand-blue/5 hover:bg-brand-blue/15 border border-brand-blue/20 rounded-full transition-all duration-200 cursor-pointer shadow-2xs"
                 >
                   <i className="fa-solid fa-right-to-bracket text-xs text-brand-blue" />
                   <span>Login</span>
@@ -518,15 +535,19 @@ function Navbar() {
             </div>
 
             <button onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+              className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             >
               <i className={`fa-solid ${menuOpen ? 'fa-xmark' : 'fa-bars'} text-base`} />
             </button>
           </div>
         </div>
-        <VerticalRibbonBar />
       </header>
+    </div>
+
+    {/* Document flow spacer for fixed header */}
+    <div className="h-16 lg:h-14" aria-hidden="true" />
+    <VerticalRibbonBar />
 
       {/* Mobile overlay */}
       <div className={`fixed inset-0 z-40 bg-black/30 transition-opacity lg:hidden ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -674,7 +695,7 @@ function Navbar() {
           </div>
         </nav>
       </div>
-    </div>
+    </>
   );
 }
 

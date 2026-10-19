@@ -96,6 +96,7 @@ function App() {
             <Route path="/property/requirement" element={<PostRequirement />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
             <Route path="/properties/:id" element={<PropertyDetails />} />
+            <Route path="/our-services/properties/:id" element={<PropertyDetails />} />
 
             {/* Vehicles / Automobile Routes */}
             <Route path="/our-services/automobile" element={<AutomobileGallery />} />

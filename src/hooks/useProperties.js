@@ -27,6 +27,7 @@ import {
  */
 
 const SESSION_CACHE_KEY = 'vishwam_centralized_properties_v1';
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds freshness window
 
 function readSessionCache() {
   if (typeof window === 'undefined') return null;
@@ -35,6 +36,9 @@ function readSessionCache() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
+      return { items: parsed, timestamp: 0 };
+    }
+    if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
       return parsed;
     }
   } catch (e) {
@@ -46,7 +50,11 @@ function readSessionCache() {
 function writeSessionCache(list) {
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(list));
+    const payload = {
+      timestamp: Date.now(),
+      items: list,
+    };
+    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(payload));
   } catch (e) {
     // Ignore quota errors
   }
@@ -68,13 +76,39 @@ function normalizeProperty(p) {
     rawAddr === 'bengaluru' ||
     (p.city && rawAddr === p.city.toLowerCase());
 
-  return {
-    ...p,
-    id,
-    _id: id,
-    address: isBareCity ? resolvedAddress : (p.address || resolvedAddress),
-    locality: p.locality || resolvedLocality,
-    location: resolvedAddress,
+    const mapUrlValue = (
+      p.locationUrl ||
+      p.googleMapsUrl ||
+      p.googleMapUrl ||
+      p.mapUrl ||
+      p.mapsUrl ||
+      p['Google Map URL'] ||
+      p['Location URL'] ||
+      p['Map URL'] ||
+      p.details?.locationUrl ||
+      p.details?.googleMapsUrl ||
+      p.details?.googleMapUrl ||
+      p.details?.mapUrl ||
+      p.details?.mapsUrl ||
+      p.details?.['Google Map URL'] ||
+      p.details?.['Location URL'] ||
+      p.details?.['Map URL'] ||
+      ''
+    ).trim();
+
+    return {
+      ...p,
+      id,
+      _id: id,
+      address: isBareCity ? resolvedAddress : (p.address || resolvedAddress),
+      locality: p.locality || resolvedLocality,
+      location: resolvedAddress,
+      locationUrl: mapUrlValue,
+      mapUrl: mapUrlValue,
+      googleMapsUrl: mapUrlValue,
+      googleMapUrl: mapUrlValue,
+      mapEmbedUrl: p.mapEmbedUrl || p.details?.mapEmbedUrl || '',
+      resolvedLocationUrl: p.resolvedLocationUrl || p.details?.resolvedLocationUrl || '',
     formattedAddress: resolvedAddress,
     zone: p.zone || getBangaloreZone(p),
     rawPrice: p.rawPrice || p.price,
@@ -87,9 +121,11 @@ function normalizeProperty(p) {
 }
 
 // Initialize centralized store from session cache if available
-const initialCached = readSessionCache();
+const sessionData = readSessionCache();
+const initialCached = sessionData?.items || [];
+const initialFetchedAt = sessionData?.timestamp || 0;
 const initialById = new Map();
-if (initialCached) {
+if (initialCached.length > 0) {
   initialCached.forEach((p) => {
     if (p._id) initialById.set(String(p._id), p);
     if (p.id) initialById.set(String(p.id), p);
@@ -97,12 +133,12 @@ if (initialCached) {
 }
 
 let storeState = {
-  properties: initialCached || [],
+  properties: initialCached,
   byId: initialById,
-  loading: false,
+  loading: initialCached.length === 0,
   error: null,
-  isFetched: Boolean(initialCached && initialCached.length > 0),
-  lastFetchedAt: initialCached ? Date.now() : 0,
+  isFetched: false, // Keep false initially so SWR revalidation will fetch fresh listings from API
+  lastFetchedAt: initialFetchedAt,
 };
 
 let inFlightPromise = null;
@@ -131,14 +167,16 @@ function getServerSnapshot() {
 
 /**
  * Centralized fetch function.
- * Called once and shared everywhere. Subsequent calls return the cached data.
+ * Called and shared everywhere. Subsequent calls within CACHE_TTL_MS return the cached data.
+ * When stale or forced, re-fetches from network and updates subscribers seamlessly.
  *
  * @param {boolean} force - Force re-fetch from network
  * @returns {Promise<Array>} List of normalized properties
  */
 export function fetchProperties(force = false) {
-  // 1. If already fetched and not forced, return cached data immediately
-  if (!force && storeState.isFetched && storeState.properties.length > 0) {
+  // 1. If not forced and data is fresh within CACHE_TTL_MS, return cached data immediately
+  const isFresh = storeState.properties.length > 0 && (Date.now() - storeState.lastFetchedAt < CACHE_TTL_MS);
+  if (!force && storeState.isFetched && isFresh) {
     return Promise.resolve(storeState.properties);
   }
 
@@ -147,7 +185,7 @@ export function fetchProperties(force = false) {
     return inFlightPromise;
   }
 
-  // 3. Update loading state if we do not already have data
+  // 3. Update loading state only if we do not already have data to show
   if (!storeState.properties.length) {
     storeState = { ...storeState, loading: true, error: null };
     emitChange();
@@ -158,6 +196,8 @@ export function fetchProperties(force = false) {
       let list = [];
       if (Array.isArray(res?.data?.data?.items)) list = res.data.data.items;
       else if (Array.isArray(res?.data?.items)) list = res.data.items;
+      else if (Array.isArray(res?.data?.data?.properties)) list = res.data.data.properties;
+      else if (Array.isArray(res?.data?.properties)) list = res.data.properties;
       else if (Array.isArray(res?.data?.data)) list = res.data.data;
       else if (Array.isArray(res?.data)) list = res.data;
 
@@ -185,7 +225,7 @@ export function fetchProperties(force = false) {
       storeState = {
         ...storeState,
         loading: false,
-        error: msg,
+        error: storeState.properties.length > 0 ? null : msg,
       };
       emitChange();
       if (storeState.properties.length > 0) {
@@ -227,8 +267,9 @@ export function useProperties(params = {}) {
   );
 
   useEffect(() => {
-    // Only fetch if data has never been fetched and is not currently in flight
-    if (!storeState.isFetched && !inFlightPromise) {
+    // SWR pattern: Revalidate on mount if stale or not yet fetched from network
+    const isStale = Date.now() - storeState.lastFetchedAt >= CACHE_TTL_MS;
+    if ((!storeState.isFetched || isStale) && !inFlightPromise) {
       fetchProperties(false).catch(() => {});
     }
   }, []);
@@ -250,7 +291,7 @@ export function useProperties(params = {}) {
 /**
  * Hook: usePropertyById(id)
  * Resolves a property by id/slug from the centralized store first.
- * ZERO API calls are made if the property is already in the centralized catalog!
+ * If not in store yet, fetches directly from /api/properties/:id and merges it into the centralized catalog.
  *
  * Used in:
  *   - Property Details page
@@ -279,18 +320,7 @@ export function usePropertyById(id) {
       return;
     }
 
-    // Centralized list is currently in flight: wait for it
-    if (state.loading || inFlightPromise) {
-      return;
-    }
-
-    // Centralized list has not started fetching: start it
-    if (!state.isFetched) {
-      fetchProperties(false).catch(() => {});
-      return;
-    }
-
-    // Fallback: Property was not found in the 100 properties catalog.
+    // Direct lookup: Property was not found in centralized catalog (e.g. newly created).
     // Fetch directly via GET /api/properties/:id:
     let cancelled = false;
     setDirectLoading(true);
@@ -314,7 +344,18 @@ export function usePropertyById(id) {
           storeState.byId.set(propertyKey, normalized);
           if (normalized._id) storeState.byId.set(String(normalized._id), normalized);
           if (normalized.id) storeState.byId.set(String(normalized.id), normalized);
+
+          // Crucial: Also add into storeState.properties so it is part of the catalog!
+          const exists = storeState.properties.some(
+            (p) => String(p._id || p.id) === String(normalized._id || normalized.id)
+          );
+          if (!exists) {
+            storeState.properties = [normalized, ...storeState.properties];
+            writeSessionCache(storeState.properties);
+          }
           emitChange();
+        } else {
+          setDirectError('Property not found');
         }
       })
       .catch((err) => {
@@ -328,15 +369,16 @@ export function usePropertyById(id) {
     return () => {
       cancelled = true;
     };
-  }, [propertyKey, cachedProperty, state.loading, state.isFetched]);
+  }, [propertyKey, cachedProperty]);
 
   const property = cachedProperty || directItem;
-  const loading = !property && (state.loading || directLoading);
-  const error = directError || (state.isFetched && !property && !directLoading ? 'Property not found' : state.error);
+  const loading = !property && directLoading;
+  const error = !property && !loading ? directError : null;
 
   const retry = useCallback(() => {
     if (!propertyKey) return;
     setDirectLoading(true);
+    setDirectError(null);
     API.get(`/api/properties/${propertyKey}`)
       .then((res) => {
         const raw =
@@ -350,10 +392,19 @@ export function usePropertyById(id) {
           const normalized = normalizeProperty(raw);
           setDirectItem(normalized);
           storeState.byId.set(propertyKey, normalized);
+          if (normalized._id) storeState.byId.set(String(normalized._id), normalized);
+          if (normalized.id) storeState.byId.set(String(normalized.id), normalized);
+          const exists = storeState.properties.some(
+            (p) => String(p._id || p.id) === String(normalized._id || normalized.id)
+          );
+          if (!exists) {
+            storeState.properties = [normalized, ...storeState.properties];
+            writeSessionCache(storeState.properties);
+          }
           emitChange();
         }
       })
-      .catch((err) => setDirectError(err.message))
+      .catch((err) => setDirectError(err?.message || 'Failed to load property'))
       .finally(() => setDirectLoading(false));
   }, [propertyKey]);
 
@@ -390,6 +441,18 @@ export function useSimilarProperties(id) {
   }, [id, properties]);
 
   return { similar, loading: false, error: null };
+}
+
+// Listen for listing updates across tabs or window events
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'vishwam:properties:updated' || e.key === 'admin_listings_updated') {
+      fetchProperties(true).catch(() => {});
+    }
+  });
+  window.addEventListener('vishwam:properties:invalidate', () => {
+    fetchProperties(true).catch(() => {});
+  });
 }
 
 export default useProperties;

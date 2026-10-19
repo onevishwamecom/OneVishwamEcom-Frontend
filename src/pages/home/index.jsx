@@ -34,10 +34,16 @@ function Home() {
 
   const { properties: allProperties } = useProperties();
   const rawProperties = useMemo(() => {
-    if (allProperties && allProperties.length > 0) {
-      return filterAvailable(allProperties);
-    }
-    return filterAvailable(data?.latestProperties);
+    const list = [...(allProperties || [])];
+    const existingIds = new Set(list.map((p) => String(p.id || p._id)));
+    (data?.latestProperties || []).forEach((p) => {
+      const pid = String(p?.id || p?._id || '');
+      if (pid && !existingIds.has(pid)) {
+        list.unshift(p);
+        existingIds.add(pid);
+      }
+    });
+    return filterAvailable(list.length > 0 ? list : (data?.latestProperties || []));
   }, [allProperties, data?.latestProperties, filterAvailable]);
   const latestProperties = useMemo(() => sortPropertiesWithPriority(rawProperties), [rawProperties]);
   const mapProperties = useMemo(() => {

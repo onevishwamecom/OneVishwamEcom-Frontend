@@ -2,7 +2,7 @@ import axios from "axios";
 import { auth } from "../firebase/config";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5001/onevishwam/asia-south1/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://asia-south1-onevishwam.cloudfunctions.net/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -13,6 +13,9 @@ const API = axios.create({
 API.interceptors.request.use(
   async (config) => {
     try {
+      if (auth && typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
       const currentUser = auth?.currentUser;
       if (currentUser) {
         const idToken = await currentUser.getIdToken();

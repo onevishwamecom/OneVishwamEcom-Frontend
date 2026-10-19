@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../../store/authSlice';
 import API from '../../services/api';
+import { auth } from '../../firebase/config';
 
 /**
  * SessionTracker
@@ -18,18 +19,27 @@ export default function SessionTracker() {
     lastSyncRef.current = Date.now();
     pendingSecondsRef.current = 0;
 
-    // Send initial ping to mark active status upon login / reload
-    API.post('/auth/heartbeat', { seconds: 5 }).catch(() => null);
-
     const sendHeartbeat = async (seconds) => {
       if (seconds <= 0) return;
       try {
+        if (auth && typeof auth.authStateReady === 'function') {
+          await auth.authStateReady();
+        }
+        if (!auth?.currentUser && !localStorage.getItem('accessToken')) {
+          return;
+        }
         await API.post('/auth/heartbeat', { seconds });
         pendingSecondsRef.current = 0;
-      } catch {
-        // keep pending seconds to retry on next interval
+      } catch (err) {
+        // If unauthorized (401), reset pending to prevent continuous error spam
+        if (err?.response?.status === 401) {
+          pendingSecondsRef.current = 0;
+        }
       }
     };
+
+    // Send initial ping to mark active status upon login / reload
+    sendHeartbeat(5);
 
     // Periodic heartbeat every 30 seconds
     const intervalId = setInterval(() => {
