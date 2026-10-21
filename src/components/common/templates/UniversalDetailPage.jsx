@@ -61,6 +61,7 @@ export default function UniversalDetailPage({
       hookItem =
         res.item ||
         res.electronic ||
+        res.bedding ||
         res.vehicle ||
         res.property ||
         res.garment ||

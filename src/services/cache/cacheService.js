@@ -16,7 +16,7 @@
  */
 
 const STORAGE_PREFIX = 'onevishwam_cache';
-const CACHE_VERSION = 4;
+const CACHE_VERSION = 5;
 
 // Auto-purge stale cache keys from localStorage across previous versions
 try {

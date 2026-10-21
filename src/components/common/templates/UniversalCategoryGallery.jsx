@@ -60,6 +60,8 @@ export default function UniversalCategoryGallery({
       fetchedItems =
         hookResult.items ||
         hookResult.electronics ||
+        hookResult.beddings ||
+        hookResult.bedding ||
         hookResult.vehicles ||
         hookResult.properties ||
         hookResult.garments ||

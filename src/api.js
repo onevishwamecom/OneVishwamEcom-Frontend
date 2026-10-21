@@ -226,6 +226,17 @@ export const electronicsAPI = {
   toggleStatus: (id) => client.patch(`/product/electronics/${id}/status`),
 };
 
+// ─── Bedding & Sleep Comfort ──────────────────────────────────────────────────
+export const beddingAPI = {
+  getAll: (params) => client.get('/product/bedding', { params }),
+  getById: (id) => client.get(`/product/bedding/${id}`),
+  getSimilar: (id) => client.get(`/product/bedding/${id}/similar`),
+  getMy: () => client.get('/product/bedding/my'),
+  update: (id, body) => client.put(`/product/bedding/${id}`, body),
+  remove: (id) => client.delete(`/product/bedding/${id}`),
+  toggleStatus: (id) => client.patch(`/product/bedding/${id}/status`),
+};
+
 // ─── Homepage ────────────────────────────────────────────────────────────────
 export const homepageAPI = {
   getHomepageData: () => client.get('/homepage'),

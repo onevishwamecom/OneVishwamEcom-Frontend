@@ -15,6 +15,7 @@ function extractDetail(res) {
   return (
     res.data?.data?.item ||
     res.data?.data?.electronic ||
+    res.data?.data?.bedding ||
     res.data?.data?.property ||
     res.data?.data?.vehicle ||
     res.data?.data?.garment ||
@@ -22,6 +23,7 @@ function extractDetail(res) {
     res.data?.data?.jewellery ||
     res.data?.item ||
     res.data?.electronic ||
+    res.data?.bedding ||
     res.data?.vehicle ||
     res.data?.property ||
     res.data?.garment ||
