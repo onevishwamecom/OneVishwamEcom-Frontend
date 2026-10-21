@@ -57,7 +57,17 @@ export default function UniversalCategoryGallery({
     if (Array.isArray(hookResult)) {
       fetchedItems = hookResult;
     } else if (hookResult && typeof hookResult === 'object') {
-      fetchedItems = hookResult.items || hookResult.vehicles || hookResult.properties || hookResult.data || [];
+      fetchedItems =
+        hookResult.items ||
+        hookResult.electronics ||
+        hookResult.vehicles ||
+        hookResult.properties ||
+        hookResult.garments ||
+        hookResult.groceries ||
+        hookResult.jewellery ||
+        hookResult.data ||
+        Object.values(hookResult).find((v) => Array.isArray(v)) ||
+        [];
       fetchedLoading = Boolean(hookResult.loading);
       fetchedError = hookResult.error || null;
     }

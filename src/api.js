@@ -215,6 +215,17 @@ export const financeOfferingAPI = {
   toggleStatus: (id) => client.patch(`/product/finance-offerings/${id}/status`),
 };
 
+// ─── Electronics ─────────────────────────────────────────────────────────────
+export const electronicsAPI = {
+  getAll: (params) => client.get('/product/electronics', { params }),
+  getById: (id) => client.get(`/product/electronics/${id}`),
+  getSimilar: (id) => client.get(`/product/electronics/${id}/similar`),
+  getMy: () => client.get('/product/electronics/my'),
+  update: (id, body) => client.put(`/product/electronics/${id}`, body),
+  remove: (id) => client.delete(`/product/electronics/${id}`),
+  toggleStatus: (id) => client.patch(`/product/electronics/${id}/status`),
+};
+
 // ─── Homepage ────────────────────────────────────────────────────────────────
 export const homepageAPI = {
   getHomepageData: () => client.get('/homepage'),

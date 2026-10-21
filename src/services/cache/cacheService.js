@@ -16,14 +16,27 @@
  */
 
 const STORAGE_PREFIX = 'onevishwam_cache';
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 4;
+
+// Auto-purge stale cache keys from localStorage across previous versions
+try {
+  const currentPrefix = `${STORAGE_PREFIX}_v${CACHE_VERSION}_`;
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(currentPrefix)) {
+      localStorage.removeItem(k);
+    }
+  }
+} catch {
+  /* storage unavailable in private browsing or server context */
+}
 
 /** Configurable freshness lifetimes (ms) — tune per data type, never hardcode. */
 export const CACHE_TTL = {
   user: 30 * 60 * 1000, // 30 min — profile, revalidated after login
-  products: 10 * 60 * 1000, // 10 min — listing collections / lists
-  detail: 30 * 1000, // 30 sec — single listing detail (short TTL for fresh data)
-  similar: 10 * 60 * 1000, // 10 min — "similar items"
+  products: import.meta.env.DEV ? 5 * 1000 : 2 * 60 * 1000, // 5s in dev, 2 min in prod
+  detail: 15 * 1000, // 15 sec — single listing detail (short TTL for fresh data)
+  similar: import.meta.env.DEV ? 5 * 1000 : 5 * 60 * 1000,
 };
 
 export const PUBLIC_NAMESPACE = 'public';

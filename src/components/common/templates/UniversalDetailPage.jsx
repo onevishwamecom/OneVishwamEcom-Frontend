@@ -58,7 +58,16 @@ export default function UniversalDetailPage({
   if (typeof useItemById === 'function') {
     const res = useItemById(resolvedId);
     if (res) {
-      hookItem = res.item || res.vehicle || res.property || res.data || res;
+      hookItem =
+        res.item ||
+        res.electronic ||
+        res.vehicle ||
+        res.property ||
+        res.garment ||
+        res.grocery ||
+        res.jewellery ||
+        (res.data && typeof res.data === 'object' && !Array.isArray(res.data) ? res.data : null) ||
+        res;
       hookLoading = Boolean(res.loading);
       hookError = res.error || null;
     }
