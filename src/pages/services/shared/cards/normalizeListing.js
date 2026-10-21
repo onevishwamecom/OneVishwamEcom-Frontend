@@ -64,7 +64,7 @@ export function normalizeListing(rawItem, sector = '') {
   if (s.includes('vehicle') || s.includes('automobile')) {
     overline = rawItem.brand || rawItem.category || '';
   } else if (s.includes('property') || s.includes('real-estate')) {
-    const rawType = rawItem.subCategory || rawItem.category || rawItem.buildingType || '';
+    const rawType = rawItem.subcategory || rawItem.propertyType || rawItem.category || '';
     if (/apartment/i.test(rawType)) {
       overline = 'Flat';
     } else if (/plot|site/i.test(rawType)) {
@@ -123,7 +123,7 @@ export function normalizeListing(rawItem, sector = '') {
   if (s.includes('property') || s.includes('real-estate')) {
     const sub = String(
       rawItem.subcategory ||
-      rawItem.subCategory ||
+      rawItem.propertyType ||
       rawItem.category ||
       rawItem.buildingType ||
       rawItem.subtitle ||

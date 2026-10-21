@@ -369,18 +369,17 @@ export function getPropertyType(property) {
 
 export function getPropertyTypeLabel(property) {
   if (!property) return 'Flat';
-  const sub = String(property.propertyType || property.subcategory || property.subCategory || property.category || '').toLowerCase();
+  const sub = String(property.propertyType || property.subcategory || property.category || '').toLowerCase();
   if (sub.includes('plot') || sub.includes('site') || sub.includes('land')) return 'Plot';
   if (sub.includes('villa')) return 'Villa';
   if (sub.includes('flat') || sub.includes('apartment') || sub.includes('house') || !sub) return 'Flat';
-  return property.propertyType || property.subcategory || property.subCategory || 'Flat';
+  return property.propertyType || property.subcategory || 'Flat';
 }
 
 export function isPlotOrLand(property) {
   if (!property) return false;
   const sub = String(
     property.subcategory ||
-    property.subCategory ||
     property.propertyType ||
     property.category ||
     property.buildingType ||
@@ -449,10 +448,9 @@ export function getBuildingType(property) {
   if (!property) return 'Residential';
 
   const type = String(
-    property.buildingType ||
-    property.propertyType ||
     property.subcategory ||
-    property.subCategory ||
+    property.propertyType ||
+    property.buildingType ||
     property.category ||
     ''
   ).toLowerCase().trim();
@@ -547,7 +545,7 @@ export function getCardType(property) {
   if (!property) return 'Flat';
 
   const type = getPropertyType(property);
-  const sub = String(property.subcategory || property.subCategory || property.category || property.title || '').toLowerCase();
+  const sub = String(property.subcategory || property.category || property.title || '').toLowerCase();
   const subtitle = String(property.subtitle || '').toLowerCase();
 
   if (sub.includes('agricultural') || sub.includes('raw land') || subtitle.includes('agricultural')) {

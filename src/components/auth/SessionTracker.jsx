@@ -5,22 +5,29 @@ import { auth } from '../../firebase/config';
 
 /**
  * SessionTracker
- * Tracks user active duration on the website and sends periodic heartbeats to the backend.
- * Only records time when the browser tab is actively visible and focused.
+ * Marks user active status once per session upon initial login or page visit.
+ * Does not run repeatedly or poll the backend in the background.
  */
 export default function SessionTracker() {
   const { isLoggedIn, user } = useAuth();
-  const lastSyncRef = useRef(Date.now());
-  const pendingSecondsRef = useRef(0);
+  const hasSentRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoggedIn || !user) return;
+    if (!isLoggedIn || !user) {
+      hasSentRef.current = false;
+      return;
+    }
 
-    lastSyncRef.current = Date.now();
-    pendingSecondsRef.current = 0;
+    const userId = user._id || user.uid || user.firebaseUid || user.email;
+    if (!userId) return;
 
-    const sendHeartbeat = async (seconds) => {
-      if (seconds <= 0) return;
+    // Use sessionStorage to ensure it fires strictly once per browser session for this user
+    const sessionKey = `heartbeat_synced_${userId}`;
+    if (hasSentRef.current || sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+
+    const sendInitialHeartbeat = async () => {
       try {
         if (auth && typeof auth.authStateReady === 'function') {
           await auth.authStateReady();
@@ -28,69 +35,17 @@ export default function SessionTracker() {
         if (!auth?.currentUser && !localStorage.getItem('accessToken')) {
           return;
         }
-        await API.post('/auth/heartbeat', { seconds });
-        pendingSecondsRef.current = 0;
+
+        hasSentRef.current = true;
+        sessionStorage.setItem(sessionKey, 'true');
+
+        await API.post('/auth/heartbeat', { seconds: 5 });
       } catch (err) {
-        // If unauthorized (401), reset pending to prevent continuous error spam
-        if (err?.response?.status === 401) {
-          pendingSecondsRef.current = 0;
-        }
+        // Silently catch to avoid unhandled rejections
       }
     };
 
-    // Send initial ping to mark active status upon login / reload
-    sendHeartbeat(5);
-
-    // Periodic heartbeat every 30 seconds
-    const intervalId = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        const now = Date.now();
-        const elapsedSecs = Math.round((now - lastSyncRef.current) / 1000);
-        lastSyncRef.current = now;
-
-        // Cap elapsed to avoid large jumps if device woke from sleep
-        const validElapsed = Math.min(60, Math.max(1, elapsedSecs));
-        pendingSecondsRef.current += validElapsed;
-
-        if (pendingSecondsRef.current >= 25) {
-          sendHeartbeat(pendingSecondsRef.current);
-        }
-      } else {
-        lastSyncRef.current = Date.now();
-      }
-    }, 30000);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        const now = Date.now();
-        const elapsedSecs = Math.round((now - lastSyncRef.current) / 1000);
-        const validElapsed = Math.min(60, Math.max(0, elapsedSecs));
-        const toSend = pendingSecondsRef.current + validElapsed;
-        if (toSend >= 5) {
-          sendHeartbeat(toSend);
-        }
-      } else {
-        lastSyncRef.current = Date.now();
-      }
-    };
-
-    const handleBeforeUnload = () => {
-      const now = Date.now();
-      const elapsedSecs = Math.round((now - lastSyncRef.current) / 1000);
-      const toSend = pendingSecondsRef.current + Math.min(60, Math.max(0, elapsedSecs));
-      if (toSend >= 3) {
-        sendHeartbeat(toSend);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      clearInterval(intervalId);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    sendInitialHeartbeat();
   }, [isLoggedIn, user]);
 
   return null;
