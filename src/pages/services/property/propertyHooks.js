@@ -60,6 +60,15 @@ export function useActiveChips(filters) {
 /**
  * Returns the filtered + sorted property list.
  */
+// Precomputed O(1) map for priority title indices
+const PRIORITY_TITLE_INDEX_MAP = new Map(
+  (PRIORITY_TITLES || []).map((t, i) => [String(t).trim().toLowerCase(), i])
+);
+
+/**
+ * Returns the filtered + sorted property list.
+ * Highly optimized using fail-fast short-circuiting and pre-normalized Sets.
+ */
 export function useFilteredProperties(arg1, arg2) {
   const isFirstArray = Array.isArray(arg1);
   const properties = isFirstArray ? (arg1 || []) : (arg1?.properties || []);
@@ -81,184 +90,200 @@ export function useFilteredProperties(arg1, arg2) {
 
   return useMemo(() => {
     if (!Array.isArray(properties) || properties.length === 0) return [];
+
+    // Pre-normalize filter criteria outside the loop once (O(1) lookups)
+    const qSearch = (searchTerm || '').toLowerCase().trim();
+    const qReq = (requirementText || '').toLowerCase().trim();
+    const sCity = String(selectedCity || '').toLowerCase().trim();
+    const isBangalore = sCity === 'bengaluru' || sCity === 'bangalore';
+    const locFilter = String(locationInput || '').toLowerCase().trim();
+    const pinFilter = String(pincodeInput || '').trim();
+    const zoneFilter = String(selectedZone || '').toLowerCase().trim();
+    const hasZoneFilter = Boolean(zoneFilter && zoneFilter !== 'all');
+
+    const buildingTypeSet = new Set((filters.buildingType || []).map((bt) => String(bt).toLowerCase().trim()));
+    const propertyTypeSet = new Set((filters.propertyType || []).map((ft) => String(ft).toLowerCase().trim()));
+    const bedroomsSet = new Set(filters.bedrooms || []);
+    const amenitiesSet = new Set(filters.amenities || []);
+    const facingSet = new Set(filters.facing || []);
+    const propertyAgeSet = new Set(filters.propertyAge || []);
+    const postedBySet = new Set(filters.postedBy || []);
+    const localitiesList = (filters.localities || []).map((l) => String(l).toLowerCase().trim());
+
     return properties
       .filter((p) => {
         if (!p) return false;
-        const type        = getPropertyType(p);
-        const np          = getNumericPrice(p.price);
-        const area        = getNumericArea(p.area);
-        const bedrooms    = getBedrooms(p.bhk, p);
-        const buildingType= getBuildingType(p);
-        const listedDays  = getListedWithinDays(p);
 
-        const matchCardType =
-          selectedCardType === 'All' || getCardType(p) === selectedCardType;
+        // 1. Primitive early exits (O(1) fail-fast)
+        if (selectedCardType !== 'All' && getCardType(p) !== selectedCardType) return false;
+        if (familyLocationsOnly && getBuildingType(p) !== 'Residential') return false;
+        if (preApprovedMode && p.loanApproved !== true) return false;
+        if (filters.loanApprovedOnly && p.loanApproved !== true) return false;
+        if (filters.gatedCommunity && p.gatedCommunity !== true && p.gated !== true) return false;
 
-        const q = (searchTerm || '').toLowerCase().trim();
+        // 2. Pincode & Location check
+        if (pinFilter && !String(p.pincode || '').startsWith(pinFilter)) return false;
+
+        if (locFilter) {
+          const matchLocation =
+            (p.zone && String(p.zone).toLowerCase().includes(locFilter)) ||
+            (p.location && String(p.location).toLowerCase().includes(locFilter)) ||
+            (p.area && String(p.area).toLowerCase().includes(locFilter));
+          if (!matchLocation) return false;
+        }
+
+        // 3. Zone filter
+        if (hasZoneFilter) {
+          const pZone = getBangaloreZone(p).toLowerCase();
+          const matchZone = pZone === zoneFilter || (p.zone && String(p.zone).toLowerCase() === zoneFilter);
+          if (!matchZone) return false;
+        }
+
+        // 4. Budget & Size range
+        if (!matchesBudgetRange(p, filters.budgetMin, filters.budgetMax)) return false;
+        if (!matchesSizeRange(p, filters.sizeMin, filters.sizeMax)) return false;
+
+        // 5. Search Text matching
         const titleStr = String(p.title || p.name || '').toLowerCase();
         const locStr = String(p.location || p.locality || p.city || '').toLowerCase();
         const subStr = String(p.subtitle || p.propertyType || '').toLowerCase();
-        const vendorStr = String(p.vendorName || p.channelPartnerName || '').toLowerCase();
-        const addrStr = String(p.address || '').toLowerCase();
-        const matchSearch =
-          !q ||
-          titleStr.includes(q) ||
-          locStr.includes(q) ||
-          subStr.includes(q) ||
-          vendorStr.includes(q) ||
-          addrStr.includes(q);
 
-        const qReq = (requirementText || '').toLowerCase().trim();
-        const descStr = String(p.description || '').toLowerCase();
-        const matchRequirement = !qReq || titleStr.includes(qReq) || locStr.includes(qReq) || subStr.includes(qReq) || descStr.includes(qReq);
+        if (qSearch) {
+          const vendorStr = String(p.vendorName || p.channelPartnerName || '').toLowerCase();
+          const addrStr = String(p.address || '').toLowerCase();
+          const matchSearch =
+            titleStr.includes(qSearch) ||
+            locStr.includes(qSearch) ||
+            subStr.includes(qSearch) ||
+            vendorStr.includes(qSearch) ||
+            addrStr.includes(qSearch);
+          if (!matchSearch) return false;
+        }
 
-        const matchBudget = matchesBudgetRange(p, filters.budgetMin, filters.budgetMax);
+        if (qReq) {
+          const descStr = String(p.description || '').toLowerCase();
+          const matchReq =
+            titleStr.includes(qReq) ||
+            locStr.includes(qReq) ||
+            subStr.includes(qReq) ||
+            descStr.includes(qReq);
+          if (!matchReq) return false;
+        }
 
-        const matchSize = matchesSizeRange(p, filters.sizeMin, filters.sizeMax);
+        // 6. City match
+        if (sCity) {
+          const pCity = String(p.city || '').toLowerCase().trim();
+          const isNumericCity = /^\d+$/.test(pCity);
+          const isBangaloreProperty =
+            pCity === 'bengaluru' ||
+            pCity === 'bangalore' ||
+            isNumericCity ||
+            !pCity ||
+            String(p.state || '').toLowerCase().includes('karnataka') ||
+            String(p.details?.possessionStatus || '').toLowerCase().includes('bengaluru') ||
+            String(p.details?.parkingAvailability || '').toLowerCase().includes('white') ||
+            String(p.address || '').toLowerCase().includes('bangalore') ||
+            String(p.address || '').toLowerCase().includes('bengaluru');
 
-        const matchBuildingType =
-          filters.buildingType.length === 0 ||
-          filters.buildingType.some((bt) => String(bt).toLowerCase().trim() === String(buildingType).toLowerCase().trim());
+          const matchCity =
+            !pCity ||
+            isNumericCity ||
+            pCity === sCity ||
+            (isBangalore && isBangaloreProperty) ||
+            Boolean(qSearch);
+          if (!matchCity) return false;
+        }
 
-        const matchPropertyType =
-          filters.propertyType.length === 0 ||
-          filters.propertyType.some((ft) => {
-            const ftNorm = String(ft).toLowerCase().trim();
-            const typeNorm = String(type).toLowerCase().trim();
+        // 7. Faceted Set checks (only evaluated if filter is active)
+        if (buildingTypeSet.size > 0) {
+          const bType = String(getBuildingType(p)).toLowerCase().trim();
+          if (!buildingTypeSet.has(bType)) return false;
+        }
 
-            if (typeNorm === ftNorm) return true;
-            if ((ftNorm === 'plots' || ftNorm === 'plot') && (typeNorm.includes('plot') || typeNorm.includes('site') || typeNorm.includes('land'))) return true;
-            if ((ftNorm === 'flats' || ftNorm === 'flat') && (typeNorm.includes('flat') || typeNorm.includes('apartment'))) return true;
-            if ((ftNorm === 'villas' || ftNorm === 'villa') && typeNorm.includes('villa')) return true;
-            if ((ftNorm === 'houses' || ftNorm === 'house') && typeNorm.includes('house')) return true;
-            if (ftNorm === 'commercial' && (typeNorm.includes('commercial') || typeNorm.includes('industrial') || typeNorm.includes('showroom') || typeNorm.includes('office'))) return true;
-            return false;
-          });
+        if (propertyTypeSet.size > 0) {
+          const type = String(getPropertyType(p)).toLowerCase().trim();
+          let matchPropType = propertyTypeSet.has(type);
+          if (!matchPropType) {
+            if ((propertyTypeSet.has('plots') || propertyTypeSet.has('plot')) && (type.includes('plot') || type.includes('site') || type.includes('land'))) matchPropType = true;
+            else if ((propertyTypeSet.has('flats') || propertyTypeSet.has('flat')) && (type.includes('flat') || type.includes('apartment'))) matchPropType = true;
+            else if ((propertyTypeSet.has('villas') || propertyTypeSet.has('villa')) && type.includes('villa')) matchPropType = true;
+            else if ((propertyTypeSet.has('houses') || propertyTypeSet.has('house')) && type.includes('house')) matchPropType = true;
+            else if (propertyTypeSet.has('commercial') && (type.includes('commercial') || type.includes('industrial') || type.includes('showroom') || type.includes('office'))) matchPropType = true;
+          }
+          if (!matchPropType) return false;
+        }
 
-        const matchBedrooms =
-          filters.bedrooms.length === 0 || filters.bedrooms.includes(bedrooms);
+        if (bedroomsSet.size > 0) {
+          const bBed = getBedrooms(p.bhk, p);
+          if (!bedroomsSet.has(bBed)) return false;
+        }
 
-        const matchLocality =
-          filters.localities.length === 0 ||
-          filters.localities.some((loc) => {
-            const l = String(loc).toLowerCase().trim();
-            const pLoc = String(p.location || '').toLowerCase();
-            const pZone = String(p.zone || '').toLowerCase();
-            const pTitle = String(p.title || '').toLowerCase();
-            const pSub = String(p.subtitle || '').toLowerCase();
-            const pAddr = String(p.address || '').toLowerCase();
-            const pArea = String(p.area || '').toLowerCase();
+        if (postedBySet.size > 0 && (!p.postedBy || !postedBySet.has(p.postedBy))) return false;
+        if (facingSet.size > 0 && (!p.facing || !facingSet.has(p.facing))) return false;
+        if (propertyAgeSet.size > 0 && (!p.propertyAge || !propertyAgeSet.has(p.propertyAge))) return false;
 
-            return (
-              pLoc.includes(l) ||
-              pZone.includes(l) ||
-              pTitle.includes(l) ||
-              pSub.includes(l) ||
-              pAddr.includes(l) ||
-              pArea.includes(l)
-            );
-          });
+        if (amenitiesSet.size > 0) {
+          const pAmenities = Array.isArray(p.amenities) ? p.amenities : [];
+          for (const a of amenitiesSet) {
+            if (!pAmenities.includes(a)) return false;
+          }
+        }
 
-        const pFurnishing = getCanonicalFurnishing(p);
-        const matchFurnishing =
-          filters.furnishing.length === 0 ||
-          filters.furnishing.some((f) => {
+        if (localitiesList.length > 0) {
+          const pLoc = String(p.location || '').toLowerCase();
+          const pZone = String(p.zone || '').toLowerCase();
+          const pTitle = titleStr;
+          const pSub = subStr;
+          const pAddr = String(p.address || '').toLowerCase();
+          const pArea = String(p.area || '').toLowerCase();
+
+          const hasLocalityMatch = localitiesList.some((l) =>
+            pLoc.includes(l) ||
+            pZone.includes(l) ||
+            pTitle.includes(l) ||
+            pSub.includes(l) ||
+            pAddr.includes(l) ||
+            pArea.includes(l)
+          );
+          if (!hasLocalityMatch) return false;
+        }
+
+        if (filters.furnishing && filters.furnishing.length > 0) {
+          const pFurnishing = getCanonicalFurnishing(p);
+          const matchFurnishing = filters.furnishing.some((f) => {
             const fNorm = String(f).toLowerCase().replace(/[-\s]/g, '');
             let target = 'unfurnished';
             if (fNorm.includes('semi')) target = 'semi_furnished';
             else if (fNorm.includes('un')) target = 'unfurnished';
             else if (fNorm.includes('furnish')) target = 'furnished';
-
             return pFurnishing === target;
           });
+          if (!matchFurnishing) return false;
+        }
 
-        const matchGated = !filters.gatedCommunity || p.gatedCommunity === true || p.gated === true;
-        const matchPostedBy = filters.postedBy.length === 0 || (p.postedBy && filters.postedBy.includes(p.postedBy));
-
-        const pPossession = getCanonicalPossession(p);
-        const matchPossession =
-          filters.possessionStatus.length === 0 ||
-          filters.possessionStatus.some((status) => {
+        if (filters.possessionStatus && filters.possessionStatus.length > 0) {
+          const pPossession = getCanonicalPossession(p);
+          const matchPossession = filters.possessionStatus.some((status) => {
             const statusNorm = String(status).toLowerCase().trim();
-            let targetCanonical = '';
-            if (statusNorm.includes('registration') || statusNorm.includes('register')) {
-              targetCanonical = 'ready_for_registration';
-            } else if (statusNorm.includes('occupy') || statusNorm.includes('move')) {
-              targetCanonical = 'ready_for_occupy';
-            } else if (statusNorm.includes('construction')) {
-              targetCanonical = 'under_construction';
-            }
-
-            return pPossession === targetCanonical;
+            let target = '';
+            if (statusNorm.includes('registration') || statusNorm.includes('register')) target = 'ready_for_registration';
+            else if (statusNorm.includes('occupy') || statusNorm.includes('move')) target = 'ready_for_occupy';
+            else if (statusNorm.includes('construction')) target = 'under_construction';
+            return pPossession === target;
           });
-        
-        // Handle Amenities (property amenities should contain ALL selected amenities)
-        const matchAmenities        = filters.amenities.length === 0 || filters.amenities.every(a => p.amenities && p.amenities.includes(a));
-        
-        const matchFacing           = filters.facing.length === 0 || (p.facing && filters.facing.includes(p.facing));
-        const matchAge              = filters.propertyAge.length === 0 || (p.propertyAge && filters.propertyAge.includes(p.propertyAge));
-        const matchAvailability =
-          filters.availability.length === 0 ||
-          filters.availability.some((a) => {
+          if (!matchPossession) return false;
+        }
+
+        if (filters.availability && filters.availability.length > 0) {
+          const pAvailNorm = String(p.availability || '').toLowerCase().trim();
+          const matchAvail = filters.availability.some((a) => {
             const aNorm = String(a).toLowerCase().trim();
-            const pNorm = String(p.availability || '').toLowerCase().trim();
-            return pNorm === aNorm || pNorm.includes(aNorm) || aNorm.includes(pNorm);
+            return pAvailNorm === aNorm || pAvailNorm.includes(aNorm) || aNorm.includes(pAvailNorm);
           });
+          if (!matchAvail) return false;
+        }
 
-        const pCity = String(p.city || '').toLowerCase().trim();
-        const sCity = String(selectedCity || '').toLowerCase().trim();
-        const isNumericCity = /^\d+$/.test(pCity);
-        const isBangalore = sCity === 'bengaluru' || sCity === 'bangalore';
-        const isBangaloreProperty =
-          pCity === 'bengaluru' ||
-          pCity === 'bangalore' ||
-          isNumericCity ||
-          !pCity ||
-          String(p.state || '').toLowerCase().includes('karnataka') ||
-          String(p.details?.possessionStatus || '').toLowerCase().includes('bengaluru') ||
-          String(p.details?.parkingAvailability || '').toLowerCase().includes('white') ||
-          String(p.address || '').toLowerCase().includes('bangalore') ||
-          String(p.address || '').toLowerCase().includes('bengaluru');
-
-        const matchCity =
-          !sCity ||
-          !pCity ||
-          isNumericCity ||
-          pCity === sCity ||
-          (isBangalore && isBangaloreProperty) ||
-          (Boolean(searchTerm) && matchSearch);
-
-        const locFilter = String(locationInput || '').toLowerCase().trim();
-        const matchLocation =
-          !locFilter ||
-          (p.zone && String(p.zone).toLowerCase().includes(locFilter)) ||
-          (p.location && String(p.location).toLowerCase().includes(locFilter)) ||
-          (p.area && String(p.area).toLowerCase().includes(locFilter));
-
-        const pinFilter = String(pincodeInput || '').trim();
-        const matchPincode        = !pinFilter || String(p.pincode || '').startsWith(pinFilter);
-        const matchFamilyLocation = !familyLocationsOnly || getBuildingType(p) === 'Residential';
-        const matchPreApproved    = !preApprovedMode || p.loanApproved === true;
-        const matchLoanApproved   = !filters.loanApprovedOnly || p.loanApproved === true;
-
-        const zoneFilter = String(selectedZone || '').toLowerCase().trim();
-        const pZone = getBangaloreZone(p).toLowerCase();
-        const matchZone =
-          !zoneFilter ||
-          zoneFilter === 'all' ||
-          pZone === zoneFilter ||
-          (p.zone && String(p.zone).toLowerCase() === zoneFilter);
-
-        return (
-          matchCardType && matchSearch && matchRequirement && matchBudget && matchSize &&
-          matchBuildingType && matchPropertyType && matchBedrooms &&
-          matchLocality && matchFurnishing && matchGated &&
-          matchPostedBy && matchPossession && matchAmenities &&
-          matchFacing && matchAge && matchAvailability &&
-          matchCity && matchLocation && matchPincode &&
-          matchFamilyLocation && matchPreApproved && matchLoanApproved &&
-          matchZone
-        );
+        return true;
       })
       .sort((a, b) => {
         const aScore = getPriorityScore(a);
@@ -268,8 +293,8 @@ export function useFilteredProperties(arg1, arg2) {
         if (aScore === 3 && bScore === 3) {
           const aTitle = String(a.title || a.name || '').trim().toLowerCase();
           const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-          const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
-          const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
+          const aPriIndex = PRIORITY_TITLE_INDEX_MAP.has(aTitle) ? PRIORITY_TITLE_INDEX_MAP.get(aTitle) : -1;
+          const bPriIndex = PRIORITY_TITLE_INDEX_MAP.has(bTitle) ? PRIORITY_TITLE_INDEX_MAP.get(bTitle) : -1;
           if (aPriIndex !== -1 && bPriIndex !== -1) return aPriIndex - bPriIndex;
           if (aPriIndex !== -1) return -1;
           if (bPriIndex !== -1) return 1;

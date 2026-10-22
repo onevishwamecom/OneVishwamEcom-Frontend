@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import MarketplaceCategoryGallery from './MarketplaceCategoryGallery';
 import CategoryListingCard from './CategoryListingCard';
 import { parseIndianPrice } from '../../../utils/priceUtils';
+import SearchIndex from '../../../utils/searchIndex';
 
 /**
  * UniversalCategoryGallery
@@ -190,76 +191,94 @@ export default function UniversalCategoryGallery({
     });
   }, [rawItems, mapping]);
 
-  // 5. Intelligent Filtering Logic
+  // 5. Build High-Performance Search Index (O(N) built once when catalog loads)
+  const searchIndex = useMemo(() => {
+    const searchableItems = transformedItems.map((t) => {
+      const flat = { ...t.raw, id: t.id, title: t.title, location: t.location };
+      if (Array.isArray(t.cardPills)) {
+        flat.pills = t.cardPills.map((p) => String(p.value || p)).join(' ');
+      }
+      return flat;
+    });
+    return new SearchIndex(searchableItems, [...searchFields, 'title', 'location', 'pills']);
+  }, [transformedItems, searchFields]);
+
+  // 6. Intelligent Filtering Logic with O(K) Search & O(1) Set Lookups
   const filteredItems = useMemo(() => {
-    return transformedItems.filter(({ raw, title, location, cardPills }) => {
-      // A. Global Search Term
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase().trim();
-        const titleMatch = (title || '').toLowerCase().includes(q);
-        const locMatch = (location || '').toLowerCase().includes(q);
-        const pillsMatch = (cardPills || []).some((p) => String(p.value || p).toLowerCase().includes(q));
+    const q = searchTerm.trim();
+    // Fast O(K) inverted index lookup
+    const matchedSearchIds = q
+      ? new Set(searchIndex.search(q).map((item) => String(item.id || item._id)))
+      : null;
 
-        let fieldMatch = false;
-        if (searchFields && searchFields.length > 0) {
-          fieldMatch = searchFields.some((field) => {
-            const val = raw[field];
-            return typeof val === 'string' && val.toLowerCase().includes(q);
-          });
-        }
+    // Pre-normalize checkbox filter group sets outside the loop (O(1) lookups)
+    const activeGroupSets = [];
+    for (const group of filterGroups) {
+      const selected = activeFilters[group.id] || [];
+      if (selected.length > 0) {
+        activeGroupSets.push({
+          group,
+          selectedSet: new Set(selected.map((opt) => String(opt).toLowerCase())),
+        });
+      }
+    }
 
-        if (!titleMatch && !locMatch && !pillsMatch && !fieldMatch) {
-          return false;
-        }
+    // Active range filter checks
+    const activeRanges = [];
+    for (const range of rangeFilters) {
+      const minVal = activeFilters[`${range.id}Min`];
+      const maxVal = activeFilters[`${range.id}Max`];
+      if (minVal || maxVal) {
+        activeRanges.push({
+          range,
+          minNum: minVal ? Number(minVal) : null,
+          maxNum: maxVal ? Number(maxVal) : null,
+        });
+      }
+    }
+
+    return transformedItems.filter(({ id, raw }) => {
+      // A. O(1) Search Match Check
+      if (matchedSearchIds !== null && !matchedSearchIds.has(String(id))) {
+        return false;
       }
 
       // B. Range Filters
-      for (const range of rangeFilters) {
-        const minVal = activeFilters[`${range.id}Min`];
-        const maxVal = activeFilters[`${range.id}Max`];
-        if (minVal || maxVal) {
-          let itemNumericVal = 0;
-          if (typeof range.field === 'function') {
-            itemNumericVal = range.field(raw);
-          } else {
-            const rawVal = raw[range.field || range.id] || raw.price;
-            itemNumericVal = parseIndianPrice(rawVal);
-          }
-
-          if (minVal && itemNumericVal < Number(minVal)) return false;
-          if (maxVal && itemNumericVal > Number(maxVal)) return false;
+      for (const { range, minNum, maxNum } of activeRanges) {
+        let itemNumericVal = 0;
+        if (typeof range.field === 'function') {
+          itemNumericVal = range.field(raw);
+        } else {
+          const rawVal = raw[range.field || range.id] || raw.price;
+          itemNumericVal = parseIndianPrice(rawVal);
         }
+
+        if (minNum !== null && itemNumericVal < minNum) return false;
+        if (maxNum !== null && itemNumericVal > maxNum) return false;
       }
 
-      // C. Checkbox Group Filters
-      for (const group of filterGroups) {
-        const selectedOptions = activeFilters[group.id] || [];
-        if (selectedOptions.length > 0) {
-          let itemValue;
-          if (typeof group.field === 'function') {
-            itemValue = group.field(raw);
-          } else {
-            itemValue = raw[group.field || group.id];
-          }
+      // C. O(1) Set Checkbox Group Filters
+      for (const { group, selectedSet } of activeGroupSets) {
+        let itemValue;
+        if (typeof group.field === 'function') {
+          itemValue = group.field(raw);
+        } else {
+          itemValue = raw[group.field || group.id];
+        }
 
-          if (Array.isArray(itemValue)) {
-            const hasMatch = itemValue.some((v) =>
-              selectedOptions.some((opt) => String(opt).toLowerCase() === String(v).toLowerCase())
-            );
-            if (!hasMatch) return false;
-          } else if (itemValue !== undefined && itemValue !== null) {
-            const itemStr = String(itemValue).toLowerCase();
-            const hasMatch = selectedOptions.some((opt) => itemStr === String(opt).toLowerCase());
-            if (!hasMatch) return false;
-          } else {
-            return false;
-          }
+        if (Array.isArray(itemValue)) {
+          const hasMatch = itemValue.some((v) => selectedSet.has(String(v).toLowerCase()));
+          if (!hasMatch) return false;
+        } else if (itemValue !== undefined && itemValue !== null) {
+          if (!selectedSet.has(String(itemValue).toLowerCase())) return false;
+        } else {
+          return false;
         }
       }
 
       return true;
     });
-  }, [transformedItems, searchTerm, activeFilters, rangeFilters, filterGroups, searchFields]);
+  }, [transformedItems, searchTerm, searchIndex, activeFilters, rangeFilters, filterGroups]);
 
   return (
     <>

@@ -15,6 +15,8 @@
  * ============================================================================
  */
 
+import { memoryCache } from '../../utils/lruCache';
+
 const STORAGE_PREFIX = 'onevishwam_cache';
 const CACHE_VERSION = 5;
 
@@ -86,18 +88,35 @@ const inflight = new Map();
 
 export const cache = {
   get(namespace, key) {
-    return safeRead(storageKey(namespace, key));
+    const sKey = storageKey(namespace, key);
+    // L1: In-memory O(1) LRU Cache lookup (zero main-thread JSON parsing lag)
+    const memRecord = memoryCache.get(sKey);
+    if (memRecord) return memRecord;
+
+    // L2: Persistent localStorage fallback
+    const diskRecord = safeRead(sKey);
+    if (diskRecord) {
+      memoryCache.set(sKey, diskRecord);
+      return diskRecord;
+    }
+    return null;
   },
 
   set(namespace, key, data, params = {}) {
     const record = { data, params, cachedAt: Date.now(), version: CACHE_VERSION };
-    safeWrite(storageKey(namespace, key), record);
+    const sKey = storageKey(namespace, key);
+    // Write to L1 Memory LRU
+    memoryCache.set(sKey, record);
+    // Write to L2 Persistent localStorage
+    safeWrite(sKey, record);
     return record;
   },
 
   remove(namespace, key) {
+    const sKey = storageKey(namespace, key);
+    memoryCache.delete(sKey);
     try {
-      localStorage.removeItem(storageKey(namespace, key));
+      localStorage.removeItem(sKey);
     } catch {
       /* ignore */
     }
@@ -111,7 +130,10 @@ export const cache = {
       const k = localStorage.key(i);
       if (k && k.startsWith(start + prefix)) doomed.push(k);
     }
-    doomed.forEach((k) => localStorage.removeItem(k));
+    doomed.forEach((k) => {
+      memoryCache.delete(k);
+      localStorage.removeItem(k);
+    });
   },
 
   clearNamespace(namespace) {
@@ -119,6 +141,7 @@ export const cache = {
   },
 
   clear() {
+    memoryCache.clear();
     const start = `${STORAGE_PREFIX}_v${CACHE_VERSION}_`;
     const doomed = [];
     for (let i = 0; i < localStorage.length; i++) {
