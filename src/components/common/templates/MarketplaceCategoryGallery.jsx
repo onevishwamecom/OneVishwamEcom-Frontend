@@ -7,6 +7,7 @@ import { cities } from '../../../constants/locations';
 import PageContainer from '../PageContainer';
 import LottieComingSoon from '../LottieComingSoon';
 import { isInHouseOrCeoListing } from '../../../pages/services/shared/sortBy';
+import ContactDetailsModal from '../ContactDetailsModal';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -246,6 +247,8 @@ export default function MarketplaceCategoryGallery({
       })}
     </div>
   );
+
+  const [showContact, setShowContact] = useState(false);
 
   return (
     <PageContainer className="min-h-screen bg-[#f8fafc] pb-24 relative">
@@ -500,6 +503,28 @@ export default function MarketplaceCategoryGallery({
             )}
           </div>
         </div>
+
+        {/* ── Contact Us Sticky Button ── */}
+        <div className="fixed bottom-6 right-5 z-40 flex flex-col items-end gap-2">
+          <button
+            type="button"
+            id="gallery-contact-us-btn"
+            onClick={() => setShowContact(true)}
+            className="flex items-center gap-2.5 rounded-2xl bg-[#1a3a6b] hover:bg-[#0f2347] text-white text-xs font-bold px-4 py-3 shadow-xl hover:shadow-2xl transition-all hover:scale-105 active:scale-100 cursor-pointer"
+          >
+            <span className="w-7 h-7 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-phone-volume text-sm" />
+            </span>
+            <span>Contact Us</span>
+          </button>
+        </div>
+
+        {/* ── Contact Details Modal ── */}
+        <ContactDetailsModal
+          open={showContact}
+          onClose={() => setShowContact(false)}
+          sectorName={breadcrumbCategory}
+        />
 
         {/* ── Mobile Filter Drawer ── */}
         {showMobileFilters && (

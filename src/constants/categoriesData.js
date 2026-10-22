@@ -10,7 +10,7 @@ export const marketplaceCategories = [
   },
   {
     id: 'automobile',
-    label: 'Vehicles & Autos',
+    label: 'Vehicles',
     shortDesc: 'Cars, bikes & commercial vehicles',
     href: '/our-services/automobile',
     icon: 'fa-solid fa-car',
