@@ -14,7 +14,7 @@ describe('ServicesPage Search Bar & Filtering', () => {
     );
 
     expect(screen.getByPlaceholderText(/Search products or services/i)).toBeInTheDocument();
-    expect(screen.getAllByText('Houses & Land').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Properties').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Vehicles').length).toBeGreaterThan(0);
   });
 
@@ -32,8 +32,8 @@ describe('ServicesPage Search Bar & Filtering', () => {
 
     // The card for Jewellery & Gold should be present
     expect(screen.getByRole('heading', { name: 'Jewellery & Gold' })).toBeInTheDocument();
-    // The card for Houses & Land heading should not be present
-    expect(screen.queryByRole('heading', { name: 'Houses & Land' })).not.toBeInTheDocument();
+    // The card for Properties heading should not be present
+    expect(screen.queryByRole('heading', { name: 'Properties' })).not.toBeInTheDocument();
   });
 
   it('shows empty state when search query matches nothing', () => {
@@ -63,12 +63,12 @@ describe('ServicesPage Search Bar & Filtering', () => {
 
     const searchInput = screen.getByPlaceholderText(/Search products or services/i);
     fireEvent.change(searchInput, { target: { value: 'Gold' } });
-    expect(screen.queryByRole('heading', { name: 'Houses & Land' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Properties' })).not.toBeInTheDocument();
 
     const clearButton = screen.getByRole('button', { name: /Clear search/i });
     fireEvent.click(clearButton);
 
-    expect(screen.getByRole('heading', { name: 'Houses & Land' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Properties' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Jewellery & Gold' })).toBeInTheDocument();
   });
 });

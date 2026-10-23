@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import EnquiryModal from '../../EnquiryModal';
+import Breadcrumbs from '../Breadcrumbs';
 import { useAuth } from '../../../store/authSlice';
 import AuthRequiredView from '../../auth/AuthRequiredView';
-import CategoryListingCard, { FALLBACK_IMG } from './CategoryListingCard';
+import CategoryListingCard from './CategoryListingCard';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
@@ -123,6 +125,10 @@ function GalleryModal({ items = [], index, onClose, onPrev, onNext }) {
           <img
             src={resolveImage(current?.url || current)}
             alt=""
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
+            }}
             className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl select-none"
           />
         )}
@@ -274,15 +280,22 @@ export default function MasterDetailPage({
   };
 
   const mediaItems = useMemo(() => {
-    if (!item) return [];
-    const imgs = (item.images || [item.image]).filter(Boolean).map((img) => ({
-      type: 'image',
-      url: typeof img === 'object' ? img.url || img : img,
-    }));
+    if (!item) return [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
+    const rawList = Array.isArray(item.images) && item.images.length > 0
+      ? item.images
+      : (item.image ? [item.image] : []);
+
+    const imgs = rawList
+      .filter((img) => img && !isPlaceholderImage(typeof img === 'object' ? img.url : img))
+      .map((img) => ({
+        type: 'image',
+        url: typeof img === 'object' ? img.url || img : img,
+      }));
+
     if (item.videoUrl && typeof item.videoUrl === 'string' && item.videoUrl.trim() !== '') {
       imgs.push({ type: 'video', url: item.videoUrl });
     }
-    return imgs.length > 0 ? imgs : [{ type: 'image', url: FALLBACK_IMG }];
+    return imgs.length > 0 ? imgs : [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
   }, [item]);
 
   const floorPlanImages = useMemo(() => {
@@ -491,17 +504,11 @@ export default function MasterDetailPage({
       <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-gray-500">
-              <button onClick={goBack} className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline cursor-pointer">
-                <i className="fa-solid fa-arrow-left" /> Back to {categoryName}
-              </button>
-              <span>/</span>
-              <Link to="/home" className="hover:text-brand-blue">Home</Link>
-              <span>/</span>
-              <Link to={categoryLink} className="hover:text-brand-blue">{categoryName}</Link>
-              <span>/</span>
-              <span className="text-brand-charcoal font-medium truncate max-w-[180px] sm:max-w-xs">{itemTitle}</span>
-            </div>
+            <Breadcrumbs
+              categoryName={categoryName}
+              categoryLink={categoryLink}
+              itemTitle={itemTitle}
+            />
 
             <div className="flex items-center gap-2">
               <button
@@ -675,6 +682,10 @@ export default function MasterDetailPage({
                 <img
                   src={resolveImage(currentMedia?.url || currentMedia)}
                   alt={item.title}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
@@ -696,6 +707,10 @@ export default function MasterDetailPage({
                     <img
                       src={resolveImage(mediaItems[0]?.url || mediaItems[0])}
                       alt={item.title}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   )}
@@ -727,6 +742,10 @@ export default function MasterDetailPage({
                         <img
                           src={resolveImage(media.url)}
                           alt={`${item.title} - ${actualIdx + 1}`}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
+                          }}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           loading="lazy"
                         />

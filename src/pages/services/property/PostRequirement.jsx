@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../constants/locations';
+import { Breadcrumbs } from '../../../components/ui';
 
 const LOOKING_FOR = [
   { value: 'house', label: 'House' },
@@ -107,16 +108,19 @@ function PostRequirement() {
   return (
     <div className="min-h-screen pb-24 pt-4 sm:pt-6">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        {/* Back link */}
-        <Link to="/property" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-blue transition-colors mb-6">
-          <i className="fa-solid fa-arrow-left text-[10px]" />
-          Back to Property Listings
-        </Link>
+        {/* Breadcrumb navigation */}
+        <div className="mb-6">
+          <Breadcrumbs
+            categoryName="Properties"
+            categoryLink="/our-services/properties"
+            itemTitle="Post Requirement"
+          />
+        </div>
 
         {/* Header */}
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-1">
-            OneVishwam · Houses & Land
+            OneVishwam · Properties
           </p>
           <h1 className="text-2xl font-bold text-brand-charcoal sm:text-3xl">Tell Us What You're Looking For</h1>
           <p className="text-sm text-gray-500 mt-2">Fill in a few details, and we'll help you find matching properties.</p>

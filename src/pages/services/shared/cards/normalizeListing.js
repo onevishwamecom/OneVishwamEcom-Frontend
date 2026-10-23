@@ -4,6 +4,8 @@
  * frontend contract for MasterListingCard and gallery grids.
  */
 
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../../constants/fallbackImage';
+
 export function normalizeListing(rawItem, sector = '') {
   if (!rawItem) return null;
 
@@ -40,15 +42,18 @@ export function normalizeListing(rawItem, sector = '') {
   // Resolve image
   let image = '';
   if (Array.isArray(rawItem.images) && rawItem.images.length > 0) {
-    image = rawItem.images[0];
-  } else if (rawItem.image) {
+    image = rawItem.images.find(s => s && !isPlaceholderImage(s)) || '';
+  } else if (rawItem.image && !isPlaceholderImage(rawItem.image)) {
     image = rawItem.image;
-  } else if (rawItem.coverImage) {
+  } else if (rawItem.coverImage && !isPlaceholderImage(rawItem.coverImage)) {
     image = rawItem.coverImage;
-  } else if (rawItem.banner) {
+  } else if (rawItem.banner && !isPlaceholderImage(rawItem.banner)) {
     image = rawItem.banner;
-  } else if (rawItem.logo) {
+  } else if (rawItem.logo && !isPlaceholderImage(rawItem.logo)) {
     image = rawItem.logo;
+  }
+  if (!image || isPlaceholderImage(image)) {
+    image = ONEVISHWAM_VERIFIED_IMAGE;
   }
 
   // Resolve title

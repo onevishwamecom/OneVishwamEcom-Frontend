@@ -1,4 +1,5 @@
 import { getNumericPrice } from '../../../utils/formatters';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 export { getNumericPrice };
 
@@ -647,20 +648,25 @@ export function getListedWithinDays(property) {
  * Used to show properties-with-images first across listings.
  */
 export function hasPropertyImages(property) {
+  if (!property) return false;
   return Array.isArray(property.images) &&
-    property.images.some((src) => src && !src.startsWith('data:'));
+    property.images.some((src) => src && !isPlaceholderImage(src));
 }
 
 /**
  * Best available cover image: prefers a real property/building image,
- * falls back to the first entry, then to a legacy single `image` field.
+ * falls back to the official ONEVISHWAM_VERIFIED_IMAGE when no real image exists.
  */
 export function getPropertyCoverImage(property) {
+  if (!property) return ONEVISHWAM_VERIFIED_IMAGE;
   if (Array.isArray(property.images)) {
-    return property.images.find((src) => src && !src.startsWith('data:')) ||
-      property.images[0] || '';
+    const realImg = property.images.find((src) => src && !isPlaceholderImage(src));
+    if (realImg) return realImg;
   }
-  return property.image || '';
+  if (property.image && !isPlaceholderImage(property.image)) {
+    return property.image;
+  }
+  return ONEVISHWAM_VERIFIED_IMAGE;
 }
 
 export const PRIORITY_TITLES = [

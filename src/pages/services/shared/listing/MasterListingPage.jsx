@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { SectorPageTemplate } from '../../../../components/templates/SectorPageTemplate';
-import { SectorPageHeader } from '../../../../components/ui/SectorPageHeader';
+import { SectorPageHeader, Breadcrumbs } from '../../../../components/ui';
 import CategoryPillStrip from '../CategoryPillStrip';
 import ResultsBar from '../ResultsBar';
 import { applySort } from '../sortBy';
@@ -68,6 +69,7 @@ export default function MasterListingPage({
   const loading = !!listResult.loading;
   const error = listResult.error || null;
 
+  const navigate = useNavigate();
   // Local UI State
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -107,7 +109,12 @@ export default function MasterListingPage({
 
   return (
     <SectorPageTemplate>
-      {/* Page Header — no Back button */}
+      {/* ── Top Navigation & Breadcrumbs ── */}
+      <div className="pt-2 pb-1 mb-3">
+        <Breadcrumbs categoryName={title} />
+      </div>
+
+      {/* Page Header */}
       {customHeader ? (
         customHeader({ total: filteredItems.length, items })
       ) : (

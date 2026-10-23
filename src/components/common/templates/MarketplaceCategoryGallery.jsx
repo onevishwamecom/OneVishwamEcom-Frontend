@@ -5,6 +5,7 @@ import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
 import { useLocation } from '../../../store/locationSlice';
 import { cities } from '../../../constants/locations';
 import PageContainer from '../PageContainer';
+import Breadcrumbs from '../Breadcrumbs';
 import LottieComingSoon from '../LottieComingSoon';
 import { isInHouseOrCeoListing } from '../../../pages/services/shared/sortBy';
 import ContactDetailsModal from '../ContactDetailsModal';
@@ -256,19 +257,7 @@ export default function MarketplaceCategoryGallery({
         {/* ── Top Navigation & Title Bar ── */}
         <div className="pt-4 pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <button
-                type="button"
-                onClick={goBack}
-                className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline cursor-pointer"
-              >
-                <i className="fa-solid fa-arrow-left" /> Back
-              </button>
-              <span>/</span>
-              <Link to="/home" className="hover:text-brand-blue">Home</Link>
-              <span>/</span>
-              <span className="text-brand-charcoal font-semibold">{breadcrumbCategory}</span>
-            </div>
+            <Breadcrumbs categoryName={breadcrumbCategory} />
 
             <div className="flex items-center gap-2">
               {postRequirementLink && (

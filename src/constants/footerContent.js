@@ -9,7 +9,7 @@ export const footerQuickLinks = primaryNavigation;
 
 export const footerServiceLinks = [
   { label: 'Properties', href: '/property' },
-  { label: 'Houses & Land', href: '/property' },
+  { label: 'Properties', href: '/property' },
   { label: 'Vehicles', href: '/automobile' },
   { label: 'Bedding & Comfort', href: '/bedding' },
 ];

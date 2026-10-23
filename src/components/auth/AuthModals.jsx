@@ -154,7 +154,15 @@ function LoginForm({ onSwitch, onClose }) {
         sessionStorage.removeItem('vishwam_auth_redirect');
         navigateTo(redirect);
       }
-    } catch {}
+    } catch (err) {
+      console.error('[Google Sign-In Error]:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Sign In Failed',
+        text: typeof err === 'string' ? err : (err?.message || 'Google sign-in failed'),
+        confirmButtonColor: '#1d4ed8',
+      });
+    }
   };
 
   return (
@@ -374,7 +382,15 @@ function RegisterForm({ onSwitch, onClose }) {
         sessionStorage.removeItem('vishwam_auth_redirect');
         navigateTo(redirect);
       }
-    } catch {}
+    } catch (err) {
+      console.error('[Google Sign-In Error]:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Sign In Failed',
+        text: typeof err === 'string' ? err : (err?.message || 'Google sign-in failed'),
+        confirmButtonColor: '#1d4ed8',
+      });
+    }
   };
 
   return (

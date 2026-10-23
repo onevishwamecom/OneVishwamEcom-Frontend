@@ -11,12 +11,7 @@ import {
   formatPropertyDisplayPrice,
   formatPropertyAddress,
 } from './propertyHelpers';
-
-const FALLBACK_IMG =
-  'data:image/svg+xml,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`,
-  );
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 const EMPTY_ARRAY = [];
 
@@ -32,7 +27,8 @@ function PropertyCardImpl({ property }) {
 
   const id = property._id || property.id;
   const link = id ? `/property/${id}` : '#';
-  const image = getPropertyCoverImage(property);
+  const rawImage = getPropertyCoverImage(property);
+  const image = isPlaceholderImage(rawImage) ? ONEVISHWAM_VERIFIED_IMAGE : rawImage;
   const title = property.title || property.name || 'Property';
   const typeLabel = getPropertyTypeLabel(property);
   const tags = (getDetailTags(property) || []).slice(0, 2);
@@ -91,7 +87,7 @@ function PropertyCardImpl({ property }) {
           />
         ) : (
           <img
-            src={FALLBACK_IMG}
+            src={ONEVISHWAM_VERIFIED_IMAGE}
             alt=""
             className={`absolute inset-0 h-full w-full object-cover object-center ${
               isSoldOut ? 'filter grayscale contrast-100' : ''

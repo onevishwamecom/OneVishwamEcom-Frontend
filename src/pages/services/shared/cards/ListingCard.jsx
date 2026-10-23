@@ -4,10 +4,9 @@ import { useAuth } from '../../../../store/authSlice';
 import { formatINR, withRupeeSymbol } from '../priceUtils';
 import { normalizeListing } from './normalizeListing';
 import SoldOutRibbon from '../../../../components/ui/SoldOutRibbon';
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../../constants/fallbackImage';
 
-const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none"><rect width="400" height="300" fill="#f3f4f6"/><path fill="#9ca3af" d="M160 130h80v-10l-40-40-40 40v10zm-20 50h120v-60l-40-40-80 80v20z"/></svg>`
-);
+const FALLBACK_IMG = ONEVISHWAM_VERIFIED_IMAGE;
 
 const EMPTY_ARRAY = [];
 
@@ -82,8 +81,8 @@ export const ListingCard = React.memo(function ListingCard({
   const isInactive = isInactiveProp ?? normalized?.isInactive ?? false;
   const availabilityStatus = availabilityStatusProp ?? normalized?.availabilityStatus ?? 'available';
 
-  const cardLink = link || normalized?.link || '#';
-  const cardImage = image || normalized?.image;
+  const rawImage = image || normalized?.image;
+  const cardImage = isPlaceholderImage(rawImage) ? ONEVISHWAM_VERIFIED_IMAGE : (rawImage || ONEVISHWAM_VERIFIED_IMAGE);
   const cardAlt = alt || title || normalized?.title || '';
   const cardOverline = overline !== undefined ? overline : normalized?.overline;
   const cardTitle = title || normalized?.title || '';

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const HERO_SLIDES = [
   {
     id: 'properties',
-    category: 'Houses & Land',
+    category: 'Properties',
     title: 'Affordable Homes, Plots & Apartments in Bengaluru',
     subtitle: 'Verified residential plots, budget-friendly flats, gated layouts & commercial spaces with easy loan support.',
     link: '/property',

@@ -170,8 +170,8 @@ export default function PropertyDetails() {
   return (
     <MasterDetailPage
       item={property}
-      categoryName="Houses & Land"
-      categoryLink="/property"
+      categoryName="Properties"
+      categoryLink="/our-services/properties"
       similarItems={similarProperties}
       itemLinkPrefix="/property/"
       loading={loading}

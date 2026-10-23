@@ -29,7 +29,7 @@ const ElectronicsGallery = lazy(() => import('./pages/services/electronics/Elect
 const ElectronicsDetails = lazy(() => import('./pages/services/electronics/ElectronicsDetails'));
 const JewelleryDetails = lazy(() => import('./pages/services/jewellery/JewelleryDetails'));
 const GarmentDetails = lazy(() => import('./pages/services/garments/GarmentDetails'));
-const FinanceGallery = lazy(() => import('./pages/services/finance/FinanceGallery'));
+const FinanceLoanGallery = lazy(() => import('./pages/services/finance/FinanceLoanGallery'));
 const FinanceDetails = lazy(() => import('./pages/services/finance/FinanceDetails'));
 const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/FinanceServiceSuccess'));
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
@@ -113,12 +113,16 @@ function App() {
             <Route path="/bedding-comfort/:id" element={<BeddingDetails />} />
 
             {/* Finance & Other Verticals */}
-            <Route path="/our-services/finance-lending" element={<FinanceGallery />} />
-            <Route path="/our-services/*" element={<ServicesPage />} />
-            <Route path="/careers/*" element={<CareersPage />} />
+            <Route path="/our-services/finance-lending" element={<FinanceLoanGallery />} />
+            <Route path="/finance" element={<FinanceLoanGallery />} />
+            <Route path="/loans" element={<FinanceLoanGallery />} />
+            <Route path="/finance/:id" element={<LoanDetails />} />
+            <Route path="/loan/:id" element={<LoanDetails />} />
             <Route path="/finance/*" element={<LoanDetails />} />
             <Route path="/finance-service/success" element={<FinanceServiceSuccess />} />
             <Route path="/finance-service/:id" element={<FinanceDetails />} />
+            <Route path="/our-services/*" element={<ServicesPage />} />
+            <Route path="/careers/*" element={<CareersPage />} />
             <Route path="/finance-flow" element={<FinanceFlow />} />
             {/* Consumer Electronics Routes */}
             <Route path="/our-services/consumer-electronics" element={<ElectronicsGallery />} />

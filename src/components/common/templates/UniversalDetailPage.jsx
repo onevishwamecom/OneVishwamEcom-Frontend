@@ -240,6 +240,7 @@ export default function UniversalDetailPage({
       item={mappedItem}
       similarItems={mappedSimilarItems}
       categoryName={categoryTitle}
+      categoryLink={backUrl && backUrl !== -1 ? backUrl : undefined}
       headerExtra={headerExtra}
       customSection={renderCustomSection ? renderCustomSection(mappedItem) : null}
     />

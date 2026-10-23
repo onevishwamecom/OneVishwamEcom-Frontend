@@ -3,23 +3,10 @@ import { navigateTo } from '../../../config/navigation';
 import { cleanProductName } from '../../../utils/searchUtils';
 import { useAuth } from '../../../store/authSlice';
 
-export const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"><rect width="600" height="400" fill="#f8fafc"/><rect x="1" y="1" width="598" height="398" stroke="#e2e8f0" stroke-width="2"/><g transform="translate(260, 130)" opacity="0.35"><rect x="10" y="10" width="60" height="45" rx="6" stroke="#334155" stroke-width="3.5" fill="none"/><path d="M25 55 v10 h30 v-10" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><line x1="15" y1="65" x2="65" y2="65" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/></g><text x="300" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="middle" letter-spacing="0.5">ONEVISHWAM VERIFIED PRODUCT</text><text x="300" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Official Authorized Listing</text></svg>`
-);
+import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
-/**
- * CategoryListingCard:
- * Exact 1:1 replication of ProductCard topology from Properties Gallery:
- * 1. Image container: aspect [16/10] with subtle black gradient overlay
- * 2. Top-left badges (blue, green, amber, slate)
- * 3. Top-right favorite wishlist button
- * 4. Overline / Category tag
- * 5. Title (bold, hover:text-brand-blue)
- * 6. Location with location pin icon
- * 7. Middle row: 3 attribute pills (cardPills)
- * 8. Green trust banner (100% Pre-Approved Loan or Inspection Guaranteed)
- * 9. Footer: Price on left with priceSuffix + "View Details →" on right (or children)
- */
+export const FALLBACK_IMG = ONEVISHWAM_VERIFIED_IMAGE;
+
 export default React.memo(function CategoryListingCard({
   item,
   link,
@@ -45,7 +32,8 @@ export default React.memo(function CategoryListingCard({
   const rawTitle = title !== undefined ? title : (item?.title || '');
   const cardTitle = cleanProductName(rawTitle);
   const cardLink = link || item?.link || (item?.id ? `/property/${item.id}` : '#');
-  const cardImg = image || item?.images?.[0] || item?.image || '';
+  const rawImg = image || (Array.isArray(item?.images) ? item.images.find(s => s && !isPlaceholderImage(s)) : '') || item?.image || '';
+  const cardImg = isPlaceholderImage(rawImg) ? '' : rawImg;
   const cardPrice = price !== undefined ? price : (item?.price || 'Price on Request');
   const cardPriceSuffix = priceSuffix !== undefined ? priceSuffix : (item?.priceSuffix || '');
   const cardLocation = location !== undefined ? location : (item?.location || '');

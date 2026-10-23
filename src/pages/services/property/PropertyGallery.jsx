@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useLocation } from "../../../store/locationSlice";
 import { cities, getCityLabel } from "../../../constants/locations";
-import { ActiveChip } from "../../../components/ui";
+import { ActiveChip, Breadcrumbs } from "../../../components/ui";
 import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";
 import BangalorePropertyPieMap from "./components/BangalorePropertyPieMap";
@@ -317,18 +317,7 @@ function PropertyGallery() {
         {/* ── Top Navigation & Title Bar ── */}
         <div className="pt-4 pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <button
-                onClick={goBack}
-                className="inline-flex items-center gap-1.5 font-bold text-brand-blue hover:underline"
-              >
-                <i className="fa-solid fa-arrow-left" /> Back
-              </button>
-              <span>/</span>
-              <Link to="/home" className="hover:text-brand-blue">Home</Link>
-              <span>/</span>
-              <span className="text-brand-charcoal font-semibold">Houses & Land</span>
-            </div>
+            <Breadcrumbs categoryName="Properties" />
 
             <div className="flex items-center gap-2">
               <Link
