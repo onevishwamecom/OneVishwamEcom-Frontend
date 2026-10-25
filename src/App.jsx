@@ -8,6 +8,7 @@ import AuthModals from './components/auth/AuthModals';
 import SessionTracker from './components/auth/SessionTracker';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
+import { trackUserActivity, resolveSectorFromPath } from './utils/activityTracker';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -65,6 +66,12 @@ function RouterSyncEffect() {
 
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'PageView');
+    }
+
+    // Auto-capture user sector interest on route change
+    const sector = resolveSectorFromPath(location.pathname);
+    if (sector) {
+      trackUserActivity({ category: sector, path: location.pathname });
     }
   }, [location.pathname, location.hash]);
 

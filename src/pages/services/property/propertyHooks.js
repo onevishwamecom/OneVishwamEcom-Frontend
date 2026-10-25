@@ -18,6 +18,7 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
         ? properties
         : properties.filter((p) => getCardType(p) === ct.id);
       stats[ct.id] = {
+        count:    items.length,
         projects: items.reduce((sum, p) => sum + (p.projectCount || 1), 0),
         keys:     items.reduce((sum, p) => sum + (p.totalUnits || 1), 0),
         sites:    items.reduce((sum, p) => sum + (p.availableUnits || p.units || 1), 0),
@@ -27,12 +28,33 @@ export function useCardTypeStats(properties, PROPERTY_CARD_TYPES) {
   }, [properties, PROPERTY_CARD_TYPES]);
 }
 
+function formatBudgetChip(val) {
+  const num = Number(val);
+  if (!num || isNaN(num) || num <= 0) return '₹0';
+  if (num >= 10000000) {
+    const cr = num / 10000000;
+    return `₹${cr % 1 === 0 ? cr : cr.toFixed(2)} Cr`;
+  }
+  if (num >= 100000) {
+    const l = num / 100000;
+    return `₹${l % 1 === 0 ? l : l.toFixed(1)} L`;
+  }
+  return `₹${num.toLocaleString('en-IN')}`;
+}
+
 /**
  * Builds the list of active filter chips from the current filters state.
  */
 export function useActiveChips(filters) {
   return useMemo(() => {
     const chips = [];
+    if (filters.budgetMin || filters.budgetMax) {
+      const label = [
+        filters.budgetMin && `Min ${formatBudgetChip(filters.budgetMin)}`,
+        filters.budgetMax && `Max ${formatBudgetChip(filters.budgetMax)}`,
+      ].filter(Boolean).join(' – ');
+      chips.push({ key: 'budget', label: `Budget: ${label}` });
+    }
     if (filters.sizeMin || filters.sizeMax) {
       const label = [
         filters.sizeMin && `Min ${Number(filters.sizeMin).toLocaleString('en-IN')} sq.ft`,
@@ -202,13 +224,15 @@ export function useFilteredProperties(arg1, arg2) {
 
         if (propertyTypeSet.size > 0) {
           const type = String(getPropertyType(p)).toLowerCase().trim();
-          let matchPropType = propertyTypeSet.has(type);
+          const bType = String(getBuildingType(p)).toLowerCase().trim();
+          let matchPropType = propertyTypeSet.has(type) || propertyTypeSet.has(bType);
           if (!matchPropType) {
-            if ((propertyTypeSet.has('plots') || propertyTypeSet.has('plot')) && (type.includes('plot') || type.includes('site') || type.includes('land'))) matchPropType = true;
+            if (propertyTypeSet.has('residential') && bType === 'residential') matchPropType = true;
+            else if (propertyTypeSet.has('commercial') && (bType === 'commercial' || type.includes('commercial') || type.includes('industrial') || type.includes('showroom') || type.includes('office'))) matchPropType = true;
+            else if ((propertyTypeSet.has('plots') || propertyTypeSet.has('plot')) && (type.includes('plot') || type.includes('site') || type.includes('land'))) matchPropType = true;
             else if ((propertyTypeSet.has('flats') || propertyTypeSet.has('flat')) && (type.includes('flat') || type.includes('apartment'))) matchPropType = true;
             else if ((propertyTypeSet.has('villas') || propertyTypeSet.has('villa')) && type.includes('villa')) matchPropType = true;
             else if ((propertyTypeSet.has('houses') || propertyTypeSet.has('house')) && type.includes('house')) matchPropType = true;
-            else if (propertyTypeSet.has('commercial') && (type.includes('commercial') || type.includes('industrial') || type.includes('showroom') || type.includes('office'))) matchPropType = true;
           }
           if (!matchPropType) return false;
         }

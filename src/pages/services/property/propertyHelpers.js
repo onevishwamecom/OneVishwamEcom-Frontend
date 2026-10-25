@@ -52,18 +52,36 @@ export function parseAreaRange(areaOrProperty) {
   }
 
   if (!str) return { min: 0, max: 0 };
-  const lower = str.toLowerCase();
-  
-  let unitMultiplier = 1;
-  if (lower.includes('acre')) unitMultiplier = 43560;
-  else if (lower.includes('gunta')) unitMultiplier = 1089;
-  else if (lower.includes('cent')) unitMultiplier = 435.6;
-  else if (lower.includes('ground')) unitMultiplier = 2400;
-  else if (lower.includes('sq.yd') || lower.includes('sq yd') || lower.includes('sqyd') || lower.includes('yard')) {
-    unitMultiplier = 9;
+
+  // Guard against non-area descriptors (e.g., "40 Units", "Sites 01–55", "262 Plots", "Residential")
+  const hasAreaKeyword = /(?:sq\.?\s*ft|sqft|sq\s*yd|sqyd|acre|acres|gunta|guntas|cent|ground|\bft\b|x|\*|×)/i.test(str);
+  if (!hasAreaKeyword) {
+    return { min: 0, max: 0 };
   }
 
-  // Check for dimension patterns like "30x40", "30*40", "30×40", "40 X 60"
+  // 1. Prioritize explicit Sq.Ft range (e.g. "1588-1668 Sq.ft", "1,200 - 2,400 Sq.ft")
+  const sqftRangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)\s*(?:sq\.?\s*ft|sqft)/i);
+  if (sqftRangeMatch) {
+    const minVal = parseFloat(sqftRangeMatch[1].replace(/,/g, ''));
+    const maxVal = parseFloat(sqftRangeMatch[2].replace(/,/g, ''));
+    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > 0 && maxVal > 0) {
+      return {
+        min: Math.round(Math.min(minVal, maxVal)),
+        max: Math.round(Math.max(minVal, maxVal)),
+      };
+    }
+  }
+
+  // 2. Explicit Sq.Ft single value (e.g. "8,024 Sq.ft", "1,450 Sq.ft · 9 Units")
+  const sqftSingleMatch = str.match(/([\d,.]+)\s*(?:sq\.?\s*ft|sqft)/i);
+  if (sqftSingleMatch) {
+    const val = parseFloat(sqftSingleMatch[1].replace(/,/g, ''));
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
+    }
+  }
+
+  // 3. Dimension patterns like "30x40", "30*40", "30×40", "40 X 60"
   const dimMatches = [...str.matchAll(/(\d+)\s*(?:x|\*|×|X)\s*(\d+)/g)];
   if (dimMatches.length > 0) {
     const dimAreas = dimMatches.map((m) => parseInt(m[1], 10) * parseInt(m[2], 10));
@@ -72,16 +90,20 @@ export function parseAreaRange(areaOrProperty) {
     return { min: minDim, max: maxDim };
   }
 
-  // Check for range e.g. "1200 - 2400 Sq.ft" or "1200 to 2400"
-  const rangeMatch = str.match(/([\d,.]+)\s*(?:-|–|to)\s*([\d,.]+)/);
-  if (rangeMatch) {
-    const minVal = parseFloat(rangeMatch[1].replace(/,/g, '')) * unitMultiplier;
-    const maxVal = parseFloat(rangeMatch[2].replace(/,/g, '')) * unitMultiplier;
-    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > 0 && maxVal > 0) {
-      return {
-        min: Math.round(Math.min(minVal, maxVal)),
-        max: Math.round(Math.max(minVal, maxVal)),
-      };
+  // 4. Other units: Acres, Guntas, Cents, Grounds, Sq.Yards
+  const acreMatch = str.match(/([\d,.]+)\s*(?:acre|acres)/i);
+  if (acreMatch) {
+    const val = parseFloat(acreMatch[1].replace(/,/g, '')) * 43560;
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
+    }
+  }
+
+  const guntaMatch = str.match(/([\d,.]+)\s*(?:gunta|guntas)/i);
+  if (guntaMatch) {
+    const val = parseFloat(guntaMatch[1].replace(/,/g, '')) * 1089;
+    if (!isNaN(val) && val > 0) {
+      return { min: Math.round(val), max: Math.round(val) };
     }
   }
 
@@ -274,7 +296,7 @@ export function matchesSizeRange(property, sizeMin, sizeMax) {
  */
 export function getPropertiesSizeBounds(properties = []) {
   if (!Array.isArray(properties) || properties.length === 0) {
-    return { min: 600, max: 10000 };
+    return { min: 600, max: 15000 };
   }
 
   let min = Infinity;
@@ -286,23 +308,47 @@ export function getPropertiesSizeBounds(properties = []) {
     const low = pMin || pMax;
     const high = pMax || pMin;
 
-    if (low > 0 && low < min) {
+    // Minimum size must be >= 100 sq.ft to avoid stray site/unit numbers
+    if (low >= 100 && low < min) {
       min = low;
     }
-    if (high > 0 && high > max) {
+    // Track residential/commercial unit upper bounds, capping wholesale development land parcels
+    if (high >= 100 && high <= 20000 && high > max) {
       max = high;
     }
   });
 
-  if (min === Infinity || max === -Infinity) {
-    return { min: 600, max: 10000 };
-  }
+  if (min === Infinity) min = 600;
+  if (max === -Infinity || max < min) max = 15000;
 
-  if (min >= max) {
-    return { min: Math.max(0, min - 100), max: min + 500 };
-  }
+  const cleanMin = Math.max(100, Math.floor(min / 50) * 50);
+  const cleanMax = Math.max(cleanMin + 500, Math.ceil(max / 500) * 500);
 
-  return { min, max };
+  return { min: cleanMin, max: cleanMax };
+}
+
+/**
+ * Dynamically calculates size preset ranges derived from the available properties list from DB.
+ * The lowest preset starts with the least size as min, and presets cover standard real estate brackets up to the upper bound.
+ *
+ * @param {Array} properties - Available property listings from DB
+ * @param {{ min: number, max: number }} [sizeBounds] - Min and max size bounds
+ * @returns {Array<{ label: string, min: number, max: number }>}
+ */
+export function getDynamicSizePresets(properties = [], sizeBounds) {
+  const bounds = sizeBounds || getPropertiesSizeBounds(properties);
+  const minSize = Math.max(100, bounds?.min || 600);
+  const maxSize = Math.max(minSize + 500, bounds?.max || 15000);
+
+  // Standard clean real-estate brackets based on actual Bangalore listings
+  const presets = [
+    { label: `${minSize.toLocaleString('en-IN')} – 1,200 sq.ft`, min: minSize, max: 1200 },
+    { label: '1,200 – 2,400 sq.ft', min: 1200, max: 2400 },
+    { label: '2,400 – 5,000 sq.ft', min: 2400, max: 5000 },
+    { label: `5,000 – ${maxSize.toLocaleString('en-IN')} sq.ft`, min: 5000, max: maxSize },
+  ].filter((p) => p.min < p.max && p.min <= maxSize);
+
+  return presets;
 }
 
 export function getPropertyType(property) {

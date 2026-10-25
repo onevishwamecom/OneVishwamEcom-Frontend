@@ -8,6 +8,7 @@ import QuickMatchModal from "./QuickMatchModal";
 import BangalorePropertyPieMap from "./components/BangalorePropertyPieMap";
 
 import {
+  PROPERTY_CARD_TYPES,
   CITY_OPTIONS,
   INITIAL_FILTERS,
   INITIAL_SECTIONS,
@@ -15,6 +16,7 @@ import {
 import {
   useActiveChips,
   useFilteredProperties,
+  useCardTypeStats,
 } from "./propertyHooks";
 import PropertyFilterSidebar from "./PropertyFilterSidebar";
 import ProductCard from "../ProductCard";
@@ -26,6 +28,7 @@ import {
   getPropertyCoverImage,
   sortPropertiesWithPriority,
   getPropertiesSizeBounds,
+  getDynamicSizePresets,
   isCornerProperty,
   isPlotOrLand,
   formatPropertyAddress,
@@ -177,6 +180,8 @@ function PropertyGallery() {
     return null;
   }, [selectedCity, properties]);
 
+  const cardTypeStats = useCardTypeStats(properties, PROPERTY_CARD_TYPES);
+
   /* ── Filter state setters ── */
   const updateFilter = (key, value) => {
     setPage(1);
@@ -194,6 +199,7 @@ function PropertyGallery() {
     setLocationInput("");
     setPincodeInput("");
     setSelectedCardType("All");
+    setSortBy("latest");
     setFamilyLocationsOnly(false);
     setPreApprovedMode(false);
     setSelectedZone("");
@@ -209,11 +215,20 @@ function PropertyGallery() {
   const baseActiveChips = useActiveChips(filters);
   const activeChips = useMemo(() => {
     const list = [...baseActiveChips];
+    if (selectedCardType && selectedCardType !== 'All') {
+      list.unshift({ key: 'cardType', label: `Category: ${selectedCardType}` });
+    }
     if (selectedZone && selectedZone !== 'All') {
-      list.unshift({ key: 'zone', label: `Zone: ${selectedZone}` });
+      list.push({ key: 'zone', label: `Zone: ${selectedZone}` });
+    }
+    if (locationInput) {
+      list.push({ key: 'locInput', label: `Area: ${locationInput}` });
+    }
+    if (searchTerm) {
+      list.push({ key: 'search', label: `Search: "${searchTerm}"` });
     }
     return list;
-  }, [baseActiveChips, selectedZone]);
+  }, [baseActiveChips, selectedCardType, selectedZone, locationInput, searchTerm]);
 
   /* ── Filtered properties derived via hook ── */
   const filteredProperties = useFilteredProperties(properties, {
@@ -252,15 +267,29 @@ function PropertyGallery() {
     return getPropertiesSizeBounds(properties);
   }, [properties]);
 
+  /* ── Dynamic Size presets computed from listed properties from DB ── */
+  const sizePresets = useMemo(() => {
+    return getDynamicSizePresets(properties, sizeBounds);
+  }, [properties, sizeBounds]);
+
   /* ── Chip removal ── */
   const removeChip = (chip) => {
-    if (chip.key === "zone") {
+    if (chip.key === "cardType") {
+      setSelectedCardType("All");
+      setPage(1);
+    } else if (chip.key === "zone") {
       setSelectedZone("");
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.delete("zone");
         return next;
       });
+      setPage(1);
+    } else if (chip.key === "locInput") {
+      setLocationInput("");
+      setPage(1);
+    } else if (chip.key === "search") {
+      setSearchTerm("");
       setPage(1);
     } else if (chip.key === "size") {
       updateFilter("sizeMin", "");
@@ -307,6 +336,7 @@ function PropertyGallery() {
     cityAreas,
     noCityMessage,
     sizeBounds,
+    sizePresets,
   };
 
   /* ── Render ── */
@@ -427,8 +457,41 @@ function PropertyGallery() {
           </div>
         </div>
 
+        {/* ── Category Pill Tabs ── */}
+        <div className="mt-3.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {PROPERTY_CARD_TYPES.map((ct) => {
+            const isSelected = selectedCardType === ct.id;
+            const count = cardTypeStats[ct.id]?.count ?? 0;
+            return (
+              <button
+                key={ct.id}
+                type="button"
+                onClick={() => {
+                  setSelectedCardType(ct.id);
+                  setPage(1);
+                }}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${
+                  isSelected
+                    ? "bg-brand-blue text-white border-brand-blue shadow-xs"
+                    : "bg-white text-brand-charcoal border-gray-200/90 hover:border-brand-blue/30 hover:bg-gray-50/80 shadow-2xs"
+                }`}
+              >
+                <i className={`fa-solid ${ct.icon} text-xs ${isSelected ? "text-white" : "text-brand-blue"}`} />
+                <span>{ct.label}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Map Toggle & Quick Filters Row */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => setShowMap((prev) => !prev)}
@@ -469,33 +532,52 @@ function PropertyGallery() {
           </div>
         )}
 
-        {/* ── Active Filters & Mobile Trigger Bar ── */}
-        {(activeChips.length > 0 || true) && (
-          <div className="mt-4 flex items-center justify-between gap-3 pb-1">
-            {/* Left: Active chips */}
-            <div className="flex-1 flex flex-wrap items-center gap-1.5 min-w-0">
-              {activeChips.map((chip) => (
-                <ActiveChip
-                  key={chip.key}
-                  label={chip.label}
-                  onRemove={() => removeChip(chip)}
-                />
-              ))}
-              {activeChips.length > 0 && (
-                <button
-                  onClick={resetFilters}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-700 ml-1.5 px-1 py-0.5"
-                >
-                  <i className="fa-solid fa-rotate-left" /> Reset All Filters
-                </button>
-              )}
+        {/* ── Active Filters, Sort & Mobile Trigger Bar ── */}
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+          {/* Left: Active chips */}
+          <div className="flex-1 flex flex-wrap items-center gap-1.5 min-w-0">
+            {activeChips.map((chip) => (
+              <ActiveChip
+                key={chip.key}
+                label={chip.label}
+                onRemove={() => removeChip(chip)}
+              />
+            ))}
+            {activeChips.length > 0 && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-700 ml-1.5 px-1 py-0.5 cursor-pointer"
+              >
+                <i className="fa-solid fa-rotate-left" /> Reset All Filters
+              </button>
+            )}
+          </div>
+
+          {/* Right: Sort By Dropdown & Mobile Trigger */}
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setPage(1);
+                }}
+                className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold text-brand-charcoal outline-none focus:border-brand-blue cursor-pointer shadow-2xs hover:border-gray-300 transition-colors"
+              >
+                <option value="latest">Newest / Featured First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
             </div>
 
-            {/* Right: Mobile filter toggle */}
-            <div className="lg:hidden flex items-center shrink-0">
+            {/* Mobile filter toggle */}
+            <div className="lg:hidden">
               <button
+                type="button"
                 onClick={() => setShowMobileFilters(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-brand-charcoal hover:bg-gray-50 transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-charcoal hover:bg-gray-50 transition-colors shadow-2xs"
               >
                 <i className="fa-solid fa-sliders text-brand-blue" />
                 <span>Filters</span>
@@ -507,7 +589,7 @@ function PropertyGallery() {
               </button>
             </div>
           </div>
-        )}
+        </div>
 
         {/* ── Loading / Error states ── */}
         {loading && (

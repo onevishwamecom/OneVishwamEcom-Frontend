@@ -9,6 +9,7 @@ import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constant
 import oneVishwamLogo from '../../../assets/logo.png';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
+import { trackUserActivity, resolveSectorFromPath } from '../../../utils/activityTracker';
 
 const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)
   ? new URL(import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL).origin
@@ -207,6 +208,26 @@ export default function MasterDetailPage({
       console.warn('Recently viewed storage notice:', e);
     }
   }, [item, activeId, categoryName]);
+
+  // Track specific listing view and user interest in backend session
+  useEffect(() => {
+    if (!item || !activeId) return;
+    const sector = resolveSectorFromPath(pathname) || categoryName.toLowerCase().trim();
+    const title = cleanProductName(item.title || item.name || item.projectName || item.headline || 'Property/Listing');
+    const price = item.price || item.displayPrice || item.rate || '';
+    const loc = item.address || item.location || item.city || item.area || '';
+    const img = resolveImage(item.images?.[0] || item.image || item.photos?.[0] || '');
+
+    trackUserActivity({
+      category: sector,
+      listingId: String(activeId),
+      title,
+      price: String(price),
+      location: String(loc),
+      image: String(img),
+      path: pathname,
+    });
+  }, [item, activeId, categoryName, pathname]);
 
   // Scroll to top on mount / change
   useEffect(() => {

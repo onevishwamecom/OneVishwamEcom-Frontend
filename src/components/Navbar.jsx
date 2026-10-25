@@ -641,7 +641,6 @@ function Navbar() {
                 isCategoryActive ? 'text-brand-blue bg-brand-blue/5 font-semibold' : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <span>Category</span>
               <span>Categories</span>
               <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-200 ${mobileCategoryOpen ? 'rotate-180 text-brand-blue' : 'text-gray-400'}`} />
             </button>
