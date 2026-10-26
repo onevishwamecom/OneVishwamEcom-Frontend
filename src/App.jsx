@@ -36,6 +36,7 @@ const FinanceServiceSuccess = lazy(() => import('./pages/services/finance/Financ
 const FinanceFlow = lazy(() => import('./services/FinanceFlow'));
 const ComingSoon = lazy(() => import('./pages/coming-soon/ComingSoon'));
 const ProfileSettings = lazy(() => import('./pages/profile/Settings'));
+const NotFoundPage = lazy(() => import('./pages/not-found/NotFoundPage'));
 
 /**
  * Registers React Router's navigate function with the navigateTo() utility so that
@@ -143,6 +144,7 @@ function App() {
             <Route path="/profile" element={<ProfileSettings />} />
             <Route path="/profile/settings" element={<ProfileSettings />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </main>

@@ -6,6 +6,7 @@ import { ActiveChip, Breadcrumbs } from "../../../components/ui";
 import { useProperties } from "../../../hooks/useProperties";
 import QuickMatchModal from "./QuickMatchModal";
 import BangalorePropertyPieMap from "./components/BangalorePropertyPieMap";
+import LottieFeedbackAnimation from "../../../components/common/LottieFeedbackAnimation";
 
 import {
   PROPERTY_CARD_TYPES,
@@ -689,9 +690,9 @@ function PropertyGallery() {
               </div>
             ) : (
               !loading && (
-                <div className="rounded-3xl bg-white border border-gray-200/80 p-8 sm:p-12 text-center shadow-xs">
-                  <div className="w-16 h-16 rounded-3xl bg-blue-50 text-brand-blue flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i className="fa-solid fa-building-circle-exclamation" />
+                <div className="rounded-3xl bg-white border border-gray-200/80 p-8 sm:p-12 text-center shadow-xs animate-fade-in">
+                  <div className="mb-2">
+                    <LottieFeedbackAnimation type="searchEmpty" size="md" fallbackIcon="fa-solid fa-building-circle-exclamation" />
                   </div>
                   <h3 className="text-lg font-bold text-brand-charcoal">No Matching Properties Found</h3>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-6 max-w-md mx-auto">
