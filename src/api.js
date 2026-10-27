@@ -11,6 +11,8 @@ const client = axios.create({
   validateStatus: (status) => status >= 200 && status < 400,
 });
 
+import { isJwtExpired } from './utils/tokenUtils';
+
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -32,15 +34,33 @@ client.interceptors.request.use(async (config) => {
     }
     const currentUser = auth?.currentUser;
     if (currentUser) {
-      const idToken = await currentUser.getIdToken();
-      config.headers.Authorization = `Bearer ${idToken}`;
+      let idToken = await currentUser.getIdToken(false);
+      if (isJwtExpired(idToken)) {
+        idToken = await currentUser.getIdToken(true);
+      }
+      if (idToken) {
+        config.headers.Authorization = `Bearer ${idToken}`;
+        localStorage.setItem('accessToken', idToken);
+      }
     } else {
       const token = localStorage.getItem('accessToken');
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        if (isJwtExpired(token)) {
+          localStorage.removeItem('accessToken');
+        } else {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
     }
   } catch {
     const token = localStorage.getItem('accessToken');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      if (isJwtExpired(token)) {
+        localStorage.removeItem('accessToken');
+      } else {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
   }
   return config;
 });
@@ -63,8 +83,29 @@ client.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
+      // 1. First attempt to refresh via active Firebase user session
+      try {
+        if (auth && typeof auth.authStateReady === 'function') {
+          await auth.authStateReady();
+        }
+        const currentUser = auth?.currentUser;
+        if (currentUser) {
+          const freshToken = await currentUser.getIdToken(true);
+          if (freshToken) {
+            localStorage.setItem('accessToken', freshToken);
+            processQueue(null, freshToken);
+            originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            return client(originalRequest);
+          }
+        }
+      } catch (fbRefreshErr) {
+        console.warn('[API Client] Firebase token refresh failed:', fbRefreshErr);
+      }
+
+      // 2. Fallback: refresh via backend refreshToken if available
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
+        processQueue(err, null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
 import API from '../services/api';
+import { isJwtExpired } from '../utils/tokenUtils';
 import {
   auth,
   signInWithEmailAndPassword,
@@ -280,20 +281,45 @@ export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithVa
 
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (body, { rejectWithValue }) => {
+  async (body, { rejectWithValue, dispatch }) => {
     try {
+      if (auth && typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+
+      const currentUser = auth.currentUser;
+      let idToken;
+
+      if (currentUser) {
+        try {
+          idToken = await currentUser.getIdToken(true);
+          localStorage.setItem('accessToken', idToken);
+        } catch (tokErr) {
+          console.warn('[updateProfile] Failed to force refresh token:', tokErr);
+          idToken = await currentUser.getIdToken(false);
+        }
+      } else {
+        const storedToken = localStorage.getItem('accessToken');
+        if (!storedToken || isJwtExpired(storedToken)) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+          dispatch(forceLogout());
+          return rejectWithValue('Unauthorized: Firebase token has expired. Please sign in again.');
+        }
+        idToken = storedToken;
+      }
+
       const resolvedName = (body.name || body.fullName || '').trim();
       // 1. If Firebase Auth has an active user and name was changed, sync Firebase displayName
-      if (auth.currentUser && resolvedName) {
+      if (currentUser && resolvedName) {
         try {
-          await updateProfile(auth.currentUser, { displayName: resolvedName });
+          await updateProfile(currentUser, { displayName: resolvedName });
         } catch (fbErr) {
           console.warn('[Firebase] updateProfile warning:', fbErr.message);
         }
       }
 
       // 2. Fetch fresh token for backend authorization
-      const idToken = auth.currentUser ? await auth.currentUser.getIdToken(true) : undefined;
       const res = await API.post('/auth/sync', body, {
         headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
       });
@@ -301,7 +327,26 @@ export const updateUserProfile = createAsyncThunk(
       localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message || 'Update failed');
+      const respData = err.response?.data;
+      const rawError = respData?.error || respData?.message || err.message || 'Update failed';
+      const errMsg = String(rawError);
+
+      if (errMsg.toLowerCase().includes('expired') || errMsg.toLowerCase().includes('unauthorized')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken');
+        dispatch(forceLogout());
+        return rejectWithValue('Unauthorized: Firebase token has expired. Please sign in again.');
+      }
+
+      if ((errMsg.includes('E11000') || errMsg.includes('duplicate key')) && !errMsg.includes('null')) {
+        return rejectWithValue('This mobile number is already registered with another account. Please use a different mobile number.');
+      }
+
+      if (respData?.message && respData.message !== 'Failed to persist user in database') {
+        return rejectWithValue(respData.message);
+      }
+
+      return rejectWithValue(errMsg);
     }
   }
 );
@@ -484,6 +529,11 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Google!';
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile);
+        if (!hasPhone) {
+          state.showAuthModal = true;
+          state.authModalMode = 'require-phone';
+        }
       })
       .addCase(loginWithGoogle.rejected, handleRejected)
 
@@ -494,6 +544,11 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Facebook!';
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile);
+        if (!hasPhone) {
+          state.showAuthModal = true;
+          state.authModalMode = 'require-phone';
+        }
       })
       .addCase(loginWithFacebook.rejected, handleRejected)
 
@@ -521,6 +576,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.successMessage = 'Profile updated successfully';
+        if (state.authModalMode === 'require-phone' && (action.payload?.phoneNumber || action.payload?.mobile)) {
+          state.showAuthModal = false;
+        }
       })
       .addCase(updateUserProfile.rejected, handleRejected)
 

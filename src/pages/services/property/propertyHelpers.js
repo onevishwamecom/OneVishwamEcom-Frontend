@@ -695,8 +695,18 @@ export function getListedWithinDays(property) {
  */
 export function hasPropertyImages(property) {
   if (!property) return false;
-  return Array.isArray(property.images) &&
-    property.images.some((src) => src && !isPlaceholderImage(src));
+  const p = property.raw || property;
+  if (Array.isArray(p.images) && p.images.some((src) => src && !isPlaceholderImage(src) && src !== ONEVISHWAM_VERIFIED_IMAGE)) {
+    return true;
+  }
+  if (Array.isArray(property.images) && property.images.some((src) => src && !isPlaceholderImage(src) && src !== ONEVISHWAM_VERIFIED_IMAGE)) {
+    return true;
+  }
+  const candidate = p.coverImage || p.image || p.imageUrl || property.image || property.coverImage;
+  if (candidate && typeof candidate === 'string' && !isPlaceholderImage(candidate) && candidate !== ONEVISHWAM_VERIFIED_IMAGE) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -715,42 +725,36 @@ export function getPropertyCoverImage(property) {
   return ONEVISHWAM_VERIFIED_IMAGE;
 }
 
-export const PRIORITY_TITLES = [
-  'VEDANT SURAKSHA',
-  'Whispering Waves',
-  'Bren Annanta',
-  'Bren Avaana',
-  'Bren Park City',
-];
+export const PRIORITY_TITLES = [];
 
 /**
  * Computes a priority score for a property:
- * 3 = Direct in-house project from ceo@onevishwam.com, origin === 'in_house_project', priority > 0, isPriority === true, or in PRIORITY_TITLES
- * 2 = Generic Onevishwam partner listing
- * 0 = Standard listing
+ * 3 = Direct In-House OneVishwam Project (vendorName is OneVishwam or origin === 'in_house_project')
+ * 0 = Standard partner listing
  */
 export function getPriorityScore(property) {
   if (!property) return 0;
-  if (property.priority && Number(property.priority) > 0) return 3;
-  if (property.isPriority === true) return 3;
-  if (property.origin === 'in_house_project' || property.details?.origin === 'in_house_project') return 3;
+  const p = property.raw || property;
 
-  const email = String(
-    property.contributor?.email ||
-    property.contributorEmail ||
-    property.contactEmail ||
-    property.email ||
-    ''
-  ).trim().toLowerCase();
-  if (email === 'ceo@onevishwam.com' || (email.endsWith('@onevishwam.com') && !email.startsWith('admin@'))) return 3;
+  const vendor = String(p.vendorName || p.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
 
-  const title = String(property.title || property.name || '').trim().toLowerCase();
-  if (PRIORITY_TITLES.some((t) => t.toLowerCase() === title)) return 3;
+  // Dynamic priority: if vendorName is OneVishwam, prioritize at top (Score = 3)
+  if (vendor.includes('onevishwam')) return 3;
 
-  const sub = String(property.subtitle || '').trim().toLowerCase().replace(/\s+/g, '');
-  const vendor = String(property.vendorName || property.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
-  const partner = String(property.channelPartnerName || '').trim().toLowerCase().replace(/\s+/g, '');
-  if (sub === 'onevishwam' || vendor === 'onevishwam' || partner === 'onevishwam') return 2;
+  // If vendorName belongs to an external partner, do not mark as in-house project
+  const isExternalVendor = vendor.length > 0 && !vendor.includes('onevishwam');
+  if (!isExternalVendor) {
+    if (p.priority && Number(p.priority) > 0) return 3;
+    if (p.isPriority === true) return 3;
+    if (
+      p.origin === 'in_house_project' ||
+      p.origin === 'in_house' ||
+      p.details?.origin === 'in_house_project' ||
+      p.details?.origin === 'in_house'
+    ) return 3;
+    if (p.isInHouse === true || p.inHouse === true || p.is_inhouse === true) return 3;
+    if (p.postedBy === 'In-House' || p.postedBy === 'OneVishwam' || p.postedBy === 'One Vishwam') return 3;
+  }
 
   return 0;
 }
@@ -764,9 +768,8 @@ export function isOneVishwamProperty(property) {
 
 /**
  * Priority sort helper:
- * 1. Highest priority score (in-house projects and ceo@onevishwam.com account listings at the top)
- * 2. Designated PRIORITY_TITLES ordering
- * 3. User sortBy option (price-low, price-high) or default (images first + newest date/id)
+ * 1. Highest priority score (in-house projects and OneVishwam vendor/partner listings at the top)
+ * 2. User sortBy option (price-low, price-high) or default (images first + newest date/id)
  */
 export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
   return [...list].sort((a, b) => {
@@ -777,18 +780,10 @@ export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
       return bScore - aScore; // Priority in-house listings always at the top
     }
 
-    if (aScore === 3 && bScore === 3) {
-      const aTitle = String(a.title || a.name || '').trim().toLowerCase();
-      const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-      const aPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === aTitle);
-      const bPriIndex = PRIORITY_TITLES.findIndex((t) => t.toLowerCase() === bTitle);
-
-      if (aPriIndex !== -1 && bPriIndex !== -1) {
-        return aPriIndex - bPriIndex;
-      }
-      if (aPriIndex !== -1) return -1;
-      if (bPriIndex !== -1) return 1;
-    }
+    // Properties that have real images are shown priority
+    const aImg = hasPropertyImages(a) ? 1 : 0;
+    const bImg = hasPropertyImages(b) ? 1 : 0;
+    if (aImg !== bImg) return bImg - aImg;
 
     if (sortBy === 'price-low') {
       return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
@@ -796,10 +791,6 @@ export function sortPropertiesWithPriority(list = [], sortBy = 'latest') {
     if (sortBy === 'price-high') {
       return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
     }
-
-    const aImg = hasPropertyImages(a) ? 1 : 0;
-    const bImg = hasPropertyImages(b) ? 1 : 0;
-    if (aImg !== bImg) return bImg - aImg;
 
     const bDate = new Date(b.createdAt || 0).getTime() || (typeof b.id === 'number' ? b.id : 0);
     const aDate = new Date(a.createdAt || 0).getTime() || (typeof a.id === 'number' ? a.id : 0);

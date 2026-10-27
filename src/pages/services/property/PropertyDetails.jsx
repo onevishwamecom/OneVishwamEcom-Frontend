@@ -38,22 +38,8 @@ export default function PropertyDetails() {
     const cleanAddr = (rawProperty.address || '').trim().toLowerCase();
     const isBareCity = !rawProperty.address || cleanAddr === 'bangalore' || cleanAddr === 'bengaluru' || (rawProperty.city && cleanAddr === rawProperty.city.toLowerCase());
     const locUrl = (
-      rawProperty.locationUrl ||
-      rawProperty.googleMapsUrl ||
-      rawProperty.googleMapUrl ||
       rawProperty.mapUrl ||
-      rawProperty.mapsUrl ||
-      rawProperty['Google Map URL'] ||
-      rawProperty['Location URL'] ||
-      rawProperty['Map URL'] ||
-      rawProperty.details?.locationUrl ||
-      rawProperty.details?.googleMapsUrl ||
-      rawProperty.details?.googleMapUrl ||
       rawProperty.details?.mapUrl ||
-      rawProperty.details?.mapsUrl ||
-      rawProperty.details?.['Google Map URL'] ||
-      rawProperty.details?.['Location URL'] ||
-      rawProperty.details?.['Map URL'] ||
       ''
     ).trim();
 
@@ -121,9 +107,7 @@ export default function PropertyDetails() {
       address: isBareCity ? resolvedAddress : rawProperty.address,
       locality: rawProperty.locality || resolvePropertyLocality(rawProperty),
       location: resolvedAddress,
-      locationUrl: locUrl,
       mapUrl: locUrl,
-      googleMapsUrl: locUrl,
       zone: rawProperty.zone || getBangaloreZone(rawProperty),
       price: display.price,
       priceSuffix: display.priceSuffix,
@@ -176,8 +160,8 @@ export default function PropertyDetails() {
       itemLinkPrefix="/property/"
       loading={loading}
       error={error}
-      bentoTitle="Property Key Specifications & Verified Details"
-      featuresTitle="Property Amenities & Highlights"
+      bentoTitle="Overview"
+      featuresTitle="Features & Amenities"
       floorPlans={property?.floorPlanImages || []}
       pdfUrl={property?.pdfUrl || null}
     />

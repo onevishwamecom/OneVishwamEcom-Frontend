@@ -26,7 +26,7 @@ import {
  *   - Backed by sessionStorage for instant rendering across page refreshes.
  */
 
-const SESSION_CACHE_KEY = 'vishwam_centralized_properties_v1';
+const SESSION_CACHE_KEY = 'vishwam_centralized_properties_v2';
 const CACHE_TTL_MS = 60 * 1000; // 60 seconds freshness window
 
 function readSessionCache() {
@@ -77,22 +77,8 @@ function normalizeProperty(p) {
     (p.city && rawAddr === p.city.toLowerCase());
 
     const mapUrlValue = (
-      p.locationUrl ||
-      p.googleMapsUrl ||
-      p.googleMapUrl ||
       p.mapUrl ||
-      p.mapsUrl ||
-      p['Google Map URL'] ||
-      p['Location URL'] ||
-      p['Map URL'] ||
-      p.details?.locationUrl ||
-      p.details?.googleMapsUrl ||
-      p.details?.googleMapUrl ||
       p.details?.mapUrl ||
-      p.details?.mapsUrl ||
-      p.details?.['Google Map URL'] ||
-      p.details?.['Location URL'] ||
-      p.details?.['Map URL'] ||
       ''
     ).trim();
 
@@ -103,13 +89,8 @@ function normalizeProperty(p) {
       address: isBareCity ? resolvedAddress : (p.address || resolvedAddress),
       locality: p.locality || resolvedLocality,
       location: resolvedAddress,
-      locationUrl: mapUrlValue,
       mapUrl: mapUrlValue,
-      googleMapsUrl: mapUrlValue,
-      googleMapUrl: mapUrlValue,
-      mapEmbedUrl: p.mapEmbedUrl || p.details?.mapEmbedUrl || '',
-      resolvedLocationUrl: p.resolvedLocationUrl || p.details?.resolvedLocationUrl || '',
-    formattedAddress: resolvedAddress,
+      formattedAddress: resolvedAddress,
     zone: p.zone || getBangaloreZone(p),
     rawPrice: p.rawPrice || p.price,
     rawPriceSuffix: p.rawPriceSuffix || p.priceSuffix,

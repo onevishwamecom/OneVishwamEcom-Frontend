@@ -23,6 +23,7 @@ export default React.memo(function CategoryListingCard({
   cardPills = [],
   highlightBanner,
   onSelect,
+  hidePrice = false,
   children,
 }) {
   const [imgError, setImgError] = useState(false);
@@ -31,7 +32,25 @@ export default React.memo(function CategoryListingCard({
   // Normalize data
   const rawTitle = title !== undefined ? title : (item?.title || '');
   const cardTitle = cleanProductName(rawTitle);
-  const cardLink = link || item?.link || (item?.id ? `/property/${item.id}` : '#');
+  const cardLink =
+    link ||
+    item?.link ||
+    item?.detailUrl ||
+    (item?.category === 'vehicles' || item?.category === 'automobile'
+      ? `/vehicle/${item?.id || item?._id}`
+      : item?.category === 'electronics'
+      ? `/electronics/${item?.id || item?._id}`
+      : item?.category === 'bedding' || item?.category === 'bedding-comfort'
+      ? `/bedding/${item?.id || item?._id}`
+      : item?.category === 'garments'
+      ? `/garment/${item?.id || item?._id}`
+      : item?.category === 'grocery'
+      ? `/grocery/${item?.id || item?._id}`
+      : item?.category === 'jewellery'
+      ? `/jewellery/${item?.id || item?._id}`
+      : item?.id
+      ? `/property/${item.id}`
+      : '#');
   const rawImg = image || (Array.isArray(item?.images) ? item.images.find(s => s && !isPlaceholderImage(s)) : '') || item?.image || '';
   const cardImg = isPlaceholderImage(rawImg) ? '' : rawImg;
   const cardPrice = price !== undefined ? price : (item?.price || 'Price on Request');
@@ -67,21 +86,17 @@ export default React.memo(function CategoryListingCard({
         item?.trustBannerText ||
         (item?.loanApproved ? '100% Pre-Approved Loan Available' : null));
 
-  const isPropertyOrVehicle =
-    (cardLink && (cardLink.includes('/property') || cardLink.includes('/vehicle') || cardLink.includes('/automobile'))) ||
-    (cardOverline && (
-      cardOverline.toLowerCase().includes('property') ||
-      cardOverline.toLowerCase().includes('house') ||
-      cardOverline.toLowerCase().includes('vehicle') ||
-      cardOverline.toLowerCase().includes('car') ||
-      cardOverline.toLowerCase().includes('automobile')
-    )) ||
-    (item?.category && (
-      String(item.category).toLowerCase().includes('property') ||
-      String(item.category).toLowerCase().includes('real-estate') ||
-      String(item.category).toLowerCase().includes('automobile') ||
-      String(item.category).toLowerCase().includes('vehicle')
-    ));
+  const shouldHidePrice = Boolean(
+    hidePrice ||
+    item?.hidePrice ||
+    (cardLink && (cardLink.includes('/property') || cardLink.includes('/vehicle'))) ||
+    item?.category === 'vehicles' ||
+    item?.category === 'automobile' ||
+    item?.category === 'properties' ||
+    item?.category === 'real-estate' ||
+    item?.propertyType ||
+    item?.wheelerType
+  );
 
   const { isLoggedIn, openAuthModal } = useAuth();
 
@@ -105,7 +120,7 @@ export default React.memo(function CategoryListingCard({
     <div
       onClick={handleClick}
       role="article"
-      className="group bg-white rounded-2xl border border-gray-200/80 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-xs"
+      className="group bg-white rounded-2xl border border-slate-200/90 hover:border-brand-blue/50 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer h-full will-change-transform"
     >
       {/* ── Image Container ── */}
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0">
@@ -133,8 +148,9 @@ export default React.memo(function CategoryListingCard({
             {badges.map((b, i) => (
               <span
                 key={i}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap ${b.className}`}
+                className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs whitespace-nowrap flex items-center gap-1 ${b.className}`}
               >
+                <i className="fa-solid fa-bolt text-amber-300 text-[10px]" />
                 {b.label}
               </span>
             ))}
@@ -191,6 +207,9 @@ export default React.memo(function CategoryListingCard({
               const label = typeof pill === 'string' ? pill : `${pill.label ? `${pill.label}: ` : ''}${pill.value}`;
               const isFacing = label.toLowerCase().includes('facing');
               const isCorner = label.toLowerCase().includes('corner');
+              const isBhk = /\d+\s*bhk/i.test(label);
+              const isSqft = /sq\.?ft|sqft|sq\s*ft/i.test(label);
+              const isBath = /bath/i.test(label);
               return (
                 <span
                   key={idx}
@@ -199,11 +218,14 @@ export default React.memo(function CategoryListingCard({
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
                       ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                      : 'bg-gray-100 text-gray-700'
+                      : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
+                  {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
+                  {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px]" />}
+                  {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
                   {label}
                 </span>
               );
@@ -221,9 +243,9 @@ export default React.memo(function CategoryListingCard({
           </div>
         )}
 
-        {/* ── Card Footer: Contact Us / Price ── */}
+        {/* ── Card Footer: Are You Interested? / Price ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-          {isPropertyOrVehicle ? (
+          {shouldHidePrice ? (
             <button
               type="button"
               onClick={(e) => {
@@ -234,10 +256,10 @@ export default React.memo(function CategoryListingCard({
                   })
                 );
               }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
             >
-              <i className="fa-solid fa-envelope text-xs" />
-              <span>Contact Us</span>
+              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <span>Are You Interested?</span>
             </button>
           ) : (
             <>

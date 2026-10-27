@@ -4,7 +4,7 @@
  */
 
 import { cleanProductName } from '../../../utils/searchUtils';
-import { formatPropertyAddress } from '../../../pages/services/property/propertyHelpers';
+import { formatPropertyAddress, isOneVishwamProperty } from '../../../pages/services/property/propertyHelpers';
 import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 function isPerSqft(priceStr = '', suffix = '') {
@@ -53,6 +53,14 @@ export function mapPropertyToEntityItem(property) {
 
   // Badges resolution
   const badges = [];
+  const vendor = String(property.vendorName || property.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
+  const partner = String(property.channelPartnerName || property.channelPartner || property.partnerName || property.partner || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (vendor.includes('onevishwam') || partner.includes('onevishwam') || isOneVishwamProperty(property)) {
+    badges.push({
+      label: 'In-House Project',
+      className: 'bg-indigo-600 text-white font-bold',
+    });
+  }
   if (property.status) {
     badges.push({
       label: property.status === 'approved' ? 'Verified' : property.status,

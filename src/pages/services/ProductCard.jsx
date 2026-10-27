@@ -27,21 +27,17 @@ export default React.memo(function ProductCard({
   theme,
   children,
   hidePrice = false,
+  layout = 'grid',
 }) {
   const [imgError, setImgError] = useState(false);
   const [faved, setFaved] = useState(false);
   const { isLoggedIn, openAuthModal } = useAuth();
 
-  const isPropertyOrVehicle =
+  const isPropertyOrVehicle = Boolean(
     hidePrice ||
-    (link && (link.includes('/property') || link.includes('/vehicle') || link.includes('/automobile'))) ||
-    (overline && (
-      overline.toLowerCase().includes('property') ||
-      overline.toLowerCase().includes('house') ||
-      overline.toLowerCase().includes('vehicle') ||
-      overline.toLowerCase().includes('car') ||
-      overline.toLowerCase().includes('automobile')
-    ));
+    (link && (link.includes('/property') || link.includes('/vehicle'))) ||
+    (alt && (String(alt).toLowerCase().includes('property') || String(alt).toLowerCase().includes('vehicle')))
+  );
 
   const handleCardClick = (e) => {
     if (!link || link === '#') return;
@@ -57,10 +53,14 @@ export default React.memo(function ProductCard({
   return (
     <div
       onClick={handleCardClick}
-      className="group bg-white rounded-2xl border border-gray-200/80 hover:border-brand-blue/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer h-full shadow-xs"
+      className={`group bg-white rounded-2xl border border-slate-200/90 hover:border-brand-blue/50 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex cursor-pointer will-change-transform ${
+        layout === 'list' ? 'flex-col md:flex-row' : 'flex-col h-full'
+      }`}
     >
       {/* ── Image Container ── */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100 shrink-0">
+      <div className={`relative overflow-hidden bg-gray-100 shrink-0 ${
+        layout === 'list' ? 'md:w-80 md:h-auto aspect-[16/10] md:aspect-auto' : 'aspect-[16/10]'
+      }`}>
         {image && !isPlaceholderImage(image) && !imgError ? (
           <img
             src={image}
@@ -79,13 +79,14 @@ export default React.memo(function ProductCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
 
-        {/* Top-Left Badges */}
+        {/* Top-Left Badges (Homez style) */}
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs ${b.className}`}
+              className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1 ${b.className}`}
             >
+              <i className="fa-solid fa-bolt text-amber-300 text-[10px]" />
               {b.label}
             </span>
           ))}
@@ -98,7 +99,7 @@ export default React.memo(function ProductCard({
             e.stopPropagation();
             setFaved(!faved);
           }}
-          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10"
+          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10 cursor-pointer"
           aria-label="Save to favorites"
         >
           <i className={`${faved ? 'fa-solid text-rose-500' : 'fa-regular text-gray-500'} fa-heart text-xs`} />
@@ -134,13 +135,16 @@ export default React.memo(function ProductCard({
           </div>
         )}
 
-        {/* Specs / Detail Tags */}
+        {/* Specs / Detail Tags (Homez style metadata) */}
         {tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {tags.map((t, i) => {
               if (!t || String(t).trim().toLowerCase() === 'plots' || String(t).trim().toLowerCase() === 'plot') return null;
               const isFacing = String(t).startsWith('Door Facing') || String(t).startsWith('Facing');
               const isCorner = String(t).startsWith('Corner');
+              const isBhk = /\d+\s*bhk/i.test(String(t));
+              const isSqft = /sq\.?ft|sqft|sq\s*ft/i.test(String(t));
+              const isBath = /bath/i.test(String(t));
               return (
                 <span
                   key={i}
@@ -149,11 +153,14 @@ export default React.memo(function ProductCard({
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
                       ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                      : 'bg-gray-100 text-gray-700'
+                      : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
+                  {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
+                  {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px]" />}
+                  {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
                   {t}
                 </span>
               );
@@ -164,7 +171,7 @@ export default React.memo(function ProductCard({
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
 
-        {/* ── Card Footer: Contact Us / Price ── */}
+        {/* ── Card Footer: Are You Interested? / Price ── */}
         <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
           {isPropertyOrVehicle ? (
             <button
@@ -177,36 +184,43 @@ export default React.memo(function ProductCard({
                   })
                 );
               }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
             >
-              <i className="fa-solid fa-envelope text-xs" />
-              <span>Contact Us</span>
+              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <span>Are You Interested?</span>
             </button>
           ) : (
-            <div className="min-w-0">
-              {priceOverride ? (
-                priceOverride
-              ) : (
-                price && (
-                  <div>
-                    <span
-                      className={`leading-tight block truncate ${
-                        String(price).trim().toLowerCase() === 'this is negotiable'
-                          ? 'text-sm font-normal text-gray-500'
-                          : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
-                      }`}
-                    >
-                      {price}
-                    </span>
-                    {priceSuffix && (
-                      <span className="text-xs font-semibold text-gray-400 block truncate">
-                        {priceSuffix}
+            <>
+              <div className="min-w-0">
+                {priceOverride ? (
+                  priceOverride
+                ) : (
+                  price && (
+                    <div>
+                      <span
+                        className={`leading-tight block truncate ${
+                          String(price).trim().toLowerCase() === 'this is negotiable'
+                            ? 'text-sm font-normal text-gray-500'
+                            : 'text-base sm:text-lg font-extrabold text-brand-charcoal'
+                        }`}
+                      >
+                        {price}
                       </span>
-                    )}
-                  </div>
-                )
-              )}
-            </div>
+                      {priceSuffix && (
+                        <span className="text-[11px] font-medium text-gray-500 block truncate">
+                          {priceSuffix}
+                        </span>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-brand-blue group-hover:text-brand-navy transition-colors shrink-0">
+                <span>View Details</span>
+                <i className="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </>
           )}
         </div>
       </div>

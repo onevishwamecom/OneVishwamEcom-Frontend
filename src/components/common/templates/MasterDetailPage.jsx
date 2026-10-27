@@ -7,6 +7,7 @@ import AuthRequiredView from '../../auth/AuthRequiredView';
 import CategoryListingCard from './CategoryListingCard';
 import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 import oneVishwamLogo from '../../../assets/logo.png';
+import VerifiedPartnerBadge from '../VerifiedPartnerBadge';
 import { contactInfo, getPropertyContactInfo } from '../../../constants/footerContent';
 import { cleanProductName } from '../../../utils/searchUtils';
 import { trackUserActivity, resolveSectorFromPath } from '../../../utils/activityTracker';
@@ -138,9 +139,9 @@ function GalleryModal({ items = [], index, onClose, onPrev, onNext }) {
   );
 }
 
-function getGoogleMapsDirectUrl(locationUrl) {
-  if (!locationUrl || typeof locationUrl !== 'string') return '';
-  const trimmed = locationUrl.trim();
+function getGoogleMapsDirectUrl(mapUrl) {
+  if (!mapUrl || typeof mapUrl !== 'string') return '';
+  const trimmed = mapUrl.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
@@ -151,9 +152,52 @@ function getGoogleMapsDirectUrl(locationUrl) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 }
 
+function getGoogleMapsEmbedUrl(mapUrl) {
+  if (!mapUrl || typeof mapUrl !== 'string') return '';
+  const trimmed = mapUrl.trim();
+  if (!trimmed) return '';
+
+  // If already an embed URL
+  if (trimmed.includes('/embed') || trimmed.includes('output=embed')) {
+    return trimmed;
+  }
+
+  // If coordinates: e.g. "12.9716, 77.5946" or "12.9716,77.5946"
+  const coordMatch = trimmed.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+  if (coordMatch) {
+    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&t=m&z=15&output=embed&iwloc=near`;
+  }
+
+  try {
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      const urlObj = new URL(trimmed);
+      const qParam = urlObj.searchParams.get('q') || urlObj.searchParams.get('query');
+      if (qParam) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(qParam)}&t=m&z=15&output=embed&iwloc=near`;
+      }
+      const placeMatch = trimmed.match(/\/place\/([^/@?]+)/);
+      if (placeMatch) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(decodeURIComponent(placeMatch[1]))}&t=m&z=15&output=embed&iwloc=near`;
+      }
+      const atCoordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atCoordMatch) {
+        return `https://maps.google.com/maps?q=${atCoordMatch[1]},${atCoordMatch[2]}&t=m&z=15&output=embed&iwloc=near`;
+      }
+      return `https://maps.google.com/maps?q=${encodeURIComponent(trimmed)}&t=m&z=15&output=embed&iwloc=near`;
+    }
+  } catch {
+    // fallback
+  }
+
+  return `https://maps.google.com/maps?q=${encodeURIComponent(trimmed)}&t=m&z=15&output=embed&iwloc=near`;
+}
+
 /**
  * MasterDetailPage
- * Master centralized detail page template used across all product categories.
+ * Master centralized detail page template modeled after Homez Single V1.
+ * Supports a 2-column layout (8-column content + 4-column sticky sidebar),
+ * 5-photo luxury mosaic gallery, interactive mortgage/EMI calculator,
+ * unit floor plans, nearby landmarks, verified reviews, and Schedule a Tour widget.
  */
 export default function MasterDetailPage({
   item,
@@ -163,8 +207,8 @@ export default function MasterDetailPage({
   itemLinkPrefix = '/property/',
   loading = false,
   error = null,
-  bentoTitle = 'Key Specifications & Verified Parameters',
-  featuresTitle = 'Key Features & Included Highlights',
+  bentoTitle = 'Overview',
+  featuresTitle = 'Features & Amenities',
   headerExtra = null,
   bentoHighlights: customBentoHighlights = null,
   floorPlans = [],
@@ -175,6 +219,7 @@ export default function MasterDetailPage({
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location?.pathname || '';
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
@@ -185,6 +230,7 @@ export default function MasterDetailPage({
   const [reachedFooter, setReachedFooter] = useState(false);
   const [fpGalleryOpen, setFpGalleryOpen] = useState(false);
   const [fpGalleryIndex, setFpGalleryIndex] = useState(0);
+  const [activeFloorPlanTab, setActiveFloorPlanTab] = useState(0);
 
   const heroRef = useRef(null);
   const similarRef = useRef(null);
@@ -209,7 +255,7 @@ export default function MasterDetailPage({
     }
   }, [item, activeId, categoryName]);
 
-  // Track specific listing view and user interest in backend session
+  // Track user activity in backend
   useEffect(() => {
     if (!item || !activeId) return;
     const sector = resolveSectorFromPath(pathname) || categoryName.toLowerCase().trim();
@@ -229,12 +275,12 @@ export default function MasterDetailPage({
     });
   }, [item, activeId, categoryName, pathname]);
 
-  // Scroll to top on mount / change
+  // Scroll to top on mount / id change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeId]);
 
-  // Scroll listener for sticky floating quick-action bar with footer detection
+  // Scroll listener for sticky floating bottom action bar
   useEffect(() => {
     const handleScroll = () => {
       if (heroRef.current) {
@@ -258,7 +304,7 @@ export default function MasterDetailPage({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // IntersectionObserver to instantly hide sticky bar as soon as footer enters viewport
+  // IntersectionObserver to hide sticky bar when footer enters view
   useEffect(() => {
     const footerEl = document.querySelector('footer');
     if (!footerEl || typeof IntersectionObserver === 'undefined') return;
@@ -429,6 +475,12 @@ export default function MasterDetailPage({
     agentDisplayName ||
     null;
 
+  const partnerDisplayName =
+    item.channelPartnerName ||
+    (item.vendorName && item.vendorName.toLowerCase() !== 'onevishwam' ? item.vendorName : null) ||
+    enterpriseName ||
+    'One Vishwam';
+
   const enterpriseLogo =
     item.showroom?.logo ||
     item.enterpriseLogo ||
@@ -455,44 +507,88 @@ export default function MasterDetailPage({
     '7-Day Return / Exchange Policy',
   ]);
 
-  // Location and Google Maps normalization
+  // Location and Google Maps normalization - map & related buttons only shown if mapUrl has data
   const rawLocUrl = (
-    item.locationUrl ||
-    item.googleMapsUrl ||
-    item.googleMapUrl ||
     item.mapUrl ||
-    item.mapsUrl ||
     item.showroom?.mapUrl ||
-    item.showroom?.googleMapsUrl ||
-    item.raw?.locationUrl ||
-    item.raw?.googleMapsUrl ||
-    item.raw?.showroom?.mapUrl ||
+    item.raw?.mapUrl ||
+    item.details?.mapUrl ||
     ''
   ).trim();
 
-  const directMapUrl = rawLocUrl
-    ? getGoogleMapsDirectUrl(rawLocUrl)
-    : (item.address || item.showroom?.address)
-      ? getGoogleMapsDirectUrl(`${item.address || item.showroom?.address}, ${item.city || item.showroom?.city || 'Bengaluru'}`)
-      : '';
+  // ONLY generate embedMapUrl and directMapUrl if mapUrl has actual data
+  const hasMapData = Boolean(rawLocUrl);
+  const embedMapUrl = hasMapData ? getGoogleMapsEmbedUrl(rawLocUrl) : '';
+  const directMapUrl = hasMapData ? getGoogleMapsDirectUrl(rawLocUrl) : '';
 
-  const hasLocationOrMap = Boolean(rawLocUrl || item.address || item.showroom?.address || item.location);
+  const hasLocationDetails = Boolean(item.address || item.showroom?.address || item.location || item.city || item.locality || item.pincode);
+  const hasLocationOrMap = hasMapData || hasLocationDetails;
 
-  // Specification Sections normalization
+  // Specifications
   const specSections = item.specifications || [];
 
-  const isPropertyOrVehicle =
-    (pathname && (pathname.includes('/property') || pathname.includes('/vehicle') || pathname.includes('/automobile'))) ||
-    (item?.category && (
-      String(item.category).toLowerCase().includes('property') ||
-      String(item.category).toLowerCase().includes('real-estate') ||
-      String(item.category).toLowerCase().includes('automobile') ||
-      String(item.category).toLowerCase().includes('vehicle')
-    ));
+  // Homez Overview Extraction
+  const isPlot = Boolean(
+    item.isPlot ||
+    (item.propertyType && String(item.propertyType).toLowerCase().includes('plot')) ||
+    (item.subcategory && String(item.subcategory).toLowerCase().includes('plot'))
+  );
+
+  const bedsDisplay = item.bhk || item.bedrooms || item.bedroom || (isPlot ? 'N/A (Plot)' : '3 Bedrooms');
+  const bathsDisplay = item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : (isPlot ? 'N/A' : '2 Bathrooms');
+  const yearBuiltDisplay = item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : 'Ready to Move');
+  const garageDisplay = item.parking || item.garage || (isPlot ? 'N/A' : '1 Covered Parking');
+  const sqftDisplay = item.area || item.superBuiltUpArea || item.dimensions || '1,450 Sq.Ft';
+  const propertyTypeDisplay = item.propertyType || item.subcategory || categoryName || 'Apartment';
+
+  // Numeric Price for Mortgage Calculator
+  const numericPrice = useMemo(() => {
+    if (!item?.price) return 7500000;
+    const match = String(item.price).replace(/,/g, '').match(/([\d.]+)/);
+    if (!match) return 7500000;
+    let val = parseFloat(match[1]);
+    const lower = String(item.price).toLowerCase();
+    if (lower.includes('cr')) val = val * 10000000;
+    else if (lower.includes('lakh') || lower.includes('lac')) val = val * 100000;
+    else if (val < 10000) val = val * 100000; // e.g., 75 -> 75 Lakhs
+    return Math.round(val);
+  }, [item?.price]);
+
+  // Price per sqft computation
+  const pricePerSqftDisplay = useMemo(() => {
+    if (item.pricePerSqft) return item.pricePerSqft;
+    if (item.priceSuffix && String(item.priceSuffix).toLowerCase().includes('sq')) return item.priceSuffix;
+    if (numericPrice > 0) {
+      const sqftMatch = String(sqftDisplay).replace(/,/g, '').match(/([\d.]+)/);
+      if (sqftMatch) {
+        const sqftNum = parseFloat(sqftMatch[1]);
+        if (sqftNum > 100) {
+          const rate = Math.round(numericPrice / sqftNum);
+          return `₹${rate.toLocaleString('en-IN')}/sq ft`;
+        }
+      }
+    }
+    return null;
+  }, [item.pricePerSqft, item.priceSuffix, numericPrice, sqftDisplay]);
+
+  const isPropertyOrVehicle = Boolean(
+    categoryName === 'Properties' ||
+    categoryName === 'Automobiles & Vehicles' ||
+    categoryName === 'Automobiles' ||
+    categoryName === 'Vehicles' ||
+    itemLinkPrefix?.includes('property') ||
+    itemLinkPrefix?.includes('vehicle') ||
+    item?.category === 'real-estate' ||
+    item?.category === 'properties' ||
+    item?.category === 'vehicles' ||
+    item?.category === 'automobile' ||
+    item?.propertyType ||
+    item?.wheelerType
+  );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      {/* Lightbox Modal */}
+    <div className="min-h-screen bg-[#f7f7f7]">
+      {/* Lightbox Modals */}
       {galleryOpen && (
         <GalleryModal
           items={mediaItems}
@@ -523,7 +619,7 @@ export default function MasterDetailPage({
 
       {/* ─── TOP NAVIGATION & BREADCRUMBS ─── */}
       <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <Breadcrumbs
               categoryName={categoryName}
@@ -553,71 +649,68 @@ export default function MasterDetailPage({
         </div>
       </div>
 
-      {/* ─── HERO HEADER & MOSAIC GALLERY ─── */}
-      <div ref={heroRef} className="bg-white border-b border-gray-200/60 pb-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-
-          {/* Title, Badges & Price Bar */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6">
-            <div className="space-y-2.5 max-w-3xl">
+      {/* ─── HOMEZ SINGLE V1 HERO HEADER ─── */}
+      <div ref={heroRef} className="bg-white border-b border-gray-200/70 pt-8 pb-7">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+            {/* Left 8 Cols: Title, Location, Badges, Bed/Bath/Sqft */}
+            <div className="lg:col-span-8 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-brand-blue/10 text-brand-blue text-[11px] font-bold px-3 py-0.5">
                   {item.category || item.brand || categoryName}
                 </span>
 
-                {statusPill && (
-                  <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${
-                    statusPill.variant === 'green' ? 'bg-emerald-100 text-emerald-700' :
-                    statusPill.variant === 'amber' ? 'bg-amber-100 text-amber-800' :
-                    statusPill.variant === 'blue' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {statusPill.label || statusPill}
-                  </span>
-                )}
+                <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1.5">
+                  <i className="fa-solid fa-circle text-[6px] text-emerald-500" />
+                  {statusPill?.label || item.possession || 'For Sale'}
+                </span>
 
                 {item.loanApproved && (
-                  <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-3 py-0.5 inline-flex items-center gap-1">
+                  <span className="rounded-full bg-blue-50 text-brand-blue border border-blue-200 text-[11px] font-bold px-2.5 py-0.5 inline-flex items-center gap-1">
                     <i className="fa-solid fa-circle-check text-[10px]" /> Loan Pre-Approved
-                  </span>
-                )}
-
-                {(item.recentlyAdded || item.condition === 'new') && (
-                  <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5">
-                    {item.condition === 'new' ? 'Brand New' : 'New Listing'}
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-charcoal tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 {itemTitle}
               </h1>
 
-              {item.subtitle && (
-                <p className="text-sm font-medium text-gray-500">{item.subtitle}</p>
-              )}
-
-              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5 pt-0.5 flex-wrap">
-                <i className="fa-solid fa-location-dot text-brand-blue text-sm shrink-0" />
-                <span className="font-medium text-gray-700">
-                  {item.address || item.showroom?.address || item.location || 'Bangalore'}
-                  {item.zone ? ` (${item.zone})` : ''}
-                  {item.pincode && !String(item.address || item.location).includes(item.pincode) ? ` — ${item.pincode}` : ''}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-500">
+                <span className="flex items-center gap-1.5 font-medium text-gray-700">
+                  <i className="fa-solid fa-location-dot text-rose-500 shrink-0" />
+                  <span>{item.address || item.showroom?.address || item.location || 'Bangalore, Karnataka'}</span>
                 </span>
-                {directMapUrl && (
-                  <a
-                    href={directMapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-brand-blue hover:bg-blue-100 text-[11px] font-bold border border-blue-200 transition-colors ml-1 cursor-pointer"
-                    title="View exact location on Google Maps"
-                  >
-                    <i className="fa-solid fa-map-location-dot text-[10px]" />
-                    <span>View in Map</span>
-                    <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
-                  </a>
-                )}
-              </p>
+                <span className="text-gray-300 hidden sm:inline">|</span>
+                <span className="flex items-center gap-1 text-gray-500">
+                  <i className="fa-regular fa-clock text-xs" />
+                  <span>Verified Listing</span>
+                </span>
+                <span className="text-gray-300 hidden sm:inline">|</span>
+                <span className="font-semibold text-gray-400">
+                  ID: #{String(item.id || item._id || 'RT48').slice(-6)}
+                </span>
+              </div>
+
+              {/* Homez Bed / Bath / Sqft / Type Meta Row */}
+              <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-bed text-brand-blue text-sm" />
+                  <span>{bedsDisplay}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-shower text-cyan-600 text-sm" />
+                  <span>{bathsDisplay}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-vector-square text-emerald-600 text-sm" />
+                  <span>{sqftDisplay}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-house-chimney text-amber-600 text-sm" />
+                  <span>{propertyTypeDisplay}</span>
+                </div>
+              </div>
 
               {headerExtra && (
                 <div className="pt-2">
@@ -626,79 +719,115 @@ export default function MasterDetailPage({
               )}
             </div>
 
-            {/* Price & Primary CTAs */}
-            <div className="flex flex-col sm:flex-row lg:flex-col lg:items-end gap-3 shrink-0">
-              {/* Co-Branding: Partner / Brand + OneVishwam Logo */}
-              <div className="inline-flex items-center gap-2 rounded-xl bg-slate-50/90 border border-slate-200/80 px-3 py-1.5 shadow-2xs">
-                {enterpriseLogo ? (
-                  <>
-                    <img
-                      src={resolveImage(enterpriseLogo)}
-                      alt={enterpriseName || 'Partner'}
-                      className="h-6 max-w-[110px] object-contain"
-                    />
-                    <span className="text-slate-300 font-light text-xs">✕</span>
-                  </>
-                ) : enterpriseName ? (
-                  <>
-                    <span className="text-xs font-bold text-slate-800 tracking-wide">
-                      {enterpriseName}
-                    </span>
-                    <span className="text-slate-300 font-light text-xs">✕</span>
-                  </>
-                ) : null}
-
-                <img
-                  src={oneVishwamLogo}
-                  alt="OneVishwam"
-                  className="h-5 sm:h-5.5 w-auto object-contain"
-                />
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100/70 border border-amber-300/60 px-2 py-0.5 rounded-md">
-                  Verified
-                </span>
+            {/* Right 4 Cols: Actions, Price & Rate */}
+            <div className="lg:col-span-4 flex flex-col items-start lg:items-end justify-between h-full pt-4 lg:pt-0">
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  onClick={() => setIsSaved(!isSaved)}
+                  className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
+                    isSaved ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title="Save Property"
+                >
+                  <i className={`${isSaved ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart`} />
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Share"
+                >
+                  <i className="fa-solid fa-share-nodes" />
+                </button>
+                {directMapUrl && (
+                  <a
+                    href={directMapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
+                    title="View on Google Maps"
+                  >
+                    <i className="fa-solid fa-map-location-dot" />
+                  </a>
+                )}
+                {pdfUrl && (
+                  <a
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Download Brochure PDF"
+                  >
+                    <i className="fa-solid fa-file-pdf text-rose-500" />
+                  </a>
+                )}
               </div>
 
-              {!isPropertyOrVehicle && (
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className={item.price === 'This is negotiable' ? "text-xl sm:text-2xl font-normal text-gray-500" : "text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight"}>
-                      {item.price}
-                    </span>
-                    {item.priceSuffix && (
-                      <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
-                    )}
-                  </div>
-                  {item.priceNote && (
-                    <p className="text-[11px] text-gray-400 mt-0.5">{item.priceNote}</p>
-                  )}
-                </div>
-              )}
+              <div className="lg:text-end flex flex-col items-start lg:items-end gap-3">
+                {/* ── Co-Branding / Verification Partner Badge ── */}
+                <VerifiedPartnerBadge partnerName={partnerDisplayName} />
 
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button
-                  onClick={() => setEnquiryOpen(true)}
-                  className="rounded-xl bg-brand-blue px-6 py-3 text-sm font-bold text-white hover:bg-brand-navy transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
-                >
-                  <i className="fa-solid fa-paper-plane" /> Enquire Now
-                </button>
-                <a
-                  href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                  className="rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-3 text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
-                >
-                  <i className="fa-solid fa-phone" />
-                  <span>Contact Us: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
-                </a>
+                {isPropertyOrVehicle ? (
+                  <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setEnquiryOpen(true)}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                    >
+                      <i className="fa-solid fa-paper-plane text-xs" />
+                      <span>Enquire Now</span>
+                    </button>
+                    <a
+                      href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                    >
+                      <i className="fa-solid fa-phone text-xs" />
+                      <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-baseline lg:justify-end gap-1.5">
+                      <span className={item.price === 'This is negotiable' ? 'text-2xl font-semibold text-gray-600' : 'text-3xl sm:text-4xl font-black text-slate-900 tracking-tight'}>
+                        {item.price || 'Price on Request'}
+                      </span>
+                      {item.priceSuffix && (
+                        <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
+                      )}
+                    </div>
+                    {pricePerSqftDisplay && (
+                      <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-0.5">
+                        {pricePerSqftDisplay}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2.5 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => setEnquiryOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      >
+                        <i className="fa-solid fa-paper-plane text-xs" />
+                        <span>Enquire Now</span>
+                      </button>
+                      <a
+                        href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      >
+                        <i className="fa-solid fa-phone text-xs" />
+                        <span>Call</span>
+                      </a>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          {/* ─── MOSAIC LUXURY PHOTO GALLERY ─── */}
-          <div className="mt-2">
+          {/* ─── 5-PHOTO LUXURY MOSAIC GALLERY (Homez Single V1) ─── */}
+          <div className="mt-7">
             {mediaItems.length <= 1 ? (
-              /* Single Photo Hero */
               <div
                 onClick={() => setGalleryOpen(true)}
-                className="relative h-[340px] sm:h-[460px] lg:h-[540px] rounded-3xl overflow-hidden bg-gray-900 shadow-sm cursor-pointer group"
+                className="relative h-[340px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden bg-gray-900 shadow-sm cursor-pointer group"
               >
                 <img
                   src={resolveImage(currentMedia?.url || currentMedia)}
@@ -715,8 +844,7 @@ export default function MasterDetailPage({
                 </button>
               </div>
             ) : (
-              /* 5-Photo Mosaic Grid */
-              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[520px] rounded-3xl overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
                 {/* Main Hero Photo (Left 2x2) */}
                 <div
                   onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
@@ -773,10 +901,10 @@ export default function MasterDetailPage({
                       )}
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
 
-                      {/* View All Photos Button on the Last Slot */}
+                      {/* View All Photos Overlay on the 4th Slot */}
                       {hasMore && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white p-3 text-center group-hover:bg-black/70 transition-colors">
-                          <i className="fa-solid fa-images text-xl mb-1.5 text-blue-400" />
+                          <i className="fa-solid fa-images text-xl mb-1 text-amber-400" />
                           <span className="text-sm font-bold">+{mediaItems.length - 4} More</span>
                           <span className="text-[11px] text-gray-300">View all photos</span>
                         </div>
@@ -791,11 +919,11 @@ export default function MasterDetailPage({
             <div className="mt-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                 <i className="fa-solid fa-camera text-brand-blue" />
-                <span>{mediaItems.length} Photos & Media available</span>
+                <span>{mediaItems.length} Photos &amp; Media available</span>
               </div>
               <button
                 onClick={() => setGalleryOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-brand-charcoal hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-800 hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
               >
                 <i className="fa-solid fa-table-cells" /> Show all photos
               </button>
@@ -804,286 +932,477 @@ export default function MasterDetailPage({
         </div>
       </div>
 
-      {/* ─── MAIN CONTENT CONTAINER (Full Width Max-7XL) ─── */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {children}
+      {/* ─── MAIN 2-COLUMN SECTION (Homez col-lg-8 & col-lg-4 Layout) ─── */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* ═══ MODULE 1: BENTO SPEC HIGHLIGHTS ═══ */}
-        {bentoHighlights.length > 0 && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-gray-100 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-base">
-                  <i className="fa-solid fa-gem" />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">{bentoTitle}</h2>
-                  <p className="text-xs text-gray-500">Core parameters and verified configuration</p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-200/60 self-start sm:self-auto">
-                Listing ID: #{String(item.id || item._id || '').slice(-6)}
-              </span>
-            </div>
+          {/* ════ LEFT 8-COLUMN CONTENT (col-lg-8) ════ */}
+          <div className="lg:col-span-8 space-y-8">
+            {children}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {bentoHighlights.map((meta, idx) => {
-                const icon = meta.icon || 'fa-sliders';
-                const color = meta.color || 'text-brand-blue bg-blue-50';
-                return (
-                  <div
-                    key={idx}
-                    className="group relative flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl border border-gray-100/90 bg-gray-50/60 hover:bg-white hover:border-brand-blue/30 hover:shadow-md transition-all duration-300"
-                  >
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-sm ${color} group-hover:scale-105 transition-transform shrink-0`}>
-                      <i className={`fa-solid ${icon}`} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">{meta.label}</span>
-                      <span className="text-sm sm:text-base font-extrabold text-brand-charcoal leading-snug block mt-0.5 break-words">
-                        {meta.value}
-                      </span>
-                    </div>
+            {/* 1. OVERVIEW WIDGET */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+              <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-6">{bentoTitle}</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                {/* 1. Bedroom */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-bed" />
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
+                  </div>
+                </div>
 
-        {/* ═══ MODULE 2: OVERVIEW & DESCRIPTION ═══ */}
-        <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-4">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
-              <i className="fa-solid fa-circle-info" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-brand-charcoal">About This Listing</h2>
-              <p className="text-xs text-gray-500">Comprehensive overview and manufacturer details</p>
-            </div>
-          </div>
+                {/* 2. Bath */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-shower" />
+                  </div>
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
+                  </div>
+                </div>
 
-          <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed space-y-3">
-            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line">
-              {showFullDesc || !item.description || item.description.length < 350
-                ? item.description || `${item.title} verified and listed on OneVishwam. Inspected for quality, authenticity, and pre-approved for priority fulfillment and customer protection.`
-                : item.description.slice(0, 350) + '...'}
-            </p>
-          </div>
+                {/* 3. Year Built / Possession */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-calendar-check" />
+                  </div>
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
+                  </div>
+                </div>
 
-          {item.description && item.description.length > 350 && (
-            <button
-              onClick={() => setShowFullDesc(!showFullDesc)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-2 cursor-pointer"
-            >
-              {showFullDesc ? 'Show Less' : 'Read Full Description'}
-              <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
-            </button>
-          )}
+                {/* 4. Garage */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-warehouse" />
+                  </div>
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
+                  </div>
+                </div>
 
-          {/* Quick tags / attributes */}
-          <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
-            {item.loanApproved && (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-circle-check" /> 100% Pre-Approved Loan
-              </span>
-            )}
-            {item.highlightBanner && (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-stamp" /> {item.highlightBanner}
-              </span>
-            )}
-            {item.brand && (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200/70 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-certificate" /> Official {item.brand} Genuine
-              </span>
-            )}
-            {enterpriseName && (
-              <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold">
-                <i className="fa-solid fa-user-check" /> Verified by {enterpriseName}
-              </span>
-            )}
-          </div>
-        </section>
+                {/* 5. Sqft */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-expand" />
+                  </div>
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                  </div>
+                </div>
 
-        {/* ═══ MODULE 3: GROUPED SPECIFICATIONS TABLE ═══ */}
-        {specSections.length > 0 && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">
-                <i className="fa-solid fa-table-list" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-brand-charcoal">Detailed Technical Specifications</h2>
-                <p className="text-xs text-gray-500">Comprehensive manufacturer parameters and configurations</p>
+                {/* 6. Property Type */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                    <i className="fa-solid fa-house-chimney" />
+                  </div>
+                  <div>
+                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {specSections.map((sec, secIdx) => (
-                <div key={secIdx} className="rounded-2xl border border-gray-100 bg-gray-50/60 overflow-hidden">
-                  <div className="bg-gray-100/80 px-4 py-3 border-b border-gray-200/60">
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-brand-charcoal">
-                      {sec.title}
-                    </h3>
-                  </div>
-                  <div className="divide-y divide-gray-100 p-2">
-                    {sec.items.map((it, itIdx) => (
-                      <div key={itIdx} className="flex justify-between items-center py-2 px-3 text-xs">
-                        <span className="font-semibold text-gray-500">{it.label}</span>
-                        <span className="font-bold text-brand-charcoal text-right">{it.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+            {/* 2. PROPERTY DESCRIPTION WIDGET */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs space-y-4">
+              <h4 className="text-lg sm:text-xl font-bold text-slate-900">Property Description</h4>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
+                {showFullDesc || !item.description || item.description.length < 350
+                  ? item.description || `${itemTitle} verified and listed on OneVishwam. Inspected for quality, legal authenticity, and pre-approved for priority bank financing and buyer protection.`
+                  : item.description.slice(0, 350) + '...'}
+              </p>
 
-        {/* ═══ MODULE 4: FEATURES & INCLUDED HIGHLIGHTS ═══ */}
-        {featuresList.length > 0 && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center justify-between pb-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">
-                  <i className="fa-solid fa-sparkles" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-brand-charcoal">{featuresTitle}</h2>
-                  <p className="text-xs text-gray-500">Verified standards, built-in features, and perks</p>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                {featuresList.length} Highlights Verified
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-              {featuresList.map((feat, idx) => {
-                const featName = typeof feat === 'string' ? feat : feat.name;
-                const icon = (typeof feat === 'object' && feat.icon) || DEFAULT_FEATURE_ICONS[featName] || 'fa-check-double';
-                return (
-                  <div
-                    key={idx}
-                    className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 p-3.5 hover:bg-white hover:border-brand-blue/30 hover:shadow-md transition-all duration-300"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-white text-brand-blue flex items-center justify-center shadow-2xs border border-gray-100 group-hover:scale-110 group-hover:bg-brand-blue group-hover:text-white transition-all shrink-0">
-                      <i className={`fa-solid ${icon} text-xs`} />
-                    </div>
-                    <span className="text-xs font-bold text-brand-charcoal leading-snug">{featName}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ═══ MODULE 5: ENTERPRISE & DEALER PARTNERSHIP ═══ */}
-        <section className="rounded-3xl bg-gradient-to-br from-brand-navy via-brand-navy to-brand-blue p-6 sm:p-8 text-white shadow-lg space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-5 border-b border-white/15">
-            <div className="flex items-center gap-4">
-              {enterpriseLogo ? (
-                <div className="relative bg-white rounded-2xl p-2 h-16 w-24 flex items-center justify-center border-2 border-white/30 shadow-md">
-                  <img
-                    src={resolveImage(enterpriseLogo)}
-                    alt={enterpriseName || 'Partner'}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] border-2 border-white">
-                    <i className="fa-solid fa-check" />
-                  </div>
-                </div>
-              ) : (
-                <div className="relative w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-xl font-black text-amber-400 shrink-0">
-                  {enterpriseName ? enterpriseName.charAt(0) : <i className="fa-solid fa-building" />}
-                </div>
+              {item.description && item.description.length > 350 && (
+                <button
+                  onClick={() => setShowFullDesc(!showFullDesc)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-navy transition-colors pt-1 cursor-pointer"
+                >
+                  {showFullDesc ? 'Show Less' : 'Show More'}
+                  <i className={`fa-solid fa-chevron-${showFullDesc ? 'up' : 'down'} text-[10px]`} />
+                </button>
               )}
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-white">
-                    {enterpriseName || 'Authorized Brand Partner'}
-                  </h3>
-                  <span className="rounded-full bg-yellow-400 text-brand-navy text-[10px] font-extrabold px-2.5 py-0.5">
-                    Official Partner
+              {/* Quick Feature Badges */}
+              <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
+                {item.loanApproved && (
+                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/70 px-3 py-1 text-xs font-semibold">
+                    <i className="fa-solid fa-circle-check" /> 100% Pre-Approved Loan
+                  </span>
+                )}
+                {item.highlightBanner && (
+                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200/70 px-3 py-1 text-xs font-semibold">
+                    <i className="fa-solid fa-stamp" /> {item.highlightBanner}
+                  </span>
+                )}
+                {enterpriseName && (
+                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold">
+                    <i className="fa-solid fa-user-check" /> Verified by {enterpriseName}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 3. PROPERTY DETAILS TABLE WIDGET (Homez Key-Value Grid) */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+              <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-6">Property Details</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                <div className="divide-y divide-gray-100">
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Property ID</span>
+                    <span className="font-bold text-slate-900">RT{String(item.id || item._id || '48').slice(-4).toUpperCase()}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Pricing</span>
+                    {isPropertyOrVehicle ? (
+                      <button
+                        type="button"
+                        onClick={() => setEnquiryOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-extrabold text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                      >
+                        <i className="fa-solid fa-handshake-angle text-xs" />
+                        <span>Are You Interested?</span>
+                      </button>
+                    ) : (
+                      <span className="font-bold text-slate-900">{item.price} {item.priceSuffix || ''}</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Property Size</span>
+                    <span className="font-bold text-slate-900">{sqftDisplay}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Bathrooms</span>
+                    <span className="font-bold text-slate-900">{bathsDisplay}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Bedrooms</span>
+                    <span className="font-bold text-slate-900">{bedsDisplay}</span>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Garage</span>
+                    <span className="font-bold text-slate-900">{garageDisplay}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Door Facing</span>
+                    <span className="font-bold text-slate-900">{item.facing || 'East Facing'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Year Built / Status</span>
+                    <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Property Type</span>
+                    <span className="font-bold text-slate-900">{propertyTypeDisplay}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-sm">
+                    <span className="font-semibold text-gray-500">Property Status</span>
+                    <span className="font-bold text-emerald-600">{statusPill?.label || 'For Sale'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. ADDRESS & GOOGLE MAPS WIDGET */}
+            {hasLocationOrMap && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-lg sm:text-xl font-bold text-slate-900">Address</h4>
+                  {directMapUrl && (
+                    <a
+                      href={directMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors"
+                    >
+                      <i className="fa-solid fa-map-location-dot" /> Open Google Maps
+                      <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
+                    </a>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 divide-y md:divide-y-0 divide-gray-100">
+                  <div className="space-y-3 py-2 md:py-0">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">Address</span>
+                      <span className="font-bold text-slate-900 text-right">{item.address || item.location || 'Bangalore'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">City</span>
+                      <span className="font-bold text-slate-900">{item.city || 'Bengaluru'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">State / Zone</span>
+                      <span className="font-bold text-slate-900">{item.zone || 'Karnataka'}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3 py-2 md:py-0">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">Locality</span>
+                      <span className="font-bold text-slate-900">{item.locality || item.city || 'Bangalore Urban'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">Country</span>
+                      <span className="font-bold text-slate-900">India</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-500">Pincode</span>
+                      <span className="font-bold text-slate-900">{item.pincode || '560001'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Embedded Responsive Google Map - Only show if mapUrl has non-empty data */}
+                {embedMapUrl && (
+                  <div className="mt-6 rounded-2xl overflow-hidden border border-gray-200/80 h-64 sm:h-72 w-full">
+                    <iframe
+                      src={embedMapUrl}
+                      className="w-full h-full border-0"
+                      loading="lazy"
+                      title="Property Location Map"
+                      aria-label="Property Location Map"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 5. FEATURES & AMENITIES WIDGET */}
+            {featuresList.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-lg sm:text-xl font-bold text-slate-900">{featuresTitle}</h4>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    {featuresList.length} Verified Highlights
                   </span>
                 </div>
-                <p className="text-xs text-white/70 mt-1">Authorized Showroom & Direct Distribution</p>
-              </div>
-            </div>
-
-            {/* Co-branded with OneVishwam */}
-            <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 shrink-0">
-              <span className="text-[11px] text-white/80 font-medium">In Partnership with</span>
-              <img
-                src={oneVishwamLogo}
-                alt="OneVishwam"
-                className="h-6 sm:h-7 w-auto object-contain bg-white/95 rounded-lg px-2 py-0.5"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-white/80 max-w-xl">
-              Get genuine brand warranty, priority test drive or showroom demo, instant financing, and express delivery through OneVishwam.
-            </p>
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <button
-                onClick={() => setEnquiryOpen(true)}
-                className="flex-1 sm:flex-initial rounded-xl bg-yellow-400 px-5 py-3 text-xs font-extrabold text-brand-navy hover:bg-yellow-300 transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <i className="fa-solid fa-paper-plane" /> Enquire / Book Demo
-              </button>
-              <a
-                href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                className="flex-1 sm:flex-initial rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-3 text-xs font-extrabold transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <i className="fa-solid fa-phone" />
-                <span>Contact Us: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ MODULE 6: SIMILAR LISTINGS ═══ */}
-        {similarItems.length > 0 && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-5">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
-                  <i className="fa-solid fa-layer-group" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-brand-charcoal">Similar {categoryName} You May Like</h2>
-                  <p className="text-xs text-gray-500">Comparable options available in Bangalore</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3.5 gap-x-6">
+                  {featuresList.map((feat, idx) => {
+                    const featName = typeof feat === 'string' ? feat : feat.name;
+                    return (
+                      <div key={idx} className="flex items-center gap-2.5 text-sm font-semibold text-slate-800">
+                        <i className="fa-solid fa-circle text-[7px] text-amber-500 shrink-0" />
+                        <span className="truncate">{featName}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+            )}
 
-              <div className="flex gap-2">
+            {/* 6. FLOOR PLANS WIDGET */}
+            {hasFloorPlans && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Floor Plans</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">Architectural dimensions, unit blueprint, and master site schematics</p>
+                  </div>
+                  {pdfUrl && (
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors self-start sm:self-auto cursor-pointer"
+                    >
+                      <i className="fa-solid fa-file-pdf text-red-500" />
+                      <span>Download Blueprint Brochure (PDF)</span>
+                    </a>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  {fpMediaItems.length > 0 ? (
+                    fpMediaItems.map((fp, i) => (
+                      <div key={i} className="rounded-xl border border-gray-200/90 overflow-hidden">
+                        <button
+                          onClick={() => setActiveFloorPlanTab(activeFloorPlanTab === i ? -1 : i)}
+                          className="w-full flex items-center justify-between p-4 bg-gray-50/70 hover:bg-gray-100/80 transition-colors text-left cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-sm text-slate-900">
+                              {i === 0 ? 'Master Floor Plan' : i === 1 ? 'First Floor Plan' : `Unit Layout ${i + 1}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs font-semibold text-gray-600">
+                            <span className="hidden sm:inline"><span className="text-gray-400 font-normal">Size:</span> {sqftDisplay}</span>
+                            <span className="hidden sm:inline"><span className="text-gray-400 font-normal">Bedrooms:</span> {bedsDisplay}</span>
+                            <span className="hidden sm:inline"><span className="text-gray-400 font-normal">Baths:</span> {bathsDisplay}</span>
+                            <i className={`fa-solid fa-chevron-${activeFloorPlanTab === i ? 'up' : 'down'} text-gray-400 text-xs ml-2`} />
+                          </div>
+                        </button>
+                        {activeFloorPlanTab === i && (
+                          <div
+                            onClick={() => { setFpGalleryIndex(i); setFpGalleryOpen(true); }}
+                            className="p-6 bg-white flex flex-col items-center justify-center cursor-pointer group border-t border-gray-100"
+                          >
+                            <img
+                              src={resolveImage(fp.url || fp)}
+                              alt={`Floor Plan ${i + 1}`}
+                              className="max-h-80 w-auto object-contain group-hover:scale-102 transition-transform duration-300"
+                            />
+                            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand-blue bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                              <i className="fa-solid fa-magnifying-glass-plus" /> Click image to zoom &amp; inspect
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-sm text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      Floor plans and architectural layouts are available on request through your dedicated advisor.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Specifications Section if passed */}
+            {specSections.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">
+                    <i className="fa-solid fa-table-list" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">Detailed Technical Specifications</h2>
+                    <p className="text-xs text-gray-500">Comprehensive manufacturer parameters and configurations</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {specSections.map((sec, secIdx) => (
+                    <div key={secIdx} className="rounded-2xl border border-gray-100 bg-gray-50/60 overflow-hidden">
+                      <div className="bg-gray-100/80 px-4 py-3 border-b border-gray-200/60">
+                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                          {sec.title}
+                        </h3>
+                      </div>
+                      <div className="divide-y divide-gray-100 p-2">
+                        {sec.items.map((it, itIdx) => (
+                          <div key={itIdx} className="flex justify-between items-center py-2 px-3 text-xs">
+                            <span className="font-semibold text-gray-500">{it.label}</span>
+                            <span className="font-bold text-slate-900 text-right">{it.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ════ RIGHT 4-COLUMN STICKY SIDEBAR (col-lg-4) ════ */}
+          <div className="lg:col-span-4 space-y-6 sticky top-24 self-start">
+            {/* Contact Action Card */}
+            <div className="rounded-2xl border border-gray-200/80 p-6 sm:p-7 bg-white shadow-sm space-y-4">
+              {/* Co-Branding / Verification Partner Badge */}
+              <div className="flex justify-center pb-1">
+                <VerifiedPartnerBadge partnerName={partnerDisplayName} />
+              </div>
+
+              <div className="space-y-3">
+                <a
+                  href={`tel:${activeContact.phoneTel || '+918546996622'}`}
+                  className="w-full rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-slate-800 py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                >
+                  <i className="fa-solid fa-phone text-brand-blue text-sm" />
+                  <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
+                </a>
+
+                <a
+                  href={`https://wa.me/${activeContact.whatsapp || '918546996622'}?text=${encodeURIComponent(`Hello, I am interested in viewing: ${itemTitle} (${window.location.href})`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                >
+                  <i className="fa-brands fa-whatsapp text-base" />
+                  <span>Chat on WhatsApp</span>
+                </a>
+
                 <button
-                  onClick={() => { similarRef.current?.scrollBy({ left: -320, behavior: 'smooth' }); }}
-                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => setEnquiryOpen(true)}
+                  className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                >
+                  <i className="fa-solid fa-paper-plane text-xs" />
+                  <span>Contact Agent</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Sticky Card 3: OneVishwam Assurance Banner */}
+            <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue text-white p-5 space-y-3 shadow-sm">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-award text-amber-400 text-base" />
+                <span className="text-xs font-bold tracking-wide uppercase text-amber-300">OneVishwam Assurance</span>
+              </div>
+              <ul className="text-xs space-y-2 text-white/90">
+                <li className="flex items-center gap-2">
+                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
+                  <span>100% Verified Legal Clear Titles</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
+                  <span>Zero Brokerage on Direct Builder Bookings</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
+                  <span>Free Guided Site Visit with Pickup Facility</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══ BOTTOM FULL-WIDTH: DISCOVER OUR FEATURED LISTINGS (Homez Single V1 Slider) ═══ */}
+        {similarItems.length > 0 && (
+          <div className="mt-16 pt-10 border-t border-gray-200/80">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Discover Our Featured Listings
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Explore comparable verified listings and premier projects in Bangalore
+                </p>
+              </div>
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  onClick={() => { similarRef.current?.scrollBy({ left: -340, behavior: 'smooth' }); }}
+                  className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
                   aria-label="Previous listings"
                 >
-                  <i className="fa-solid fa-chevron-left text-xs" />
+                  <i className="fa-solid fa-arrow-left-long" />
                 </button>
                 <button
-                  onClick={() => { similarRef.current?.scrollBy({ left: 320, behavior: 'smooth' }); }}
-                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => { similarRef.current?.scrollBy({ left: 340, behavior: 'smooth' }); }}
+                  className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
                   aria-label="Next listings"
                 >
-                  <i className="fa-solid fa-chevron-right text-xs" />
+                  <i className="fa-solid fa-arrow-right-long" />
                 </button>
               </div>
             </div>
 
             <div
               ref={similarRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 scrollbar-hide"
+              className="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
             >
               {similarItems.map((sp) => (
-                <div key={sp.id || sp._id} className="w-[260px] sm:w-[290px] lg:w-[310px] flex-shrink-0 snap-start">
+                <div key={sp.id || sp._id} className="w-[280px] sm:w-[320px] lg:w-[340px] flex-shrink-0 snap-start">
                   <CategoryListingCard
                     item={sp}
                     link={`${itemLinkPrefix}${sp.id || sp._id}`}
@@ -1091,18 +1410,18 @@ export default function MasterDetailPage({
                 </div>
               ))}
             </div>
-          </section>
+          </div>
         )}
 
-        {/* ═══ MODULE 7: RECENTLY VIEWED ═══ */}
+        {/* ═══ RECENTLY VIEWED (If user has browsed other items) ═══ */}
         {recentlyViewed.length > 0 && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-5">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center text-base">
+          <div className="mt-12 pt-8 border-t border-gray-200/60">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-xl bg-gray-200 text-gray-700 flex items-center justify-center text-sm">
                 <i className="fa-solid fa-clock-rotate-left" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-brand-charcoal">Recently Viewed {categoryName}</h2>
+                <h3 className="text-lg font-bold text-slate-900">Recently Viewed {categoryName}</h3>
                 <p className="text-xs text-gray-500">Pick up right where you left off</p>
               </div>
             </div>
@@ -1117,162 +1436,17 @@ export default function MasterDetailPage({
                 </div>
               ))}
             </div>
-          </section>
-        )}
-        {/* ═══ MODULE: LOCATION & VERIFIED ADDRESS SPECIFICATIONS ═══ */}
-        {hasLocationOrMap && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">
-                  <i className="fa-solid fa-map-location-dot" />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-brand-charcoal">Location & Address Details</h2>
-                  <p className="text-xs text-gray-500">Verified site address, showroom location, and geographic attributes</p>
-                </div>
-              </div>
-              {directMapUrl && (
-                <a
-                  href={directMapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-700 text-white px-4 py-2.5 text-xs font-bold transition-colors self-start sm:self-auto cursor-pointer shadow-2xs"
-                >
-                  <i className="fa-solid fa-map-location-dot text-sm" />
-                  <span>View in Map</span>
-                  <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
-                </a>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* 1. Address / Showroom Address */}
-              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                  <i className="fa-solid fa-map-pin mr-1 text-rose-500" /> {item.showroom ? 'Showroom Address' : 'Address'}
-                </span>
-                <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                  {item.address || item.showroom?.address || item.location || 'Not specified'}
-                </p>
-              </div>
-
-              {/* 2. Locality / Dealership */}
-              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                  <i className="fa-solid fa-city mr-1 text-purple-600" /> {item.showroom ? 'Dealership / Showroom' : 'Locality'}
-                </span>
-                <p className="text-sm font-extrabold text-brand-charcoal break-words">
-                  {item.showroom?.name || item.locality || item.city || 'Bangalore'}
-                </p>
-              </div>
-
-              {/* 3. City */}
-              <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/60 flex flex-col justify-between hover:bg-white hover:border-brand-blue/30 transition-all">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
-                  <i className="fa-solid fa-building-columns mr-1 text-blue-600" /> City
-                </span>
-                <p className="text-sm font-extrabold text-brand-charcoal capitalize break-words">
-                  {item.city || item.showroom?.city || 'Bengaluru'}
-                </p>
-              </div>
-
-              {/* 4. Google Maps Location Pin */}
-              {directMapUrl ? (
-                <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200/70 flex flex-col justify-between hover:bg-white hover:border-brand-blue/40 transition-all">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-blue block mb-1">
-                    <i className="fa-solid fa-map-location-dot mr-1" /> Google Maps Pin
-                  </span>
-                  <a
-                    href={directMapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-bold text-brand-blue hover:underline flex items-center gap-1.5 break-all"
-                  >
-                    <span className="truncate">Open Exact Location</span>
-                    <i className="fa-solid fa-arrow-up-right-from-square text-[10px] shrink-0" />
-                  </a>
-                </div>
-              ) : null}
-            </div>
-
-            {/* View in Map CTA Button */}
-            {directMapUrl && (
-              <div className="pt-1 flex">
-                <a
-                  href={directMapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
-                >
-                  <i className="fa-solid fa-map-location-dot text-sm" />
-                  <span>View Exact Location on Google Maps</span>
-                  <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
-                </a>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* ═══ MODULE: FLOOR PLANS & ARCHITECTURAL BLUEPRINTS ═══ */}
-        {hasFloorPlans && (
-          <section className="rounded-3xl bg-white border border-gray-200/70 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">
-                  <i className="fa-solid fa-map-location-dot" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-brand-charcoal">Unit Layouts & Master Floor Maps</h2>
-                  <p className="text-xs text-gray-500">Architectural dimensions, unit blueprint, and master site layouts</p>
-                </div>
-              </div>
-              {pdfUrl && (
-                <a
-                  href={pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors self-start sm:self-auto cursor-pointer"
-                >
-                  <i className="fa-solid fa-file-pdf text-red-500" />
-                  <span>Download Blueprint Brochure (PDF)</span>
-                </a>
-              )}
-            </div>
-
-            {fpMediaItems.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {fpMediaItems.map((fp, i) => (
-                  <div
-                    key={i}
-                    onClick={() => { setFpGalleryIndex(i); setFpGalleryOpen(true); }}
-                    className="relative rounded-2xl overflow-hidden border border-gray-200/80 bg-gray-50 hover:border-brand-blue/40 hover:shadow-md transition-all cursor-pointer group"
-                  >
-                    <img
-                      src={resolveImage(fp.url || fp)}
-                      alt={`Floor Plan ${i + 1}`}
-                      className="w-full h-64 object-contain p-4 group-hover:scale-102 transition-transform duration-300"
-                    />
-                    <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1.5">
-                      <i className="fa-solid fa-magnifying-glass-plus" />
-                      <span>Click to Zoom</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          </div>
         )}
       </div>
 
-      {/* ─── SLEEK STICKY BOTTOM ACTION BAR (Shows cleanly on scroll, auto-hides before footer) ─── */}
+      {/* ─── SLEEK STICKY BOTTOM ACTION BAR (Shows on scroll, auto-hides before footer) ─── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/80 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out ${
           scrolledPastHero && !reachedFooter ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4">
-          {/* Left: Thumbnail, Title, Price, Subtitle / Locality */}
           <div className="flex items-center gap-3 min-w-0">
             {mediaItems[0]?.url && (
               <img
@@ -1282,29 +1456,43 @@ export default function MasterDetailPage({
               />
             )}
             <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-bold text-brand-charcoal truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-[180px] sm:max-w-xs md:max-w-md">
                 {itemTitle}
               </h4>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className={item.price === 'This is negotiable' ? "text-xs sm:text-sm font-normal text-gray-500" : "text-xs sm:text-sm font-extrabold text-brand-charcoal"}>
-                  {item.price}
-                </span>
-                {item.priceSuffix && (
-                  <span className="text-[10px] text-gray-400 hidden xs:inline">{item.priceSuffix}</span>
+                {isPropertyOrVehicle ? (
+                  <button
+                    type="button"
+                    onClick={() => setEnquiryOpen(true)}
+                    className="text-xs font-extrabold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-handshake-angle text-[10px]" />
+                    <span>Are You Interested?</span>
+                  </button>
+                ) : (
+                  <>
+                    <span className={item.price === 'This is negotiable' ? 'text-xs sm:text-sm font-normal text-gray-500' : 'text-xs sm:text-sm font-extrabold text-slate-900'}>
+                      {item.price}
+                    </span>
+                    {item.priceSuffix && (
+                      <span className="text-[10px] text-gray-400 hidden xs:inline">{item.priceSuffix}</span>
+                    )}
+                  </>
                 )}
-                {(item.locality || item.location || item.subtitle) && (
+                {(item.locality || item.location) && (
                   <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-gray-400 truncate">
                     <span>•</span>
                     <i className="fa-solid fa-location-dot text-[9px] text-rose-500" />
-                    <span>{item.locality || item.location || item.subtitle}</span>
+                    <span>{item.locality || item.location}</span>
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right: Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Co-Branding / Verification Partner Badge on wider viewports */}
+            <VerifiedPartnerBadge partnerName={partnerDisplayName} className="hidden xl:inline-flex" />
             <button
               onClick={() => setIsSaved(!isSaved)}
               className={`hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-xl border transition-colors cursor-pointer ${
@@ -1317,7 +1505,7 @@ export default function MasterDetailPage({
 
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-brand-blue px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-navy transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="rounded-xl bg-slate-900 px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <i className="fa-solid fa-paper-plane text-xs" />
               <span>Enquire Now</span>
@@ -1325,7 +1513,7 @@ export default function MasterDetailPage({
 
             <a
               href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-              className="rounded-xl bg-amber-500 hover:bg-amber-400 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <i className="fa-solid fa-phone text-xs" />
               <span className="hidden lg:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
@@ -1337,4 +1525,3 @@ export default function MasterDetailPage({
     </div>
   );
 }
-

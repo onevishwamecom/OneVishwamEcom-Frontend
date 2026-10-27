@@ -10,7 +10,6 @@ import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortProperties
 import ProductCard from '../services/ProductCard';
 import { withRupeeSymbol } from '../../utils/priceUtils';
 import HeroSection from './HeroSection';
-import CategorySearchHero from './CategorySearchHero';
 import BangalorePropertyPieMap from '../services/property/components/BangalorePropertyPieMap';
 import { PROPERTIES_ONLY } from '../../config/appConfig';
 import { heroImage } from '../../utils/imageOptimizer';
@@ -123,9 +122,6 @@ function Home() {
     <div>
       <HeroSection />
 
-      {/* Universal Search Hero */}
-      <CategorySearchHero />
-
       {searchQuery && (
         <section className="border-b bg-gray-50">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -149,7 +145,7 @@ function Home() {
                       image={getPropertyCoverImage(p)}
                       alt={p.title}
                       title={p.title}
-                      price={p.price}
+                      hidePrice={true}
                       location={formatPropertyAddress(p)}
                       tags={[p.bhk || '', p.area || ''].filter(Boolean)}
                     />
@@ -165,41 +161,41 @@ function Home() {
         </section>
       )}
 
-      <div className="bg-gray-50 pb-16 sm:pb-20">
+      <div className="bg-slate-50/70 pb-16 sm:pb-24">
 
-        {/* ── Module 1: Dream Home ── */}
-        <section className="relative overflow-hidden mt-10 sm:mt-12">
-          <div className="absolute inset-0">
-              
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/60" />
-            </div>
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-16">
-            <div className="flex items-end justify-between">
+        {/* ── Module 1: Discover Our Featured Listings (Homez style) ── */}
+        <section className="pt-12 sm:pt-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
-                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm">
-                  <i className="fa-solid fa-house-chimney" /> {stats.totalProperties || latestProperties.length} Properties Available
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-2.5">
+                  <i className="fa-solid fa-house-chimney text-xs" /> {stats.totalProperties || latestProperties.length}+ Available
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                  Discover Our Featured Listings
+                </h2>
+                <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
+                  Handpicked verified residential plots, apartments, villas and commercial spaces.
                 </p>
-                <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Your Dream Home May Be Just Around the Corner</h2>
-                <p className="mt-1.5 text-sm text-white/70">Houses, Plots, Automobiles, Jewellery, anything you need, just a click away!</p>
               </div>
               <Link
-                to="/property"
-                className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-5 py-2.5 text-xs font-bold text-brand-navy hover:bg-yellow-300 transition-colors shrink-0"
+                to="/our-services/properties"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
               >
-                Explore <i className="fa-solid fa-arrow-right text-[10px]" />
+                <span>See All Properties</span>
+                <i className="fa-solid fa-arrow-right text-xs" />
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
               {dreamHomes.map((p) => (
-                <div key={p.id || p._id} className="group shrink-0 snap-start w-[46vw] lg:w-auto">
+                <div key={p.id || p._id} className="group shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}
                     alt={p.title}
                     title={p.title}
-                    price={p.price}
-                    priceSuffix={p.priceSuffix}
+                    hidePrice={true}
                     location={formatPropertyAddress(p)}
                     tags={getDetailTags(p)}
                     badges={[
@@ -210,46 +206,43 @@ function Home() {
                 </div>
               ))}
             </div>
-
-            <div className="mt-5 text-center sm:hidden">
-              <Link
-                to="/property"
-                className={BTN_SECONDARY}
-              >
-                Explore <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
           </div>
         </section>
 
-        {/* ── Module 2: Vehicles Corner ── */}
+        {/* ── Module 2: Vehicles Corner (Homez style) ── */}
         {!PROPERTIES_ONLY && (
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
+        <section className="pt-16 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-car mr-1.5" /> Ready to Ride?
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold uppercase tracking-wider mb-2.5">
+                  <i className="fa-solid fa-car text-xs" /> Certified Transport
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                  Discover Certified Vehicles
+                </h2>
+                <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
+                  Quality verified family cars, two-wheelers &amp; commercial vehicles available nearby.
                 </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Cars, bikes and commercial vehicles available nearby.</h2>
               </div>
               <Link
-                to="/automobile"
-                className="hidden sm:inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shrink-0"
+                to="/our-services/automobile"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
               >
-                See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
+                <span>See All Vehicles</span>
+                <i className="fa-solid fa-arrow-right text-xs" />
               </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
               {latestVehicles.slice(0, 5).map((v) => (
-                <div key={v.id || v._id} className="shrink-0 snap-start w-[46vw] lg:w-auto">
+                <div key={v.id || v._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
                   <ProductCard
                     link={`/vehicle/${v.id || v._id}`}
                     image={v.images?.[0] || v.image}
                     alt={`${v.brand} ${v.model}`}
                     title={`${v.brand} ${v.model}`}
-                    price={v.price}
+                    hidePrice={true}
                     location={v.location || v.city}
                     tags={[v.fuelType, v.year ? `${v.year}` : ''].filter(Boolean)}
                     badges={[
@@ -261,291 +254,126 @@ function Home() {
                 </div>
               ))}
             </div>
-
-            <div className="mt-5 text-center sm:hidden">
-              <Link
-                to="/automobile"
-                className={BTN_SECONDARY}
-              >
-                See All Vehicles <i className="fa-solid fa-arrow-right text-[10px]" />
-              </Link>
-            </div>
           </div>
         </section>
         )}
 
-
-
-
-
-        {/* ── Module 4: Fresh Arrivals ── */}
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
+        {/* ── Module 3: Fresh Arrivals (Homez style) ── */}
+        <section className="pt-16 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-star mr-1.5" /> Fresh Arrivals
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-extrabold uppercase tracking-wider mb-2.5">
+                  <i className="fa-solid fa-clock text-xs" /> Just Uploaded
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                  Fresh Arrivals Across Bengaluru
+                </h2>
+                <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
+                  Brand new verified residential plots, apartments, and prime listings added today.
                 </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Just Added Today</h2>
-                <p className="mt-1 text-sm text-gray-500">New items and services uploaded recently.</p>
               </div>
+              <Link
+                to="/property?sort=newest"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
+              >
+                <span>Browse All New</span>
+                <i className="fa-solid fa-arrow-right text-xs" />
+              </Link>
             </div>
 
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 touch-pan-y">
               {todayListed.map((p) => (
-                <Link key={`fresh-prop-${p.id || p._id}`} to={`/property/${p.id || p._id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow col-span-1 sm:col-span-2 lg:col-span-1 w-[52vw] lg:w-auto shrink-0 snap-start block">
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img src={getPropertyCoverImage(p)} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  <div className="p-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      <i className="fa-solid fa-clock" /> Added Recently
-                    </span>
-                    <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{p.title}</h3>
-                    <div className="mt-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          window.dispatchEvent(
-                            new CustomEvent('onevishwam:open_enquiry_modal', {
-                              detail: { title: p.title || 'Property Enquiry' },
-                            })
-                          );
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
-                      >
-                        <i className="fa-solid fa-envelope text-[10px]" /> Contact Us
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">{[formatPropertyAddress(p), p.bhk, p.area].filter(Boolean).join(' · ')}</p>
-                  </div>
-                </Link>
+                <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[72vw] sm:w-[52vw] lg:w-auto">
+                  <ProductCard
+                    link={`/property/${p.id || p._id}`}
+                    image={getPropertyCoverImage(p)}
+                    alt={p.title}
+                    title={p.title}
+                    hidePrice={true}
+                    location={formatPropertyAddress(p)}
+                    tags={getDetailTags(p)}
+                    badges={[
+                      { label: 'Added Today', className: 'bg-emerald-500 text-white' },
+                      ...(p.loanApproved ? [{ label: 'Loan OK', className: 'bg-blue-500 text-white' }] : []),
+                    ]}
+                  />
+                </div>
               ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {latestVehicles.slice(5, 6).map((v) => (
-                    <Link key={`fresh-veh-${v.id || v._id}`} to={`/vehicle/${v.id || v._id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img src={v.images?.[0] || v.image} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                      <div className="p-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
-                          <i className="fa-solid fa-clock" /> Added Today
-                        </span>
-                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{v.brand} {v.model}</h3>
-                        <div className="mt-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.dispatchEvent(
-                                new CustomEvent('onevishwam:open_enquiry_modal', {
-                                  detail: { title: `${v.brand} ${v.model}` || 'Vehicle Enquiry' },
-                                })
-                              );
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1 text-xs font-bold transition-colors shadow-2xs cursor-pointer"
-                          >
-                            <i className="fa-solid fa-envelope text-[10px]" /> Contact Us
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">{[v.location || v.city, v.fuelType, v.year ? `${v.year}` : ''].filter(Boolean).join(' · ')}</p>
-                      </div>
-                    </Link>
-                  ))}
-                  {latestGarments.slice(5, 6).map((g) => (
-                    <Link key={`fresh-garm-${g.id || g._id}`} to={`/garment/${g.id || g._id}`}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow w-[52vw] lg:w-auto shrink-0 snap-start block">
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img src={g.images?.[0] || g.image} alt={g.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                      <div className="p-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">
-                          <i className="fa-solid fa-clock" /> Added Yesterday
-                        </span>
-                        <h3 className="mt-1 text-sm font-bold text-brand-charcoal">{g.brand} {g.name}</h3>
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="text-sm font-bold text-brand-blue">{withRupeeSymbol(g.finalPrice || g.price)}</span>
-                          <span className="text-xs text-gray-400 line-through">{withRupeeSymbol(g.originalPrice)}</span>
-                          <span className="text-[10px] font-bold text-red-500">{g.discount}% off</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{g.store?.city || g.city || ''} · {g.category}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </>
-              )}
             </div>
           </div>
         </section>
 
-        {/* ── Module 6: Available Near You ── */}
-        {/* <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                  <i className="fa-solid fa-location-dot mr-1.5" /> Near You
+        {/* ── Module 4: Properties by Localities (Bangalore BBMP Distribution) ── */}
+        <section className="pt-16 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-3">
+                <i className="fa-solid fa-map-location-dot text-xs" /> Regional BBMP Distribution
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+                Properties by Localities
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+                Click any administrative zone on the official BBMP map below to inspect verified listings, price trends, and availability.
+              </p>
+            </div>
+            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80">
+              <BangalorePropertyPieMap
+                properties={mapProperties}
+                activeZone={activeZone}
+                onSelectZone={(zone) => {
+                  setActiveZone(zone);
+                  if (zone && zone !== 'All') {
+                    navigate(`/property?zone=${encodeURIComponent(zone)}`);
+                  } else {
+                    navigate('/property');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Homez Expert CTA Banner (`Need help? Talk to our expert.`) ── */}
+        <section className="pt-16 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative rounded-3xl bg-slate-950 text-white p-8 sm:p-14 overflow-hidden shadow-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="relative z-10 max-w-2xl">
+                <span className="text-xs font-extrabold uppercase tracking-widest text-amber-400 flex items-center gap-1.5 mb-2">
+                  <i className="fa-solid fa-headset text-xs" /> Direct Assistance
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                  Need help? Talk to our expert.
+                </h2>
+                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  Talk to our verified property and vehicle advisors or browse through thousands of curated options.
                 </p>
-                <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Available in {locationName}</h2>
-                <p className="mt-1 text-sm text-gray-500">Items and services from your area.</p>
+              </div>
+              <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent('onevishwam:open_enquiry_modal', {
+                        detail: { title: 'General Property & Marketplace Enquiry' },
+                      })
+                    )
+                  }
+                  className="rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black px-7 py-3 text-xs sm:text-sm shadow-md hover:shadow-xl active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <i className="fa-solid fa-envelope" />
+                  <span>Contact Us</span>
+                </button>
+                <Link
+                  to="/our-services/properties"
+                  className="rounded-full bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 text-xs sm:text-sm border border-white/20 transition-all flex items-center gap-2 backdrop-blur-sm"
+                >
+                  <span>Explore Listings</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
               </div>
             </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
-              {availableNearYou.map((item) => (
-                <div key={`near-prop-${item.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/property/${item.id}`}
-                    image={getPropertyCoverImage(item)}
-                    alt={item.title}
-                    title={item.title}
-                    price={item.price}
-                    priceSuffix={item.priceSuffix}
-                    location={item.location}
-                    tags={getDetailTags(item)}
-                  />
-                </div>
-              ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {latestVehicles.slice(0, 2).map((v) => (
-                    <div key={`near-veh-${v._id || v.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/vehicle/${v._id || v.id}`}
-                        image={Array.isArray(v.images) ? v.images[0] : v.image}
-                        alt={`${v.brand || ''} ${v.model || v.title || ''}`}
-                        title={`${v.brand || ''} ${v.model || v.title || ''}`}
-                        price={v.price}
-                        location={v.location || v.city || ''}
-                        tags={v.fuelType ? [v.fuelType] : []}
-                      />
-                    </div>
-                  ))}
-                  {foodGrocery.slice(2, 4).map((g) => (
-                    <div key={`near-groc-${g._id || g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/grocery/${g._id || g.id}`}
-                        image={Array.isArray(g.images) ? g.images[0] : g.image}
-                        alt={g.name || g.title}
-                        title={g.name || g.title}
-                        price={g.pricePerUnit || g.price}
-                        priceSuffix={g.unit ? `/ ${g.unit}` : ''}
-                        location={g.location?.area || g.area || g.city || ''}
-                      />
-                    </div>
-                  ))}
-                  {latestGarments.slice(0, 2).map((g) => (
-                    <div key={`near-garm-${g._id || g.id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/garment/${g._id || g.id}`}
-                        image={Array.isArray(g.images) ? g.images[0] : g.image}
-                        alt={g.name || g.title}
-                        title={`${g.brand || ''} ${g.name || g.title || ''}`}
-                        price={g.finalPrice || g.price}
-                        location={g.store?.city || g.city || ''}
-                        badges={[{ label: 'Trending', className: 'bg-rose-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-        </section> */}
-
-        {/* ── Module 7: Best Deals ── */}
-        {/* <section className="mt-14 sm:mt-16 bg-gradient-to-br from-rose-50 to-orange-50 py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">
-                <i className="fa-solid fa-tag mr-1.5" /> Don't Miss Out
-              </p>
-              <h2 className="mt-1.5 text-2xl font-bold text-brand-charcoal sm:text-3xl">Don't Miss These Deals</h2>
-              <p className="mt-1 text-sm text-gray-500">Great prices and top picks for you.</p>
-            </div>
-
-            <div className="mt-6 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-4 touch-pan-y">
-              {latestProperties.slice(2, 4).map((p) => (
-                <div key={`deal-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                  <ProductCard
-                    link={`/property/${p.id || p._id}`}
-                    image={p.images?.[0]}
-                    alt={p.title}
-                    title={p.title}
-                    price={p.price}
-                    priceSuffix={p.priceSuffix}
-                    location={formatPropertyAddress(p)}
-                    badges={[{ label: 'Great Price', className: 'bg-red-500 text-white' }]}
-                  />
-                </div>
-              ))}
-              {!PROPERTIES_ONLY && (
-                <>
-                  {latestVehicles.slice(1, 3).map((v) => (
-                    <div key={`deal-veh-${v.id || v._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/vehicle/${v.id || v._id}`}
-                        image={v.images?.[0]}
-                        alt={`${v.brand || ''} ${v.model || ''}`}
-                        title={`${v.brand || ''} ${v.model || ''}`}
-                        price={v.price}
-                        location={v.location}
-                        badges={[{ label: 'Hot Deal', className: 'bg-rose-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                  {latestGarments.slice(0, 2).map((g) => (
-                    <div key={`deal-garm-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/garment/${g.id || g._id}`}
-                        image={g.images?.[0]}
-                        alt={g.name}
-                        title={`${g.brand || ''} ${g.name || ''}`}
-                        price={g.finalPrice || g.price}
-                        location={g.store?.city || ''}
-                        badges={[{ label: 'Recommended', className: 'bg-amber-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                  {foodGrocery.slice(0, 2).map((g) => (
-                    <div key={`deal-groc-${g.id || g._id}`} className="shrink-0 snap-start w-[46vw] lg:w-auto">
-                      <ProductCard
-                        link={`/grocery/${g.id || g._id}`}
-                        image={g.images?.[0]}
-                        alt={g.name}
-                        title={g.name}
-                        price={g.pricePerUnit || g.price}
-                        priceSuffix={`/ ${g.unit}`}
-                        location={`${g.location?.area || ''}`}
-                        badges={[{ label: g.organic ? 'Great Price' : 'Hot Deal', className: g.organic ? 'bg-red-500 text-white' : 'bg-rose-500 text-white' }]}
-                      />
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-        {/* ── Bangalore Bird's-Eye View Map & Regional Distribution (Placed Just Before Footer) ── */}
-        <section className="pt-14 sm:pt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <BangalorePropertyPieMap
-              properties={mapProperties}
-              activeZone={activeZone}
-              onSelectZone={(zone) => {
-                setActiveZone(zone);
-                if (zone && zone !== 'All') {
-                  navigate(`/property?zone=${encodeURIComponent(zone)}`);
-                } else {
-                  navigate('/property');
-                }
-              }}
-            />
           </div>
         </section>
       </div>

@@ -111,7 +111,7 @@ export default function UniversalDetailPage({
 
     // Location
     const loc = mapping.location ? mapping.location(rawItem) : (rawItem.location || rawItem.address || rawItem.city || 'Bangalore');
-    const mapUrl = mapping.mapUrl ? mapping.mapUrl(rawItem) : (rawItem.locationUrl || rawItem.googleMapsUrl || rawItem.mapUrl || '');
+    const mapUrl = mapping.mapUrl ? mapping.mapUrl(rawItem) : (rawItem.mapUrl || rawItem.details?.mapUrl || '');
 
     // Badges
     const statusBadges = mapping.badges ? mapping.badges(rawItem) : (rawItem.statusBadges || rawItem.badges || []);
@@ -149,8 +149,6 @@ export default function UniversalDetailPage({
       images: images.filter(Boolean),
       location: loc,
       address: loc,
-      locationUrl: mapUrl,
-      googleMapsUrl: mapUrl,
       mapUrl,
       statusBadges: statusBadges.filter(Boolean),
       overviewHighlights: overviewHighlights.filter(Boolean),

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   recordVisitorHit,
   getHitCounterData,
-  sendVisitorPing,
   sendVisitorLeave,
 } from '../utils/hitCounter';
 
@@ -21,7 +20,7 @@ export default function HitCounterBanner() {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Initial hit recording / fetch
+    // Initial hit recording / fetch (once per mount/session)
     recordVisitorHit()
       .then((data) => {
         if (mounted && data) {
@@ -35,19 +34,7 @@ export default function HitCounterBanner() {
         if (mounted) setLoading(false);
       });
 
-    // 2. Periodic presence heartbeat (every 25 seconds)
-    const pingInterval = setInterval(() => {
-      sendVisitorPing().then((data) => {
-        if (mounted && data) {
-          setStats((prev) => ({
-            ...prev,
-            activeVisitors: data.activeVisitors ?? prev.activeVisitors,
-          }));
-        }
-      });
-    }, 25000);
-
-    // 3. Tab close / navigation away: immediately mark offline
+    // Tab close / navigation away: mark offline
     const handleLeave = () => {
       sendVisitorLeave();
     };
@@ -57,7 +44,6 @@ export default function HitCounterBanner() {
 
     return () => {
       mounted = false;
-      clearInterval(pingInterval);
       window.removeEventListener('pagehide', handleLeave);
       window.removeEventListener('beforeunload', handleLeave);
       sendVisitorLeave();

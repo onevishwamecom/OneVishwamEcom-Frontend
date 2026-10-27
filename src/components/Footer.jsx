@@ -37,8 +37,8 @@ function Footer() {
           <div>
             <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider mb-4 text-white">Company</h4>
             <ul className="space-y-3">
-              {footerQuickLinks.map((l) => (
-                <li key={l.label}>
+              {footerQuickLinks.map((l, idx) => (
+                <li key={l.href || `${l.label}-${idx}`}>
                   <Link to={l.href} className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors leading-relaxed block">
                     {l.label}
                   </Link>
@@ -51,8 +51,8 @@ function Footer() {
           <div>
             <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider mb-4 text-white">Services</h4>
             <ul className="space-y-3">
-              {footerServiceLinks.map((l) => (
-                <li key={l.label}>
+              {footerServiceLinks.map((l, idx) => (
+                <li key={l.href || `${l.label}-${idx}`}>
                   <Link to={l.href} className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors leading-relaxed block">
                     {l.label}
                   </Link>
@@ -65,8 +65,8 @@ function Footer() {
           <div>
             <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider mb-4 text-white">Contact Info</h4>
             <ul className="space-y-3.5">
-              {footerLocations.slice(0, 3).map((loc) => (
-                <li key={loc.value} className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+              {footerLocations.slice(0, 3).map((loc, idx) => (
+                <li key={`${loc.label}-${loc.value || idx}`} className="text-xs sm:text-sm text-gray-400 leading-relaxed">
                   <span className="text-gray-300 font-medium">{loc.label}:</span> {loc.value}
                 </li>
               ))}

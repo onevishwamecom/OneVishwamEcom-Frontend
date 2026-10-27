@@ -84,7 +84,7 @@ export default function FurnitureDetails() {
         description: (item) => item.description || 'Premium furniture crafted with termite-resistant solid wood.',
         images: (item) => item.images || [item.image],
         location: (item) => item.warehouseAddress || item.city || 'Bangalore, Karnataka',
-        mapUrl: (item) => item.mapUrl || item.googleMapsUrl,
+        mapUrl: (item) => item.mapUrl,
         badges: (item) => [
           { label: '5 Year Warranty', className: 'bg-emerald-600 text-white' },
           { label: 'Free Installation', className: 'bg-blue-600 text-white' },

@@ -89,7 +89,7 @@ export default function CategorySearchHero() {
   const isDropdownOpen = showResultsDropdown && internalQuery.trim().length >= 2;
 
   return (
-    <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16 sm:py-24 lg:py-28 border-t border-b border-slate-800/80 shadow-2xl">
+    <section className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-12 sm:py-16 lg:py-20 border-t border-b border-slate-800/80 shadow-2xl">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 90% 70% at 50% 10%, rgba(30,58,138,0.45) 0%, rgba(15,23,42,0.85) 60%, transparent 100%)' }}

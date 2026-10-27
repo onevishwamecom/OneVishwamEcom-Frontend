@@ -4,7 +4,7 @@ import {
   getBedrooms, getBuildingType, getListedWithinDays, isPlotOrLand,
   getCanonicalPossession, getCanonicalFurnishing,
   matchesBudgetRange, matchesSizeRange, getTotalPropertyPrice, parsePriceRange,
-  getPriorityScore, PRIORITY_TITLES, getBangaloreZone,
+  getPriorityScore, getBangaloreZone, hasPropertyImages,
 } from './propertyHelpers';
 
 /**
@@ -82,10 +82,7 @@ export function useActiveChips(filters) {
 /**
  * Returns the filtered + sorted property list.
  */
-// Precomputed O(1) map for priority title indices
-const PRIORITY_TITLE_INDEX_MAP = new Map(
-  (PRIORITY_TITLES || []).map((t, i) => [String(t).trim().toLowerCase(), i])
-);
+
 
 /**
  * Returns the filtered + sorted property list.
@@ -314,17 +311,9 @@ export function useFilteredProperties(arg1, arg2) {
         const bScore = getPriorityScore(b);
         if (aScore !== bScore) return bScore - aScore;
 
-        if (aScore === 3 && bScore === 3) {
-          const aTitle = String(a.title || a.name || '').trim().toLowerCase();
-          const bTitle = String(b.title || b.name || '').trim().toLowerCase();
-          const aPriIndex = PRIORITY_TITLE_INDEX_MAP.has(aTitle) ? PRIORITY_TITLE_INDEX_MAP.get(aTitle) : -1;
-          const bPriIndex = PRIORITY_TITLE_INDEX_MAP.has(bTitle) ? PRIORITY_TITLE_INDEX_MAP.get(bTitle) : -1;
-          if (aPriIndex !== -1 && bPriIndex !== -1) return aPriIndex - bPriIndex;
-          if (aPriIndex !== -1) return -1;
-          if (bPriIndex !== -1) return 1;
-        }
-
-        if (sortBy === 'price-low')  return getTotalPropertyPrice(a) - getTotalPropertyPrice(b);
+        const aImg = hasPropertyImages(a) ? 1 : 0;
+        const bImg = hasPropertyImages(b) ? 1 : 0;
+        if (aImg !== bImg) return bImg - aImg;
         if (sortBy === 'price-high') return getTotalPropertyPrice(b) - getTotalPropertyPrice(a);
         return (new Date(b.createdAt || 0).getTime() || 0) - (new Date(a.createdAt || 0).getTime() || 0);
       });

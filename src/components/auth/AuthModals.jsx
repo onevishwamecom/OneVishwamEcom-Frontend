@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../store/authSlice';
 import { navigateTo } from '../../config/navigation';
+import { auth } from '../../firebase/config';
+import { isJwtExpired } from '../../utils/tokenUtils';
 import logo from '../../assets/logo.png';
 
 const RULES = [
@@ -139,7 +141,12 @@ function LoginForm({ onSwitch, onClose }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      await loginWithGoogle().unwrap();
+      const u = await loginWithGoogle().unwrap();
+      const phone = u?.phoneNumber || u?.mobile || '';
+      if (!phone || !phone.trim()) {
+        switchAuthMode('require-phone');
+        return;
+      }
       Swal.fire({
         icon: 'success',
         title: 'Signed in with Google!',
@@ -314,8 +321,8 @@ function RegisterForm({ onSwitch, onClose }) {
   function validate() {
     const e = {};
     if (!form.name.trim()) e.name = 'Full name is required';
-    if (!form.phone.trim()) e.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Invalid 10-digit mobile number';
+    if (!form.phone.trim()) e.phone = 'Mobile number is mandatory and required';
+    else if (!/^[6-9]\d{9}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Please enter a valid 10-digit mobile number';
     if (!form.email.trim()) e.email = 'Email is required';
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email';
     if (!form.password) e.password = 'Password is required';
@@ -367,7 +374,12 @@ function RegisterForm({ onSwitch, onClose }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      await loginWithGoogle().unwrap();
+      const u = await loginWithGoogle().unwrap();
+      const phone = u?.phoneNumber || u?.mobile || '';
+      if (!phone || !phone.trim()) {
+        switchAuthMode('require-phone');
+        return;
+      }
       Swal.fire({
         icon: 'success',
         title: 'Signed in with Google!',
@@ -428,7 +440,7 @@ function RegisterForm({ onSwitch, onClose }) {
       {/* Phone Input */}
       <div className="relative pt-1.5">
         <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
-          Mobile Number
+          Mobile Number <span className="text-red-500 font-bold">*</span>
         </span>
         <div
           className={`flex items-center gap-3 px-3.5 py-2 sm:py-2.5 rounded-xl border bg-white transition-all ${
@@ -904,14 +916,222 @@ function ResetSuccessView({ onClose }) {
   );
 }
 
+// ─── REQUIRE PHONE FORM (MANDATORY FOR SOCIAL LOGIN) ─────────────────────────
+function RequirePhoneForm({ onClose }) {
+  const { user, updateProfile, loading, error, clearError, logout, switchAuthMode } = useAuth();
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+
+  const isSessionExpired =
+    (error && /expired|unauthorized/i.test(error)) ||
+    (phoneError && /expired|unauthorized/i.test(phoneError));
+
+  const handleSessionExpiredLogin = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    }
+    switchAuthMode('login');
+  };
+
+  const validatePhone = (val) => {
+    const digits = (val || '').replace(/[\s-]/g, '');
+    if (!digits) return 'Mobile number is mandatory and required';
+    if (!/^[6-9]\d{9}$/.test(digits)) return 'Please enter a valid 10-digit mobile number starting with 6-9';
+    return '';
+  };
+
+  const resolveErrorMessage = (raw) => {
+    if (!raw) return '';
+    const str = String(raw);
+    if ((/duplicate key|E11000|already registered/i.test(str)) && !/null/i.test(str)) {
+      return 'This mobile number is already registered with another account. Please use a different number.';
+    }
+    return str;
+  };
+
+  const displayError = resolveErrorMessage(phoneError || error);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const err = validatePhone(phone);
+    if (err) {
+      setPhoneError(err);
+      return;
+    }
+
+    try {
+      const cleanPhone = phone.replace(/[\s-]/g, '');
+      await updateProfile({
+        name: user?.name || user?.fullName || 'User',
+        fullName: user?.fullName || user?.name || 'User',
+        phoneNumber: cleanPhone,
+        mobile: cleanPhone,
+      }).unwrap();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Complete!',
+        text: 'Your mobile number has been registered.',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+      });
+      onClose();
+
+      const redirect = sessionStorage.getItem('vishwam_auth_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo(redirect);
+      }
+    } catch (apiErr) {
+      const msg = typeof apiErr === 'string' ? apiErr : (apiErr?.message || 'Failed to save mobile number');
+      setPhoneError(resolveErrorMessage(msg));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isSessionExpired ? (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-amber-800">
+            <i className="fa-solid fa-clock-rotate-left text-amber-600" />
+            <span>Session Expired</span>
+          </div>
+          <p className="text-[11px] text-amber-700 leading-relaxed">
+            Your login session has expired. Please sign in again to complete your account registration.
+          </p>
+          <button
+            type="button"
+            onClick={handleSessionExpiredLogin}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer mt-1"
+          >
+            <i className="fa-solid fa-arrow-right-to-bracket" />
+            <span>SIGN IN AGAIN</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {displayError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs text-red-600 font-medium">
+              {displayError}
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="text-center mb-3">
+        <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 text-brand-blue mx-auto flex items-center justify-center text-xl mb-2">
+          <i className="fa-solid fa-mobile-screen-button" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-800">Mobile Number Required</h3>
+        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+          Please enter your mobile number to complete registration. This is mandatory for all OneVishwam accounts.
+        </p>
+      </div>
+
+      <div className="relative pt-1.5">
+        <span className="absolute top-0 left-3.5 bg-white px-1.5 text-[11px] font-bold text-brand-blue z-10 tracking-wide select-none">
+          Mobile Number <span className="text-red-500 font-bold">*</span>
+        </span>
+        <div
+          className={`flex items-center gap-2.5 px-3.5 py-2.5 sm:py-3 rounded-xl border bg-white transition-all ${
+            displayError
+              ? 'border-red-400 ring-2 ring-red-500/10'
+              : 'border-brand-blue/40 focus-within:border-brand-blue focus-within:ring-2 focus-within:ring-brand-blue/15'
+          }`}
+        >
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">+91</span>
+          <input
+            type="tel"
+            maxLength={10}
+            value={phone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+              setPhone(val);
+              setPhoneError('');
+              if (clearError) clearError();
+            }}
+            placeholder="9876543210"
+            className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-semibold tracking-wider"
+            autoFocus
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || isSessionExpired}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-navy hover:from-[#153e74] hover:to-[#07162c] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1"
+      >
+        {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}
+        <span>COMPLETE REGISTRATION</span>
+      </button>
+    </form>
+  );
+}
+
 // ─── MAIN AUTH MODALS WRAPPER (2-COLUMN DESIGN) ──────────────────────────────
 export default function AuthModals() {
-  const { showAuthModal, closeAuthModal, authModalMode, switchAuthMode, setVerifyToken } = useAuth();
+  const { user, isLoggedIn, showAuthModal, closeAuthModal, openAuthModal, authModalMode, switchAuthMode, setVerifyToken, logout } = useAuth();
+
+  // Listen to auth:logout events from Axios interceptors
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      logout();
+    };
+    window.addEventListener('auth:logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
+  }, [logout]);
+
+  // Check if session is actually valid when prompt opens or on load
+  useEffect(() => {
+    let isCancelled = false;
+    const verifySession = async () => {
+      if (!isLoggedIn) return;
+      if (auth && typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+      if (isCancelled) return;
+      if (!auth.currentUser) {
+        const token = localStorage.getItem('accessToken');
+        if (!token || isJwtExpired(token)) {
+          logout();
+        }
+      }
+    };
+    verifySession();
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoggedIn, logout]);
+
+  // If user is logged in via social login but has no phone number, prompt for mandatory phone
+  useEffect(() => {
+    if (isLoggedIn && user && !user.phoneNumber && !user.mobile) {
+      if (!showAuthModal || authModalMode !== 'require-phone') {
+        openAuthModal('require-phone');
+      }
+    }
+  }, [isLoggedIn, user, showAuthModal, authModalMode, openAuthModal]);
 
   useEffect(() => {
     if (!showAuthModal) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeAuthModal();
+      if (e.key === 'Escape') {
+        if (authModalMode === 'require-phone') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Phone Number Required',
+            text: 'Mobile number is mandatory to complete your account registration.',
+            confirmButtonColor: '#003366',
+          });
+          return;
+        }
+        closeAuthModal();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
@@ -919,7 +1139,7 @@ export default function AuthModals() {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [showAuthModal, closeAuthModal]);
+  }, [showAuthModal, closeAuthModal, authModalMode]);
 
   if (!showAuthModal) return null;
 
@@ -931,14 +1151,16 @@ export default function AuthModals() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top-Right Sleek Close Button */}
-        <button
-          type="button"
-          onClick={closeAuthModal}
-          className="absolute top-4 right-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-400 hover:text-brand-navy hover:bg-white border border-slate-200/80 backdrop-blur-md transition-all shadow-xs active:scale-95 cursor-pointer"
-          aria-label="Close modal"
-        >
-          <i className="fa-solid fa-xmark text-sm" />
-        </button>
+        {authModalMode !== 'require-phone' && (
+          <button
+            type="button"
+            onClick={closeAuthModal}
+            className="absolute top-4 right-4 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-400 hover:text-brand-navy hover:bg-white border border-slate-200/80 backdrop-blur-md transition-all shadow-xs active:scale-95 cursor-pointer"
+            aria-label="Close modal"
+          >
+            <i className="fa-solid fa-xmark text-sm" />
+          </button>
+        )}
 
         {/* ─── LEFT COLUMN: Brand Hero Banner with Official Logo ─── */}
         <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-brand-navy text-white select-none">
@@ -997,6 +1219,8 @@ export default function AuthModals() {
                   ? 'Welcome'
                   : authModalMode === 'register'
                   ? 'Register'
+                  : authModalMode === 'require-phone'
+                  ? 'One Last Step'
                   : authModalMode === 'forgot'
                   ? 'Reset Password'
                   : authModalMode === 'verify-otp'
@@ -1010,6 +1234,8 @@ export default function AuthModals() {
                   ? 'Login with Email'
                   : authModalMode === 'register'
                   ? 'Join OneVishwam Today'
+                  : authModalMode === 'require-phone'
+                  ? 'Mobile Number Mandatory'
                   : 'Follow the steps to continue'}
               </p>
             </div>
@@ -1019,6 +1245,8 @@ export default function AuthModals() {
               <LoginForm onSwitch={() => switchAuthMode('register')} onClose={closeAuthModal} />
             ) : authModalMode === 'register' ? (
               <RegisterForm onSwitch={() => switchAuthMode('login')} onClose={closeAuthModal} />
+            ) : authModalMode === 'require-phone' ? (
+              <RequirePhoneForm onClose={closeAuthModal} />
             ) : authModalMode === 'forgot' ? (
               <ForgotPasswordForm
                 onBack={() => switchAuthMode('login')}

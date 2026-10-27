@@ -120,20 +120,9 @@ export async function fetchVisitorCount() {
 }
 
 /**
- * Sends a lightweight presence heartbeat to the backend while the user is active on the page.
+ * Disabled to prevent server pressure: returns local cached hit data without sending repeated network requests.
  */
 export async function sendVisitorPing() {
-  const visitorId = getOrCreateVisitorId();
-  try {
-    const resp = await API.post('/visitors/ping', { visitorId });
-    const activeVisitors = resp?.data?.data?.activeVisitors;
-    if (activeVisitors != null) {
-      const current = getHitCounterData();
-      const updated = { ...current, activeVisitors };
-      cacheHitData(updated);
-      return updated;
-    }
-  } catch {}
   return getHitCounterData();
 }
 

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MarketplaceCategoryGallery from './MarketplaceCategoryGallery';
 import CategoryListingCard from './CategoryListingCard';
 import { parseIndianPrice } from '../../../utils/priceUtils';
@@ -41,13 +42,19 @@ export default function UniversalCategoryGallery({
   // Search Fields
   searchFields = ['title', 'name', 'brand', 'model', 'location', 'city', 'locality', 'address', 'category', 'subcategory'],
 
-  // Per page count
-  perPage = 9,
+  // Per page count (12 = 3 full rows of 4 columns)
+  perPage = 12,
+  hidePrice = false,
 
   // Optional extensions
   customModals = null,
   customSidebar = null,
+  customCardRenderer = null,
+  topExtra = null,
+  customSorter = null,
 }) {
+  const [searchParams] = useSearchParams();
+
   // 1. Resolve Data Hook if provided
   let fetchedItems = null;
   let fetchedLoading = false;
@@ -80,19 +87,69 @@ export default function UniversalCategoryGallery({
   const isLoading = directLoading || fetchedLoading;
   const hasError = directError || fetchedError;
 
-  // 2. Filter & Search State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState(() => {
+  // Helper to extract initial filters from searchParams
+  const getInitialFilters = () => {
     const initial = {};
     rangeFilters.forEach((r) => {
-      initial[`${r.id}Min`] = '';
-      initial[`${r.id}Max`] = '';
+      initial[`${r.id}Min`] = searchParams.get(`${r.id}Min`) || '';
+      initial[`${r.id}Max`] = searchParams.get(`${r.id}Max`) || '';
     });
     filterGroups.forEach((g) => {
       initial[g.id] = [];
+      const paramVal =
+        searchParams.get(g.id) ||
+        searchParams.get(g.id.toLowerCase()) ||
+        (g.id === 'subcategory' ? (searchParams.get('type') || searchParams.get('category') || searchParams.get('subcat')) : null);
+
+      if (paramVal) {
+        const requestedVals = paramVal.split(',').map((s) => s.trim().toLowerCase());
+        const matched = (g.options || []).filter((opt) => {
+          const optLower = String(opt).toLowerCase();
+          return requestedVals.some((v) => optLower === v || optLower.includes(v) || v.includes(optLower));
+        });
+        if (matched.length > 0) {
+          initial[g.id] = matched;
+        }
+      }
     });
     return initial;
-  });
+  };
+
+  // 2. Filter & Search State
+  const [searchTerm, setSearchTerm] = useState(() => (searchParams.get('q') || searchParams.get('search') || '').trim());
+  const [activeFilters, setActiveFilters] = useState(getInitialFilters);
+
+  // Sync from URL search parameters if searchParams change dynamically
+  useEffect(() => {
+    const q = (searchParams.get('q') || searchParams.get('search') || '').trim();
+    if (q) setSearchTerm(q);
+
+    let changed = false;
+    const nextFilters = { ...activeFilters };
+
+    filterGroups.forEach((g) => {
+      const paramVal =
+        searchParams.get(g.id) ||
+        searchParams.get(g.id.toLowerCase()) ||
+        (g.id === 'subcategory' ? (searchParams.get('type') || searchParams.get('category') || searchParams.get('subcat')) : null);
+
+      if (paramVal) {
+        const requestedVals = paramVal.split(',').map((s) => s.trim().toLowerCase());
+        const matched = (g.options || []).filter((opt) => {
+          const optLower = String(opt).toLowerCase();
+          return requestedVals.some((v) => optLower === v || optLower.includes(v) || v.includes(optLower));
+        });
+        if (matched.length > 0) {
+          nextFilters[g.id] = matched;
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      setActiveFilters(nextFilters);
+    }
+  }, [searchParams]);
 
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
@@ -301,7 +358,11 @@ export default function UniversalCategoryGallery({
         onQuickMatch={onQuickMatch}
         quickMatchLabel={quickMatchLabel}
         perPage={perPage}
+        hidePrice={hidePrice}
         customSidebar={customSidebar}
+        customCardRenderer={customCardRenderer}
+        topExtra={topExtra}
+        customSorter={customSorter}
       />
       {customModals}
     </>

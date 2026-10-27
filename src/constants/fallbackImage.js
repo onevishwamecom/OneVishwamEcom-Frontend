@@ -27,6 +27,9 @@ export function isPlaceholderImage(url) {
   if (!url || typeof url !== 'string') return true;
   const trimmed = url.trim();
   if (!trimmed) return true;
+  if (trimmed.startsWith('data:image/svg+xml')) return true;
+  if (trimmed.startsWith('data:image/')) return true;
+  if (/placeholder|fallback|dummy-image/i.test(trimmed)) return true;
   // If it is the legacy grey house placeholder
   if (
     trimmed.includes('%239ca3af') ||

@@ -338,14 +338,17 @@ function PostRequirement() {
 
           {/* Submit */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <button type="submit"
-              className="flex-1 rounded-xl bg-brand-blue py-3.5 text-sm font-bold text-white hover:bg-brand-navy transition-colors"
+            <button
+              type="submit"
+              className="flex-1 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-3.5 text-sm font-extrabold transition-all shadow-md active:scale-[0.98] cursor-pointer"
             >
               <i className="fa-solid fa-paper-plane mr-2" />
               Submit Requirement
             </button>
-            <button type="button" onClick={() => navigate(-1)}
-              className="rounded-xl border border-gray-200 bg-white py-3.5 px-8 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="rounded-xl border border-slate-200 bg-white py-3.5 px-8 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-2xs cursor-pointer active:scale-[0.98]"
             >
               Cancel
             </button>

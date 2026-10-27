@@ -61,6 +61,7 @@ export default function AutomobileGallery() {
       categorySubtitle="Discover brand-new cars, verified pre-owned vehicles, bikes, and commercial fleets with full inspection reports."
       breadcrumb="Automobiles & Vehicles"
       useItems={useVehicles}
+      hidePrice={true}
       searchPlaceholder="Search vehicles by model, fuel, or transmission (e.g. Swift, Brezza, Ertiga CNG, Automatic)..."
       onQuickMatch={() => setQuickMatchOpen(true)}
       quickMatchLabel="Vehicle Match"
