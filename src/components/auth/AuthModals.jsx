@@ -313,7 +313,7 @@ function LoginForm({ onSwitch, onClose }) {
 
 // ─── REGISTER FORM ────────────────────────────────────────────────────────────
 function RegisterForm({ onSwitch, onClose }) {
-  const { register, loginWithGoogle, loading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, loading, error, clearError, switchAuthMode } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -968,6 +968,7 @@ function RequirePhoneForm({ onClose }) {
         fullName: user?.fullName || user?.name || 'User',
         phoneNumber: cleanPhone,
         mobile: cleanPhone,
+        role: 'user',
       }).unwrap();
 
       Swal.fire({
@@ -1075,7 +1076,8 @@ function RequirePhoneForm({ onClose }) {
 
 // ─── MAIN AUTH MODALS WRAPPER (2-COLUMN DESIGN) ──────────────────────────────
 export default function AuthModals() {
-  const { user, isLoggedIn, showAuthModal, closeAuthModal, openAuthModal, authModalMode, switchAuthMode, setVerifyToken, logout } = useAuth();
+  const { user, isLoggedIn, showAuthModal, closeAuthModal, openAuthModal, authModalMode, switchAuthMode, setVerifyToken, logout, fetchMe } = useAuth();
+  const checkedPhoneForUserRef = useRef(null);
 
   // Listen to auth:logout events from Axios interceptors
   useEffect(() => {
@@ -1108,14 +1110,65 @@ export default function AuthModals() {
     };
   }, [isLoggedIn, logout]);
 
-  // If user is logged in via social login but has no phone number, prompt for mandatory phone
+  // If user is logged in, verify whether phone exists in MongoDB Atlas before prompting for mandatory phone
+  // Guarded to prevent repetitive /auth/me call loops
   useEffect(() => {
-    if (isLoggedIn && user && !user.phoneNumber && !user.mobile) {
+    let isCancelled = false;
+
+    if (!isLoggedIn || !user) {
+      checkedPhoneForUserRef.current = null;
+      return;
+    }
+
+    const hasLocalPhone = Boolean(user.phoneNumber || user.mobile || user.phone);
+    if (hasLocalPhone) {
+      if (showAuthModal && authModalMode === 'require-phone') {
+        closeAuthModal();
+      }
+      return;
+    }
+
+    const userId = user._id || user.uid || user.firebaseUid || user.email;
+    // Only check remote profile ONCE per logged-in user to avoid re-triggering fetchMe in a loop
+    if (checkedPhoneForUserRef.current === userId) {
       if (!showAuthModal || authModalMode !== 'require-phone') {
         openAuthModal('require-phone');
       }
+      return;
     }
-  }, [isLoggedIn, user, showAuthModal, authModalMode, openAuthModal]);
+
+    checkedPhoneForUserRef.current = userId;
+
+    const verifyPhoneRequirement = async () => {
+      // If local cache lacks phone, check authoritative MongoDB Atlas profile once
+      try {
+        const freshUser = await fetchMe().unwrap();
+        if (isCancelled) return;
+
+        const hasRemotePhone = Boolean(freshUser?.phoneNumber || freshUser?.mobile || freshUser?.phone);
+        if (hasRemotePhone) {
+          if (showAuthModal && authModalMode === 'require-phone') {
+            closeAuthModal();
+          }
+          return;
+        }
+      } catch {
+        // Network or fetch failed, fallback to local check
+      }
+
+      if (!isCancelled) {
+        if (!showAuthModal || authModalMode !== 'require-phone') {
+          openAuthModal('require-phone');
+        }
+      }
+    };
+
+    verifyPhoneRequirement();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoggedIn, user, showAuthModal, authModalMode, openAuthModal, closeAuthModal, fetchMe]);
 
   useEffect(() => {
     if (!showAuthModal) return;
@@ -1147,7 +1200,7 @@ export default function AuthModals() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
       {/* Outer Card: 2 Column Layout with Left Hero & Right Form */}
       <div
-        className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_25px_70px_rgba(10,31,63,0.35)] overflow-hidden border border-brand-blue/10 grid grid-cols-1 md:grid-cols-12 min-h-[530px] max-h-[92vh] animate-in fade-in zoom-in-95"
+        className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_25px_70px_rgba(10,31,63,0.35)] overflow-hidden border border-brand-blue/10 grid grid-cols-1 md:grid-cols-12 min-h-0 sm:min-h-[530px] max-h-[92vh] animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top-Right Sleek Close Button */}
@@ -1163,30 +1216,34 @@ export default function AuthModals() {
         )}
 
         {/* ─── LEFT COLUMN: Brand Hero Banner with Official Logo ─── */}
-        <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-brand-navy text-white select-none">
+        <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-8 overflow-hidden bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 select-none border-r border-sky-200/80">
+          {/* Ambient Soft Glow Lights */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-sky-300/35 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
+
           {/* Background Luxury Architectural Image */}
           <img
             src={HERO_IMAGE}
             alt="OneVishwam Living"
-            className="absolute inset-0 w-full h-full object-cover object-center transform scale-105"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-30 select-none pointer-events-none"
             loading="eager"
           />
-          {/* Navy & Blue Gradients for Brand Consistency */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a1f3f]/90 via-[#0a1f3f]/60 to-[#0a1f3f]/95" />
-          <div className="absolute inset-0 bg-brand-blue/20" />
+          {/* Luminous Footer Blue Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#d9ebfa]/80 via-[#e8f2fb]/70 to-[#cfe4f6]/80 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#cfe4f6] via-[#cfe4f6]/60 to-transparent pointer-events-none" />
 
           {/* Top Brand Logo & Tagline */}
           <div className="relative z-10 space-y-4 pt-1">
             {/* Official Logo in a translucent glass container */}
-            <div className="inline-flex items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-white/20">
+            <div className="inline-flex items-center bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-xs border border-sky-200/80">
               <img src={logo} alt="OneVishwam Logo" className="h-8 w-auto object-contain" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-lg lg:text-xl font-bold text-white tracking-tight drop-shadow-sm">
+              <h3 className="text-lg lg:text-xl font-black text-slate-950 tracking-tight">
                 Unlock Your Next Chapter
               </h3>
-              <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xs drop-shadow-xs">
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed max-w-xs">
                 Your all-in-one destination for verified Properties, Smart Finance, and Lifestyle Services.
               </p>
             </div>
@@ -1194,15 +1251,15 @@ export default function AuthModals() {
 
           {/* Bottom Highlights Pill */}
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/20 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-bold text-slate-800 border border-sky-200/90 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               <span>Properties • Finance • Marketplace</span>
             </div>
           </div>
         </div>
 
         {/* ─── RIGHT COLUMN: Form & Landmarks ─── */}
-        <div className="md:col-span-7 relative flex flex-col justify-between bg-white px-6 py-8 sm:px-10 sm:py-10 overflow-y-auto">
+        <div className="md:col-span-7 relative flex flex-col justify-between bg-white px-5 py-6 sm:px-10 sm:py-10 overflow-y-auto">
           {/* Top Flight Trail Curve */}
           <FlightTrail />
 

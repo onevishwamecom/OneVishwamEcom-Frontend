@@ -364,8 +364,8 @@ export default function VehicleDetails() {
   return (
     <MasterDetailPage
       item={displayedVehicle}
-      categoryName="Automobiles & Vehicles"
-      categoryLink="/our-services/automobile"
+      categoryName="Automobiles"
+      categoryLink="/categories/automobile"
       similarItems={mappedSimilar}
       itemLinkPrefix="/vehicle/"
       loading={loading}

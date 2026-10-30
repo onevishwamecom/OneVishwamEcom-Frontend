@@ -2,17 +2,24 @@ import axios from "axios";
 import { auth } from "../firebase/config";
 import { isJwtExpired } from "../utils/tokenUtils";
 
+const DEFAULT_API_URL = "https://asia-south1-onevishwam.cloudfunctions.net/api";
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "https://asia-south1-onevishwam.cloudfunctions.net/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || DEFAULT_API_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    "X-Client-Role": "user",
+    "X-Account-Type": "user",
   },
 });
 
 // Request Interceptor: Attach fresh Firebase ID Token dynamically
 API.interceptors.request.use(
   async (config) => {
+    config.headers = config.headers || {};
+    config.headers["X-Client-Role"] = "user";
+    config.headers["X-Account-Type"] = "user";
     try {
       if (auth && typeof auth.authStateReady === 'function') {
         await auth.authStateReady();

@@ -12,9 +12,15 @@ import { contactInfo, getPropertyContactInfo } from '../../../constants/footerCo
 import { cleanProductName } from '../../../utils/searchUtils';
 import { trackUserActivity, resolveSectorFromPath } from '../../../utils/activityTracker';
 
-const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)
-  ? new URL(import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL).origin
-  : 'https://asia-south1-onevishwam.cloudfunctions.net';
+const defaultBaseUrl = 'https://asia-south1-onevishwam.cloudfunctions.net/api';
+const activeApiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || defaultBaseUrl;
+const API_ORIGIN = (() => {
+  try {
+    return new URL(activeApiUrl).origin;
+  } catch {
+    return 'https://asia-south1-onevishwam.cloudfunctions.net';
+  }
+})();
 
 function resolveImage(src) {
   if (!src) return '';
@@ -235,6 +241,20 @@ export default function MasterDetailPage({
   const heroRef = useRef(null);
   const similarRef = useRef(null);
 
+  // Filter Discover Our Featured Properties to products which have real images
+  const featuredListings = useMemo(() => {
+    const hasPhoto = (sp) => {
+      if (!sp) return false;
+      const imgs = Array.isArray(sp.images) ? sp.images : [];
+      const realFromImgs = imgs.some((s) => s && !isPlaceholderImage(s) && s !== ONEVISHWAM_VERIFIED_IMAGE);
+      if (realFromImgs) return true;
+      const direct = sp.image || sp.coverImage || sp.imageUrl;
+      return direct && !isPlaceholderImage(direct) && direct !== ONEVISHWAM_VERIFIED_IMAGE;
+    };
+    const withPhotos = (similarItems || []).filter(hasPhoto);
+    return withPhotos.length > 0 ? withPhotos : (similarItems || []);
+  }, [similarItems]);
+
   const activeId = item ? (item._id || item.id) : null;
 
   // Track recently viewed items in localStorage
@@ -322,8 +342,11 @@ export default function MasterDetailPage({
   }, []);
 
   const goBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate(categoryLink);
+    if (window.history.state?.idx > 0 || window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(categoryLink || '/categories');
+    }
   };
 
   const handleShare = async () => {
@@ -527,64 +550,131 @@ export default function MasterDetailPage({
   // Specifications
   const specSections = item.specifications || [];
 
-  // Homez Overview Extraction
-  const isPlot = Boolean(
-    item.isPlot ||
-    (item.propertyType && String(item.propertyType).toLowerCase().includes('plot')) ||
-    (item.subcategory && String(item.subcategory).toLowerCase().includes('plot'))
+  // Entity Type Resolution: Precise separation of Vehicle vs Property vs General
+  const isVehicle = Boolean(
+    categoryName === 'Automobiles' ||
+    categoryName === 'Vehicles' ||
+    categoryName === 'Automobiles & Vehicles' ||
+    itemLinkPrefix?.includes('vehicle') ||
+    itemLinkPrefix?.includes('automobile') ||
+    item?.category === 'vehicles' ||
+    item?.category === 'automobile' ||
+    item?.category === 'automobiles' ||
+    item?.category === 'Commercial' ||
+    item?.category === 'SUV' ||
+    item?.category === 'Hatchback' ||
+    item?.category === 'Sedan' ||
+    item?.category === 'Luxury' ||
+    item?.wheelerType ||
+    item?.fuelType ||
+    item?.transmission ||
+    (item?.variants && item?.variants.length > 0 && !item?.propertyType)
   );
 
-  const bedsDisplay = item.bhk || item.bedrooms || item.bedroom || (isPlot ? 'N/A (Plot)' : '3 Bedrooms');
-  const bathsDisplay = item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : (isPlot ? 'N/A' : '2 Bathrooms');
-  const yearBuiltDisplay = item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : 'Ready to Move');
-  const garageDisplay = item.parking || item.garage || (isPlot ? 'N/A' : '1 Covered Parking');
-  const sqftDisplay = item.area || item.superBuiltUpArea || item.dimensions || '1,450 Sq.Ft';
-  const propertyTypeDisplay = item.propertyType || item.subcategory || categoryName || 'Apartment';
+  const isProperty = Boolean(
+    !isVehicle && (
+      categoryName === 'Properties' ||
+      categoryName === 'Real Estate' ||
+      itemLinkPrefix?.includes('property') ||
+      item?.category === 'real-estate' ||
+      item?.category === 'properties' ||
+      item?.category === 'property' ||
+      item?.propertyType ||
+      item?.bhk ||
+      item?.bedrooms
+    )
+  );
 
-  // Numeric Price for Mortgage Calculator
-  const numericPrice = useMemo(() => {
-    if (!item?.price) return 7500000;
+  // Property-Specific Overview Extraction
+  const isPlot = Boolean(
+    isProperty && (
+      item.isPlot ||
+      (item.propertyType && String(item.propertyType).toLowerCase().includes('plot')) ||
+      (item.subcategory && String(item.subcategory).toLowerCase().includes('plot'))
+    )
+  );
+
+  const bedsDisplay = isProperty ? (item.bhk || item.bedrooms || item.bedroom || (isPlot ? 'N/A (Plot)' : '3 Bedrooms')) : null;
+  const bathsDisplay = isProperty ? (item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : (isPlot ? 'N/A' : '2 Bathrooms')) : null;
+  const yearBuiltDisplay = isProperty
+    ? (item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : 'Ready to Move'))
+    : (item.year ? `Model Year ${item.year}` : (item.condition === 'new' ? 'Brand New' : 'Verified'));
+  const garageDisplay = isProperty ? (item.parking || item.garage || (isPlot ? 'N/A' : '1 Covered Parking')) : null;
+  const sqftDisplay = isProperty ? (item.area || item.superBuiltUpArea || item.dimensions || '1,450 Sq.Ft') : null;
+  const propertyTypeDisplay = isProperty ? (item.propertyType || item.subcategory || categoryName || 'Apartment') : null;
+
+  // Vehicle-Specific Metadata Extraction
+  const vehicleFuelDisplay = item.fuelType || item.fuel || 'Petrol & CNG';
+  const vehicleTransDisplay = item.transmission || 'Manual & Automatic';
+  const vehicleTypeDisplay = item.category || item.bodyType || item.wheelerType || '4-Wheeler';
+  const vehicleYearDisplay = item.year ? `Model Year ${item.year}` : (item.condition === 'new' ? 'Brand New' : 'Verified');
+
+  // Vehicle Highlights for the Overview Grid (plain computation to respect hooks rules)
+  const vehicleHighlights = (() => {
+    if (!isVehicle) return [];
+    if (customBentoHighlights && customBentoHighlights.length > 0) return customBentoHighlights;
+    if (item.overviewHighlights && item.overviewHighlights.length > 0) return item.overviewHighlights;
+    if (item.keyAttributes && item.keyAttributes.length > 0) {
+      const iconMap = ['fa-car-side', 'fa-tag', 'fa-gas-pump', 'fa-shield-halved', 'fa-gear', 'fa-building'];
+      const colorMap = [
+        'text-blue-600 bg-blue-50',
+        'text-emerald-600 bg-emerald-50',
+        'text-purple-600 bg-purple-50',
+        'text-indigo-600 bg-indigo-50',
+        'text-cyan-600 bg-cyan-50',
+        'text-teal-600 bg-teal-50',
+      ];
+      return item.keyAttributes.slice(0, 6).map((attr, idx) => ({
+        label: attr.label,
+        value: attr.value,
+        icon: iconMap[idx % iconMap.length],
+        color: colorMap[idx % colorMap.length],
+      }));
+    }
+    return [
+      { label: 'Fuel System', value: vehicleFuelDisplay, icon: 'fa-gas-pump', color: 'text-purple-600 bg-purple-50' },
+      { label: 'Transmission', value: vehicleTransDisplay, icon: 'fa-gear', color: 'text-blue-600 bg-blue-50' },
+      { label: 'Segment / Body', value: vehicleTypeDisplay, icon: 'fa-car', color: 'text-indigo-600 bg-indigo-50' },
+      { label: 'Condition', value: item.condition === 'new' ? 'Brand New' : 'Certified Pre-Owned', icon: 'fa-certificate', color: 'text-emerald-600 bg-emerald-50' },
+      { label: 'Model Year', value: String(item.year || '2026'), icon: 'fa-calendar-check', color: 'text-amber-600 bg-amber-50' },
+      { label: 'Authorized Dealership', value: item.showroom?.name || item.location || 'Kalyani Motors Bangalore', icon: 'fa-building', color: 'text-teal-600 bg-teal-50' },
+    ];
+  })();
+
+  // Numeric Price for Mortgage Calculator (only applies to properties)
+  let numericPrice = 7500000;
+  if (isProperty && item?.price) {
     const match = String(item.price).replace(/,/g, '').match(/([\d.]+)/);
-    if (!match) return 7500000;
-    let val = parseFloat(match[1]);
-    const lower = String(item.price).toLowerCase();
-    if (lower.includes('cr')) val = val * 10000000;
-    else if (lower.includes('lakh') || lower.includes('lac')) val = val * 100000;
-    else if (val < 10000) val = val * 100000; // e.g., 75 -> 75 Lakhs
-    return Math.round(val);
-  }, [item?.price]);
+    if (match) {
+      let val = parseFloat(match[1]);
+      const lower = String(item.price).toLowerCase();
+      if (lower.includes('cr')) val = val * 10000000;
+      else if (lower.includes('lakh') || lower.includes('lac')) val = val * 100000;
+      else if (val < 10000) val = val * 100000; // e.g., 75 -> 75 Lakhs
+      numericPrice = Math.round(val);
+    }
+  }
 
-  // Price per sqft computation
-  const pricePerSqftDisplay = useMemo(() => {
-    if (item.pricePerSqft) return item.pricePerSqft;
-    if (item.priceSuffix && String(item.priceSuffix).toLowerCase().includes('sq')) return item.priceSuffix;
-    if (numericPrice > 0) {
+  // Price per sqft computation - ONLY for properties
+  let pricePerSqftDisplay = null;
+  if (isProperty) {
+    if (item?.pricePerSqft) {
+      pricePerSqftDisplay = item.pricePerSqft;
+    } else if (item?.priceSuffix && String(item.priceSuffix).toLowerCase().includes('sq')) {
+      pricePerSqftDisplay = item.priceSuffix;
+    } else if (numericPrice > 0 && sqftDisplay) {
       const sqftMatch = String(sqftDisplay).replace(/,/g, '').match(/([\d.]+)/);
       if (sqftMatch) {
         const sqftNum = parseFloat(sqftMatch[1]);
         if (sqftNum > 100) {
           const rate = Math.round(numericPrice / sqftNum);
-          return `₹${rate.toLocaleString('en-IN')}/sq ft`;
+          pricePerSqftDisplay = `₹${rate.toLocaleString('en-IN')}/sq ft`;
         }
       }
     }
-    return null;
-  }, [item.pricePerSqft, item.priceSuffix, numericPrice, sqftDisplay]);
+  }
 
-  const isPropertyOrVehicle = Boolean(
-    categoryName === 'Properties' ||
-    categoryName === 'Automobiles & Vehicles' ||
-    categoryName === 'Automobiles' ||
-    categoryName === 'Vehicles' ||
-    itemLinkPrefix?.includes('property') ||
-    itemLinkPrefix?.includes('vehicle') ||
-    item?.category === 'real-estate' ||
-    item?.category === 'properties' ||
-    item?.category === 'vehicles' ||
-    item?.category === 'automobile' ||
-    item?.propertyType ||
-    item?.wheelerType
-  );
+  const isPropertyOrVehicle = isProperty;
 
   return (
     <div className="min-h-screen bg-[#f7f7f7]">
@@ -621,11 +711,22 @@ export default function MasterDetailPage({
       <div className="bg-white border-b border-gray-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <Breadcrumbs
-              categoryName={categoryName}
-              categoryLink={categoryLink}
-              itemTitle={itemTitle}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={goBack}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-2xs cursor-pointer"
+                title="Go back"
+              >
+                <i className="fa-solid fa-arrow-left text-[11px]" />
+                <span>Back</span>
+              </button>
+              <Breadcrumbs
+                categoryName={categoryName}
+                categoryLink={categoryLink}
+                itemTitle={itemTitle}
+              />
+            </div>
 
             <div className="flex items-center gap-2">
               <button
@@ -692,25 +793,56 @@ export default function MasterDetailPage({
                 </span>
               </div>
 
-              {/* Homez Bed / Bath / Sqft / Type Meta Row */}
-              <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-bed text-brand-blue text-sm" />
-                  <span>{bedsDisplay}</span>
+              {/* Header Meta Row: Vehicle vs Property vs Generic */}
+              {isVehicle ? (
+                <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-gas-pump text-emerald-600 text-sm" />
+                    <span>{vehicleFuelDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-gear text-brand-blue text-sm" />
+                    <span>{vehicleTransDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-car text-indigo-600 text-sm" />
+                    <span>{vehicleTypeDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-calendar-check text-amber-600 text-sm" />
+                    <span>{vehicleYearDisplay}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-shower text-cyan-600 text-sm" />
-                  <span>{bathsDisplay}</span>
+              ) : isProperty ? (
+                <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-bed text-brand-blue text-sm" />
+                    <span>{bedsDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-shower text-cyan-600 text-sm" />
+                    <span>{bathsDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-vector-square text-emerald-600 text-sm" />
+                    <span>{sqftDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-house-chimney text-amber-600 text-sm" />
+                    <span>{propertyTypeDisplay}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-vector-square text-emerald-600 text-sm" />
-                  <span>{sqftDisplay}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-house-chimney text-amber-600 text-sm" />
-                  <span>{propertyTypeDisplay}</span>
-                </div>
-              </div>
+              ) : (
+                item.cardPills && item.cardPills.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-sm font-semibold text-gray-700">
+                    {item.cardPills.map((pill, idx) => (
+                      <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
+                        {pill}
+                      </span>
+                    ))}
+                  </div>
+                )
+              )}
 
               {headerExtra && (
                 <div className="pt-2">
@@ -727,7 +859,7 @@ export default function MasterDetailPage({
                   className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer ${
                     isSaved ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
-                  title="Save Property"
+                  title={isVehicle ? "Save Vehicle" : isProperty ? "Save Property" : "Save Item"}
                 >
                   <i className={`${isSaved ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart`} />
                 </button>
@@ -766,7 +898,7 @@ export default function MasterDetailPage({
                 {/* ── Co-Branding / Verification Partner Badge ── */}
                 <VerifiedPartnerBadge partnerName={partnerDisplayName} />
 
-                {isPropertyOrVehicle ? (
+                {isProperty ? (
                   <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                     <button
                       type="button"
@@ -794,7 +926,7 @@ export default function MasterDetailPage({
                         <span className="text-sm font-semibold text-gray-500">{item.priceSuffix}</span>
                       )}
                     </div>
-                    {pricePerSqftDisplay && (
+                    {pricePerSqftDisplay && isProperty && (
                       <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-0.5">
                         {pricePerSqftDisplay}
                       </p>
@@ -813,7 +945,7 @@ export default function MasterDetailPage({
                         className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
                       >
                         <i className="fa-solid fa-phone text-xs" />
-                        <span>Call</span>
+                        <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
                       </a>
                     </div>
                   </>
@@ -867,6 +999,16 @@ export default function MasterDetailPage({
                   <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
                     Featured
                   </div>
+                  {mediaItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
+                      className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                    >
+                      <i className="fa-solid fa-images text-[11px]" />
+                      <span>1 / {mediaItems.length} Photos</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Right 4 Grid Photos */}
@@ -933,7 +1075,7 @@ export default function MasterDetailPage({
       </div>
 
       {/* ─── MAIN 2-COLUMN SECTION (Homez col-lg-8 & col-lg-4 Layout) ─── */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-24 sm:pb-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* ════ LEFT 8-COLUMN CONTENT (col-lg-8) ════ */}
@@ -943,81 +1085,126 @@ export default function MasterDetailPage({
             {/* 1. OVERVIEW WIDGET */}
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
               <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-6">{bentoTitle}</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                {/* 1. Bedroom */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-bed" />
-                  </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
-                  </div>
-                </div>
 
-                {/* 2. Bath */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-shower" />
-                  </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
-                  </div>
+              {isVehicle ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                  {vehicleHighlights.map((hl, idx) => {
+                    const iconClass = hl.icon || 'fa-car';
+                    const colorClass = hl.color || 'text-brand-blue bg-blue-50';
+                    return (
+                      <div key={idx} className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-gray-50/80 border border-gray-100 hover:bg-white hover:shadow-2xs transition-all">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 ${colorClass}`}>
+                          <i className={`fa-solid ${iconClass}`} />
+                        </div>
+                        <div className="min-w-0">
+                          <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider truncate">
+                            {hl.label || hl.key}
+                          </h6>
+                          <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 truncate" title={String(hl.value || '')}>
+                            {hl.value || 'Verified'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+              ) : isProperty ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                  {/* 1. Bedroom */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-bed" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
+                    </div>
+                  </div>
 
-                {/* 3. Year Built / Possession */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-calendar-check" />
+                  {/* 2. Bath */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-shower" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
-                  </div>
-                </div>
 
-                {/* 4. Garage */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-warehouse" />
+                  {/* 3. Year Built / Possession */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-calendar-check" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
-                  </div>
-                </div>
 
-                {/* 5. Sqft */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-expand" />
+                  {/* 4. Garage */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-warehouse" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
-                  </div>
-                </div>
 
-                {/* 6. Property Type */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
-                    <i className="fa-solid fa-house-chimney" />
+                  {/* 5. Sqft */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-expand" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
-                    <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+
+                  {/* 6. Property Type */}
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-house-chimney" />
+                    </div>
+                    <div>
+                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                  {bentoHighlights.map((hl, idx) => (
+                    <div key={idx} className="flex items-center gap-3.5">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 ${hl.color || 'text-brand-blue bg-blue-50'}`}>
+                        <i className={`fa-solid ${hl.icon || 'fa-tag'}`} />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{hl.label || hl.key}</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{hl.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* 2. PROPERTY DESCRIPTION WIDGET */}
+            {/* 2. DESCRIPTION WIDGET */}
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs space-y-4">
-              <h4 className="text-lg sm:text-xl font-bold text-slate-900">Property Description</h4>
+              <h4 className="text-lg sm:text-xl font-bold text-slate-900">
+                {isVehicle ? 'Vehicle Description' : isProperty ? 'Property Description' : 'Product Description'}
+              </h4>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
                 {showFullDesc || !item.description || item.description.length < 350
-                  ? item.description || `${itemTitle} verified and listed on OneVishwam. Inspected for quality, legal authenticity, and pre-approved for priority bank financing and buyer protection.`
+                  ? item.description || (isVehicle
+                      ? `${itemTitle} available with verified inspection, manufacturer warranty support, and pre-approved vehicle loans under the OneVishwam Automotive Network.`
+                      : isProperty
+                      ? `${itemTitle} verified and listed on OneVishwam. Inspected for quality, legal authenticity, and pre-approved for priority bank financing and buyer protection.`
+                      : `${itemTitle} verified and listed on OneVishwam with quality assurance and priority service.`)
                   : item.description.slice(0, 350) + '...'}
               </p>
 
@@ -1051,18 +1238,18 @@ export default function MasterDetailPage({
               </div>
             </div>
 
-            {/* 3. PROPERTY DETAILS TABLE WIDGET (Homez Key-Value Grid) */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
-              <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-6">Property Details</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-                <div className="divide-y divide-gray-100">
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Property ID</span>
-                    <span className="font-bold text-slate-900">RT{String(item.id || item._id || '48').slice(-4).toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Pricing</span>
-                    {isPropertyOrVehicle ? (
+            {/* 3. DETAILS TABLE WIDGET */}
+            {isProperty ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-6">Property Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Property ID</span>
+                      <span className="font-bold text-slate-900">RT{String(item.id || item._id || '48').slice(-4).toUpperCase()}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Pricing</span>
                       <button
                         type="button"
                         onClick={() => setEnquiryOpen(true)}
@@ -1071,48 +1258,105 @@ export default function MasterDetailPage({
                         <i className="fa-solid fa-handshake-angle text-xs" />
                         <span>Are You Interested?</span>
                       </button>
-                    ) : (
-                      <span className="font-bold text-slate-900">{item.price} {item.priceSuffix || ''}</span>
-                    )}
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Property Size</span>
+                      <span className="font-bold text-slate-900">{sqftDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Bathrooms</span>
+                      <span className="font-bold text-slate-900">{bathsDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Bedrooms</span>
+                      <span className="font-bold text-slate-900">{bedsDisplay}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Property Size</span>
-                    <span className="font-bold text-slate-900">{sqftDisplay}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Bathrooms</span>
-                    <span className="font-bold text-slate-900">{bathsDisplay}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Bedrooms</span>
-                    <span className="font-bold text-slate-900">{bedsDisplay}</span>
-                  </div>
-                </div>
 
-                <div className="divide-y divide-gray-100">
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Garage</span>
-                    <span className="font-bold text-slate-900">{garageDisplay}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Door Facing</span>
-                    <span className="font-bold text-slate-900">{item.facing || 'East Facing'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Year Built / Status</span>
-                    <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Property Type</span>
-                    <span className="font-bold text-slate-900">{propertyTypeDisplay}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 text-sm">
-                    <span className="font-semibold text-gray-500">Property Status</span>
-                    <span className="font-bold text-emerald-600">{statusPill?.label || 'For Sale'}</span>
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Garage</span>
+                      <span className="font-bold text-slate-900">{garageDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Door Facing</span>
+                      <span className="font-bold text-slate-900">{item.facing || 'East Facing'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Year Built / Status</span>
+                      <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Property Type</span>
+                      <span className="font-bold text-slate-900">{propertyTypeDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Property Status</span>
+                      <span className="font-bold text-emerald-600">{statusPill?.label || 'For Sale'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : isVehicle ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
+                    <i className="fa-solid fa-car" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Vehicle Specifications &amp; Overview</h4>
+                    <p className="text-xs text-gray-500">Certified automobile technical parameters and showroom details</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Vehicle ID</span>
+                      <span className="font-bold text-slate-900">VH#{String(item.id || item._id || '01').slice(-6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Brand</span>
+                      <span className="font-bold text-slate-900">{item.brand || 'Maruti Suzuki'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Model</span>
+                      <span className="font-bold text-slate-900">{item.model || itemTitle}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Fuel Type</span>
+                      <span className="font-bold text-slate-900">{vehicleFuelDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Transmission</span>
+                      <span className="font-bold text-slate-900">{vehicleTransDisplay}</span>
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Segment / Body</span>
+                      <span className="font-bold text-slate-900">{vehicleTypeDisplay}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Condition</span>
+                      <span className="font-bold text-emerald-600">{item.condition === 'new' ? 'Brand New' : 'Certified Pre-Owned'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Model Year</span>
+                      <span className="font-bold text-slate-900">{item.year || '2026'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">KM Driven</span>
+                      <span className="font-bold text-slate-900">{item.kmDriven !== undefined ? `${item.kmDriven} km` : '0 km (New)'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Authorized Dealership</span>
+                      <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.location}>{item.showroom?.name || item.location || 'Kalyani Motors Bangalore'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* 4. ADDRESS & GOOGLE MAPS WIDGET */}
             {hasLocationOrMap && (
@@ -1170,8 +1414,8 @@ export default function MasterDetailPage({
                       src={embedMapUrl}
                       className="w-full h-full border-0"
                       loading="lazy"
-                      title="Property Location Map"
-                      aria-label="Property Location Map"
+                      title={isVehicle ? "Showroom Location Map" : isProperty ? "Property Location Map" : "Location Map"}
+                      aria-label={isVehicle ? "Showroom Location Map" : isProperty ? "Property Location Map" : "Location Map"}
                     />
                   </div>
                 )}
@@ -1201,8 +1445,8 @@ export default function MasterDetailPage({
               </div>
             )}
 
-            {/* 6. FLOOR PLANS WIDGET */}
-            {hasFloorPlans && (
+            {/* 6. FLOOR PLANS WIDGET (Properties Only) */}
+            {isProperty && hasFloorPlans && (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>
@@ -1338,45 +1582,84 @@ export default function MasterDetailPage({
                   className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
                 >
                   <i className="fa-solid fa-paper-plane text-xs" />
-                  <span>Contact Agent</span>
+                  <span>{isVehicle ? 'Enquire with Dealer' : isProperty ? 'Contact Agent' : 'Enquire Now'}</span>
                 </button>
               </div>
             </div>
 
             {/* Sticky Card 3: OneVishwam Assurance Banner */}
-            <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-blue text-white p-5 space-y-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <i className="fa-solid fa-award text-amber-400 text-base" />
-                <span className="text-xs font-bold tracking-wide uppercase text-amber-300">OneVishwam Assurance</span>
+            <div className="relative rounded-2xl bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 p-5 space-y-3 shadow-sm border border-sky-200/90 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-300/40 rounded-full blur-2xl pointer-events-none" />
+              <div className="relative z-10 flex items-center gap-2">
+                <i className="fa-solid fa-award text-brand-blue text-base" />
+                <span className="text-xs font-black tracking-wide uppercase text-slate-950">OneVishwam Assurance</span>
               </div>
-              <ul className="text-xs space-y-2 text-white/90">
-                <li className="flex items-center gap-2">
-                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
-                  <span>100% Verified Legal Clear Titles</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
-                  <span>Zero Brokerage on Direct Builder Bookings</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <i className="fa-solid fa-check text-emerald-400 text-xs shrink-0" />
-                  <span>Free Guided Site Visit with Pickup Facility</span>
-                </li>
+              <ul className="relative z-10 text-xs space-y-2 text-slate-700 font-bold">
+                {isVehicle ? (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>100% Authorized Dealership Warranty</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Doorstep Test Drive Assistance Available</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Pre-Approved Vehicle Loan & Fast Delivery</span>
+                    </li>
+                  </>
+                ) : isProperty ? (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>100% Verified Legal Clear Titles</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Zero Brokerage on Direct Builder Bookings</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Free Guided Site Visit with Pickup Facility</span>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>100% Genuine Verified Products</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Direct Manufacturer Pricing & Deals</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Dedicated Advisor & Support Assistance</span>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
         </div>
 
-        {/* ═══ BOTTOM FULL-WIDTH: DISCOVER OUR FEATURED LISTINGS (Homez Single V1 Slider) ═══ */}
-        {similarItems.length > 0 && (
+        {/* ═══ BOTTOM FULL-WIDTH: Discover Similar Items Slider ═══ */}
+        {featuredListings.length > 0 && (
           <div className="mt-16 pt-10 border-t border-gray-200/80">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  Discover Our Featured Listings
+                  {isVehicle ? 'Discover Similar Vehicles & Automobiles' : isProperty ? 'Discover Our Featured Properties' : 'Discover Similar Products'}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Explore comparable verified listings and premier projects in Bangalore
+                  {isVehicle
+                    ? 'Explore comparable verified hatchbacks, sedans, SUVs, and commercial vehicles'
+                    : isProperty
+                    ? 'Explore comparable verified listings and premier projects in Bangalore'
+                    : 'Explore comparable verified listings in this category'}
                 </p>
               </div>
               <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -1401,7 +1684,7 @@ export default function MasterDetailPage({
               ref={similarRef}
               className="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide"
             >
-              {similarItems.map((sp) => (
+              {featuredListings.map((sp) => (
                 <div key={sp.id || sp._id} className="w-[280px] sm:w-[320px] lg:w-[340px] flex-shrink-0 snap-start">
                   <CategoryListingCard
                     item={sp}
@@ -1442,7 +1725,7 @@ export default function MasterDetailPage({
 
       {/* ─── SLEEK STICKY BOTTOM ACTION BAR (Shows on scroll, auto-hides before footer) ─── */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/80 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out ${
+        className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/80 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] pb-[max(0.5rem,env(safe-area-inset-bottom))] transition-all duration-300 ease-in-out ${
           scrolledPastHero && !reachedFooter ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -1460,7 +1743,7 @@ export default function MasterDetailPage({
                 {itemTitle}
               </h4>
               <div className="flex items-center gap-2 mt-0.5">
-                {isPropertyOrVehicle ? (
+                {isProperty ? (
                   <button
                     type="button"
                     onClick={() => setEnquiryOpen(true)}

@@ -222,7 +222,13 @@ export default function UniversalDetailPage({
           </p>
           <button
             type="button"
-            onClick={() => (backUrl === -1 ? navigate(-1) : navigate(backUrl))}
+            onClick={() => {
+              if (window.history.state?.idx > 0 || window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate(backUrl && backUrl !== -1 ? backUrl : '/categories');
+              }
+            }}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-all cursor-pointer"
           >
             <i className="fa-solid fa-arrow-left text-xs" />

@@ -99,23 +99,50 @@ export async function recordVisitorHit() {
   }
 }
 
+let cachedVisitorStats = null;
+let lastVisitorCountFetchTime = 0;
+let inFlightVisitorPromise = null;
+const VISITOR_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache
+
 /**
  * Fetches current visitor count without recording an increment.
+ * Uses in-memory caching and in-flight promise deduplication to prevent spamming the backend.
  */
-export async function fetchVisitorCount() {
+export async function fetchVisitorCount(force = false) {
+  const now = Date.now();
+  if (!force && cachedVisitorStats && now - lastVisitorCountFetchTime < VISITOR_CACHE_TTL_MS) {
+    return cachedVisitorStats;
+  }
+
+  if (inFlightVisitorPromise) {
+    try {
+      return await inFlightVisitorPromise;
+    } catch {
+      return getHitCounterData();
+    }
+  }
+
   try {
-    const resp = await API.get('/visitors/count');
-    const stats = resp?.data?.data || resp?.data || {};
-    const data = {
-      totalVisitors: stats.totalVisitors || stats.totalHits || DEFAULT_STATS.totalVisitors,
-      totalHits: stats.totalHits || DEFAULT_STATS.totalHits,
-      visitsToday: stats.visitsToday || DEFAULT_STATS.visitsToday,
-      activeVisitors: stats.activeVisitors || DEFAULT_STATS.activeVisitors,
-    };
-    cacheHitData(data);
-    return data;
+    inFlightVisitorPromise = (async () => {
+      const resp = await API.get('/visitors/count');
+      const stats = resp?.data?.data || resp?.data || {};
+      const data = {
+        totalVisitors: stats.totalVisitors || stats.totalHits || DEFAULT_STATS.totalVisitors,
+        totalHits: stats.totalHits || DEFAULT_STATS.totalHits,
+        visitsToday: stats.visitsToday || DEFAULT_STATS.visitsToday,
+        activeVisitors: stats.activeVisitors || DEFAULT_STATS.activeVisitors,
+      };
+      cacheHitData(data);
+      cachedVisitorStats = data;
+      lastVisitorCountFetchTime = Date.now();
+      return data;
+    })();
+
+    return await inFlightVisitorPromise;
   } catch (err) {
     return getHitCounterData();
+  } finally {
+    inFlightVisitorPromise = null;
   }
 }
 

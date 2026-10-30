@@ -220,16 +220,23 @@ export function useFilteredProperties(arg1, arg2) {
         }
 
         if (propertyTypeSet.size > 0) {
+          const rawProp = String(p.propertyType || p.subcategory || '').toLowerCase().trim();
           const type = String(getPropertyType(p)).toLowerCase().trim();
           const bType = String(getBuildingType(p)).toLowerCase().trim();
-          let matchPropType = propertyTypeSet.has(type) || propertyTypeSet.has(bType);
+          let matchPropType = propertyTypeSet.has(rawProp) || propertyTypeSet.has(type) || propertyTypeSet.has(bType);
           if (!matchPropType) {
-            if (propertyTypeSet.has('residential') && bType === 'residential') matchPropType = true;
-            else if (propertyTypeSet.has('commercial') && (bType === 'commercial' || type.includes('commercial') || type.includes('industrial') || type.includes('showroom') || type.includes('office'))) matchPropType = true;
-            else if ((propertyTypeSet.has('plots') || propertyTypeSet.has('plot')) && (type.includes('plot') || type.includes('site') || type.includes('land'))) matchPropType = true;
-            else if ((propertyTypeSet.has('flats') || propertyTypeSet.has('flat')) && (type.includes('flat') || type.includes('apartment'))) matchPropType = true;
-            else if ((propertyTypeSet.has('villas') || propertyTypeSet.has('villa')) && type.includes('villa')) matchPropType = true;
-            else if ((propertyTypeSet.has('houses') || propertyTypeSet.has('house')) && type.includes('house')) matchPropType = true;
+            propertyTypeSet.forEach((selected) => {
+              const sel = selected.toLowerCase();
+              if (sel.includes('residential') && (rawProp.includes('residential') || bType === 'residential')) matchPropType = true;
+              else if ((sel.includes('flat') || sel.includes('villa')) && (rawProp.includes('flat') || rawProp.includes('villa') || type.includes('flat') || type.includes('villa') || rawProp.includes('apartment'))) matchPropType = true;
+              else if ((sel.includes('house') || sel.includes('independent')) && (rawProp.includes('house') || rawProp.includes('independent'))) matchPropType = true;
+              else if (sel === 'plot' && (rawProp.includes('plot') || rawProp.includes('layout') || rawProp.includes('plat') || type.includes('plot') || type.includes('site'))) matchPropType = true;
+              else if (sel === 'land' && (rawProp === 'land' || (rawProp.includes('land') && !rawProp.includes('agri')))) matchPropType = true;
+              else if (sel.includes('agri') && (rawProp.includes('agri') || rawProp.includes('farm') || rawProp.includes('plantation'))) matchPropType = true;
+              else if (sel.includes('commercial') && (rawProp.includes('commercial') || bType === 'commercial' || type.includes('commercial') || type.includes('office') || type.includes('shop') || type.includes('showroom'))) matchPropType = true;
+              else if (sel.includes('industrial') && (rawProp.includes('industrial') || type.includes('industrial') || rawProp.includes('warehouse') || rawProp.includes('factory'))) matchPropType = true;
+              else if (rawProp.includes(sel) || type.includes(sel)) matchPropType = true;
+            });
           }
           if (!matchPropType) return false;
         }

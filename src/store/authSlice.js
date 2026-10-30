@@ -39,10 +39,12 @@ export const loginWithEmail = createAsyncThunk(
           {
             firebaseUid: user.uid,
             email: user.email,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -168,10 +170,12 @@ export const loginWithGoogle = createAsyncThunk(
             name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -226,10 +230,12 @@ export const loginWithFacebook = createAsyncThunk(
             name: user.displayName,
             fullName: user.displayName,
             avatar: user.photoURL,
+            role: 'user',
           },
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
+              'X-Client-Role': 'user',
             },
           }
         );
@@ -320,8 +326,15 @@ export const updateUserProfile = createAsyncThunk(
       }
 
       // 2. Fetch fresh token for backend authorization
-      const res = await API.post('/auth/sync', body, {
-        headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
+      const syncPayload = {
+        ...body,
+        role: body?.role || 'user',
+      };
+      const res = await API.post('/auth/sync', syncPayload, {
+        headers: {
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          'X-Client-Role': 'user',
+        },
       });
       const user = res.data.data;
       localStorage.setItem('user', JSON.stringify(user));
@@ -529,7 +542,7 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Google!';
-        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile);
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
         if (!hasPhone) {
           state.showAuthModal = true;
           state.authModalMode = 'require-phone';
@@ -544,7 +557,7 @@ const authSlice = createSlice({
         state.isLoggedIn = true;
         state.user = action.payload;
         state.successMessage = 'Signed in with Facebook!';
-        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile);
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
         if (!hasPhone) {
           state.showAuthModal = true;
           state.authModalMode = 'require-phone';
@@ -563,6 +576,10 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.isLoggedIn = true;
         state.user = action.payload;
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (hasPhone && state.authModalMode === 'require-phone') {
+          state.showAuthModal = false;
+        }
       })
       .addCase(fetchMe.rejected, (state) => {
         // If session expired
@@ -576,7 +593,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.successMessage = 'Profile updated successfully';
-        if (state.authModalMode === 'require-phone' && (action.payload?.phoneNumber || action.payload?.mobile)) {
+        const hasPhone = Boolean(action.payload?.phoneNumber || action.payload?.mobile || action.payload?.phone);
+        if (hasPhone && state.authModalMode === 'require-phone') {
           state.showAuthModal = false;
         }
       })

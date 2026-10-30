@@ -63,19 +63,20 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-brand-navy to-brand-blue px-6 py-5 text-white">
-          <div className="flex items-start justify-between gap-4">
+        <div className="relative bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] px-6 py-5 text-slate-900 border-b border-sky-200/80 overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-300/40 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative z-10 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <i className="fa-solid fa-location-dot text-amber-400" /> Contact &amp; Visit Details
+              <h2 className="text-lg font-black text-slate-950 flex items-center gap-2">
+                <i className="fa-solid fa-location-dot text-brand-blue" /> Contact &amp; Visit Details
               </h2>
               {activeTitle && (
-                <p className="mt-1 text-xs text-white/80 line-clamp-2">{activeTitle}</p>
+                <p className="mt-1 text-xs text-slate-600 font-semibold line-clamp-2">{activeTitle}</p>
               )}
             </div>
             <button
               onClick={handleCloseModal}
-              className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors shrink-0 cursor-pointer"
+              className="w-8 h-8 rounded-full bg-white/80 text-slate-700 flex items-center justify-center hover:bg-white transition-colors shrink-0 cursor-pointer shadow-2xs border border-sky-200/70"
             >
               <i className="fa-solid fa-xmark" />
             </button>

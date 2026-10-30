@@ -53,29 +53,29 @@ export default function HitCounterBanner() {
   const formatNumber = (num) => new Intl.NumberFormat('en-IN').format(num || 0);
 
   return (
-    <div className="w-full bg-slate-900/95 text-slate-300 border-t border-slate-800 py-2.5 px-4 text-xs select-none">
+    <div className="w-full bg-gradient-to-r from-[#d0e5f7] via-[#def0fc] to-[#d0e5f7] text-slate-700 border-t-2 border-b border-sky-300/80 py-2.5 px-4 text-xs select-none shadow-xs font-semibold">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         {/* Left Live Indicator */}
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
           </span>
-          <span className="font-semibold text-white tracking-wide text-xs">
+          <span className="font-black text-slate-900 tracking-wide text-xs">
             OneVishwam Activity
           </span>
         </div>
 
         {/* Live Visitor Stats */}
-        <div className="flex items-center gap-4 text-xs font-medium flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-4 text-xs font-bold flex-wrap sm:flex-nowrap">
           {/* Total Visitors */}
           <div className="flex items-center gap-1.5">
-            <i className="fa-solid fa-users text-amber-400 text-xs" />
-            <span className="text-slate-400">Total Visitors:</span>
+            <i className="fa-solid fa-users text-amber-600 text-xs" />
+            <span className="text-slate-700 font-bold">Total Visitors:</span>
             {loading ? (
-              <span className="inline-block w-12 h-3 bg-slate-700 animate-pulse rounded" />
+              <span className="inline-block w-12 h-3 bg-sky-200 animate-pulse rounded" />
             ) : (
-              <strong className="text-white font-semibold">
+              <strong className="text-slate-950 font-black">
                 {formatNumber(stats.totalVisitors || stats.totalHits)}
               </strong>
             )}
@@ -83,12 +83,12 @@ export default function HitCounterBanner() {
 
           {/* Visits Today */}
           <div className="flex items-center gap-1.5">
-            <i className="fa-solid fa-bolt text-amber-300 text-xs" />
-            <span className="text-slate-400">Visits Today:</span>
+            <i className="fa-solid fa-bolt text-amber-600 text-xs" />
+            <span className="text-slate-700 font-bold">Visits Today:</span>
             {loading ? (
-              <span className="inline-block w-8 h-3 bg-slate-700 animate-pulse rounded" />
+              <span className="inline-block w-8 h-3 bg-sky-200 animate-pulse rounded" />
             ) : (
-              <strong className="text-white font-semibold">
+              <strong className="text-slate-950 font-black">
                 {formatNumber(stats.visitsToday)}
               </strong>
             )}
@@ -96,12 +96,12 @@ export default function HitCounterBanner() {
 
           {/* Online Now */}
           <div className="flex items-center gap-1.5">
-            <i className="fa-solid fa-circle text-emerald-400 text-[8px]" />
-            <span className="text-slate-400">Online Now:</span>
+            <i className="fa-solid fa-circle text-emerald-600 text-[8px]" />
+            <span className="text-slate-700 font-bold">Online Now:</span>
             {loading ? (
-              <span className="inline-block w-8 h-3 bg-slate-700 animate-pulse rounded" />
+              <span className="inline-block w-8 h-3 bg-sky-200 animate-pulse rounded" />
             ) : (
-              <strong className="text-emerald-400 font-semibold">
+              <strong className="text-emerald-700 font-black">
                 {formatNumber(stats.activeVisitors)}
               </strong>
             )}

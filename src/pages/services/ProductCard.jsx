@@ -23,6 +23,7 @@ export default React.memo(function ProductCard({
   pincode,
   tags = [],
   badges = [],
+  trustBadge,
   showButton = true,
   theme,
   children,
@@ -80,13 +81,15 @@ export default React.memo(function ProductCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
 
         {/* Top-Left Badges (Homez style) */}
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10 pointer-events-none">
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1 ${b.className}`}
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1.5 ${b.className || 'bg-slate-900/80 text-white'}`}
             >
-              <i className="fa-solid fa-bolt text-amber-300 text-[10px]" />
+              {b.icon !== false && (
+                <i className={`${b.icon || 'fa-solid fa-bolt text-amber-300'} text-[10px]`} />
+              )}
               {b.label}
             </span>
           ))}
@@ -108,11 +111,14 @@ export default React.memo(function ProductCard({
 
       {/* ── Card Body ── */}
       <div className="p-4 flex flex-col flex-1 gap-2.5">
-        {/* Overline / Property Type */}
+        {/* Overline / Subcategory */}
         {overline && (
-          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
-            {overline}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-150/70 text-[11px] font-extrabold uppercase tracking-wider text-brand-blue">
+              <i className={`${isPropertyOrVehicle ? 'fa-solid fa-house-chimney' : 'fa-solid fa-tag'} text-[10px] text-brand-blue`} />
+              {overline}
+            </span>
+          </div>
         )}
 
         {/* Title */}
@@ -139,23 +145,28 @@ export default React.memo(function ProductCard({
         {tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {tags.map((t, i) => {
-              if (!t || String(t).trim().toLowerCase() === 'plots' || String(t).trim().toLowerCase() === 'plot') return null;
-              const isFacing = String(t).startsWith('Door Facing') || String(t).startsWith('Facing');
-              const isCorner = String(t).startsWith('Corner');
-              const isBhk = /\d+\s*bhk/i.test(String(t));
-              const isSqft = /sq\.?ft|sqft|sq\s*ft/i.test(String(t));
-              const isBath = /bath/i.test(String(t));
+              if (!t) return null;
+              const tStr = String(t).trim();
+              const isPropType = isPropertyOrVehicle && ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(type => tStr.toLowerCase() === type);
+              const isFacing = tStr.startsWith('Door Facing') || tStr.startsWith('Facing');
+              const isCorner = tStr.startsWith('Corner');
+              const isBhk = /\d+\s*bhk/i.test(tStr);
+              const isSqft = /sq\.?ft|sqft|sq\s*ft/i.test(tStr);
+              const isBath = /bath/i.test(tStr);
               return (
                 <span
                   key={i}
                   className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap flex items-center gap-1.5 ${
-                    isCorner
+                    isPropType
+                      ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
+                      : isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
                       ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
                       : 'bg-slate-100 text-slate-700'
                   }`}
                 >
+                  {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px]" />}
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
                   {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
@@ -165,6 +176,20 @@ export default React.memo(function ProductCard({
                 </span>
               );
             })}
+          </div>
+        )}
+
+        {/* Trust Badge (e.g. Bank Approved) */}
+        {trustBadge && (
+          <div className="pt-0.5">
+            {typeof trustBadge === 'string' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-150/80 px-2.5 py-1 text-xs font-bold text-brand-blue">
+                <i className="fa-solid fa-building-columns text-[10px] text-brand-blue" />
+                {trustBadge}
+              </span>
+            ) : (
+              trustBadge
+            )}
           </div>
         )}
 

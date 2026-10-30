@@ -128,14 +128,14 @@ export default function PropertyDetails() {
   const error = !property && !loading ? (directError ? new Error(directError) : new Error('Property not found')) : null;
 
   const activeId = property ? (property._id || property.id) : null;
-  const currentSubcat = property ? (property.subcategory || property.propertyType || '') : '';
+  const currentSubcat = property ? (property.propertyType || property.subcategory || '') : '';
 
   const similarProperties = useMemo(() => {
     if (!property) return [];
     const matched = properties.filter((p) => {
       const pId = p._id || p.id;
       if (String(pId) === String(activeId)) return false;
-      const pSubcat = p.subcategory || p.propertyType || '';
+      const pSubcat = p.propertyType || p.subcategory || '';
       return (
         pSubcat.toLowerCase() === currentSubcat.toLowerCase() ||
         (p.city && property.city && p.city.toLowerCase() === property.city.toLowerCase())
@@ -155,7 +155,7 @@ export default function PropertyDetails() {
     <MasterDetailPage
       item={property}
       categoryName="Properties"
-      categoryLink="/our-services/properties"
+      categoryLink="/categories/properties"
       similarItems={similarProperties}
       itemLinkPrefix="/property/"
       loading={loading}

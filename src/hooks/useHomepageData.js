@@ -3,7 +3,7 @@ import { homepageAPI } from '../api';
 import cache, { PUBLIC_NAMESPACE } from '../services/cache/cacheService';
 
 const CACHE_KEY = 'homepage_data';
-const CACHE_TTL = 10 * 1000; // 10 seconds for fresh availability updates
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutes cache (prevents repetitive homepage refetches)
 
 function stripSoldOut(items) {
   if (!Array.isArray(items)) return [];

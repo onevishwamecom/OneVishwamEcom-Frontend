@@ -4,6 +4,7 @@ import MarketplaceCategoryGallery from './MarketplaceCategoryGallery';
 import CategoryListingCard from './CategoryListingCard';
 import { parseIndianPrice } from '../../../utils/priceUtils';
 import SearchIndex from '../../../utils/searchIndex';
+import { matchesSearch } from '../../../utils/searchUtils';
 
 /**
  * UniversalCategoryGallery
@@ -53,7 +54,7 @@ export default function UniversalCategoryGallery({
   topExtra = null,
   customSorter = null,
 }) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // 1. Resolve Data Hook if provided
   let fetchedItems = null;
@@ -122,7 +123,7 @@ export default function UniversalCategoryGallery({
   // Sync from URL search parameters if searchParams change dynamically
   useEffect(() => {
     const q = (searchParams.get('q') || searchParams.get('search') || '').trim();
-    if (q) setSearchTerm(q);
+    setSearchTerm(q);
 
     let changed = false;
     const nextFilters = { ...activeFilters };
@@ -155,6 +156,20 @@ export default function UniversalCategoryGallery({
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+    if (!val && (searchParams.has('id') || searchParams.has('productId') || searchParams.has('q') || searchParams.has('search'))) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('id');
+        next.delete('productId');
+        next.delete('q');
+        next.delete('search');
+        return next;
+      });
+    }
+  };
+
   const handleResetFilters = () => {
     const reset = {};
     rangeFilters.forEach((r) => {
@@ -166,6 +181,15 @@ export default function UniversalCategoryGallery({
     });
     setActiveFilters(reset);
     setSearchTerm('');
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('id');
+      next.delete('productId');
+      next.delete('q');
+      next.delete('search');
+      next.delete('page');
+      return next;
+    });
   };
 
   // 3. Dynamic Active Chips
@@ -263,6 +287,8 @@ export default function UniversalCategoryGallery({
   // 6. Intelligent Filtering Logic with O(K) Search & O(1) Set Lookups
   const filteredItems = useMemo(() => {
     const q = searchTerm.trim();
+    const targetId = (searchParams.get('id') || searchParams.get('productId') || '').trim();
+
     // Fast O(K) inverted index lookup
     const matchedSearchIds = q
       ? new Set(searchIndex.search(q).map((item) => String(item.id || item._id)))
@@ -294,13 +320,32 @@ export default function UniversalCategoryGallery({
       }
     }
 
-    return transformedItems.filter(({ id, raw }) => {
-      // A. O(1) Search Match Check
-      if (matchedSearchIds !== null && !matchedSearchIds.has(String(id))) {
-        return false;
+    return transformedItems.filter(({ id, raw, title, location }) => {
+      // A. Direct ID match from search dropdown navigation
+      if (targetId && (String(id) === targetId || String(raw._id) === targetId || String(raw.id) === targetId)) {
+        return true;
       }
 
-      // B. Range Filters
+      // B. O(1) Search Match Check with fallback token matching
+      if (matchedSearchIds !== null && !matchedSearchIds.has(String(id))) {
+        const matches = matchesSearch(
+          q,
+          title,
+          raw.title,
+          raw.name,
+          raw.brand,
+          raw.model,
+          location,
+          raw.location,
+          raw.area,
+          raw.city,
+          raw.locality,
+          raw.subcategory
+        );
+        if (!matches) return false;
+      }
+
+      // C. Range Filters
       for (const { range, minNum, maxNum } of activeRanges) {
         let itemNumericVal = 0;
         if (typeof range.field === 'function') {
@@ -314,7 +359,7 @@ export default function UniversalCategoryGallery({
         if (maxNum !== null && itemNumericVal > maxNum) return false;
       }
 
-      // C. O(1) Set Checkbox Group Filters
+      // D. O(1) Set Checkbox Group Filters
       for (const { group, selectedSet } of activeGroupSets) {
         let itemValue;
         if (typeof group.field === 'function') {
@@ -335,7 +380,7 @@ export default function UniversalCategoryGallery({
 
       return true;
     });
-  }, [transformedItems, searchTerm, searchIndex, activeFilters, rangeFilters, filterGroups]);
+  }, [transformedItems, searchTerm, searchIndex, activeFilters, rangeFilters, filterGroups, searchParams]);
 
   return (
     <>
@@ -352,7 +397,7 @@ export default function UniversalCategoryGallery({
         onRemoveChip={handleRemoveChip}
         onResetFilters={handleResetFilters}
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={handleSearchChange}
         searchPlaceholder={searchPlaceholder}
         postRequirementLink={postRequirementLink}
         onQuickMatch={onQuickMatch}

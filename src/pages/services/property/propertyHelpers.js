@@ -355,8 +355,8 @@ export function getPropertyType(property) {
   if (!property) return 'Flats';
 
   const type = String(
-    property.subcategory ||
     property.propertyType ||
+    property.subcategory ||
     property.category ||
     ''
   ).toLowerCase().trim();
@@ -415,19 +415,20 @@ export function getPropertyType(property) {
 }
 
 export function getPropertyTypeLabel(property) {
-  if (!property) return 'Flat';
+  if (!property) return 'Plot';
   const sub = String(property.propertyType || property.subcategory || property.category || '').toLowerCase();
-  if (sub.includes('plot') || sub.includes('site') || sub.includes('land')) return 'Plot';
-  if (sub.includes('villa')) return 'Villa';
-  if (sub.includes('flat') || sub.includes('apartment') || sub.includes('house') || !sub) return 'Flat';
-  return property.propertyType || property.subcategory || 'Flat';
+  if (sub.includes('plot') || sub.includes('site') || sub.includes('layout') || sub.includes('plat')) return 'Plot';
+  if (sub.includes('land') && !sub.includes('agri')) return 'Land';
+  if (sub.includes('flat') || sub.includes('apartment') || sub.includes('villa')) return 'Flat';
+  if (sub.includes('independent') || sub.includes('house')) return 'Independent House';
+  return property.propertyType || 'Plot';
 }
 
 export function isPlotOrLand(property) {
   if (!property) return false;
   const sub = String(
-    property.subcategory ||
     property.propertyType ||
+    property.subcategory ||
     property.category ||
     property.buildingType ||
     property.subtitle ||
@@ -495,8 +496,8 @@ export function getBuildingType(property) {
   if (!property) return 'Residential';
 
   const type = String(
-    property.subcategory ||
     property.propertyType ||
+    property.subcategory ||
     property.buildingType ||
     property.category ||
     ''
@@ -540,7 +541,7 @@ export function isCornerProperty(property) {
     if (hasCornerAmenity) return true;
   }
 
-  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.subcategory || ''}`.toLowerCase();
+  const fullText = `${property.title || ''} ${property.subtitle || ''} ${property.description || ''} ${property.propertyType || property.subcategory || ''}`.toLowerCase();
   return (
     fullText.includes('corner plot') ||
     fullText.includes('corner site') ||
@@ -592,7 +593,7 @@ export function getCardType(property) {
   if (!property) return 'Flat';
 
   const type = getPropertyType(property);
-  const sub = String(property.subcategory || property.category || property.title || '').toLowerCase();
+  const sub = String(property.propertyType || property.subcategory || property.category || property.title || '').toLowerCase();
   const subtitle = String(property.subtitle || '').toLowerCase();
 
   if (sub.includes('agricultural') || sub.includes('raw land') || subtitle.includes('agricultural')) {

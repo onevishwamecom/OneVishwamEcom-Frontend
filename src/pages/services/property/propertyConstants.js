@@ -41,11 +41,13 @@ export const INITIAL_FILTERS = {
 
 export const PROPERTY_TYPE_OPTIONS = [
   'Residential',
+  'Flat',
+  'Independent House',
+  'Plot',
+  'Land',
+  'Agricultural',
   'Commercial',
-  'Flats',
-  'Houses',
-  'Villas',
-  'Plots',
+  'Industrial',
 ];
 
 export const INITIAL_SECTIONS = {

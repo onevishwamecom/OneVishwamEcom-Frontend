@@ -259,7 +259,10 @@ export default function PropertyGallery() {
             className: 'bg-purple-600 text-white font-bold',
           },
         ].filter(Boolean),
-        pills: (p) => getDetailTags(p),
+        pills: (p) => [
+          getPropertyTypeLabel(p) || p.propertyType || p.subcategory,
+          ...getDetailTags(p),
+        ].filter(Boolean),
         highlightBanner: (p) => (p.loanApproved || p.bankLoanDetails ? '100% Pre-Approved Bank Loan Available' : null),
         detailUrl: (p) => `/property/${p._id || p.id}`,
       }}

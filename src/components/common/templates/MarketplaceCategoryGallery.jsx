@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation as useRouterLocation } from 'react-router-dom';
 import CategoryListingCard from './CategoryListingCard';
 import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
 import { useLocation } from '../../../store/locationSlice';
@@ -8,6 +8,7 @@ import PageContainer from '../PageContainer';
 import Breadcrumbs from '../Breadcrumbs';
 import LottieFeedbackAnimation from '../LottieFeedbackAnimation';
 import { isInHouseOrCeoListing, hasItemImage } from '../../../pages/services/shared/sortBy';
+import { loadSessionState, saveSessionState } from '../../../pages/services/shared/sessionStore';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -146,14 +147,81 @@ export default function MarketplaceCategoryGallery({
   customSorter = null,
 }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routerLocation = useRouterLocation();
   const { selectedCity, selectCity } = useLocation();
-  const [currentPage, setCurrentPage] = useState(1);
+
+  // Session storage key unique to this gallery route path
+  const sessionKey = useMemo(() => `gallery_page_${routerLocation.pathname}`, [routerLocation.pathname]);
+
+  // Read initial page from URL query param first, then session storage, default 1
+  const getInitialPage = () => {
+    const urlPage = parseInt(searchParams.get('page'), 10);
+    if (!isNaN(urlPage) && urlPage > 0) return urlPage;
+    const saved = loadSessionState(sessionKey, { page: 1 })?.page;
+    if (typeof saved === 'number' && saved > 0) return saved;
+    return 1;
+  };
+
+  const [currentPage, setCurrentPage] = useState(getInitialPage);
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('latest');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [locationInput, setLocationInput] = useState('');
   const dropdownBarRef = useRef(null);
+
+  // Sync page state when URL searchParams change (e.g. browser back/forward buttons)
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get('page'), 10);
+    if (!isNaN(urlPage) && urlPage > 0) {
+      if (urlPage !== currentPage) {
+        setCurrentPage(urlPage);
+        saveSessionState(sessionKey, { page: urlPage });
+      }
+    } else {
+      // If URL has no page param, check if session storage preserved a page > 1
+      const saved = loadSessionState(sessionKey, { page: 1 })?.page;
+      if (typeof saved === 'number' && saved > 1 && currentPage === 1) {
+        setCurrentPage(saved);
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('page', String(saved));
+          return next;
+        }, { replace: true });
+      }
+    }
+  }, [searchParams, sessionKey]);
+
+  // Navigate to specified page, persisting to URL and session storage
+  const goToPage = (n) => {
+    const target = Math.max(1, n);
+    setCurrentPage(target);
+    saveSessionState(sessionKey, { page: target });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (target > 1) {
+        next.set('page', String(target));
+      } else {
+        next.delete('page');
+      }
+      return next;
+    }, { replace: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Helper when filters/search/sort change: resets pagination to page 1
+  const resetToFirstPage = () => {
+    setCurrentPage(1);
+    saveSessionState(sessionKey, { page: 1 });
+    if (searchParams.has('page')) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('page');
+        return next;
+      }, { replace: true });
+    }
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -224,14 +292,17 @@ export default function MarketplaceCategoryGallery({
   // Pagination calculation (12 per page = 3 full rows of 4 columns)
   const totalPages = Math.ceil(sortedItems.length / perPage) || 1;
   const pageItems = useMemo(() => {
-    const start = (currentPage - 1) * perPage;
+    const effectivePage = (sortedItems.length > 0 && currentPage > totalPages) ? totalPages : currentPage;
+    const start = (effectivePage - 1) * perPage;
     return sortedItems.slice(start, start + perPage);
-  }, [sortedItems, currentPage, perPage]);
+  }, [sortedItems, currentPage, totalPages, perPage]);
 
-  const goToPage = (n) => {
-    setCurrentPage(n);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  // Clamp safely if loaded items has fewer pages than the restored page
+  useEffect(() => {
+    if (sortedItems.length > 0 && totalPages > 0 && currentPage > totalPages) {
+      goToPage(totalPages);
+    }
+  }, [sortedItems.length, totalPages]);
 
   // Quick dropdown toggler
   const toggleDropdown = (id) => {
@@ -257,7 +328,7 @@ export default function MarketplaceCategoryGallery({
             minVal={activeFilters[`${range.id}Min`] || ''}
             maxVal={activeFilters[`${range.id}Max`] || ''}
             onChange={(minV, maxV) => {
-              setCurrentPage(1);
+              resetToFirstPage();
               if (onFilterChange) {
                 onFilterChange(`${range.id}Min`, minV);
                 onFilterChange(`${range.id}Max`, maxV);
@@ -285,7 +356,7 @@ export default function MarketplaceCategoryGallery({
               options={group.options || []}
               selected={selected}
               onChange={(newSelected) => {
-                setCurrentPage(1);
+                resetToFirstPage();
                 if (onFilterChange) {
                   onFilterChange(group.id, newSelected);
                 }
@@ -356,7 +427,7 @@ export default function MarketplaceCategoryGallery({
               type="text"
               value={searchTerm}
               onChange={(e) => {
-                setCurrentPage(1);
+                resetToFirstPage();
                 if (onSearchChange) onSearchChange(e.target.value);
               }}
               placeholder={searchPlaceholder}
@@ -366,7 +437,7 @@ export default function MarketplaceCategoryGallery({
               <button
                 type="button"
                 onClick={() => {
-                  setCurrentPage(1);
+                  resetToFirstPage();
                   if (onSearchChange) onSearchChange('');
                 }}
                 className="absolute right-12 text-gray-400 hover:text-gray-600 p-1 text-xs transition-colors"
@@ -390,7 +461,7 @@ export default function MarketplaceCategoryGallery({
               onChange={(e) => {
                 selectCity(e.target.value);
                 setLocationInput('');
-                setCurrentPage(1);
+                resetToFirstPage();
               }}
               className="bg-transparent text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer pr-1"
             >
@@ -408,7 +479,7 @@ export default function MarketplaceCategoryGallery({
                   value={locationInput}
                   onChange={(e) => {
                     setLocationInput(e.target.value);
-                    setCurrentPage(1);
+                    resetToFirstPage();
                   }}
                   className="bg-transparent text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer max-w-[130px] truncate"
                 >
@@ -486,7 +557,7 @@ export default function MarketplaceCategoryGallery({
                                     const next = isChecked
                                       ? selected.filter((x) => x !== optVal)
                                       : [...selected, optVal];
-                                    setCurrentPage(1);
+                                    resetToFirstPage();
                                     if (onFilterChange) onFilterChange(group.id, next);
                                   }}
                                   className="rounded text-brand-blue focus:ring-brand-blue"
@@ -500,7 +571,7 @@ export default function MarketplaceCategoryGallery({
                           <button
                             type="button"
                             onClick={() => {
-                              setCurrentPage(1);
+                              resetToFirstPage();
                               if (onFilterChange) onFilterChange(group.id, []);
                             }}
                             className="text-[11px] font-bold text-rose-500 hover:underline"
@@ -545,7 +616,7 @@ export default function MarketplaceCategoryGallery({
                   value={sortBy}
                   onChange={(e) => {
                     setSortBy(e.target.value);
-                    setCurrentPage(1);
+                    resetToFirstPage();
                   }}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-brand-blue cursor-pointer hover:border-gray-300 transition-colors"
                 >
@@ -596,7 +667,7 @@ export default function MarketplaceCategoryGallery({
                 key={idx}
                 label={chip.label}
                 onRemove={() => {
-                  setCurrentPage(1);
+                  resetToFirstPage();
                   if (onRemoveChip) onRemoveChip(chip);
                 }}
               />
@@ -605,7 +676,7 @@ export default function MarketplaceCategoryGallery({
               <button
                 type="button"
                 onClick={() => {
-                  setCurrentPage(1);
+                  resetToFirstPage();
                   onResetFilters();
                 }}
                 className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-700 ml-2 cursor-pointer"
@@ -630,7 +701,7 @@ export default function MarketplaceCategoryGallery({
                 {customCardRenderer ? (
                   customCardRenderer(item)
                 ) : (
-                  <CategoryListingCard item={item} hidePrice={hidePrice} />
+                  <CategoryListingCard item={item} hidePrice={hidePrice} overline={item.overline} />
                 )}
               </div>
             ))}
@@ -655,7 +726,7 @@ export default function MarketplaceCategoryGallery({
               <button
                 type="button"
                 onClick={() => {
-                  setCurrentPage(1);
+                  resetToFirstPage();
                   onResetFilters();
                   if (onSearchChange) onSearchChange('');
                 }}
@@ -767,7 +838,7 @@ export default function MarketplaceCategoryGallery({
                     type="button"
                     onClick={() => {
                       onResetFilters();
-                      setCurrentPage(1);
+                      resetToFirstPage();
                     }}
                     className="text-xs font-bold text-rose-500 hover:underline cursor-pointer"
                   >

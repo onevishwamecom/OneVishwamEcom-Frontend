@@ -43,6 +43,9 @@ export function isInHouseOrCeoListing(item) {
   const vendor = String(target.vendorName || target.vendor || '').trim().toLowerCase().replace(/\s+/g, '');
   if (vendor.includes('onevishwam')) return true;
 
+  const email = String(target.contributor?.email || target.email || target.postedByEmail || '').trim().toLowerCase();
+  if (email.includes('ceo@onevishwam.com') || email.includes('onevishwam')) return true;
+
   const isExternalVendor = vendor.length > 0 && !vendor.includes('onevishwam');
   if (!isExternalVendor) {
     if (target.priority && Number(target.priority) > 0) return true;

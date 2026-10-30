@@ -57,11 +57,11 @@ export default function NotFoundPage() {
           </Link>
 
           <Link
-            to="/our-services"
+            to="/categories"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-all shadow-xs"
           >
             <i className="fa-solid fa-table-cells text-xs" />
-            Browse Services
+            Browse Categories
           </Link>
         </div>
       </div>

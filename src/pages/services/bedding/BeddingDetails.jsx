@@ -131,7 +131,13 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
           </p>
           <button
             type="button"
-            onClick={() => navigate('/our-services/bedding-comfort')}
+            onClick={() => {
+              if (window.history.state?.idx > 0 || window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/categories/bedding-comfort');
+              }
+            }}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-all cursor-pointer"
           >
             <i className="fa-solid fa-arrow-left text-xs" />
@@ -285,8 +291,8 @@ export default function BeddingDetails({ item: directItem = null, similarItems: 
   return (
     <MasterDetailPage
       item={displayedItem}
-      categoryName="Bedding & Comfort"
-      categoryLink="/our-services/bedding-comfort"
+      categoryName="Comfort"
+      categoryLink="/categories/bedding-comfort"
       similarItems={similarItems}
       itemLinkPrefix="/bedding/"
       bentoTitle="Product Key Specifications & Mattress Dimensions"

@@ -4,7 +4,7 @@ export default function PropertyFactsCard({ property }) {
   if (!property) return null;
 
   const facts = [
-    { label: 'Subcategory', value: property.subcategory || property.propertyType },
+    { label: 'Property Type', value: property.propertyType || property.subcategory },
     { label: 'Area', value: property.area },
     { label: 'Size', value: property.sizeRange },
     { label: 'Bedrooms', value: property.bhk },

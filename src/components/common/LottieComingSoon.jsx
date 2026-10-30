@@ -38,11 +38,11 @@ export default function LottieComingSoon({
         {/* Action Buttons */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/our-services"
+            to="/categories"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-blue text-white text-xs font-bold shadow-md shadow-brand-blue/20 hover:bg-brand-navy hover:shadow-lg transition-all"
           >
             <i className="fa-solid fa-table-cells text-xs" />
-            Explore All Services
+            Explore All Categories
           </Link>
           <Link
             to="/"

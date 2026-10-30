@@ -57,7 +57,27 @@ export default React.memo(function CategoryListingCard({
   const cardPriceSuffix = priceSuffix !== undefined ? priceSuffix : (item?.priceSuffix || '');
   const cardLocation = location !== undefined ? location : (item?.location || '');
   const cardPincode = pincode !== undefined ? pincode : (item?.pincode || '');
-  const cardOverline = overline !== undefined ? overline : (item?.category || item?.brand || item?.propertyType || '');
+  const cardOverline =
+    overline !== undefined
+      ? overline
+      : (item?.overline ||
+         item?.propertyType ||
+         item?.raw?.propertyType ||
+         item?.subcategory ||
+         item?.raw?.subcategory ||
+         item?.brand ||
+         item?.raw?.brand ||
+         '');
+
+  const isProperty = Boolean(
+    item?.category === 'properties' ||
+    item?.category === 'real-estate' ||
+    item?.raw?.category === 'properties' ||
+    item?.raw?.category === 'real-estate' ||
+    item?.propertyType ||
+    item?.raw?.propertyType ||
+    (cardLink && cardLink.includes('/property'))
+  );
 
   // Badges (max 2 badges to keep cards clean and prevent crowding)
   const rawBadges = statusBadges !== undefined ? statusBadges : (item?.statusBadges || item?.badges || []);
@@ -74,9 +94,22 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
-  // Attribute Pills (cardPills) - max 3 pills to keep card neat and avoid line-wrapping clutter
+  // Attribute Pills (cardPills) - includes propertyType for properties
   const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
-  const pills = (rawPills || []).slice(0, 3);
+  const resolvedPropType = isProperty
+    ? (cardOverline || item?.propertyType || item?.raw?.propertyType || item?.subcategory || item?.raw?.subcategory || '')
+    : '';
+
+  const combinedPills = [...(rawPills || [])];
+  if (isProperty && resolvedPropType) {
+    const alreadyHas = combinedPills.some(
+      (p) => String(typeof p === 'string' ? p : p.value || '').toLowerCase() === resolvedPropType.toLowerCase()
+    );
+    if (!alreadyHas) {
+      combinedPills.unshift(resolvedPropType);
+    }
+  }
+  const pills = combinedPills.slice(0, 4);
 
   // Trust highlight banner
   const bannerText =
@@ -173,11 +206,14 @@ export default React.memo(function CategoryListingCard({
 
       {/* ── Card Body (matches ProductCard.jsx 1:1) ── */}
       <div className="p-4 flex flex-col flex-1 gap-2.5">
-        {/* Overline / Category */}
+        {/* Overline / Subcategory */}
         {cardOverline && (
-          <p className="text-xs text-brand-blue font-bold uppercase tracking-wider">
-            {cardOverline}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-150/70 text-[11px] font-extrabold uppercase tracking-wider text-brand-blue">
+              <i className={`${isProperty ? 'fa-solid fa-house-chimney' : 'fa-solid fa-tag'} text-[10px] text-brand-blue`} />
+              {cardOverline}
+            </span>
+          </div>
         )}
 
         {/* Title */}
@@ -205,6 +241,10 @@ export default React.memo(function CategoryListingCard({
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             {pills.map((pill, idx) => {
               const label = typeof pill === 'string' ? pill : `${pill.label ? `${pill.label}: ` : ''}${pill.value}`;
+              const isPropType = isProperty && Boolean(
+                (resolvedPropType && label.toLowerCase() === resolvedPropType.toLowerCase()) ||
+                ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(t => label.toLowerCase() === t)
+              );
               const isFacing = label.toLowerCase().includes('facing');
               const isCorner = label.toLowerCase().includes('corner');
               const isBhk = /\d+\s*bhk/i.test(label);
@@ -214,13 +254,16 @@ export default React.memo(function CategoryListingCard({
                 <span
                   key={idx}
                   className={`font-semibold text-xs rounded-lg px-2.5 py-1 whitespace-nowrap truncate max-w-full flex items-center gap-1.5 ${
-                    isCorner
+                    isPropType
+                      ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
+                      : isCorner
                       ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
                       : isFacing
                       ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
                       : 'bg-slate-100 text-slate-700'
                   }`}
                 >
+                  {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px]" />}
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
                   {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}

@@ -167,7 +167,7 @@ export function normalizeListing(rawItem, sector = '') {
     badges.push({ label: `${rawItem.discount}% OFF`, className: 'bg-emerald-600 text-white' });
   }
   if (rawItem.featured) {
-    badges.push({ label: 'Featured', className: 'bg-amber-400 text-brand-navy' });
+    badges.push({ label: 'Featured', className: 'bg-amber-400 text-slate-950 font-bold' });
   }
 
   // Resolve floor plans

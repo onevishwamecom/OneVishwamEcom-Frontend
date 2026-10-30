@@ -8,14 +8,11 @@ export const footerSummary =
 export const footerQuickLinks = primaryNavigation;
 
 export const footerServiceLinks = [
-  { label: 'Properties', href: '/property' },
-  { label: 'Vehicles', href: '/automobile' },
-  { label: 'Bedding & Comfort', href: '/bedding' },
-  { label: 'Electronics', href: '/electronics' },
-  { label: 'Financial Services', href: '/finance' },
-  { label: 'Garments', href: '/garments' },
-  { label: 'Groceries', href: '/grocery' },
-  { label: 'Jewellery', href: '/jewellery' },
+  { label: 'Properties', href: '/categories/properties' },
+  { label: 'Jewellery', href: '/categories/jewellery' },
+  { label: 'Automobiles', href: '/categories/automobile' },
+  { label: 'Consumer Electronics', href: '/categories/consumer-electronics' },
+  { label: 'Comfort', href: '/categories/bedding-comfort' },
 ];
 
 export const footerSocialLinks = [

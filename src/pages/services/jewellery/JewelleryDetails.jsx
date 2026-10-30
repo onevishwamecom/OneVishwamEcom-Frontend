@@ -6,7 +6,7 @@ export default function JewelleryDetails() {
   return (
     <UniversalDetailPage
       categoryTitle="Jewellery & Precious Metals"
-      backUrl="/our-services/jewellery-gold"
+      backUrl="/categories/jewellery"
       useItemById={useJewelleryById}
       useSimilarItems={useSimilarJewellery}
       mapping={{
