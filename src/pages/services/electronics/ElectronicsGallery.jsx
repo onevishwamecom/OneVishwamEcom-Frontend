@@ -21,13 +21,19 @@ const FILTER_GROUPS = [
     id: 'brand',
     title: 'Brand',
     field: 'brand',
-    options: ['Sony', 'LG', 'Samsung', 'Apple', 'Godrej', 'Haier', 'Lloyd', 'Whirlpool', 'Xiaomi', 'IFB'],
+    options: ['Haier', 'LG', 'Whirlpool', 'Godrej', 'Lloyd', 'Sony', 'IFB', 'Toshiba', 'Xiaomi', 'Samsung', 'Apple'],
     defaultOpen: true,
   },
   {
     id: 'condition',
     title: 'Condition & Warranty',
-    field: 'condition',
+    field: (item) => {
+      const c = String(item?.condition || '').toLowerCase();
+      if (c === 'new' || c.includes('sealed') || c.includes('brand new')) return 'Brand New Sealed';
+      if (c.includes('refurb')) return 'Certified Refurbished';
+      if (c.includes('used') || c.includes('like new')) return 'Used - Like New';
+      return item?.condition || 'Brand New Sealed';
+    },
     options: ['Brand New Sealed', 'Certified Refurbished', 'Used - Like New'],
     defaultOpen: false,
   },

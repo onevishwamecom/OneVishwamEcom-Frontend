@@ -28,7 +28,7 @@ export const OWNERSHIP_OPTIONS = ['1st Owner', '2nd Owner', '3rd Owner+'];
 export const vehicleListingConfig = {
   sector: 'automobile',
   eyebrow: 'OneVishwam · Automobile',
-  title: 'Vehicles & Auto Marketplace',
+  title: 'Automobiles Marketplace',
   subtitle: 'Verified new & pre-owned 2-wheelers, cars, commercial vehicles with pre-approved loans.',
   categories: VEHICLE_TYPE_STRIP,
   emptyState: {

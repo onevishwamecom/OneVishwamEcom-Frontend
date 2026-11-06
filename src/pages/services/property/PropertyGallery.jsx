@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { UniversalCategoryGallery } from '../../../components/common/templates';
 import { useProperties } from '../../../hooks/useProperties';
 import QuickMatchModal from './QuickMatchModal';
+import { signalHomepageRefresh } from '../../../utils/matchEvents';
 import BangalorePropertyPieMap from './components/BangalorePropertyPieMap';
 import { cleanProductName } from '../../../utils/searchUtils';
 import {
@@ -15,6 +16,8 @@ import {
 } from './propertyConstants';
 import {
   getPropertyType,
+  getPropertyFilterTypes,
+  matchesPropertyType,
   getPropertyTypeLabel,
   getDetailTags,
   getPropertyCoverImage,
@@ -34,7 +37,8 @@ const FILTER_GROUPS = [
     id: 'propertyType',
     title: 'Property Type',
     options: PROPERTY_TYPE_OPTIONS,
-    field: (p) => getPropertyType(p),
+    field: (p) => getPropertyFilterTypes(p),
+    matches: (p, selectedSet) => matchesPropertyType(p, selectedSet),
   },
   {
     id: 'bedrooms',
@@ -221,7 +225,10 @@ export default function PropertyGallery() {
       useItems={useProperties}
       hidePrice={true}
       postRequirementLink="/property/requirement"
-      onQuickMatch={() => setQuickMatchOpen(true)}
+      onQuickMatch={() => {
+        signalHomepageRefresh();
+        setQuickMatchOpen(true);
+      }}
       quickMatchLabel="Quick Match"
       topExtra={topExtra}
       customSorter={sortPropertiesWithInHousePriority}

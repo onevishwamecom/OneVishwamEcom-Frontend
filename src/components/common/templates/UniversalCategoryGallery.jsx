@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MarketplaceCategoryGallery from './MarketplaceCategoryGallery';
 import CategoryListingCard from './CategoryListingCard';
@@ -15,6 +15,64 @@ import { matchesSearch } from '../../../utils/searchUtils';
  * 
  * Any category gallery page can be created with a single declarative configuration file.
  */
+function getParamValueForGroup(params, g) {
+  if (!g) return null;
+  const id = g.id;
+  const idLower = id.toLowerCase();
+  const keys = new Set([id, idLower]);
+
+  if (id.endsWith('s')) {
+    const sing = id.slice(0, -1);
+    keys.add(sing);
+    keys.add(sing.toLowerCase());
+  } else {
+    keys.add(`${id}s`);
+    keys.add(`${id}s`.toLowerCase());
+  }
+
+  // Domain-specific aliases
+  if (idLower.includes('fuel')) {
+    keys.add('fuel');
+    keys.add('fueltype');
+    keys.add('fuelType');
+    keys.add('fuel_type');
+    keys.add('fuelTypes');
+  }
+  if (idLower.includes('trans')) {
+    keys.add('transmission');
+    keys.add('transmissions');
+  }
+  if (idLower.includes('body')) {
+    keys.add('bodyType');
+    keys.add('bodytype');
+    keys.add('body_type');
+    keys.add('body');
+    keys.add('bodyTypes');
+  }
+  if (idLower.includes('wheeler') || idLower === 'category') {
+    keys.add('wheelerType');
+    keys.add('wheelertype');
+    keys.add('wheeler');
+    keys.add('wheelerTypes');
+    keys.add('category');
+  }
+  if (idLower.includes('condition')) {
+    keys.add('condition');
+    keys.add('conditions');
+  }
+  if (idLower === 'subcategory') {
+    keys.add('type');
+    keys.add('category');
+    keys.add('subcat');
+  }
+
+  for (const k of keys) {
+    const val = params.get(k);
+    if (val) return val;
+  }
+  return null;
+}
+
 export default function UniversalCategoryGallery({
   // Metadata & Navigation
   categoryTitle = 'Verified Inventory',
@@ -84,28 +142,63 @@ export default function UniversalCategoryGallery({
     }
   }
 
-  const rawItems = directItems !== null ? directItems : (fetchedItems || []);
+  const rawItems = useMemo(() => {
+    const list = directItems !== null ? directItems : (fetchedItems || []);
+    if (!Array.isArray(list)) return [];
+    return list.filter((raw) => {
+      if (!raw) return false;
+      const status = String(raw.availabilityStatus || '').toLowerCase();
+      return status !== 'sold_out' && status !== 'sold' && status !== 'out_of_stock' && raw.isSoldOut !== true;
+    });
+  }, [directItems, fetchedItems]);
   const isLoading = directLoading || fetchedLoading;
   const hasError = directError || fetchedError;
 
+  // 1. Dynamically discover any new options present in the live loaded items
+  const resolvedFilterGroups = useMemo(() => {
+    return filterGroups.map((group) => {
+      const fieldFn = typeof group.field === 'function'
+        ? group.field
+        : (item) => item[group.field || group.id];
+
+      const itemOptions = new Set();
+      (rawItems || []).forEach((item) => {
+        const val = fieldFn(item);
+        if (Array.isArray(val)) {
+          val.forEach((v) => v && itemOptions.add(String(v).trim()));
+        } else if (val !== undefined && val !== null && String(val).trim()) {
+          itemOptions.add(String(val).trim());
+        }
+      });
+
+      const existingOptions = group.options || [];
+      const discovered = Array.from(itemOptions).filter(
+        (opt) => !existingOptions.some((o) => String(typeof o === 'string' ? o : o.value).toLowerCase() === opt.toLowerCase())
+      );
+
+      return {
+        ...group,
+        options: [...existingOptions, ...discovered].filter(Boolean),
+      };
+    });
+  }, [filterGroups, rawItems]);
+
   // Helper to extract initial filters from searchParams
-  const getInitialFilters = () => {
+  const extractGroupFilters = useCallback((params) => {
     const initial = {};
     rangeFilters.forEach((r) => {
-      initial[`${r.id}Min`] = searchParams.get(`${r.id}Min`) || '';
-      initial[`${r.id}Max`] = searchParams.get(`${r.id}Max`) || '';
+      initial[`${r.id}Min`] = params.get(`${r.id}Min`) || '';
+      initial[`${r.id}Max`] = params.get(`${r.id}Max`) || '';
     });
-    filterGroups.forEach((g) => {
+    resolvedFilterGroups.forEach((g) => {
       initial[g.id] = [];
-      const paramVal =
-        searchParams.get(g.id) ||
-        searchParams.get(g.id.toLowerCase()) ||
-        (g.id === 'subcategory' ? (searchParams.get('type') || searchParams.get('category') || searchParams.get('subcat')) : null);
+      const paramVal = getParamValueForGroup(params, g);
 
       if (paramVal) {
         const requestedVals = paramVal.split(',').map((s) => s.trim().toLowerCase());
         const matched = (g.options || []).filter((opt) => {
-          const optLower = String(opt).toLowerCase();
+          const optVal = typeof opt === 'string' ? opt : opt.value || opt.label;
+          const optLower = String(optVal).toLowerCase();
           return requestedVals.some((v) => optLower === v || optLower.includes(v) || v.includes(optLower));
         });
         if (matched.length > 0) {
@@ -114,46 +207,58 @@ export default function UniversalCategoryGallery({
       }
     });
     return initial;
-  };
+  }, [rangeFilters, resolvedFilterGroups]);
 
   // 2. Filter & Search State
   const [searchTerm, setSearchTerm] = useState(() => (searchParams.get('q') || searchParams.get('search') || '').trim());
-  const [activeFilters, setActiveFilters] = useState(getInitialFilters);
+  const [activeFilters, setActiveFilters] = useState(() => extractGroupFilters(searchParams));
 
   // Sync from URL search parameters if searchParams change dynamically
   useEffect(() => {
     const q = (searchParams.get('q') || searchParams.get('search') || '').trim();
     setSearchTerm(q);
 
-    let changed = false;
-    const nextFilters = { ...activeFilters };
-
-    filterGroups.forEach((g) => {
-      const paramVal =
-        searchParams.get(g.id) ||
-        searchParams.get(g.id.toLowerCase()) ||
-        (g.id === 'subcategory' ? (searchParams.get('type') || searchParams.get('category') || searchParams.get('subcat')) : null);
-
-      if (paramVal) {
-        const requestedVals = paramVal.split(',').map((s) => s.trim().toLowerCase());
-        const matched = (g.options || []).filter((opt) => {
-          const optLower = String(opt).toLowerCase();
-          return requestedVals.some((v) => optLower === v || optLower.includes(v) || v.includes(optLower));
-        });
-        if (matched.length > 0) {
-          nextFilters[g.id] = matched;
-          changed = true;
+    const fromUrl = extractGroupFilters(searchParams);
+    setActiveFilters((prev) => {
+      let isDifferent = false;
+      const allKeys = new Set([...Object.keys(fromUrl), ...Object.keys(prev)]);
+      for (const k of allKeys) {
+        const a = fromUrl[k] || [];
+        const b = prev[k] || [];
+        if (Array.isArray(a) || Array.isArray(b)) {
+          if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.some((val) => !b.includes(val))) {
+            isDifferent = true;
+            break;
+          }
+        } else if (a !== b) {
+          isDifferent = true;
+          break;
         }
       }
+      return isDifferent ? fromUrl : prev;
     });
-
-    if (changed) {
-      setActiveFilters(nextFilters);
-    }
-  }, [searchParams]);
+  }, [searchParams, extractGroupFilters]);
 
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          next.set(key, value.join(','));
+        } else {
+          next.delete(key);
+          if (key.endsWith('s')) next.delete(key.slice(0, -1));
+          else next.delete(`${key}s`);
+        }
+      } else if (value) {
+        next.set(key, String(value));
+      } else {
+        next.delete(key);
+      }
+      next.delete('page');
+      return next;
+    }, { replace: true });
   };
 
   const handleSearchChange = (val) => {
@@ -233,12 +338,24 @@ export default function UniversalCategoryGallery({
     }
   };
 
-  // 4. Transform raw items into unified card items
+  // 4. Transform raw items into unified card items with unique IDs guaranteed
   const transformedItems = useMemo(() => {
     if (!Array.isArray(rawItems)) return [];
 
-    return rawItems.map((raw) => {
-      const id = mapping.id ? mapping.id(raw) : (raw._id || raw.id || '');
+    const seenIds = new Set();
+    const result = [];
+
+    for (let index = 0; index < rawItems.length; index++) {
+      const raw = rawItems[index];
+      if (!raw) continue;
+
+      let id = mapping.id ? mapping.id(raw) : (raw._id || raw.id || '');
+      if (!id || seenIds.has(String(id))) {
+        if (!id) id = `item_${index}`;
+        else continue; // Deduplicate identical IDs across pages to prevent crashes
+      }
+      seenIds.add(String(id));
+
       const title = mapping.title ? mapping.title(raw) : (raw.title || raw.name || '');
       const image = mapping.image ? mapping.image(raw) : (raw.images?.[0] || raw.image || raw.coverImage || '');
       const price = mapping.price ? mapping.price(raw) : (raw.price || 'Price on Request');
@@ -251,7 +368,7 @@ export default function UniversalCategoryGallery({
       const highlightBanner = mapping.highlightBanner ? mapping.highlightBanner(raw) : raw.highlightBanner;
       const link = mapping.detailUrl ? mapping.detailUrl(raw) : (mapping.link ? mapping.link(raw) : raw.link);
 
-      return {
+      result.push({
         id,
         title,
         image,
@@ -268,8 +385,10 @@ export default function UniversalCategoryGallery({
         highlightBanner,
         link,
         raw,
-      };
-    });
+      });
+    }
+
+    return result;
   }, [rawItems, mapping]);
 
   // 5. Build High-Performance Search Index (O(N) built once when catalog loads)
@@ -361,6 +480,11 @@ export default function UniversalCategoryGallery({
 
       // D. O(1) Set Checkbox Group Filters
       for (const { group, selectedSet } of activeGroupSets) {
+        if (typeof group.matches === 'function') {
+          if (!group.matches(raw, selectedSet)) return false;
+          continue;
+        }
+
         let itemValue;
         if (typeof group.field === 'function') {
           itemValue = group.field(raw);
@@ -369,10 +493,15 @@ export default function UniversalCategoryGallery({
         }
 
         if (Array.isArray(itemValue)) {
-          const hasMatch = itemValue.some((v) => selectedSet.has(String(v).toLowerCase()));
+          const hasMatch = itemValue.some((v) => {
+            const vLower = String(v).toLowerCase();
+            return selectedSet.has(vLower) || Array.from(selectedSet).some((s) => vLower.includes(s) || s.includes(vLower));
+          });
           if (!hasMatch) return false;
         } else if (itemValue !== undefined && itemValue !== null) {
-          if (!selectedSet.has(String(itemValue).toLowerCase())) return false;
+          const valLower = String(itemValue).toLowerCase();
+          const hasMatch = selectedSet.has(valLower) || Array.from(selectedSet).some((s) => valLower.includes(s) || s.includes(valLower));
+          if (!hasMatch) return false;
         } else {
           return false;
         }

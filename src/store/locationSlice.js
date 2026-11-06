@@ -1,17 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { useSelector, useDispatch } from 'react-redux';
-import { cities, defaultCity, defaultArea } from '../constants/locations';
+import { cities, defaultCity, defaultArea, resolveCityId } from '../constants/locations';
 
 function load(key, fallback) {
   try {
     const v = localStorage.getItem(key);
-    return v !== null ? v : fallback;
+    return v !== null && v !== '' ? v : fallback;
   } catch {
     return fallback;
   }
 }
 
-const savedCity = load('vishwam_city', defaultCity);
+function save(key, val) {
+  try {
+    if (val !== undefined && val !== null) {
+      localStorage.setItem(key, String(val));
+    }
+  } catch {}
+}
+
+const savedCity = resolveCityId(load('vishwam_city', defaultCity));
 const initialCity = cities[savedCity] ? savedCity : defaultCity;
 const savedArea = load('vishwam_area', defaultArea);
 const initialArea = cities[initialCity]?.areas?.includes(savedArea)
@@ -27,20 +35,27 @@ const locationSlice = createSlice({
   },
   reducers: {
     selectCity(state, action) {
-      const cityId = cities[action.payload] ? action.payload : defaultCity;
+      const cityId = resolveCityId(action.payload);
       state.selectedCity = cityId;
       state.selectedArea = cities[cityId]?.areas?.[0] || defaultArea;
+      save('vishwam_city', state.selectedCity);
+      save('vishwam_area', state.selectedArea);
     },
     selectArea(state, action) {
-      const cityId = cities[action.payload.city] ? action.payload.city : defaultCity;
+      const cityId = resolveCityId(action.payload?.city);
       state.selectedCity = cityId;
-      state.selectedArea = action.payload.area;
+      state.selectedArea = action.payload?.area || cities[cityId]?.areas?.[0] || defaultArea;
+      save('vishwam_city', state.selectedCity);
+      save('vishwam_area', state.selectedArea);
     },
     setCity(state, action) {
-      state.selectedCity = cities[action.payload] ? action.payload : defaultCity;
+      const cityId = resolveCityId(action.payload);
+      state.selectedCity = cityId;
+      save('vishwam_city', state.selectedCity);
     },
     setArea(state, action) {
       state.selectedArea = action.payload;
+      save('vishwam_area', state.selectedArea);
     },
     setDetectStatus(state, action) {
       state.detectStatus = action.payload;
@@ -62,6 +77,7 @@ export function useLocation() {
     detectStatus,
     selectArea: (city, area) => dispatch(selectArea({ city, area })),
     selectCity: (cityId) => dispatch(selectCity(cityId)),
+    setCity: (cityId) => dispatch(setCity(cityId)),
     setArea: (area) => dispatch(setArea(area)),
     setDetectStatus: (status) => dispatch(setDetectStatus(status)),
   };

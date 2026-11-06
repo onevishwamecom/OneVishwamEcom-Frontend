@@ -3,12 +3,13 @@ import { Link, useNavigate, useSearchParams, useLocation as useRouterLocation } 
 import CategoryListingCard from './CategoryListingCard';
 import { CollapsibleSection, CheckboxGroup, ActiveChip } from '../../ui';
 import { useLocation } from '../../../store/locationSlice';
-import { cities } from '../../../constants/locations';
+import { cities, resolveCityId, getCityLabel, CITY_ALIASES } from '../../../constants/locations';
 import PageContainer from '../PageContainer';
 import Breadcrumbs from '../Breadcrumbs';
 import LottieFeedbackAnimation from '../LottieFeedbackAnimation';
 import { isInHouseOrCeoListing, hasItemImage } from '../../../pages/services/shared/sortBy';
 import { loadSessionState, saveSessionState } from '../../../pages/services/shared/sessionStore';
+import { signalHomepageRefresh } from '../../../utils/matchEvents';
 
 function formatCurrency(val, unit = 'L') {
   const num = Number(val);
@@ -246,9 +247,56 @@ export default function MarketplaceCategoryGallery({
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Filter items by selected city and location input
+  const filteredByLocationItems = useMemo(() => {
+    let list = [...items];
+
+    if (selectedCity) {
+      const targetCity = resolveCityId(selectedCity);
+      const targetLabel = getCityLabel(targetCity).toLowerCase();
+      const cityAliases = [targetCity];
+      Object.entries(CITY_ALIASES).forEach(([alias, canonical]) => {
+        if (canonical === targetCity) cityAliases.push(alias.toLowerCase());
+      });
+      const targetAreas = (cities[targetCity]?.areas || []).map((a) => a.toLowerCase());
+
+      list = list.filter((item) => {
+        const itemCity = String(item.city || item.raw?.city || '').toLowerCase().trim();
+        const itemLoc = String(item.location || item.raw?.location || item.locality || item.raw?.locality || item.address || item.raw?.address || item.area || item.raw?.area || '').toLowerCase().trim();
+
+        // If item has no location info at all, treat it as available nationwide
+        if (!itemCity && !itemLoc) return true;
+
+        if (itemCity) {
+          const resolved = resolveCityId(itemCity);
+          if (resolved === targetCity) return true;
+          if (cityAliases.some((alias) => itemCity.includes(alias))) return true;
+        }
+
+        if (itemLoc) {
+          if (cityAliases.some((alias) => itemLoc.includes(alias))) return true;
+          if (itemLoc.includes(targetLabel)) return true;
+          if (targetAreas.some((a) => itemLoc.includes(a))) return true;
+        }
+
+        return false;
+      });
+    }
+
+    if (locationInput) {
+      const locTarget = locationInput.toLowerCase().trim();
+      list = list.filter((item) => {
+        const itemLoc = String(item.location || item.raw?.location || item.locality || item.raw?.locality || item.address || item.raw?.address || item.area || item.raw?.area || '').toLowerCase();
+        return itemLoc.includes(locTarget);
+      });
+    }
+
+    return list;
+  }, [items, selectedCity, locationInput]);
+
   // Sort items according to active sort option with in-house priority preserved
   const sortedItems = useMemo(() => {
-    let list = [...items];
+    let list = [...filteredByLocationItems];
 
     if (typeof customSorter === 'function') {
       return customSorter(list, sortBy);
@@ -287,7 +335,7 @@ export default function MarketplaceCategoryGallery({
     });
 
     return list;
-  }, [items, sortBy, customSorter]);
+  }, [filteredByLocationItems, sortBy, customSorter]);
 
   // Pagination calculation (12 per page = 3 full rows of 4 columns)
   const totalPages = Math.ceil(sortedItems.length / perPage) || 1;
@@ -406,7 +454,10 @@ export default function MarketplaceCategoryGallery({
               {onQuickMatch && (
                 <button
                   type="button"
-                  onClick={onQuickMatch}
+                  onClick={() => {
+                    signalHomepageRefresh();
+                    onQuickMatch();
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2 text-xs font-extrabold transition-all shadow-xs cursor-pointer active:scale-95"
                 >
                   <i className="fa-solid fa-bolt text-slate-900" />
@@ -447,9 +498,12 @@ export default function MarketplaceCategoryGallery({
               </button>
             )}
             <div className="absolute right-3 hidden sm:flex items-center">
-              <span className="text-[11px] font-bold text-white bg-brand-blue px-3 py-1.5 rounded-xl shadow-xs">
-                Search
-              </span>
+              <button
+                type="button"
+                className="text-[11px] font-bold text-white bg-brand-blue hover:bg-blue-700 hover:shadow-md hover:scale-105 active:scale-95 px-3 py-1.5 rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1"
+              >
+                <span>Search</span>
+              </button>
             </div>
           </div>
 

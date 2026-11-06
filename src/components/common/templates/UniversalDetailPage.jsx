@@ -153,11 +153,17 @@ export default function UniversalDetailPage({
       statusBadges: statusBadges.filter(Boolean),
       overviewHighlights: overviewHighlights.filter(Boolean),
       specs: specs.filter(Boolean),
+      specifications: specs.filter(Boolean),
       features: features.filter(Boolean),
       floorPlanImages: Array.isArray(floorPlanImages) ? floorPlanImages.filter(Boolean) : [],
       pdfUrl,
       seller,
       raw: rawItem,
+      category: rawItem.category || categoryTitle,
+      subcategory: rawItem.subcategory,
+      brand: rawItem.brand,
+      condition: rawItem.condition,
+      warranty: rawItem.warranty,
     };
   }, [rawItem, mapping, resolvedId]);
 
@@ -239,12 +245,29 @@ export default function UniversalDetailPage({
     );
   }
 
+  const resolvedItemLinkPrefix = useMemo(() => {
+    const bUrl = String(backUrl || '').toLowerCase();
+    const catLower = String(categoryTitle || '').toLowerCase();
+
+    if (bUrl.includes('electronics') || catLower.includes('electronic')) return '/electronics/';
+    if (bUrl.includes('garment') || catLower.includes('garment')) return '/garment/';
+    if (bUrl.includes('grocer') || catLower.includes('grocer')) return '/grocery/';
+    if (bUrl.includes('jewel') || catLower.includes('jewel')) return '/jewellery/';
+    if (bUrl.includes('bedding') || bUrl.includes('comfort') || catLower.includes('bedding') || catLower.includes('comfort')) return '/bedding/';
+    if (bUrl.includes('finance') || catLower.includes('finance')) return '/finance/';
+    if (bUrl.includes('automobile') || bUrl.includes('vehicle') || catLower.includes('automobile') || catLower.includes('vehicle')) return '/automobile/';
+    if (bUrl.includes('property') || catLower.includes('property')) return '/property/';
+
+    return backUrl && backUrl !== -1 ? `${backUrl.replace(/\/+$/, '')}/` : '/';
+  }, [backUrl, categoryTitle]);
+
   return (
     <MasterDetailPage
       item={mappedItem}
       similarItems={mappedSimilarItems}
       categoryName={categoryTitle}
       categoryLink={backUrl && backUrl !== -1 ? backUrl : undefined}
+      itemLinkPrefix={resolvedItemLinkPrefix}
       headerExtra={headerExtra}
       customSection={renderCustomSection ? renderCustomSection(mappedItem) : null}
     />

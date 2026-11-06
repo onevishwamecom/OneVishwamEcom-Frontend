@@ -1,4 +1,4 @@
-import { cities, defaultCity, defaultArea } from '../constants/locations';
+import { cities, defaultCity, defaultArea, CITY_ALIASES, resolveCityId } from '../constants/locations';
 
 const BIGDATACLOUD_CLIENT_API = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
 const NOMINATIM_API = 'https://nominatim.openstreetmap.org/reverse';
@@ -97,17 +97,17 @@ async function fetchReverseGeocode(lat, lng) {
 }
 
 /**
- * Checks if the geocoded address or coordinates match Bengaluru / Bangalore.
+ * Identifies the city from reverse geocoding data.
  */
-function isBengaluruLocation(geoData) {
-  if (!geoData) return false;
+function resolveCity(geoData) {
+  if (!geoData) return defaultCity;
 
-  // Check coordinates bounding box
+  // Check coordinates bounding box for Bengaluru
   if (isWithinBengaluru(geoData.lat, geoData.lng)) {
-    return true;
+    return 'bengaluru';
   }
 
-  // Check text indicators
+  // Text search in all address fields
   const textBag = [
     geoData.city,
     geoData.locality,
@@ -119,15 +119,33 @@ function isBengaluruLocation(geoData) {
     .join(' ')
     .toLowerCase();
 
-  const blrKeywords = ['bengaluru', 'bangalore', 'blr', 'karnataka'];
-  return blrKeywords.some((kw) => textBag.includes(kw));
+  // 1. Direct match with aliases & city keys
+  for (const [alias, canonicalId] of Object.entries(CITY_ALIASES)) {
+    const regex = new RegExp(`\\b${alias}\\b`, 'i');
+    if (regex.test(textBag)) {
+      return canonicalId;
+    }
+  }
+
+  // 2. Direct match with city labels
+  for (const [cityId, cityData] of Object.entries(cities)) {
+    if (textBag.includes(cityId)) return cityId;
+    const labelClean = cityData.label.toLowerCase().replace(/[^a-z]/g, ' ');
+    const parts = labelClean.split(/\s+/).filter((p) => p.length > 3);
+    for (const part of parts) {
+      if (textBag.includes(part)) return cityId;
+    }
+  }
+
+  // Default fallback
+  return defaultCity;
 }
 
 /**
- * Finds the closest matched area or extracts clean locality name.
+ * Finds the closest matched area or extracts clean locality name for the resolved city.
  */
-function resolveArea(geoData) {
-  const blrAreas = cities.bengaluru?.areas || [];
+function resolveArea(geoData, cityId) {
+  const cityAreas = cities[cityId]?.areas || [];
   const candidates = [
     geoData.locality,
     geoData.city,
@@ -137,10 +155,10 @@ function resolveArea(geoData) {
     .filter(Boolean)
     .map((s) => String(s).trim());
 
-  // 1. Try finding a known Bengaluru area match
+  // 1. Try finding a known area match in the resolved city
   for (const candidate of candidates) {
     const candLower = candidate.toLowerCase();
-    for (const known of blrAreas) {
+    for (const known of cityAreas) {
       const knownLower = known.toLowerCase();
       if (candLower.includes(knownLower) || knownLower.includes(candLower)) {
         return known;
@@ -164,8 +182,8 @@ function resolveArea(geoData) {
     }
   }
 
-  // 3. Fallback to default area
-  return defaultArea || blrAreas[0] || 'Koramangala';
+  // 3. Fallback to first area of this city or defaultArea
+  return cityAreas[0] || defaultArea;
 }
 
 /**
@@ -194,14 +212,14 @@ export async function detectCurrentLocation() {
     throw new Error('Unable to retrieve location coordinates');
   }
 
-  const isBlr = isBengaluruLocation(geoData);
-  const matchedArea = resolveArea(geoData);
+  const resolvedCityId = resolveCity(geoData);
+  const matchedArea = resolveArea(geoData, resolvedCityId);
 
   return {
-    cityId: defaultCity, // Platform is Bengaluru focused
+    cityId: resolvedCityId,
     area: matchedArea,
     lat: geoData.lat,
     lng: geoData.lng,
-    isBengaluru: isBlr,
+    isBengaluru: resolvedCityId === 'bengaluru',
   };
 }

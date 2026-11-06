@@ -16,7 +16,7 @@ const CATEGORY_TABS = [
 const POPULAR_CHIPS = [
   'Gated Plots Bengaluru',
   'Commercial Spaces',
-  'Maruti Brezza',
+  'Verified Cars',
   'Orthopedic Mattress',
   '5 Star AC',
   'Home Loan',

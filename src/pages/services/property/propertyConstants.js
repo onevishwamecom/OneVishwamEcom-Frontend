@@ -8,7 +8,7 @@ export const PROPERTY_CARD_TYPES = [
   { id: 'Independent House',icon: 'fa-home',            label: 'Independent House' },
 ];
 
-export const CITY_OPTIONS = [{ id: 'bengaluru', label: 'Bangalore' }];
+export { CITY_OPTIONS } from '../../../constants/locations';
 
 export const SIZE_OPTIONS        = [600, 1200, 2400];
 export const BEDROOM_OPTIONS     = ['1 RK','1 BHK','1.5 BHK','2 BHK','2.5 BHK','3 BHK','3.5 BHK','4 BHK','5 BHK','6 BHK','6+ BHK'];

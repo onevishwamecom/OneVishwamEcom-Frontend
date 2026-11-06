@@ -78,12 +78,12 @@ const SEARCH_TABS = [
     shortLabel: 'All',
     icon: 'fa-solid fa-shapes',
     route: '/categories',
-    placeholder: 'Search properties, autos, gadgets, comfort...',
+    placeholder: 'Search properties, automobiles, electronics, comfort...',
   },
   {
     id: 'properties',
     label: 'Properties',
-    shortLabel: 'Homes',
+    shortLabel: 'Properties',
     icon: 'fa-solid fa-house-chimney',
     route: '/categories/properties',
     placeholder: 'Search flats, plots, villas in Bengaluru...',
@@ -91,7 +91,7 @@ const SEARCH_TABS = [
   {
     id: 'automobile',
     label: 'Automobiles',
-    shortLabel: 'Auto',
+    shortLabel: 'Automobiles',
     icon: 'fa-solid fa-car',
     route: '/categories/automobile',
     placeholder: 'Search cars, bikes, SUVs, commercial fleets...',
@@ -99,7 +99,7 @@ const SEARCH_TABS = [
   {
     id: 'consumer-electronics',
     label: 'Electronics',
-    shortLabel: 'Gadgets',
+    shortLabel: 'Electronics',
     icon: 'fa-solid fa-tv',
     route: '/categories/consumer-electronics',
     placeholder: 'Search TVs, ACs, double door refrigerators, appliances...',
@@ -239,10 +239,10 @@ const FIVE_CATEGORIES = [
 const POPULAR_CHIPS = [
   { label: 'Gated Plots', category: 'properties', query: 'Gated Plots Bengaluru' },
   { label: '3 BHK Whitefield', category: 'properties', query: '3 BHK Whitefield' },
-  { label: 'Maruti Brezza', category: 'automobile', query: 'Maruti Brezza' },
+  { label: 'Verified Cars', category: 'automobile', query: 'Verified Cars' },
   { label: 'Ortho Mattress', category: 'bedding-comfort', query: 'Orthopedic Mattress' },
   { label: '5 Star AC', category: 'consumer-electronics', query: '5 Star AC' },
-  { label: 'Commercial', category: 'properties', query: 'Commercial Spaces' },
+  { label: 'Commercial Spaces', category: 'properties', query: 'Commercial Spaces' },
 ];
 
 /* ── Address Highlight Helper matching NoBroker / Google Places Autocomplete UI ── */
@@ -381,7 +381,12 @@ export default function HeroSection() {
           signal: controller.signal,
         });
         const items = res.data?.data?.items || res.data?.items || [];
-        setSuggestions(items);
+        const availableItems = (items || []).filter((i) => {
+          if (!i) return false;
+          const st = String(i.availabilityStatus || '').toLowerCase();
+          return st !== 'sold_out' && st !== 'sold' && st !== 'out_of_stock' && i.isSoldOut !== true;
+        });
+        setSuggestions(availableItems);
       } catch (err) {
         if (err?.code !== 'ERR_CANCELED' && err?.name !== 'CanceledError') {
           console.error('Live search error:', err.message);
@@ -416,7 +421,7 @@ export default function HeroSection() {
     setShowSuggestions(false);
 
     if (activeCategory === 'all') {
-      // If user typed a query, check if suggestions belong to one category (e.g. they typed "Brezza" -> Vehicles)
+      // If user typed a query, check if suggestions belong to one category
       if (suggestions.length > 0) {
         const firstCat = suggestions[0].category;
         const allSame = suggestions.every((s) => s.category === firstCat);
@@ -603,7 +608,7 @@ export default function HeroSection() {
                 ═══════════════════════════════════════════════════════════ */}
             <div className="mt-5 sm:mt-8 w-full max-w-3xl lg:max-w-4xl mx-auto px-1 sm:px-4 flex flex-col z-40">
               {/* 1. 5 Equivalent Search Tabs (Spanning full width across the search row) */}
-              <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
+              <div className="flex items-center gap-1.5 sm:grid sm:grid-cols-5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full overflow-x-auto scrollbar-hide py-0.5 touch-pan-x">
                 {SEARCH_TABS.map((tab) => {
                   const isActive = activeCategory === tab.id;
                   return (
@@ -611,14 +616,14 @@ export default function HeroSection() {
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveCategory(tab.id)}
-                      className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-9 sm:h-11 text-[10px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer ${isActive
+                      className={`shrink-0 sm:shrink w-auto sm:w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3 h-9 sm:h-11 text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${isActive
                         ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
                         : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
                         }`}
                     >
-                      <i className={`${tab.icon} text-[9px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
-                      <span className="hidden md:inline truncate">{tab.label}</span>
-                      <span className="inline md:hidden whitespace-nowrap">{tab.shortLabel || tab.label}</span>
+                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
+                      <span className="hidden md:inline">{tab.label}</span>
+                      <span className="inline md:hidden">{tab.shortLabel || tab.label}</span>
                     </button>
                   );
                 })}
@@ -627,8 +632,11 @@ export default function HeroSection() {
               {/* 2. Unified Search Row: Input Box + Search Button */}
               <div ref={searchContainerRef} className="relative w-full flex items-center gap-1.5 sm:gap-3 z-30">
                 {/* Distinct Search Input Box */}
-                <div className="relative flex-1 min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] flex items-center z-10">
-                  <i className="fa-solid fa-location-dot text-slate-500 text-xs sm:text-base mr-2 sm:mr-3 shrink-0" />
+                <div
+                  onClick={() => inputRef.current?.focus()}
+                  className="hero-search-input-box group relative flex-1 min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] flex items-center z-10 cursor-text transition-colors"
+                >
+                  <i className="fa-solid fa-location-dot text-slate-500 group-hover:text-brand-blue group-focus-within:text-brand-blue text-xs sm:text-base mr-2 sm:mr-3 shrink-0 transition-colors" />
                   <input
                     ref={inputRef}
                     type="text"
@@ -669,10 +677,11 @@ export default function HeroSection() {
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 z-30"
+                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30"
+                  aria-label="Submit search"
                 >
-                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
-                  <span>Search</span>
+                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm pointer-events-none" />
+                  <span className="pointer-events-none">Search</span>
                 </button>
 
                 {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}

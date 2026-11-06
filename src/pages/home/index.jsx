@@ -1,9 +1,10 @@
-import { useMemo, useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { Link, useNavigate, useLocation as useRouteLocation } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../constants/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
 import { useProperties } from '../../hooks/useProperties';
+import { isHomepageStale, clearHomepageStale, MATCH_EVENT_NAME } from '../../utils/matchEvents';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority, getPriorityScore, formatPropertyAddress, getPropertyTypeLabel } from '../services/property/propertyHelpers';
@@ -23,15 +24,37 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeZone, setActiveZone] = useState('All');
   const navigate = useNavigate();
+  const routeLocation = useRouteLocation();
   const { selectedCity } = useLocation();
-  const { data, loading } = useHomepageData();
+  const { data, loading, refresh } = useHomepageData();
+  const { properties: allProperties, refetch: refetchProperties } = useProperties();
+
+  useEffect(() => {
+    const handleMatchOrStale = () => {
+      if (isHomepageStale()) {
+        clearHomepageStale();
+      }
+      refresh();
+      if (typeof refetchProperties === 'function') {
+        refetchProperties();
+      }
+    };
+
+    if (routeLocation.pathname === '/' && isHomepageStale()) {
+      handleMatchOrStale();
+    }
+
+    window.addEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+    return () => {
+      window.removeEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+    };
+  }, [routeLocation.pathname, refresh, refetchProperties]);
 
   const filterAvailable = useCallback(
     (arr) => (arr || []).filter((item) => item.status !== 'sold_out'),
     []
   );
 
-  const { properties: allProperties } = useProperties();
   const rawProperties = useMemo(() => {
     const list = [...(allProperties || [])];
     const existingIds = new Set(list.map((p) => String(p.id || p._id)));

@@ -50,7 +50,12 @@ function ServicesPage() {
       .then((res) => {
         if (!isMounted) return;
         const items = res.data?.data?.items || res.data?.items || [];
-        setSearchResults(items);
+        const availableItems = (items || []).filter((i) => {
+          if (!i) return false;
+          const st = String(i.availabilityStatus || '').toLowerCase();
+          return st !== 'sold_out' && st !== 'sold' && st !== 'out_of_stock' && i.isSoldOut !== true;
+        });
+        setSearchResults(availableItems);
       })
       .catch((err) => {
         console.error('Failed to load search results:', err);

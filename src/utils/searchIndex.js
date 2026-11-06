@@ -27,8 +27,14 @@ export class SearchIndex {
     this.itemsMap.clear();
     this.miniSearch.removeAll();
 
-    const docs = items.map((item, index) => {
+    const seenIds = new Set();
+    const docs = [];
+
+    items.forEach((item, index) => {
       const id = String(item._id || item.id || `idx_${index}`);
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
+
       this.itemsMap.set(id, item);
 
       const doc = { _searchId: id };
@@ -40,10 +46,16 @@ export class SearchIndex {
           doc[f] = val.map((x) => String(x.value || x)).join(' ');
         }
       }
-      return doc;
+      docs.push(doc);
     });
 
-    this.miniSearch.addAll(docs);
+    if (docs.length > 0) {
+      try {
+        this.miniSearch.addAll(docs);
+      } catch (err) {
+        console.warn('MiniSearch indexing warning:', err?.message || err);
+      }
+    }
   }
 
   search(query) {

@@ -19,7 +19,7 @@ export const marketplaceCategories = [
   },
   {
     id: 'consumer-electronics',
-    label: 'Consumer Electronics',
+    label: 'Electronics',
     shortDesc: 'TVs, Mobiles, Air Conditioners & Appliances',
     href: '/categories/consumer-electronics',
     icon: 'fa-solid fa-tv',

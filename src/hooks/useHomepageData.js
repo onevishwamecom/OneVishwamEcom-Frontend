@@ -1,13 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { homepageAPI } from '../api';
 import cache, { PUBLIC_NAMESPACE } from '../services/cache/cacheService';
+import { isHomepageStale, clearHomepageStale, MATCH_EVENT_NAME } from '../utils/matchEvents';
 
 const CACHE_KEY = 'homepage_data';
 const CACHE_TTL = 3 * 60 * 1000; // 3 minutes cache (prevents repetitive homepage refetches)
 
 function stripSoldOut(items) {
   if (!Array.isArray(items)) return [];
-  return items.filter((item) => item && item.availabilityStatus !== 'sold_out' && item.isSoldOut !== true);
+  return items.filter((item) => {
+    if (!item) return false;
+    const st = String(item.availabilityStatus || '').toLowerCase();
+    return st !== 'sold_out' && st !== 'sold' && st !== 'out_of_stock' && item.isSoldOut !== true;
+  });
 }
 
 function sanitizeHomepageData(raw) {
@@ -61,7 +66,20 @@ export function useHomepageData() {
   }, []);
 
   useEffect(() => {
-    fetch(false);
+    const handleMatchEvent = () => {
+      fetch(true);
+    };
+    window.addEventListener(MATCH_EVENT_NAME, handleMatchEvent);
+
+    if (isHomepageStale()) {
+      fetch(true);
+    } else {
+      fetch(false);
+    }
+
+    return () => {
+      window.removeEventListener(MATCH_EVENT_NAME, handleMatchEvent);
+    };
   }, [fetch]);
 
   const refresh = useCallback(() => {

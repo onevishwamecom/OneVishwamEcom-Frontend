@@ -352,7 +352,7 @@ export function getDynamicSizePresets(properties = [], sizeBounds) {
 }
 
 export function getPropertyType(property) {
-  if (!property) return 'Flats';
+  if (!property) return 'Flat';
 
   const type = String(
     property.propertyType ||
@@ -391,7 +391,7 @@ export function getPropertyType(property) {
     fullText.includes('layout') ||
     fullText.includes('enclave')
   ) {
-    return 'Plots';
+    return 'Plot';
   }
 
   if (
@@ -400,7 +400,7 @@ export function getPropertyType(property) {
     fullText.includes('villa') ||
     fullText.includes('farmhouse')
   ) {
-    return 'Villas';
+    return 'Villa';
   }
 
   if (
@@ -408,10 +408,130 @@ export function getPropertyType(property) {
     fullText.includes('house') ||
     fullText.includes('independent house')
   ) {
-    return 'Houses';
+    return 'Independent House';
   }
 
-  return 'Flats';
+  return 'Flat';
+}
+
+/**
+ * Returns an array of normalized property category tags for faceted filtering.
+ */
+export function getPropertyFilterTypes(property) {
+  if (!property) return ['Flat', 'Residential'];
+  const types = new Set();
+  const rawProp = String(property.propertyType || property.subcategory || property.category || '').toLowerCase().trim();
+  const sub = String(property.subtitle || '').toLowerCase();
+  const title = String(property.title || '').toLowerCase();
+  const bhk = String(property.bhk || '').toLowerCase();
+  const fullText = `${rawProp} ${sub} ${title} ${bhk}`;
+  const bType = String(getBuildingType(property)).toLowerCase().trim();
+
+  // Commercial
+  if (
+    bType === 'commercial' ||
+    rawProp.includes('commercial') ||
+    fullText.includes('commercial') ||
+    fullText.includes('office') ||
+    fullText.includes('shop') ||
+    fullText.includes('showroom')
+  ) {
+    types.add('Commercial');
+  }
+
+  // Industrial
+  if (
+    rawProp.includes('industrial') ||
+    fullText.includes('industrial') ||
+    fullText.includes('warehouse') ||
+    fullText.includes('factory') ||
+    fullText.includes('godown')
+  ) {
+    types.add('Industrial');
+    types.add('Commercial');
+  }
+
+  // Agricultural
+  if (
+    rawProp.includes('agri') ||
+    fullText.includes('agri') ||
+    fullText.includes('farmland') ||
+    fullText.includes('plantation')
+  ) {
+    types.add('Agricultural');
+    types.add('Land');
+  }
+
+  // Land / Plots
+  if (
+    rawProp.includes('plot') ||
+    rawProp.includes('site') ||
+    rawProp.includes('layout') ||
+    rawProp.includes('plat') ||
+    fullText.includes('plot') ||
+    fullText.includes('site') ||
+    fullText.includes('bda')
+  ) {
+    types.add('Plot');
+    types.add('Land');
+  } else if (rawProp.includes('land') || fullText.includes('land') || fullText.includes('acre')) {
+    types.add('Land');
+  }
+
+  // Villa
+  if (rawProp.includes('villa') || fullText.includes('villa') || fullText.includes('farmhouse')) {
+    types.add('Villa');
+    types.add('Residential');
+  }
+
+  // Independent House
+  if (
+    rawProp.includes('house') ||
+    rawProp.includes('independent') ||
+    fullText.includes('independent house') ||
+    fullText.includes('individual house')
+  ) {
+    types.add('Independent House');
+    types.add('Residential');
+  }
+
+  // Flat / Apartment
+  if (
+    rawProp.includes('flat') ||
+    rawProp.includes('apartment') ||
+    fullText.includes('flat') ||
+    fullText.includes('apartment') ||
+    (bhk && types.size === 0) ||
+    (bType === 'residential' && types.size === 0)
+  ) {
+    types.add('Flat');
+    types.add('Residential');
+  }
+
+  // Fallback
+  if (types.size === 0) {
+    types.add('Flat');
+    types.add('Residential');
+  }
+
+  return Array.from(types);
+}
+
+/**
+ * Custom matcher for Property Type filtering.
+ */
+export function matchesPropertyType(property, selectedSet) {
+  if (!property || !selectedSet || selectedSet.size === 0) return true;
+  const filterTypes = getPropertyFilterTypes(property).map((t) => t.toLowerCase());
+  for (const s of selectedSet) {
+    const sel = String(s).toLowerCase().trim();
+    if (filterTypes.includes(sel)) return true;
+    if (filterTypes.some((t) => t.includes(sel) || sel.includes(t))) return true;
+    if (sel === 'flat' && filterTypes.some((t) => t.includes('flat') || t.includes('apartment'))) return true;
+    if (sel === 'plot' && filterTypes.some((t) => t.includes('plot') || t.includes('site') || t.includes('land'))) return true;
+    if (sel === 'independent house' && filterTypes.some((t) => t.includes('house') || t.includes('independent'))) return true;
+  }
+  return false;
 }
 
 export function getPropertyTypeLabel(property) {
@@ -625,13 +745,13 @@ export function getCardType(property) {
   if (sub.includes('agricultural') || sub.includes('raw land') || subtitle.includes('agricultural')) {
     return 'Lands';
   }
-  if (type === 'Plots' || sub.includes('plot') || sub.includes('site') || sub.includes('land')) {
+  if (type === 'Plots' || type === 'Plot' || sub.includes('plot') || sub.includes('site') || sub.includes('land')) {
     return 'Sites';
   }
-  if (type === 'Villas' || sub.includes('villa') || sub.includes('farmhouse')) {
+  if (type === 'Villas' || type === 'Villa' || sub.includes('villa') || sub.includes('farmhouse')) {
     return 'Villa';
   }
-  if (type === 'Houses' || sub.includes('house') || sub.includes('independent house')) {
+  if (type === 'Houses' || type === 'Independent House' || type === 'House' || sub.includes('house') || sub.includes('independent house')) {
     return 'Independent House';
   }
   return 'Flat';
@@ -902,7 +1022,7 @@ export function getBangaloreZone(item) {
     str.includes('marathahalli') || str.includes('panathur') || str.includes('varthur') ||
     str.includes('gunjur') || str.includes('balagere') || str.includes('sarjapur') ||
     str.includes('dommasandra') || str.includes('kasavanahalli') || str.includes('mullur') ||
-    str.includes('kodathi') || str.includes('carmelaram') || str.includes('nexon') ||
+    str.includes('kodathi') || str.includes('carmelaram') || str.includes('nexon travenza') ||
     str.includes('ramky') || str.includes('aquapolis') || str.includes('purvankar') ||
     str.includes('nambiar') || str.includes('urban forest')
   ) {
@@ -1008,7 +1128,7 @@ export function resolvePropertyLocality(property) {
   if (combined.includes('doddaballapur') || combined.includes('slice of heaven')) return 'Doddaballapur Road';
   if (combined.includes('mysore road') || combined.includes('panchamuki') || combined.includes('golden city') || combined.includes('nirvana')) return 'Mysore Road';
   if (combined.includes('varthur') || combined.includes('aquapolis')) return 'Varthur';
-  if (combined.includes('hoskote') || combined.includes('nexon')) return 'Hoskote';
+  if (combined.includes('hoskote') || combined.includes('nexon travenza')) return 'Hoskote';
   if (combined.includes('dommasandra') || combined.includes('nambiar')) return 'Dommasandra';
   if (combined.includes('chikkathirupathi') || combined.includes('alora')) return 'Chikkathirupathi';
   if (combined.includes('kaiwara') || combined.includes('chikkaballapura')) return 'Chikkaballapura';

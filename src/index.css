@@ -89,3 +89,45 @@ body {
 .ribbon-track:hover .animate-ribbon-rtl {
   animation-play-state: paused !important;
 }
+
+/* ── Hero Search Button Simple Highlight Hover (No size increase) ── */
+.hero-search-btn {
+  cursor: pointer !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+  user-select: none;
+  transform: none !important;
+}
+
+.hero-search-btn:hover {
+  background-color: #d9383d !important; /* Lighter / vibrant highlight */
+  border-color: #f87171 !important; /* Crisp border highlight */
+  filter: brightness(1.08) !important;
+  box-shadow: 0 0 0 3px rgba(235, 78, 82, 0.35) !important; /* Clean outer highlight ring */
+  color: #ffffff !important;
+  transform: none !important;
+}
+
+.hero-search-btn:active {
+  background-color: #b91c1c !important;
+  filter: brightness(0.95) !important;
+  transform: none !important;
+}
+
+/* ── Hero Search Input Bar Simple Highlight (No size increase) ── */
+.hero-search-input-box {
+  cursor: text !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  transform: none !important;
+}
+
+.hero-search-input-box:hover {
+  border-color: #334155 !important; /* Clean slate-700 border highlight */
+  box-shadow: 0 0 0 2px rgba(51, 65, 85, 0.15) !important; /* Subtle outer highlight ring */
+  transform: none !important;
+}
+
+.hero-search-input-box:focus-within {
+  border-color: #134e8f !important; /* Brand Blue */
+  box-shadow: 0 0 0 3px rgba(19, 78, 143, 0.25) !important;
+  transform: none !important;
+}

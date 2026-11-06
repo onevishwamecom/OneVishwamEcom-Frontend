@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UniversalCategoryGallery } from '../../../components/common/templates';
 import useLoanProducts from './useLoanProducts';
 import LoanQuickMatchModal from './LoanQuickMatchModal';
+import { signalHomepageRefresh } from '../../../utils/matchEvents';
 
 const FILTER_GROUPS = [
   {
@@ -25,7 +26,10 @@ export default function FinanceLoanGallery() {
         useItems={useLoanProducts}
         searchPlaceholder="Search loans by type or feature (e.g. Home Loan, Vehicle, Zero Collateral)..."
         filterGroups={FILTER_GROUPS}
-        onQuickMatch={() => setQuickMatchOpen(true)}
+        onQuickMatch={() => {
+          signalHomepageRefresh();
+          setQuickMatchOpen(true);
+        }}
         quickMatchLabel="Loan Eligibility"
         mapping={{
           id: (l) => l.id || l._id,
