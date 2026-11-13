@@ -377,79 +377,15 @@ async function deploy() {
     const pulseFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let pulseIdx = 0;
 
-    // ── STEP 5: Ultra-Reliable Zip Archive Streaming ──
-    const zipPath = path.resolve(__dirname, '../deploy.zip');
-    spinner.start('Compressing production build into high-speed deployment archive...');
-    const { execSync } = await import('child_process');
-    try { fs.unlinkSync(zipPath); } catch {}
-    if (process.platform === 'win32') {
-      try {
-        execSync(`tar.exe -a -c -f "${zipPath}" *`, { cwd: distDir });
-      } catch {
-        execSync(`powershell.exe -NoProfile -Command "Compress-Archive -Path * -DestinationPath '${zipPath}' -Force"`, { cwd: distDir });
-      }
-    } else {
-      execSync(`zip -r -q "${zipPath}" .`, { cwd: distDir });
-    }
-    const zipStats = fs.statSync(zipPath);
-    spinner.succeed(`Build archive compressed (${C.brightCyan}${formatBytes(zipStats.size)}${C.reset} from ${formatBytes(totalBytes)})`);
-
-    const extractToken = 'ov_deploy_' + Date.now();
-    const extractPhpContent = `<?php
-$secret = '${extractToken}';
-if (!isset($_GET['token']) || $_GET['token'] !== $secret) {
-    http_response_code(403);
-    die('Forbidden');
-}
-$zipFile = __DIR__ . '/deploy.zip';
-if (!file_exists($zipFile)) {
-    http_response_code(404);
-    die('ZIP_NOT_FOUND');
-}
-$zip = new ZipArchive;
-if ($zip->open($zipFile) === TRUE) {
-    $zip->extractTo(__DIR__);
-    $zip->close();
-    @unlink($zipFile);
-    @unlink(__FILE__);
-    echo 'DEPLOY_SUCCESS';
-} else {
-    http_response_code(500);
-    echo 'ZIP_EXTRACTION_FAILED';
-}
-?>`;
-    const extractPhpPath = path.resolve(__dirname, '../extract.php');
-    fs.writeFileSync(extractPhpPath, extractPhpContent);
-
-    spinner.start(`Streaming deployment archive to Hostinger...`);
-    await client.uploadFrom(zipPath, 'deploy.zip');
-    await client.uploadFrom(extractPhpPath, 'extract.php');
-    client.close();
-    spinner.succeed(`Archive uploaded to Hostinger (${C.brightGreen}${formatBytes(zipStats.size)}${C.reset})`);
-
-    // Clean up local temp files
-    try { fs.unlinkSync(zipPath); } catch {}
-    try { fs.unlinkSync(extractPhpPath); } catch {}
-
-    spinner.start('Triggering atomic extraction on Hostinger server...');
-    await new Promise((resolve, reject) => {
-      https.get(`https://onevishwam.com/extract.php?token=${extractToken}`, (res) => {
-        let body = '';
-        res.on('data', (c) => body += c);
-        res.on('end', () => {
-          if (body.includes('DEPLOY_SUCCESS')) {
-            spinner.succeed(`Atomic deployment extraction completed on Hostinger server!`);
-            resolve();
-          } else {
-            spinner.warn(`Extraction responded with: ${body || res.statusCode}`);
-            resolve();
-          }
-        });
-      }).on('error', (err) => {
-        spinner.warn(`Extraction trigger notice: ${err.message}`);
-        resolve();
-      });
+    // ── STEP 5: Direct High-Speed File Upload ──
+    spinner.start('Uploading production build assets to Hostinger...');
+    client.trackProgress((info) => {
+      spinner.text = `Uploading [${info.name}]: ${formatBytes(info.bytesOverall)} / ${formatBytes(totalBytes)}`;
     });
+    await client.uploadDir(distDir);
+    client.trackProgress();
+    client.close();
+    spinner.succeed(`All production assets uploaded directly to Hostinger (${C.brightGreen}${formatBytes(totalBytes)}${C.reset})`);
 
     // ── STEP 6: Live Website Verification Ping ──
     spinner.start('Pinging https://onevishwam.com to verify live deployment...');
