@@ -135,7 +135,7 @@ function ServicesPage() {
                     onClick={() => setSelectedCatTab(tab.id)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       selectedCatTab === tab.id
-                        ? 'bg-amber-500 text-slate-950 shadow-sm font-extrabold'
+                        ? 'bg-action-primary text-action-primary-text shadow-sm font-black border border-action-primary-border'
                         : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >

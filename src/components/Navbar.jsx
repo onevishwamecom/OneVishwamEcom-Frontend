@@ -295,7 +295,7 @@ function Navbar() {
             aria-expanded={openDropdown === link.id}
             onClick={() => toggleDropdown(link.id)}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-colors ${
-              active ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 shadow-2xs font-extrabold' : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+              active ? 'text-brand-blue bg-blue-50 border border-blue-200 shadow-2xs font-extrabold' : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
             }`}
           >
             {link.label}
@@ -335,7 +335,7 @@ function Navbar() {
         key={link.id}
         to={link.href}
         className={`px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-all ${
-          active ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 shadow-2xs font-extrabold' : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+          active ? 'text-brand-blue bg-blue-50 border border-blue-200 shadow-2xs font-extrabold' : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
         }`}
       >
         {link.label}
@@ -383,10 +383,11 @@ function Navbar() {
           }`}
         >
           <header
+            style={scrolled ? { backgroundColor: 'rgba(255, 255, 255, 0.96)' } : { backgroundColor: '#ffffff' }}
             className={`relative z-30 pointer-events-auto transition-all duration-300 ease-in-out ${
               scrolled
-                ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/98 backdrop-blur-md border border-slate-300 shadow-[0_12px_40px_rgba(15,23,42,0.18)] px-4 sm:px-6'
-                : 'w-full bg-white/98 backdrop-blur-md border-b border-slate-300 shadow-sm px-4 sm:px-6 lg:px-8 rounded-none'
+                ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.18)] px-4 sm:px-6'
+                : 'w-full bg-white border-b border-slate-200 shadow-xs px-4 sm:px-6 lg:px-8 rounded-none'
             }`}
           >
           <div className="w-full">
@@ -407,8 +408,8 @@ function Navbar() {
                   to="/home"
                   className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-full border transition-all ${
                     currentLocation.pathname === '/' || currentLocation.pathname === '/home'
-                      ? 'text-brand-blue bg-blue-100/80 border-blue-300/90 shadow-2xs font-extrabold'
-                      : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90 border-transparent'
+                      ? 'text-brand-blue bg-blue-50 border-blue-200 font-extrabold shadow-2xs'
+                      : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90 border-transparent'
                   }`}
                 >
                   Home
@@ -437,8 +438,8 @@ function Navbar() {
                   onClick={() => toggleDropdown('categories')}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-colors ${
                     openDropdown === 'categories' || isCategoryActive
-                      ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 font-extrabold shadow-2xs'
-                      : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+                      ? 'text-brand-blue bg-blue-50 border border-blue-200 font-extrabold shadow-2xs'
+                      : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
                   }`}
                 >
                   <span>Categories</span>
@@ -633,9 +634,9 @@ function Navbar() {
                 <button
                   type="button"
                   onClick={() => openAuthModal('login')}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-brand-blue hover:bg-sky-700 border border-brand-blue rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-black text-action-primary-text bg-action-primary hover:bg-action-primary-hover border border-action-primary-border rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow active:scale-95"
                 >
-                  <i className="fa-solid fa-right-to-bracket text-xs text-white" />
+                  <i className="fa-solid fa-right-to-bracket text-xs text-action-primary-text" />
                   <span>Login</span>
                 </button>
               )}

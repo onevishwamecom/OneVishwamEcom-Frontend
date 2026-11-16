@@ -477,10 +477,18 @@ export default function HeroSection() {
       {/* ═══════════════════════════════════════════════════════════
           1. Category Navigation Bar (Sticky/Stacked at Top)
           ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
+      <section
+        className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-2.5 sm:py-3 border-b-2 border-slate-300 shadow-xs relative z-20"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Top-Right 'Click here for more' Link */}
-          <div className="flex items-center justify-end mb-2 sm:mb-2.5">
+          {/* Header Row: Title & Link to eliminate dead space */}
+          <div className="flex items-center justify-between mb-2 sm:mb-2.5">
+            <div className="flex items-center gap-2">
+              <i className="fa-solid fa-shapes text-brand-blue text-xs sm:text-sm" />
+              <span className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight">Main Categories</span>
+            </div>
             <Link
               to="/categories"
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-blue hover:text-brand-navy hover:underline group transition-all"
@@ -491,27 +499,32 @@ export default function HeroSection() {
           </div>
 
           {/* 4 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
                 <Link
                   key={item.id}
                   to={item.link}
-                  className="group bg-white hover:bg-slate-50 rounded-xl sm:rounded-2xl py-2.5 sm:py-4 px-2.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 sm:gap-3.5 cursor-pointer min-h-[64px] sm:min-h-[78px]"
+                  className="group bg-white hover:bg-slate-50 rounded-xl sm:rounded-2xl py-3 sm:py-3.5 px-3.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer min-h-[72px] sm:min-h-[78px]"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 w-full">
-                    {/* Lineal Illustrated Icon Container (Borderless, Larger Size) */}
-                    <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
-                      <IconComponent className="w-7 h-7 sm:w-10 sm:h-10 object-contain" />
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                    {/* Lineal Illustrated Icon Container */}
+                    <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
+                      <IconComponent className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
                     </div>
 
                     {/* Category Title */}
                     <div className="min-w-0">
-                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-xs sm:text-base transition-colors leading-snug truncate">
+                      <h3 className="font-extrabold text-slate-900 group-hover:text-brand-blue text-sm sm:text-base transition-colors leading-snug truncate">
                         {item.title}
                       </h3>
                     </div>
+                  </div>
+
+                  {/* Right Arrow Disc to fill empty white space */}
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 group-hover:bg-slate-950 text-slate-400 group-hover:text-white flex items-center justify-center transition-all shrink-0">
+                    <i className="fa-solid fa-arrow-right text-[10px] sm:text-xs group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </Link>
               );
@@ -521,9 +534,13 @@ export default function HeroSection() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. Cinema Hero Banner (Reduced Brightness Balanced Slate)
+          2. Cinema Hero Banner (Balanced Slate Background)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-gradient-to-b from-[#9eb3c9] via-[#b0c4d9] to-[#94abc2]">
+      <div
+        className="relative w-full bg-gradient-to-b from-[#9eb3c9] via-[#b0c4d9] to-[#94abc2]"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         {/* Background Ambient Glows & Carousel Slides Layer (Strictly Clipped) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* ── Ambient Soft Glow Lights (Balanced Slate & Muted Cool Tones) ── */}
@@ -548,16 +565,19 @@ export default function HeroSection() {
                   fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
-                {/* Balanced Slate Overlay with reduced brightness and crisp depth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/55 via-[#a1b7cd]/45 to-[#859cb3]/65" />
-                <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#859cb3] via-[#859cb3]/60 to-transparent" />
+                {/* Balanced Slate Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/40 via-[#a1b7cd]/30 to-[#859cb3]/50" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#859cb3] via-[#859cb3]/50 to-transparent" />
               </div>
             );
           })}
+
+          {/* Luminous Text Scrim for Guaranteed Razor-Sharp Legibility matching PageHero */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-900/40 to-slate-950/65 pointer-events-none" />
         </div>
 
         <section
-          className="relative w-full min-h-[440px] sm:min-h-[510px] md:min-h-[550px] flex flex-col justify-start items-center text-center px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 md:pt-14 pb-14 sm:pb-20"
+          className="relative w-full min-h-[360px] sm:min-h-[400px] md:min-h-[430px] flex flex-col justify-start items-center text-center px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 md:pt-8 pb-8 sm:pb-10"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           aria-roledescription="carousel"
@@ -586,28 +606,27 @@ export default function HeroSection() {
           <div className="relative z-30 max-w-5xl mx-auto w-full pt-1 sm:pt-2">
             {/* Tag / Pill-badge: THE BEST WAY TO */}
             <div className="inline-flex items-center gap-2 mb-2.5 sm:mb-3">
-              <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/85 border border-white/70 shadow-xs backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#134e8f]" />
-                <span className="text-[#0f233a] text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em]">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 px-3.5 sm:px-4 py-1 sm:py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 shadow-md">
+                <i className={`${activeSlide.badgeIcon || 'fa-solid fa-shapes'} text-xs text-[#90dafc]`} />
+                <span className="text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-white">
                   THE BEST WAY TO
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#134e8f]" />
               </div>
             </div>
 
-            {/* Main Headline (Strictly One Line) */}
+            {/* Main Headline (Ultra High-Contrast Crisp White + Glowing Brand Highlight matching PageHero) */}
             <div className="flex flex-col items-center justify-center w-full">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black tracking-tight leading-tight text-center drop-shadow-xs break-words sm:whitespace-nowrap px-2 text-[#0f233a]">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-center break-words sm:whitespace-nowrap px-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
                 <span>{activeSlide.title} </span>
-                <span className="text-[#134e8f] bg-gradient-to-r from-[#134e8f] to-[#0284c7] bg-clip-text text-transparent">
+                <span className="text-[#90dafc] font-black drop-shadow-[0_2px_8px_rgba(144,218,252,0.4)]">
                   in Bengaluru
                 </span>
               </h1>
             </div>
 
-            {/* Description Paragraph */}
-            <div className="min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center mt-2 sm:mt-3">
-              <p className="text-xs sm:text-base text-[#1e3a5f] font-semibold max-w-2xl mx-auto leading-relaxed drop-shadow-2xs">
+            {/* Description Paragraph (Crystal Clear High-Contrast Text) */}
+            <div className="min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center mt-2 sm:mt-2.5">
+              <p className="text-xs sm:text-base text-slate-100 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
                 {activeSlide.subtitle}
               </p>
             </div>
@@ -615,8 +634,8 @@ export default function HeroSection() {
             {/* ═══════════════════════════════════════════════════════════
                 Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
-            <div className="mt-5 sm:mt-8 w-full max-w-3xl lg:max-w-4xl mx-auto px-1 sm:px-4 flex flex-col z-40">
-              {/* 1. 5 Equivalent Search Tabs (Spanning full width across the search row) */}
+            <div className="mt-3 sm:mt-4 w-full max-w-3xl lg:max-w-4xl mx-auto px-1 sm:px-4 flex flex-col z-40">
+              {/* 1. 5 Equivalent Search Tabs */}
               <div className="flex items-center gap-1.5 sm:grid sm:grid-cols-5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full overflow-x-auto scrollbar-hide py-0.5 touch-pan-x">
                 {SEARCH_TABS.map((tab) => {
                   const isActive = activeCategory === tab.id;
@@ -626,11 +645,11 @@ export default function HeroSection() {
                       type="button"
                       onClick={() => setActiveCategory(tab.id)}
                       className={`shrink-0 sm:shrink w-auto sm:w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3 h-9 sm:h-11 text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${isActive
-                        ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
-                        : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
+                        ? 'bg-action-primary text-action-primary-text font-black shadow-md border-2 border-action-primary-border z-20'
+                        : 'bg-slate-950/60 hover:bg-slate-900/80 text-white/90 hover:text-white font-bold border border-white/20 backdrop-blur-md shadow-xs'
                         }`}
                     >
-                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-[#134e8f]' : 'text-slate-600'}`} />
+                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-action-primary-text' : 'text-[#90dafc]'}`} />
                       <span className="hidden md:inline">{tab.label}</span>
                       <span className="inline md:hidden">{tab.shortLabel || tab.label}</span>
                     </button>
@@ -682,15 +701,15 @@ export default function HeroSection() {
                   )}
                 </div>
 
-                {/* Search Button */}
+                {/* Search Button (Harmonized Action Primary #90dafc) */}
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-brand-blue hover:bg-brand-navy text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-brand-blue hover:border-brand-navy shadow-md hover:shadow-lg shadow-brand-blue/30 hover:shadow-brand-navy/40 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30 transition-all duration-200 active:scale-95"
+                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border border-action-primary-border shadow-md hover:shadow-lg shadow-[#90dafc]/20 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30 transition-all duration-200 active:scale-95"
                   aria-label="Submit search"
                 >
-                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm pointer-events-none" />
-                  <span className="pointer-events-none">Search</span>
+                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm pointer-events-none text-action-primary-text" />
+                  <span className="pointer-events-none text-action-primary-text">Search</span>
                 </button>
 
                 {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
@@ -773,17 +792,17 @@ export default function HeroSection() {
                 )}
               </div>
 
-              {/* 3. Trending Section (Full width matching tabs & search bar above) */}
+              {/* 3. Trending Section */}
               <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
-                <span className="rounded-full bg-slate-900 text-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
-                  <i className="fa-solid fa-fire text-amber-400 text-[9px] sm:text-xs" /> TRENDING:
+                <span className="rounded-full bg-slate-950/80 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-white/20 backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
+                  <i className="fa-solid fa-fire text-[#90dafc] text-[9px] sm:text-xs" /> TRENDING:
                 </span>
                 {POPULAR_CHIPS.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleChipClick(chip)}
-                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                    className="shrink-0 rounded-full bg-slate-950/60 hover:bg-slate-900/90 text-slate-100 hover:text-white px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border border-white/15 hover:border-white/30 backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                   >
                     {chip.label || chip}
                   </button>
@@ -806,8 +825,11 @@ export default function HeroSection() {
             ))}
           </div>
 
-          {/* ── Seamless Gradient Melting Hero Slate into Below Section (Behind Content & Dropdown) ── */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-slate-200/50 via-slate-200/15 to-transparent pointer-events-none z-0" />
+          {/* ── Seamless Gradient Melting Hero Slate into Below Section ── */}
+          <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-slate-900/30 via-slate-900/10 to-transparent pointer-events-none z-0" />
+
+          {/* Subtle Bottom Border Line matching PageHero */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-slate-300/40 pointer-events-none z-10" />
         </section>
       </div>
     </div>

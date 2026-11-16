@@ -486,7 +486,7 @@ export default function MasterDetailPage({
           </p>
           <button
             onClick={goBack}
-            className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors cursor-pointer"
+            className="w-full rounded-xl bg-action-primary py-2.5 text-sm font-black text-action-primary-text hover:bg-action-primary-hover border border-action-primary-border transition-colors cursor-pointer shadow-sm"
           >
             &larr; Back to {categoryName}
           </button>
@@ -1056,7 +1056,7 @@ export default function MasterDetailPage({
                       </button>
                       <a
                         href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95 whitespace-nowrap border border-action-primary-border"
                       >
                         <i className="fa-solid fa-phone text-xs" />
                         <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
@@ -1075,7 +1075,7 @@ export default function MasterDetailPage({
                     </button>
                     <a
                       href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs sm:text-sm shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95 border border-action-primary-border"
                     >
                       <i className="fa-solid fa-phone text-xs" />
                       <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
@@ -1397,7 +1397,7 @@ export default function MasterDetailPage({
                       <button
                         type="button"
                         onClick={() => setEnquiryOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-extrabold text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer border border-action-primary-border"
                       >
                         <i className="fa-solid fa-handshake-angle text-xs" />
                         <span>Are You Interested?</span>
@@ -2135,7 +2135,7 @@ export default function MasterDetailPage({
 
             <a
               href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-              className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="rounded-xl bg-action-primary hover:bg-action-primary-hover px-3.5 sm:px-4 py-2.5 text-xs font-black text-action-primary-text transition-all shadow-xs flex items-center gap-1.5 cursor-pointer border border-action-primary-border"
             >
               <i className="fa-solid fa-phone text-xs" />
               <span className="hidden sm:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>

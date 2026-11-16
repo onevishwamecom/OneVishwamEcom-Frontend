@@ -384,6 +384,20 @@ async function deploy() {
     });
     await client.uploadDir(distDir);
     client.trackProgress();
+
+    // Mirror to /public_html if deploying to domain directory
+    if (targetDir !== 'public_html') {
+      try {
+        spinner.text = 'Mirroring build assets to /public_html backup root...';
+        await client.cd('/');
+        await client.ensureDir('/public_html');
+        await client.cd('/public_html');
+        await client.uploadDir(distDir);
+      } catch (mirrorErr) {
+        // non-critical mirror failure
+      }
+    }
+
     client.close();
     spinner.succeed(`All production assets uploaded directly to Hostinger (${C.brightGreen}${formatBytes(totalBytes)}${C.reset})`);
 

@@ -148,7 +148,7 @@ function QuickMatchModal({ onClose }) {
             <button
               type="button"
               onClick={handleBrowseAll}
-              className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full rounded-xl bg-[#90dafc] py-2.5 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <i className="fa-solid fa-arrow-right" />
               Browse All Properties
@@ -304,7 +304,7 @@ function QuickMatchModal({ onClose }) {
               <button
                 type="button"
                 onClick={handleFindMatch}
-                className="w-full rounded-xl bg-brand-blue py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <i className="fa-solid fa-magnifying-glass" />
                 Find Matching Properties
@@ -352,7 +352,7 @@ function QuickMatchModal({ onClose }) {
                       <button
                         type="button"
                         onClick={() => { onClose(); navigateTo(`/property/${pId}`); }}
-                        className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                        className="ml-3 shrink-0 rounded-lg bg-[#90dafc] px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
                       >
                         View
                       </button>
@@ -383,7 +383,7 @@ function QuickMatchModal({ onClose }) {
                       <button
                         type="button"
                         onClick={() => { onClose(); navigateTo(`/property/${pId}`); }}
-                        className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                        className="ml-3 shrink-0 rounded-lg bg-[#90dafc] px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
                       >
                         View
                       </button>
@@ -410,7 +410,7 @@ function QuickMatchModal({ onClose }) {
             <button
               type="button"
               onClick={handleBrowseAll}
-              className="flex-1 rounded-xl bg-brand-blue py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+              className="flex-1 rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
             >
               Browse All
             </button>
@@ -434,7 +434,7 @@ function QuickMatchModal({ onClose }) {
             <button
               type="button"
               onClick={() => { onClose(); navigateTo('/contact-us/'); }}
-              className="w-full rounded-xl bg-brand-blue py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+              className="w-full rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
             >
               Contact Agent
             </button>

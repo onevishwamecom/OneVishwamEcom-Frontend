@@ -425,11 +425,11 @@ export default function MarketplaceCategoryGallery({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <Breadcrumbs categoryName={breadcrumbCategory} />
-              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-brand-charcoal tracking-tight">
+              <h1 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight">
                 {categoryTitle}
               </h1>
               {categorySubtitle && (
-                <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-2xl">
+                <p className="mt-1 text-xs sm:text-sm font-semibold text-slate-700 max-w-2xl leading-relaxed">
                   {categorySubtitle}
                 </p>
               )}
@@ -458,9 +458,9 @@ export default function MarketplaceCategoryGallery({
                     signalHomepageRefresh();
                     onQuickMatch();
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2 text-xs font-extrabold transition-all shadow-xs cursor-pointer active:scale-95"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text px-4 py-2 text-xs font-black transition-all shadow-sm cursor-pointer active:scale-95 border border-action-primary-border"
                 >
-                  <i className="fa-solid fa-bolt text-slate-900" />
+                  <i className="fa-solid fa-bolt text-action-primary-text" />
                   <span>{quickMatchLabel}</span>
                 </button>
               )}
@@ -503,7 +503,7 @@ export default function MarketplaceCategoryGallery({
                 onClick={() => {
                   if (onSearchChange) onSearchChange(searchInput);
                 }}
-                className="text-[11px] font-bold text-white bg-brand-blue hover:bg-blue-700 hover:shadow-md hover:scale-105 active:scale-95 px-3 py-1.5 rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1"
+                className="text-[11px] font-black text-action-primary-text bg-action-primary hover:bg-action-primary-hover hover:shadow-md hover:scale-105 active:scale-95 px-3 py-1.5 rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1 border border-action-primary-border"
                 aria-label="Execute search"
               >
                 <i className="fa-solid fa-magnifying-glass text-[10px]" />

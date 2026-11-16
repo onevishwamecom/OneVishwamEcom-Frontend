@@ -1,0 +1,156 @@
+/**
+ * OneVishwam Centralized Design Token System
+ * 
+ * Architecture:
+ * 1. Global Primitives: Raw extracted hex/rgb values from current project design.
+ * 2. Semantic Roles: Global mappings (primary, secondary, surfaces, text, borders).
+ * 3. Module-Specific Scopes: Per-vertical tokens for Properties, Autos, Electronics, Comfort, Navigation & Footer.
+ * 
+ * Changing a single variable here cascades instantly across every page, module, and component.
+ */
+
+:root {
+  /* ════════════════════════════════════════════════════════════════
+     LAYER 1: PRIMITIVE PALETTE (Extracted from project)
+     ════════════════════════════════════════════════════════════════ */
+  /* Sky Action Tones (Current Primary Button Color) */
+  --primitive-action-primary: #90dafc;
+  --primitive-action-primary-hover: #78d0f8;
+  --primitive-action-primary-border: #70caf5;
+  --primitive-action-primary-text: #020617; /* High contrast black */
+
+  /* Dark Institutional Tones (Footer & Primary Dark) */
+  --primitive-dark-navy: #0f233a;
+  --primitive-slate-950: #020617;
+  --primitive-slate-900: #0f172a;
+  --primitive-slate-800: #1e293b;
+  --primitive-slate-700: #334155;
+  --primitive-slate-500: #64748b;
+  --primitive-slate-300: #cbd5e1;
+  --primitive-slate-200: #e2e8f0;
+  --primitive-slate-100: #f1f5f9;
+  --primitive-slate-50: #f8fafc;
+  --primitive-pure-white: #ffffff;
+
+  /* Brand Accents */
+  --primitive-brand-blue: #134e8f;
+  --primitive-brand-blue-hover: #0f3d73;
+  --primitive-brand-ice: #e8f2fb;
+  --primitive-emerald: #10b981;
+  --primitive-emerald-hover: #059669;
+  --primitive-amber: #f59e0b;
+  --primitive-amber-hover: #d97706;
+
+  /* Hero & Header Slate Gradient & Overlays */
+  --primitive-hero-from: #9eb3c9;
+  --primitive-hero-via: #b0c4d9;
+  --primitive-hero-to: #94abc2;
+  --primitive-overlay-from: #8fa5bc;
+  --primitive-overlay-via: #a1b7cd;
+  --primitive-overlay-to: #859cb3;
+
+  /* ════════════════════════════════════════════════════════════════
+     LAYER 2: SEMANTIC ROLES (Global Sitewide Mappings)
+     ════════════════════════════════════════════════════════════════ */
+  /* Primary Action Button (Changing these 4 variables cascades to ALL primary buttons) */
+  --color-primary: var(--primitive-action-primary);
+  --color-primary-hover: var(--primitive-action-primary-hover);
+  --color-primary-border: var(--primitive-action-primary-border);
+  --color-primary-text: var(--primitive-action-primary-text);
+
+  /* Secondary / Ghost Action Button */
+  --color-secondary: var(--primitive-pure-white);
+  --color-secondary-hover: var(--primitive-slate-50);
+  --color-secondary-border: var(--primitive-slate-300);
+  --color-secondary-text: var(--primitive-slate-950);
+
+  /* Global Brand Anchors */
+  --color-brand-blue: var(--primitive-brand-blue);
+  --color-brand-navy: var(--primitive-dark-navy);
+
+  /* Global Surfaces & Layout Backgrounds */
+  --color-background: var(--primitive-slate-50);
+  --color-surface: var(--primitive-pure-white);
+  --color-surface-hover: var(--primitive-slate-100);
+
+  /* Global Typography */
+  --color-text-main: var(--primitive-slate-950);
+  --color-text-secondary: var(--primitive-slate-800);
+  --color-text-muted: var(--primitive-slate-500);
+
+  /* ════════════════════════════════════════════════════════════════
+     LAYER 3: MODULE-SPECIFIC SCOPES (Overridable per Vertical)
+     ════════════════════════════════════════════════════════════════ */
+  /* Properties Module */
+  --module-prop-primary: var(--color-primary);
+  --module-prop-primary-hover: var(--color-primary-hover);
+  --module-prop-primary-text: var(--color-primary-text);
+  --module-prop-badge-bg: #eff6ff;
+  --module-prop-badge-text: #1d4ed8;
+  --module-prop-badge-border: #bfdbfe;
+
+  /* Automobiles Module */
+  --module-auto-primary: var(--color-primary);
+  --module-auto-primary-hover: var(--color-primary-hover);
+  --module-auto-primary-text: var(--color-primary-text);
+  --module-auto-badge-bg: #ecfdf5;
+  --module-auto-badge-text: #047857;
+  --module-auto-badge-border: #a7f3d0;
+
+  /* Consumer Electronics Module */
+  --module-elec-primary: var(--color-primary);
+  --module-elec-primary-hover: var(--color-primary-hover);
+  --module-elec-primary-text: var(--color-primary-text);
+  --module-elec-badge-bg: #faf5ff;
+  --module-elec-badge-text: #6b21a8;
+  --module-elec-badge-border: #e9d5ff;
+
+  /* Bedding & Comfort Module */
+  --module-comfort-primary: var(--color-primary);
+  --module-comfort-primary-hover: var(--color-primary-hover);
+  --module-comfort-primary-text: var(--color-primary-text);
+  --module-comfort-badge-bg: #fff7ed;
+  --module-comfort-badge-text: #c2410c;
+  --module-comfort-badge-border: #fed7aa;
+
+  /* Hero Banner & PageHeader Scope */
+  --module-hero-from: var(--primitive-hero-from);
+  --module-hero-via: var(--primitive-hero-via);
+  --module-hero-to: var(--primitive-hero-to);
+  --module-hero-overlay-from: var(--primitive-overlay-from);
+  --module-hero-overlay-via: var(--primitive-overlay-via);
+  --module-hero-overlay-to: var(--primitive-overlay-to);
+  --module-hero-title: var(--primitive-slate-950);
+  --module-hero-subtitle: var(--primitive-slate-950);
+
+  /* Navigation & Footer Scope */
+  --module-nav-bg: var(--primitive-pure-white);
+  --module-nav-text: var(--primitive-slate-950);
+  --module-footer-text: var(--primitive-slate-950);
+  --module-footer-dark: var(--primitive-dark-navy);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CENTRAL BUTTON HELPER CLASSES (Reusable Sitewide)
+   ════════════════════════════════════════════════════════════════ */
+.btn-primary-token {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-text) !important;
+  border: 1px solid var(--color-primary-border) !important;
+  font-weight: 900 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-primary-token:hover {
+  background-color: var(--color-primary-hover) !important;
+}
+
+.btn-secondary-token {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-secondary-text) !important;
+  border: 1px solid var(--color-secondary-border) !important;
+  font-weight: 700 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-secondary-token:hover {
+  background-color: var(--color-secondary-hover) !important;
+}

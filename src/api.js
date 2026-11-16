@@ -1,13 +1,18 @@
 import axios from 'axios';
 import { auth } from './firebase/config';
 
-const DEFAULT_API_URL = 'https://asia-south1-onevishwam.cloudfunctions.net/api';
+const PROD_API_URL = 'https://asia-south1-onevishwam.cloudfunctions.net/api';
+const LOCAL_API_URL = 'http://localhost:5001/api';
+
+// 100% Automated Environment Resolution:
+// During 'npm run dev', automatically use local server (localhost:5001).
+// During 'npm run build' / production, automatically use production Cloud Functions API.
+export const RESOLVED_API_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_DEV_API_URL || LOCAL_API_URL)
+  : (import.meta.env.VITE_PROD_API_URL || import.meta.env.VITE_API_URL || PROD_API_URL);
 
 const client = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_BASE_URL ||
-    import.meta.env.VITE_API_URL ||
-    DEFAULT_API_URL,
+  baseURL: RESOLVED_API_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
   validateStatus: (status) => status >= 200 && status < 400,

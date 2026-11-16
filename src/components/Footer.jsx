@@ -7,11 +7,10 @@ function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <>
+    <footer className="bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-800 border-t-2 border-sky-300/80 shadow-inner">
       <HitCounterBanner />
-      <footer className="bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-800 border-t-2 border-sky-300/80 shadow-inner">
-        <div className="h-1.5 bg-gradient-to-r from-brand-blue via-amber-400 to-sky-400" />
-        <div className="mx-auto max-w-7xl px-4 pt-10 pb-6 sm:pt-12 sm:pb-8 sm:px-6 lg:px-8">
+      <div className="h-1 bg-gradient-to-r from-brand-blue via-amber-400 to-sky-400" />
+      <div className="mx-auto max-w-7xl px-4 pt-8 pb-6 sm:pt-10 sm:pb-8 sm:px-6 lg:px-8">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
             {/* Brand Info */}
             <div className="space-y-4">
@@ -85,8 +84,7 @@ function Footer() {
           </div>
         </div>
       </footer>
-    </>
-  );
-}
+    );
+  }
 
 export default Footer;

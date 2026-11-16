@@ -259,12 +259,12 @@ function Home() {
         </section>
       )}
 
-      <div className="relative z-10 bg-slate-50/70 pb-16 sm:pb-24">
+      <div className="relative z-10 bg-slate-50/70 pb-8 sm:pb-10">
 
         {/* ── Module 1: Discover Our Featured Properties (Homez style) ── */}
-        <section className="pt-12 sm:pt-16">
+        <section className="pt-8 sm:pt-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-house-chimney text-xs" /> {stats.totalProperties || latestProperties.length}+ Available
@@ -285,7 +285,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
               {dreamHomes.map((p) => (
                 <div key={p.id || p._id} className="group shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
                   <ProductCard
@@ -308,9 +308,9 @@ function Home() {
 
         {/* ── Module 2: Vehicles Corner (Homez style) ── */}
         {!PROPERTIES_ONLY && (
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-car text-xs" /> Certified Transport
@@ -331,7 +331,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
               {latestVehicles.slice(0, 5).map((v) => (
                 <div key={v.id || v._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
                   <ProductCard
@@ -356,9 +356,9 @@ function Home() {
         )}
 
         {/* ── Module 3: Fresh Arrivals (Homez style) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-clock text-xs" /> Just Uploaded
@@ -379,7 +379,7 @@ function Home() {
               </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 touch-pan-y">
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
               {todayListed.map((p) => (
                 <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[72vw] sm:w-[52vw] lg:w-auto">
                   <ProductCard
@@ -403,16 +403,16 @@ function Home() {
         </section>
 
         {/* ── Module 4: Properties by Localities (Bangalore BBMP Distribution) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-10">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-3">
+            <div className="text-center max-w-3xl mx-auto mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-2.5">
                 <i className="fa-solid fa-map-location-dot text-xs" /> Regional BBMP Distribution
               </span>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
                 Properties by Localities
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+              <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
                 Click any administrative zone on the official BBMP map below to inspect verified listings, price trends, and availability.
               </p>
             </div>
@@ -434,7 +434,7 @@ function Home() {
         </section>
 
         {/* ── Homez Expert CTA Banner (`Need help? Talk to our expert.`) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="relative rounded-3xl bg-gradient-to-b from-[#d9ebfa] via-[#e5f1fc] to-[#d6e9f9] text-slate-900 p-8 sm:p-12 lg:p-14 overflow-hidden shadow-sm border border-sky-200/90 flex flex-col md:flex-row md:items-center justify-between gap-8">
               {/* Ambient Soft Glow Lights Matching Hero Banner */}
@@ -463,7 +463,7 @@ function Home() {
                       })
                     )
                   }
-                  className="rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black px-7 py-3.5 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                  className="rounded-full bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black px-7 py-3.5 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 border border-action-primary-border"
                 >
                   <i className="fa-solid fa-phone-volume text-xs" />
                   <span>Contact Us</span>

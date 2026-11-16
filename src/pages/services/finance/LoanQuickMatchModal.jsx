@@ -135,7 +135,7 @@ export default function LoanQuickMatchModal({ onClose }) {
           <button
             type="button"
             onClick={handleFindMatch}
-            className="w-full rounded-xl bg-brand-blue py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+            className="w-full rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
           >
             Find Match
           </button>
@@ -178,7 +178,7 @@ export default function LoanQuickMatchModal({ onClose }) {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onClose(); navigateTo(`/finance/${loanId}`); }}
-                        className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                        className="ml-3 shrink-0 rounded-lg bg-[#90dafc] px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
                       >
                         View
                       </button>
@@ -215,7 +215,7 @@ export default function LoanQuickMatchModal({ onClose }) {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onClose(); navigateTo(`/finance/${loanId}`); }}
-                        className="ml-3 shrink-0 rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                        className="ml-3 shrink-0 rounded-lg bg-[#90dafc] px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
                       >
                         View
                       </button>
@@ -229,7 +229,7 @@ export default function LoanQuickMatchModal({ onClose }) {
           <button
             type="button"
             onClick={() => setStep(3)}
-            className="w-full rounded-xl bg-brand-blue py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+            className="w-full rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
           >
             Continue
           </button>
@@ -251,7 +251,7 @@ export default function LoanQuickMatchModal({ onClose }) {
             <button
               type="button"
               onClick={() => { onClose(); navigateTo('/contact-us/'); }}
-              className="w-full rounded-xl bg-brand-blue py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+              className="w-full rounded-xl bg-[#90dafc] py-3 text-sm font-black text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60 transition-colors cursor-pointer"
             >
               Contact Loan Advisor
             </button>

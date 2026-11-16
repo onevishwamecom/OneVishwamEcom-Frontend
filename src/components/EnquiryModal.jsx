@@ -104,8 +104,8 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
               <button
                 type="button"
                 onClick={copyPhone}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors cursor-pointer shrink-0 ${
-                  copied ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-blue text-white hover:bg-brand-navy'
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition-colors cursor-pointer shrink-0 ${
+                  copied ? 'bg-emerald-100 text-emerald-700' : 'bg-[#90dafc] text-slate-950 hover:bg-[#78d0f8] border border-[#78d0f8]/60'
                 }`}
               >
                 <i className={`fa-solid ${copied ? 'fa-check' : 'fa-copy'}`} />
@@ -150,7 +150,7 @@ function EnquiryModal({ open, isOpen, onClose, propertyTitle, propertyId }) {
           <button
             type="button"
             onClick={handleCloseModal}
-            className="w-full rounded-xl border border-gray-200 text-gray-600 px-4 py-2.5 text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
+            className="w-full rounded-xl border border-slate-300 text-slate-950 px-4 py-2.5 text-sm font-bold hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Close
           </button>

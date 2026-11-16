@@ -244,9 +244,9 @@ function AboutPage() {
             <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 shrink-0">
               <Link
                 to="/property"
-                className="inline-flex items-center gap-2 bg-brand-blue text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-brand-navy transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-action-primary hover:bg-action-primary-hover text-action-primary-text px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer border border-action-primary-border"
               >
-                <i className="fa-solid fa-house-chimney" /> Explore Properties
+                <i className="fa-solid fa-house-chimney text-action-primary-text" /> Explore Properties
               </Link>
               <Link
                 to="/enquiry/"

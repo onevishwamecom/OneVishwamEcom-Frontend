@@ -648,7 +648,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
           </div>
 
           {/* Clean Non-Overlapping Pie Chart */}
-          <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] my-3 flex items-center justify-center">
+          <div className="relative w-[240px] h-[240px] sm:w-[260px] sm:h-[260px] my-2 flex items-center justify-center">
             <svg
               viewBox="0 0 300 300"
               className="w-full h-full drop-shadow-sm overflow-visible"
@@ -701,7 +701,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
           </div>
 
           {/* 8 Slices Legend Grid */}
-          <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-gray-100 text-xs">
+          <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-100 text-xs">
             {legendList.map((item) => {
               const isSelected =
                 String(activeZone || '').toLowerCase() === item.key.toLowerCase() ||
@@ -714,7 +714,7 @@ function BangalorePropertyPieMap({ properties = [], activeZone, onSelectZone }) 
                   onClick={() => onSelectZone?.(isSelected ? 'All' : item.name)}
                   onMouseEnter={() => setHoveredZone(item.key)}
                   onMouseLeave={() => setHoveredZone(null)}
-                  className={`flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer border ${
+                  className={`flex items-center justify-between py-1.5 px-2.5 rounded-xl transition-all cursor-pointer border ${
                     isSelected
                       ? 'bg-brand-blue/10 border-brand-blue/40 ring-1 ring-brand-blue/30 font-bold text-brand-charcoal'
                       : isHovered
