@@ -44,9 +44,22 @@ function Home() {
       handleMatchOrStale();
     }
 
+    const handleWindowCheck = () => {
+      if (isHomepageStale()) {
+        handleMatchOrStale();
+      }
+    };
+
     window.addEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+    window.addEventListener('focus', handleWindowCheck);
+    window.addEventListener('pageshow', handleWindowCheck);
+    window.addEventListener('popstate', handleWindowCheck);
+
     return () => {
       window.removeEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+      window.removeEventListener('focus', handleWindowCheck);
+      window.removeEventListener('pageshow', handleWindowCheck);
+      window.removeEventListener('popstate', handleWindowCheck);
     };
   }, [routeLocation.pathname, refresh, refetchProperties]);
 

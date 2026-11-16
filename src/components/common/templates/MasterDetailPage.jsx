@@ -498,10 +498,11 @@ export default function MasterDetailPage({
   const itemTitle = cleanProductName(item.title);
 
   // Precise category and link normalization
-  const catNormalized = String(categoryName || item?.category || '').toLowerCase().trim();
+  const catNormalized = String(categoryName || item?.category || item?.raw?.category || '').toLowerCase().trim();
   const linkPrefixNorm = String(itemLinkPrefix || '').toLowerCase().trim();
-  const subcatNormalized = String(item?.subcategory || '').toLowerCase().trim();
-  const combinedContext = `${catNormalized} ${linkPrefixNorm} ${subcatNormalized} ${String(item?.category || '').toLowerCase()}`;
+  const subcatNormalized = String(item?.subcategory || item?.raw?.subcategory || '').toLowerCase().trim();
+  const titleNormalized = String(item?.title || item?.name || '').toLowerCase().trim();
+  const combinedContext = `${catNormalized} ${linkPrefixNorm} ${subcatNormalized} ${titleNormalized} ${String(item?.category || '').toLowerCase()}`;
 
   // Strict Vertical Recognition
   const isBedding = Boolean(
@@ -510,7 +511,9 @@ export default function MasterDetailPage({
     combinedContext.includes('mattress') ||
     combinedContext.includes('pillow') ||
     combinedContext.includes('blanket') ||
-    combinedContext.includes('cushion')
+    combinedContext.includes('cushion') ||
+    combinedContext.includes('bed ') ||
+    combinedContext.includes('sleep')
   );
 
   const isElectronics = Boolean(
@@ -557,8 +560,8 @@ export default function MasterDetailPage({
 
   const isGeneralRetail = isBedding || isElectronics || isGarment || isGrocery || isJewellery;
 
-  // STRICT Vehicle vs Property: CANNOT be true if isGeneralRetail or isFinance
-  const isVehicle = !isGeneralRetail && !isFinance && Boolean(
+  // STRICT Vehicle vs Property: CANNOT be true if isGeneralRetail, isFinance, or isBedding
+  const isVehicle = !isGeneralRetail && !isFinance && !isBedding && Boolean(
     catNormalized === 'automobiles' ||
     catNormalized === 'vehicles' ||
     catNormalized === 'automobile' ||
@@ -1325,24 +1328,24 @@ export default function MasterDetailPage({
             {/* 2. DESCRIPTION WIDGET */}
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs space-y-4">
               <h4 className="text-lg sm:text-xl font-bold text-slate-900">
-                {isVehicle
+                {isBedding
+                  ? 'Product Overview & Comfort Details'
+                  : isVehicle
                   ? 'Vehicle Description'
                   : isProperty
                   ? 'Property Description'
-                  : isBedding
-                  ? 'Product Overview & Comfort Details'
                   : isElectronics
                   ? 'Device Overview & Specifications'
                   : 'Product Description'}
               </h4>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
                 {showFullDesc || !item.description || item.description.length < 350
-                  ? item.description || (isVehicle
+                  ? item.description || (isBedding
+                      ? `${itemTitle} crafted with certified ergonomic materials, official manufacturer warranty, and doorstep delivery across Bengaluru.`
+                      : isVehicle
                       ? `${itemTitle} available with verified inspection, manufacturer warranty support, and pre-approved vehicle loans under the OneVishwam Automotive Network.`
                       : isProperty
                       ? `${itemTitle} verified and listed on OneVishwam. Inspected for quality, legal authenticity, and pre-approved for priority bank financing and buyer protection.`
-                      : isBedding
-                      ? `${itemTitle} crafted with certified ergonomic materials, official manufacturer warranty, and doorstep delivery across Bengaluru.`
                       : isElectronics
                       ? `${itemTitle} certified authentic with official brand warranty, GST invoice, and safe express doorstep delivery.`
                       : `${itemTitle} verified and listed on OneVishwam with quality assurance and priority customer service.`)
@@ -1438,6 +1441,64 @@ export default function MasterDetailPage({
                   </div>
                 </div>
               </div>
+            ) : isBedding ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
+                    <i className="fa-solid fa-bed" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Bedding &amp; Comfort Specifications</h4>
+                    <p className="text-xs text-gray-500">Authentic manufacturer details, dimensions, and warranty coverage</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Item ID</span>
+                      <span className="font-bold text-slate-900">BD#{String(item.id || item._id || '01').slice(-6)}</span>
+                    </div>
+                    {item.brand && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Brand</span>
+                        <span className="font-bold text-slate-900">{item.brand}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Collection / Category</span>
+                      <span className="font-bold text-slate-900">{item.subcategory || item.category || 'Bedding & Sleep Comfort'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Model / Design</span>
+                      <span className="font-bold text-slate-900">{item.model || itemTitle}</span>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Condition</span>
+                      <span className="font-bold text-emerald-600">{item.condition === 'new' ? 'Brand New Sealed' : (item.condition || 'Brand New')}</span>
+                    </div>
+                    {item.warranty && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Official Warranty</span>
+                        <span className="font-bold text-slate-900">{item.warranty}</span>
+                      </div>
+                    )}
+                    {(item.showroom?.name || item.seller?.name || item.location) && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Experience Store / Store</span>
+                        <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
+                          {item.showroom?.name || item.seller?.name || item.location}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Delivery Status</span>
+                      <span className="font-bold text-emerald-600">Free Doorstep Delivery</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : isVehicle ? (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-3 mb-6">
@@ -1495,64 +1556,6 @@ export default function MasterDetailPage({
                       <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
                         {item.showroom?.name || item.seller?.name || item.location || 'Authorized Dealership'}
                       </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : isBedding ? (
-              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
-                    <i className="fa-solid fa-bed" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Bedding &amp; Comfort Specifications</h4>
-                    <p className="text-xs text-gray-500">Authentic manufacturer details, dimensions, and warranty coverage</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-                  <div className="divide-y divide-gray-100">
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Item ID</span>
-                      <span className="font-bold text-slate-900">BD#{String(item.id || item._id || '01').slice(-6)}</span>
-                    </div>
-                    {item.brand && (
-                      <div className="flex justify-between items-center py-3 text-sm">
-                        <span className="font-semibold text-gray-500">Brand</span>
-                        <span className="font-bold text-slate-900">{item.brand}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Collection / Category</span>
-                      <span className="font-bold text-slate-900">{item.subcategory || item.category || 'Bedding & Sleep Comfort'}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Model / Design</span>
-                      <span className="font-bold text-slate-900">{item.model || itemTitle}</span>
-                    </div>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Condition</span>
-                      <span className="font-bold text-emerald-600">{item.condition === 'new' ? 'Brand New Sealed' : (item.condition || 'Brand New')}</span>
-                    </div>
-                    {item.warranty && (
-                      <div className="flex justify-between items-center py-3 text-sm">
-                        <span className="font-semibold text-gray-500">Official Warranty</span>
-                        <span className="font-bold text-slate-900">{item.warranty}</span>
-                      </div>
-                    )}
-                    {(item.showroom?.name || item.seller?.name || item.location) && (
-                      <div className="flex justify-between items-center py-3 text-sm">
-                        <span className="font-semibold text-gray-500">Experience Store / Store</span>
-                        <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
-                          {item.showroom?.name || item.seller?.name || item.location}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Delivery Status</span>
-                      <span className="font-bold text-emerald-600">Free Doorstep Delivery</span>
                     </div>
                   </div>
                 </div>

@@ -282,28 +282,34 @@ function highlightAddress(text, query) {
 }
 
 /* Helper to resolve the correct gallery page route for any category */
-function getGalleryRouteForCategory(category) {
-  const cat = String(category || '').toLowerCase();
+export function getGalleryRouteForCategory(category) {
+  const cat = String(category || '').toLowerCase().trim();
   if (cat === 'all' || cat === 'all-services') {
     return '/categories';
   }
-  if (cat === 'properties' || cat === 'property' || cat === 'real-estate') {
-    return '/categories/properties';
-  }
-  if (cat === 'jewellery' || cat === 'jewellery-gold' || cat === 'gold') {
-    return '/categories/jewellery';
-  }
-  if (cat === 'automobiles' || cat === 'automobile' || cat === 'vehicles' || cat === 'vehicle') {
-    return '/categories/automobile';
-  }
-  if (cat === 'electronics' || cat === 'consumer-electronics') {
-    return '/categories/consumer-electronics';
-  }
-  if (cat === 'comfort' || cat === 'bedding' || cat === 'bedding-comfort') {
+  if (cat.includes('comfort') || cat.includes('bedding') || cat.includes('mattress') || cat.includes('pillow') || cat.includes('sleep')) {
     return '/categories/bedding-comfort';
   }
-  if (cat === 'finance' || cat === 'finance-lending' || cat === 'loans') {
+  if (cat.includes('automobile') || cat.includes('vehicle') || cat.includes('car') || cat.includes('bike')) {
+    return '/categories/automobile';
+  }
+  if (cat.includes('jewellery') || cat.includes('gold') || cat.includes('diamond')) {
+    return '/categories/jewellery';
+  }
+  if (cat.includes('electronic') || cat.includes('appliance') || cat.includes('gadget')) {
+    return '/categories/consumer-electronics';
+  }
+  if (cat.includes('finance') || cat.includes('loan') || cat.includes('lending')) {
     return '/categories/finance-lending';
+  }
+  if (cat.includes('garment') || cat.includes('fashion') || cat.includes('cloth') || cat.includes('apparel')) {
+    return '/categories/garments';
+  }
+  if (cat.includes('grocer') || cat.includes('food')) {
+    return '/categories/groceries';
+  }
+  if (cat.includes('propert') || cat.includes('real')) {
+    return '/categories/properties';
   }
   return '/categories/properties';
 }
@@ -331,12 +337,14 @@ export default function HeroSection() {
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total]);
   const prev = useCallback(() => setCurrent((c) => (c - 1 + total) % total), [total]);
 
-  /* Autoplay */
+  /* Autoplay: pause only when user is actively searching or dropdown is open */
+  const shouldPause = isPaused || showSuggestions || (internalQuery.trim().length > 0 && isSearching);
+
   useEffect(() => {
-    if (isPaused || total <= 1) return;
-    timerRef.current = setInterval(next, 6500);
+    if (shouldPause || total <= 1) return;
+    timerRef.current = setInterval(next, 5000);
     return () => clearInterval(timerRef.current);
-  }, [isPaused, next, total]);
+  }, [shouldPause, next, total]);
 
   /* Touch Swiping */
   const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
@@ -535,13 +543,13 @@ export default function HeroSection() {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover scale-105 transition-transform duration-[4000ms] ease-out opacity-40"
+                  className="w-full h-full object-cover scale-105 transition-transform duration-[4000ms] ease-out opacity-75"
                   loading={idx === 0 ? 'eager' : 'lazy'}
                   fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
                 {/* Balanced Slate Overlay with reduced brightness and crisp depth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/85 via-[#a1b7cd]/75 to-[#859cb3]/85" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/55 via-[#a1b7cd]/45 to-[#859cb3]/65" />
                 <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#859cb3] via-[#859cb3]/60 to-transparent" />
               </div>
             );
@@ -550,8 +558,6 @@ export default function HeroSection() {
 
         <section
           className="relative w-full min-h-[440px] sm:min-h-[510px] md:min-h-[550px] flex flex-col justify-start items-center text-center px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 md:pt-14 pb-14 sm:pb-20"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           aria-roledescription="carousel"
@@ -562,43 +568,46 @@ export default function HeroSection() {
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); prev(); }}
-            className="hidden sm:flex absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Previous slide"
           >
-            <i className="fa-solid fa-chevron-left text-sm" />
+            <i className="fa-solid fa-chevron-left text-xs sm:text-sm" />
           </button>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); next(); }}
-            className="hidden sm:flex absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Next slide"
           >
-            <i className="fa-solid fa-chevron-right text-sm" />
+            <i className="fa-solid fa-chevron-right text-xs sm:text-sm" />
           </button>
 
           {/* ── Center Banner Content ── */}
           <div className="relative z-30 max-w-5xl mx-auto w-full pt-1 sm:pt-2">
             {/* Tag / Pill-badge: THE BEST WAY TO */}
             <div className="inline-flex items-center gap-2 mb-2.5 sm:mb-3">
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-slate-900/85 border border-slate-700/90 shadow-md backdrop-blur-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                <span className="text-slate-100 text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em]">
+              <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/85 border border-white/70 shadow-xs backdrop-blur-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#134e8f]" />
+                <span className="text-[#0f233a] text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em]">
                   THE BEST WAY TO
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#134e8f]" />
               </div>
             </div>
 
             {/* Main Headline (Strictly One Line) */}
             <div className="flex flex-col items-center justify-center w-full">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black text-slate-950 tracking-tight leading-tight text-center drop-shadow-xs break-words sm:whitespace-nowrap px-2">
-                {activeSlide.title} in Bengaluru
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black tracking-tight leading-tight text-center drop-shadow-xs break-words sm:whitespace-nowrap px-2 text-[#0f233a]">
+                <span>{activeSlide.title} </span>
+                <span className="text-[#134e8f] bg-gradient-to-r from-[#134e8f] to-[#0284c7] bg-clip-text text-transparent">
+                  in Bengaluru
+                </span>
               </h1>
             </div>
 
             {/* Description Paragraph */}
             <div className="min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center mt-2 sm:mt-3">
-              <p className="text-xs sm:text-base text-slate-800 font-bold max-w-2xl mx-auto leading-relaxed drop-shadow-2xs">
+              <p className="text-xs sm:text-base text-[#1e3a5f] font-semibold max-w-2xl mx-auto leading-relaxed drop-shadow-2xs">
                 {activeSlide.subtitle}
               </p>
             </div>
@@ -621,7 +630,7 @@ export default function HeroSection() {
                         : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
                         }`}
                     >
-                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
+                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-[#134e8f]' : 'text-slate-600'}`} />
                       <span className="hidden md:inline">{tab.label}</span>
                       <span className="inline md:hidden">{tab.shortLabel || tab.label}</span>
                     </button>
@@ -677,7 +686,7 @@ export default function HeroSection() {
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-[#eb4e52] text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30"
+                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-brand-blue hover:bg-brand-navy text-white font-extrabold px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-brand-blue hover:border-brand-navy shadow-md hover:shadow-lg shadow-brand-blue/30 hover:shadow-brand-navy/40 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30 transition-all duration-200 active:scale-95"
                   aria-label="Submit search"
                 >
                   <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm pointer-events-none" />
@@ -692,13 +701,13 @@ export default function HeroSection() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900">
                           {internalQuery ? (
-                            <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
+                            <>Results for &ldquo;<span className="text-[#134e8f]">{internalQuery}</span>&rdquo;</>
                           ) : (
                             'Popular Inventory'
                           )}
                         </span>
                         {isSearching && (
-                          <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
+                          <i className="fa-solid fa-spinner animate-spin text-[#134e8f] text-xs" />
                         )}
                       </div>
                       <div className="text-[11px] font-extrabold text-slate-600">
@@ -722,7 +731,7 @@ export default function HeroSection() {
                               onClick={() => handleProductClick(item)}
                               className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
                             >
-                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#134e8f] transition-colors truncate">
                                 {highlightAddress(item.title, internalQuery)}
                               </h4>
                               <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
@@ -738,7 +747,7 @@ export default function HeroSection() {
                           <button
                             type="button"
                             onClick={handleSearchSubmit}
-                            className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
+                            className="text-xs font-bold text-[#134e8f] hover:underline cursor-pointer"
                           >
                             Search all categories →
                           </button>
@@ -754,7 +763,7 @@ export default function HeroSection() {
                       <button
                         type="button"
                         onClick={handleSearchSubmit}
-                        className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
+                        className="font-black text-[#134e8f] hover:text-[#0f233a] flex items-center gap-1 cursor-pointer"
                       >
                         <span>See full results</span>
                         <i className="fa-solid fa-arrow-right text-[10px]" />
@@ -767,7 +776,7 @@ export default function HeroSection() {
               {/* 3. Trending Section (Full width matching tabs & search bar above) */}
               <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
                 <span className="rounded-full bg-slate-900 text-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-slate-800 flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
-                  <i className="fa-solid fa-fire text-[#eb4e52] text-[9px] sm:text-xs" /> TRENDING:
+                  <i className="fa-solid fa-fire text-amber-400 text-[9px] sm:text-xs" /> TRENDING:
                 </span>
                 {POPULAR_CHIPS.map((chip, idx) => (
                   <button

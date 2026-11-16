@@ -500,8 +500,13 @@ export default function MarketplaceCategoryGallery({
             <div className="absolute right-3 hidden sm:flex items-center">
               <button
                 type="button"
+                onClick={() => {
+                  if (onSearchChange) onSearchChange(searchInput);
+                }}
                 className="text-[11px] font-bold text-white bg-brand-blue hover:bg-blue-700 hover:shadow-md hover:scale-105 active:scale-95 px-3 py-1.5 rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1"
+                aria-label="Execute search"
               >
+                <i className="fa-solid fa-magnifying-glass text-[10px]" />
                 <span>Search</span>
               </button>
             </div>

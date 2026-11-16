@@ -11,7 +11,7 @@ import { parseIndianPrice } from '../../../utils/priceUtils';
 /* ── Automobile Domain Resolution Helpers (Data-Driven, No Hardcoded Models) ── */
 
 export function getVehicleFuelTypes(v) {
-  if (!v) return [];
+  if (!v) return ['Petrol'];
   const fuels = new Set();
 
   if (v.fuelType) fuels.add(v.fuelType);
@@ -25,20 +25,22 @@ export function getVehicleFuelTypes(v) {
     if (fuelItem?.value) fuels.add(fuelItem.value);
   }
 
-  // Generic keyword detection across description, title, cardPills, features
-  const textPool = [
-    v.title,
-    v.subtitle,
-    v.description,
-    Array.isArray(v.features) ? v.features.join(' ') : '',
-    Array.isArray(v.cardPills) ? v.cardPills.join(' ') : '',
-  ].filter(Boolean).join(' ').toLowerCase();
+  // Only perform generic keyword detection if no explicit fuel type was defined
+  if (fuels.size === 0) {
+    const textPool = [
+      v.title,
+      v.subtitle,
+      v.description,
+      Array.isArray(v.features) ? v.features.join(' ') : '',
+      Array.isArray(v.cardPills) ? v.cardPills.join(' ') : '',
+    ].filter(Boolean).join(' ').toLowerCase();
 
-  if (/\b(petrol)\b/.test(textPool)) fuels.add('Petrol');
-  if (/\b(diesel)\b/.test(textPool)) fuels.add('Diesel');
-  if (/\b(electric|ev)\b/.test(textPool)) fuels.add('Electric');
-  if (/\b(cng)\b/.test(textPool)) fuels.add('CNG');
-  if (/\b(hybrid)\b/.test(textPool)) fuels.add('Hybrid');
+    if (/\b(electric|ev)\b/.test(textPool)) fuels.add('Electric');
+    else if (/\b(diesel)\b/.test(textPool)) fuels.add('Diesel');
+    else if (/\b(cng)\b/.test(textPool)) fuels.add('CNG');
+    else if (/\b(hybrid)\b/.test(textPool)) fuels.add('Hybrid');
+    else if (/\b(petrol)\b/.test(textPool)) fuels.add('Petrol');
+  }
 
   if (fuels.size === 0) {
     fuels.add('Petrol');
@@ -53,7 +55,7 @@ export function getVehicleFuelTypes(v) {
     else if (fl === 'electric' || fl === 'ev') canonical.push('Electric');
     else if (fl === 'cng') canonical.push('CNG');
     else if (fl === 'hybrid') canonical.push('Hybrid');
-    else if (f) canonical.push(f);
+    else if (f) canonical.push(f.charAt(0).toUpperCase() + f.slice(1));
   });
 
   return Array.from(new Set(canonical));
@@ -104,12 +106,6 @@ export function getVehicleBodyTypes(v) {
   if (wheeler === '2-Wheeler') types.add('Cruiser / Bike');
   if (wheeler === 'Commercial' || wheeler === '3-Wheeler') types.add('Commercial');
 
-  if (types.size === 0) {
-    if (wheeler === '4-Wheeler') {
-      types.add('SUV');
-    }
-  }
-
   return Array.from(types);
 }
 
@@ -135,7 +131,12 @@ export function getVehicleTransmissions(v) {
     }
   }
 
-  // Generic keyword check in textPool
+  // If transmission is explicitly determined from vehicle data, return it directly
+  if (list.size > 0) {
+    return Array.from(list);
+  }
+
+  // Generic keyword check in textPool only if transmission wasn't specified
   const textPool = [
     v.title,
     v.subtitle,
@@ -153,15 +154,6 @@ export function getVehicleTransmissions(v) {
   // Electric vehicles and scooters are single-speed / automatic drive
   if (wheeler === '2-Wheeler' || fuel.includes('electric') || /\b(scooter|ev)\b/.test(textPool)) {
     list.add('Automatic');
-  }
-
-  // Passenger 4-wheelers with multi-variants (or unspecified) support both Manual & Automatic
-  if (wheeler === '4-Wheeler' && !fuel.includes('electric')) {
-    list.add('Manual');
-    const variantCount = typeof v.variants === 'number' ? v.variants : (Array.isArray(v.variants) ? v.variants.length : 1);
-    if (variantCount > 1 || !v.transmission) {
-      list.add('Automatic');
-    }
   }
 
   // Fallback

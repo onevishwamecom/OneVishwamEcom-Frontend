@@ -6,11 +6,12 @@ export const MATCH_EVENT_NAME = 'vishwam_match_clicked';
 
 /**
  * Signals that a match action was triggered in a service.
- * Invalidates homepage cached snapshots and sets a stale marker in sessionStorage.
+ * Invalidates homepage cached snapshots and sets a stale marker in sessionStorage and localStorage.
  */
 export function signalHomepageRefresh() {
   try {
     sessionStorage.setItem(STALE_KEY, 'true');
+    localStorage.setItem(STALE_KEY, String(Date.now()));
     cache.invalidate(PUBLIC_NAMESPACE, HOMEPAGE_CACHE_KEY);
     sessionStorage.removeItem('vishwam_centralized_properties_v2');
     window.dispatchEvent(new CustomEvent(MATCH_EVENT_NAME));
@@ -24,17 +25,18 @@ export function signalHomepageRefresh() {
  */
 export function isHomepageStale() {
   try {
-    return sessionStorage.getItem(STALE_KEY) === 'true';
+    return sessionStorage.getItem(STALE_KEY) === 'true' || Boolean(localStorage.getItem(STALE_KEY));
   } catch {
     return false;
   }
 }
 
 /**
- * Clears the stale marker from sessionStorage.
+ * Clears the stale marker from sessionStorage and localStorage.
  */
 export function clearHomepageStale() {
   try {
     sessionStorage.removeItem(STALE_KEY);
+    localStorage.removeItem(STALE_KEY);
   } catch {}
 }

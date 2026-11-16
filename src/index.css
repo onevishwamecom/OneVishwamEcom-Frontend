@@ -90,27 +90,25 @@ body {
   animation-play-state: paused !important;
 }
 
-/* ── Hero Search Button Simple Highlight Hover (No size increase) ── */
+/* ── Hero Search Button Prominent Highlight & Elevation Hover ── */
 .hero-search-btn {
   cursor: pointer !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   user-select: none;
-  transform: none !important;
 }
 
 .hero-search-btn:hover {
-  background-color: #d9383d !important; /* Lighter / vibrant highlight */
-  border-color: #f87171 !important; /* Crisp border highlight */
-  filter: brightness(1.08) !important;
-  box-shadow: 0 0 0 3px rgba(235, 78, 82, 0.35) !important; /* Clean outer highlight ring */
+  background-color: #0f233a !important; /* Brand Navy */
+  border-color: #0f233a !important;
+  box-shadow: 0 12px 30px -4px rgba(19, 78, 143, 0.45), 0 0 0 3px rgba(19, 78, 143, 0.25) !important;
   color: #ffffff !important;
-  transform: none !important;
+  transform: translateY(-2px) scale(1.02) !important;
 }
 
 .hero-search-btn:active {
-  background-color: #b91c1c !important;
-  filter: brightness(0.95) !important;
-  transform: none !important;
+  background-color: #091726 !important;
+  transform: translateY(0px) scale(0.98) !important;
+  box-shadow: 0 4px 12px -2px rgba(15, 35, 58, 0.4) !important;
 }
 
 /* ── Hero Search Input Bar Simple Highlight (No size increase) ── */

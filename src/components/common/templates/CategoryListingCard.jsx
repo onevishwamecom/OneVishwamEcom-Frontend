@@ -32,24 +32,40 @@ export default React.memo(function CategoryListingCard({
   // Normalize data
   const rawTitle = title !== undefined ? title : (item?.title || '');
   const cardTitle = cleanProductName(rawTitle);
+
+  const resolvedCategory = String(
+    item?.category ||
+    item?.raw?.category ||
+    item?.subcategory ||
+    item?.raw?.subcategory ||
+    item?.overline ||
+    ''
+  ).toLowerCase().trim();
+
+  const itemId = item?.id || item?._id || item?.raw?._id || item?.raw?.id;
+
   const cardLink =
     link ||
     item?.link ||
     item?.detailUrl ||
-    (item?.category === 'vehicles' || item?.category === 'automobile'
-      ? `/vehicle/${item?.id || item?._id}`
-      : item?.category === 'electronics'
-      ? `/electronics/${item?.id || item?._id}`
-      : item?.category === 'bedding' || item?.category === 'bedding-comfort'
-      ? `/bedding/${item?.id || item?._id}`
-      : item?.category === 'garments'
-      ? `/garment/${item?.id || item?._id}`
-      : item?.category === 'grocery'
-      ? `/grocery/${item?.id || item?._id}`
-      : item?.category === 'jewellery'
-      ? `/jewellery/${item?.id || item?._id}`
-      : item?.id
-      ? `/property/${item.id}`
+    (itemId
+      ? (resolvedCategory.includes('bedding') || resolvedCategory.includes('comfort') || resolvedCategory.includes('mattress') || resolvedCategory.includes('pillow') || resolvedCategory.includes('sleep')
+        ? `/bedding/${itemId}`
+        : resolvedCategory.includes('vehicle') || resolvedCategory.includes('auto') || resolvedCategory.includes('car') || resolvedCategory.includes('bike')
+        ? `/vehicle/${itemId}`
+        : resolvedCategory.includes('electronic') || resolvedCategory.includes('gadget') || resolvedCategory.includes('appliance')
+        ? `/electronics/${itemId}`
+        : resolvedCategory.includes('garment') || resolvedCategory.includes('apparel') || resolvedCategory.includes('clothing') || resolvedCategory.includes('fashion')
+        ? `/garment/${itemId}`
+        : resolvedCategory.includes('grocer') || resolvedCategory.includes('food')
+        ? `/grocery/${itemId}`
+        : resolvedCategory.includes('jewel') || resolvedCategory.includes('gold') || resolvedCategory.includes('diamond')
+        ? `/jewellery/${itemId}`
+        : resolvedCategory.includes('loan') || resolvedCategory.includes('finance') || resolvedCategory.includes('lending')
+        ? `/finance/${itemId}`
+        : resolvedCategory.includes('property') || resolvedCategory.includes('real')
+        ? `/property/${itemId}`
+        : `/property/${itemId}`)
       : '#');
   const rawImg = image || (Array.isArray(item?.images) ? item.images.find(s => s && !isPlaceholderImage(s)) : '') || item?.image || '';
   const cardImg = isPlaceholderImage(rawImg) ? '' : rawImg;

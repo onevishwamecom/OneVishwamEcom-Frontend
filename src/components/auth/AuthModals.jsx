@@ -512,6 +512,7 @@ function RegisterForm({ onSwitch, onClose }) {
               type={showPassword ? 'text' : 'password'}
               value={form.confirm}
               onChange={(e) => handleChange('confirm', e.target.value)}
+              onPaste={(e) => e.preventDefault()}
               placeholder="••••••••"
               className="w-full bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-300 font-medium"
             />
@@ -873,6 +874,7 @@ function SetPasswordForm({ onBack, onSuccess }) {
               setConfirm(e.target.value);
               clearError();
             }}
+            onPaste={(e) => e.preventDefault()}
             placeholder="••••••••••••"
             className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
           />

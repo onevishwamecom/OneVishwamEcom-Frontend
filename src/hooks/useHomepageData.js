@@ -67,11 +67,24 @@ export function useHomepageData() {
 
   useEffect(() => {
     const handleMatchEvent = () => {
+      clearHomepageStale();
       fetch(true);
     };
+
+    const handleFocusOrPageShow = () => {
+      if (isHomepageStale()) {
+        clearHomepageStale();
+        fetch(true);
+      }
+    };
+
     window.addEventListener(MATCH_EVENT_NAME, handleMatchEvent);
+    window.addEventListener('focus', handleFocusOrPageShow);
+    window.addEventListener('pageshow', handleFocusOrPageShow);
+    window.addEventListener('storage', handleFocusOrPageShow);
 
     if (isHomepageStale()) {
+      clearHomepageStale();
       fetch(true);
     } else {
       fetch(false);
@@ -79,6 +92,9 @@ export function useHomepageData() {
 
     return () => {
       window.removeEventListener(MATCH_EVENT_NAME, handleMatchEvent);
+      window.removeEventListener('focus', handleFocusOrPageShow);
+      window.removeEventListener('pageshow', handleFocusOrPageShow);
+      window.removeEventListener('storage', handleFocusOrPageShow);
     };
   }, [fetch]);
 

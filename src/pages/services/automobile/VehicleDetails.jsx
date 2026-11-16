@@ -76,7 +76,7 @@ export default function VehicleDetails() {
         ? 'Automatic (6AT)'
         : 'Automatic (AGS)'
       : '5-Speed Manual';
-    const fuelText = isCNG ? 'Factory S-CNG' : 'Petrol';
+    const fuelText = isCNG ? 'Factory S-CNG' : (mappedVehicle?.fuelType || vehicle?.fuelType || 'Petrol');
 
     return {
       ...mappedVehicle,

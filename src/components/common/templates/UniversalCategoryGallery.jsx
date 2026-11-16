@@ -15,8 +15,8 @@ import { matchesSearch } from '../../../utils/searchUtils';
  * 
  * Any category gallery page can be created with a single declarative configuration file.
  */
-function getParamValueForGroup(params, g) {
-  if (!g) return null;
+export function getAllKeysForGroup(g) {
+  if (!g) return [];
   const id = g.id;
   const idLower = id.toLowerCase();
   const keys = new Set([id, idLower]);
@@ -65,7 +65,11 @@ function getParamValueForGroup(params, g) {
     keys.add('category');
     keys.add('subcat');
   }
+  return Array.from(keys);
+}
 
+function getParamValueForGroup(params, g) {
+  const keys = getAllKeysForGroup(g);
   for (const k of keys) {
     const val = params.get(k);
     if (val) return val;
@@ -241,20 +245,20 @@ export default function UniversalCategoryGallery({
 
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
+    const group = resolvedFilterGroups.find((g) => g.id === key);
+    const relatedKeys = group ? getAllKeysForGroup(group) : [key];
+
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
+      // Clean all related alias keys first
+      relatedKeys.forEach((k) => next.delete(k));
+
       if (Array.isArray(value)) {
         if (value.length > 0) {
           next.set(key, value.join(','));
-        } else {
-          next.delete(key);
-          if (key.endsWith('s')) next.delete(key.slice(0, -1));
-          else next.delete(`${key}s`);
         }
       } else if (value) {
         next.set(key, String(value));
-      } else {
-        next.delete(key);
       }
       next.delete('page');
       return next;
@@ -281,7 +285,7 @@ export default function UniversalCategoryGallery({
       reset[`${r.id}Min`] = '';
       reset[`${r.id}Max`] = '';
     });
-    filterGroups.forEach((g) => {
+    resolvedFilterGroups.forEach((g) => {
       reset[g.id] = [];
     });
     setActiveFilters(reset);
@@ -293,8 +297,22 @@ export default function UniversalCategoryGallery({
       next.delete('q');
       next.delete('search');
       next.delete('page');
+
+      // Clear all range filter keys
+      rangeFilters.forEach((r) => {
+        next.delete(`${r.id}Min`);
+        next.delete(`${r.id}Max`);
+        next.delete(r.id);
+      });
+
+      // Clear all filter group keys and their aliases
+      resolvedFilterGroups.forEach((g) => {
+        const keys = getAllKeysForGroup(g);
+        keys.forEach((k) => next.delete(k));
+      });
+
       return next;
-    });
+    }, { replace: true });
   };
 
   // 3. Dynamic Active Chips
@@ -316,7 +334,7 @@ export default function UniversalCategoryGallery({
       }
     });
 
-    filterGroups.forEach((g) => {
+    resolvedFilterGroups.forEach((g) => {
       const selected = activeFilters[g.id] || [];
       selected.forEach((val) => {
         chips.push({ key: g.id, label: val, value: val });
@@ -324,7 +342,7 @@ export default function UniversalCategoryGallery({
     });
 
     return chips;
-  }, [activeFilters, rangeFilters, filterGroups]);
+  }, [activeFilters, rangeFilters, resolvedFilterGroups]);
 
   const handleRemoveChip = (chip) => {
     if (chip.key.endsWith('Min') || chip.key.endsWith('Max')) {
@@ -368,6 +386,8 @@ export default function UniversalCategoryGallery({
       const highlightBanner = mapping.highlightBanner ? mapping.highlightBanner(raw) : raw.highlightBanner;
       const link = mapping.detailUrl ? mapping.detailUrl(raw) : (mapping.link ? mapping.link(raw) : raw.link);
 
+      const rawCategory = raw.category || raw.subcategory || '';
+
       result.push({
         id,
         title,
@@ -378,6 +398,8 @@ export default function UniversalCategoryGallery({
         location,
         pincode,
         overline,
+        category: rawCategory,
+        subcategory: raw.subcategory || '',
         badges,
         statusBadges: badges,
         cardPills: pills,
@@ -509,7 +531,7 @@ export default function UniversalCategoryGallery({
 
       return true;
     });
-  }, [transformedItems, searchTerm, searchIndex, activeFilters, rangeFilters, filterGroups, searchParams]);
+  }, [transformedItems, searchTerm, searchIndex, activeFilters, rangeFilters, resolvedFilterGroups, searchParams]);
 
   return (
     <>
@@ -518,7 +540,7 @@ export default function UniversalCategoryGallery({
         categorySubtitle={categorySubtitle}
         breadcrumbCategory={breadcrumb}
         items={filteredItems}
-        filterGroups={filterGroups}
+        filterGroups={resolvedFilterGroups}
         rangeFilters={rangeFilters}
         activeFilters={activeFilters}
         onFilterChange={handleFilterChange}
