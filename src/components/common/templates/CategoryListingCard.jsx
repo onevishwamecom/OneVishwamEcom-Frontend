@@ -110,6 +110,16 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
+  const isPlot = Boolean(
+    isProperty && (
+      item?.isPlot ||
+      item?.raw?.isPlot ||
+      /plot|site|land|farm\s*plot/i.test(
+        `${item?.propertyType || ''} ${item?.subcategory || ''} ${item?.category || ''} ${item?.raw?.propertyType || ''} ${item?.raw?.subcategory || ''} ${item?.title || ''} ${cardOverline || ''} ${item?.bhk || ''}`
+      )
+    )
+  );
+
   // Attribute Pills (cardPills) - includes propertyType for properties
   const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
   const resolvedPropType = isProperty
@@ -125,7 +135,13 @@ export default React.memo(function CategoryListingCard({
       combinedPills.unshift(resolvedPropType);
     }
   }
-  const pills = combinedPills.slice(0, 4);
+  const filteredCombinedPills = isPlot
+    ? combinedPills.filter((p) => {
+        const str = String(typeof p === 'string' ? p : `${p.label || ''} ${p.value || ''}`).trim();
+        return !/\b(bhk|bed|beds|bedroom|bedrooms|bath|baths|bathroom|bathrooms|parking|garage|floor|furnish|furnished)\b/i.test(str);
+      })
+    : combinedPills;
+  const pills = filteredCombinedPills.slice(0, 4);
 
   // Trust highlight banner
   const bannerText =
@@ -282,9 +298,9 @@ export default React.memo(function CategoryListingCard({
                   {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px]" />}
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
-                  {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
+                  {isBhk && !isPlot && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
                   {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px]" />}
-                  {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
+                  {isBath && !isPlot && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
                   {label}
                 </span>
               );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { isPlotOrLand } from '../propertyHelpers';
 
 export const PROPERTY_HIGHLIGHTS_META = [
   { key: 'bhk', label: 'Bedrooms', icon: 'fa-bed' },
@@ -11,16 +12,29 @@ export const PROPERTY_HIGHLIGHTS_META = [
   { key: 'status', label: 'Possession', icon: 'fa-key' },
 ];
 
+export const PLOT_HIGHLIGHTS_META = [
+  { key: 'area', label: 'Plot Area', icon: 'fa-vector-square' },
+  { key: 'facing', label: 'Facing', icon: 'fa-compass' },
+  { key: 'khataType', label: 'Khata Type', icon: 'fa-certificate' },
+  { key: 'approvalAuthority', label: 'Approval Authority', icon: 'fa-file-shield' },
+  { key: 'status', label: 'Possession', icon: 'fa-key' },
+  { key: 'roadWidth', label: 'Road Width', icon: 'fa-road' },
+  { key: 'dimensions', label: 'Dimensions', icon: 'fa-ruler-combined' },
+];
+
 export default function PropertySpecsGrid({ property }) {
   if (!property) return null;
 
+  const isPlot = isPlotOrLand(property);
+  const metaList = isPlot ? PLOT_HIGHLIGHTS_META : PROPERTY_HIGHLIGHTS_META;
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {PROPERTY_HIGHLIGHTS_META.map((meta) => {
-        const value = property[meta.key];
+      {metaList.map((meta) => {
+        const value = property[meta.key] || property.details?.[meta.key];
         if (!value || value === 'N/A' || value === '') return null;
         const displayValue = meta.key === 'status'
-          ? (value === 'available' ? 'Ready to Move' : value === 'closed' ? 'Closed' : value)
+          ? (value === 'available' ? (isPlot ? 'Ready for Registration' : 'Ready to Move') : value === 'closed' ? 'Closed' : value)
           : value;
 
         return (

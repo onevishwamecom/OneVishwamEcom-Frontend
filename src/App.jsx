@@ -6,7 +6,7 @@ import { fetchMe } from './store/authSlice';
 import PromoToast from './components/PromoToast';
 import PromoModal from './components/PromoModal';
 import EnquiryModal from './components/EnquiryModal';
-import AuthModals from './components/auth/AuthModals';
+import StoryAuthGateway from './components/auth/StoryAuthGateway';
 import SessionTracker from './components/auth/SessionTracker';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
@@ -223,7 +223,7 @@ function App() {
       
       <PromoToast />
       <PromoModal />
-      <AuthModals />
+      <StoryAuthGateway />
       <SessionTracker />
       <EnquiryModal />
     </>

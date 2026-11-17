@@ -1,45 +1,65 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 const PROMO_IMAGE_URL =
   'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
 
-const INITIAL_DELAY_MS = 2500; // 2.5 seconds appearance on fresh visit
+// Match property routes
+const isPropertyRoute = (pathname) => {
+  if (!pathname) return false;
+  const p = pathname.toLowerCase();
+  return (
+    p === '/properties' ||
+    p === '/property' ||
+    p.startsWith('/property/') ||
+    p.startsWith('/properties/') ||
+    p.startsWith('/our-services/properties') ||
+    p.startsWith('/our-services/real-estate-property') ||
+    p.startsWith('/categories/properties') ||
+    p.startsWith('/houseandland')
+  );
+};
 
 export default function PromoModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleOpen = useCallback(() => {
     setIsOpen(true);
+    window.dispatchEvent(new CustomEvent('onevishwam:promomodal_opened'));
   }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    sessionStorage.setItem('onevishwam_modal_shown', 'true');
+    sessionStorage.setItem('onevishwam_property_promo_shown', 'true');
     sessionStorage.setItem('onevishwam_modal_closed_at', Date.now().toString());
     window.dispatchEvent(
       new CustomEvent('onevishwam:promomodal_closed', { detail: { timestamp: Date.now() } })
     );
   }, []);
 
-  // 1. Show once per browser session on initial visit
+  // 1. Show ONLY when user opens properties pages (once per session)
   useEffect(() => {
-    const hasBeenShown = sessionStorage.getItem('onevishwam_modal_shown');
+    if (!isPropertyRoute(location.pathname)) {
+      return;
+    }
+
+    const hasBeenShown = sessionStorage.getItem('onevishwam_property_promo_shown');
     if (hasBeenShown) {
       return;
     }
 
     const timer = setTimeout(() => {
       handleOpen();
-      sessionStorage.setItem('onevishwam_modal_shown', 'true');
-    }, INITIAL_DELAY_MS);
+      sessionStorage.setItem('onevishwam_property_promo_shown', 'true');
+    }, 1000); // 1.0s delay after property page renders
 
     return () => clearTimeout(timer);
-  }, [handleOpen]);
+  }, [location.pathname, handleOpen]);
 
-  // 2. Allow programmatic trigger via custom event
+  // 2. Allow programmatic trigger via custom event (e.g. clicking the small PromoToast)
   useEffect(() => {
     const handleCustomOpen = () => handleOpen();
     window.addEventListener('onevishwam:open_promomodal', handleCustomOpen);

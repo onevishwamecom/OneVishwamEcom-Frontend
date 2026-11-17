@@ -1,4 +1,5 @@
 import React from 'react';
+import { isPlotOrLand } from '../propertyHelpers';
 
 const AMENITY_ICONS = {
   'Swimming Pool': 'fa-person-swimming',
@@ -30,10 +31,15 @@ const AMENITY_ICONS = {
   'Wi-Fi': 'fa-wifi',
 };
 
-export default function PropertyAmenitiesGrid({ amenities = [] }) {
-  const items = amenities.length > 0
+export default function PropertyAmenitiesGrid({ amenities = [], property, isPlot: explicitIsPlot }) {
+  const isPlot = explicitIsPlot || (property && isPlotOrLand(property));
+  if (isPlot) return null;
+
+  const items = amenities && amenities.length > 0
     ? amenities
-    : ['Swimming Pool', '24/7 Security', 'Gym', 'Power Backup', 'Club House', 'Park'];
+    : (amenities === false ? [] : ['Swimming Pool', '24/7 Security', 'Gym', 'Power Backup', 'Club House', 'Park']);
+
+  if (!items || items.length === 0) return null;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">

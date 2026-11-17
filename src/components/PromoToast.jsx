@@ -39,7 +39,7 @@ export default function PromoToast() {
   }, []);
 
   useEffect(() => {
-    // 1. Check if modal was already closed in this session
+    // 1. Check if toast was dismissed or modal was recently closed in this session
     const modalClosedAt = sessionStorage.getItem('onevishwam_modal_closed_at');
     const toastDismissedAt = sessionStorage.getItem('onevishwam_toast_dismissed_at');
 
@@ -57,9 +57,16 @@ export default function PromoToast() {
       } else {
         scheduleToast(TOAST_DELAY_AFTER_MODAL_MS - elapsedSinceModal);
       }
+    } else {
+      // On fresh website open: show the small promo toast after 2.5s
+      scheduleToast(2500);
     }
 
-    // 2. Listen for modal closure event -> hide toast completely
+    // 2. Listen for modal events -> hide toast when modal opens or closes
+    const handleModalOpened = () => {
+      setVisible(false);
+    };
+
     const handleModalClosed = () => {
       setVisible(false);
       sessionStorage.setItem('onevishwam_toast_dismissed_at', Date.now().toString());
@@ -68,9 +75,11 @@ export default function PromoToast() {
       }
     };
 
+    window.addEventListener('onevishwam:promomodal_opened', handleModalOpened);
     window.addEventListener('onevishwam:promomodal_closed', handleModalClosed);
 
     return () => {
+      window.removeEventListener('onevishwam:promomodal_opened', handleModalOpened);
       window.removeEventListener('onevishwam:promomodal_closed', handleModalClosed);
       if (retriggerTimerRef.current) {
         clearTimeout(retriggerTimerRef.current);

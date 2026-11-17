@@ -679,17 +679,20 @@ export default function MasterDetailPage({
   const isPlot = Boolean(
     isProperty && (
       item.isPlot ||
-      (item.propertyType && String(item.propertyType).toLowerCase().includes('plot')) ||
-      (item.subcategory && String(item.subcategory).toLowerCase().includes('plot'))
+      (item.propertyType && /plot|site|land|farm\s*plot/i.test(String(item.propertyType))) ||
+      (item.subcategory && /plot|site|land|farm\s*plot/i.test(String(item.subcategory))) ||
+      (item.category && /plot|site|land|farm\s*plot/i.test(String(item.category))) ||
+      (item.title && /\b(plot|plots|site|sites|land|acres?|guntas?)\b/i.test(String(item.title))) ||
+      (item.bhk && /plot|site|land|guntas/i.test(String(item.bhk)))
     )
   );
 
-  const bedsDisplay = isProperty ? (item.bhk || item.bedrooms || item.bedroom || (isPlot ? 'N/A (Plot)' : '3 Bedrooms')) : null;
-  const bathsDisplay = isProperty ? (item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : (isPlot ? 'N/A' : '2 Bathrooms')) : null;
+  const bedsDisplay = isProperty && !isPlot ? (item.bhk || item.bedrooms || item.bedroom || '3 Bedrooms') : null;
+  const bathsDisplay = isProperty && !isPlot ? (item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : '2 Bathrooms') : null;
   const yearBuiltDisplay = isProperty
-    ? (item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : 'Ready to Move'))
+    ? (item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : (isPlot ? 'Ready for Registration' : 'Ready to Move')))
     : (item.year ? `Model Year ${item.year}` : (item.condition === 'new' ? 'Brand New' : 'Verified'));
-  const garageDisplay = isProperty ? (item.parking || item.garage || (isPlot ? 'N/A' : '1 Covered Parking')) : null;
+  const garageDisplay = isProperty && !isPlot ? (item.parking || item.garage || '1 Covered Parking') : null;
   const sqftDisplay = isProperty ? (item.area || item.superBuiltUpArea || item.dimensions || '1,450 Sq.Ft') : null;
   const propertyTypeDisplay = isProperty ? (item.propertyType || item.subcategory || categoryName || 'Apartment') : null;
 
@@ -1241,73 +1244,149 @@ export default function MasterDetailPage({
                   })}
                 </div>
               ) : isProperty ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                  {/* 1. Bedroom */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-bed" />
+                isPlot ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                    {/* 1. Plot Area / Extent */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-expand" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Plot Area / Extent</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 2. Bath */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-shower" />
+                    {/* 2. Property Type */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-vector-square" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay || 'Residential Plot'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 3. Year Built / Possession */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-calendar-check" />
+                    {/* 3. Status / Possession */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-certificate" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Possession / Status</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.possessionStatus || item.possession || 'Ready for Registration'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 4. Garage */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-warehouse" />
+                    {/* 4. Facing Direction */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-compass" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Facing Direction</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{item.facing || 'East / North'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 5. Sqft */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-expand" />
+                    {/* 5. Khata / Approvals */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-shield-halved" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval / Title</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.khataType || item.approvalAuthority || item.details?.approvalAuthority || 'Clear Title'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 6. Property Type */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-house-chimney" />
-                    </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                    {/* 6. Site Configuration */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-map-location-dot" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Site Configuration</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.cornerPlot ? 'Corner Site' : 'Individual Plot'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                    {/* 1. Bedroom */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-bed" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 2. Bath */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-shower" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 3. Year Built / Possession */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-calendar-check" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 4. Garage */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-warehouse" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 5. Sqft */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-expand" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 6. Property Type */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-house-chimney" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                      </div>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
                   {bentoHighlights.map((hl, idx) => (
@@ -1404,30 +1483,47 @@ export default function MasterDetailPage({
                       </button>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Property Size</span>
+                      <span className="font-semibold text-gray-500">{isPlot ? 'Plot Extent / Area' : 'Property Size'}</span>
                       <span className="font-bold text-slate-900">{sqftDisplay}</span>
                     </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Bathrooms</span>
-                      <span className="font-bold text-slate-900">{bathsDisplay}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Bedrooms</span>
-                      <span className="font-bold text-slate-900">{bedsDisplay}</span>
-                    </div>
+                    {isPlot ? (
+                      <>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Approval Authority</span>
+                          <span className="font-bold text-slate-900">{item.approvalAuthority || item.details?.approvalAuthority || 'RERA / Verified'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Khata Type</span>
+                          <span className="font-bold text-slate-900">{item.khataType || 'A-Khata / Clear Deed'}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Bathrooms</span>
+                          <span className="font-bold text-slate-900">{bathsDisplay}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Bedrooms</span>
+                          <span className="font-bold text-slate-900">{bedsDisplay}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="divide-y divide-gray-100">
+                    {!isPlot && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Garage</span>
+                        <span className="font-bold text-slate-900">{garageDisplay}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Garage</span>
-                      <span className="font-bold text-slate-900">{garageDisplay}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Door Facing</span>
+                      <span className="font-semibold text-gray-500">{isPlot ? 'Facing Direction' : 'Door Facing'}</span>
                       <span className="font-bold text-slate-900">{item.facing || 'Standard'}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Year Built / Status</span>
+                      <span className="font-semibold text-gray-500">{isPlot ? 'Registration / Status' : 'Year Built / Status'}</span>
                       <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
@@ -1436,7 +1532,7 @@ export default function MasterDetailPage({
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Property Status</span>
-                      <span className="font-bold text-emerald-600">{statusPill?.label || 'For Sale'}</span>
+                      <span className="font-bold text-emerald-600">{statusPill?.label || (isPlot ? 'Ready for Registration' : 'For Sale')}</span>
                     </div>
                   </div>
                 </div>
@@ -1731,7 +1827,7 @@ export default function MasterDetailPage({
             )}
 
             {/* 5. FEATURES & AMENITIES WIDGET */}
-            {featuresList.length > 0 && (
+            {!isPlot && featuresList.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center justify-between mb-6">
                   <h4 className="text-lg sm:text-xl font-bold text-slate-900">{featuresTitle}</h4>
@@ -1753,8 +1849,8 @@ export default function MasterDetailPage({
               </div>
             )}
 
-            {/* 6. FLOOR PLANS WIDGET (Properties Only) */}
-            {isProperty && hasFloorPlans && (
+            {/* 6. FLOOR PLANS WIDGET (Properties Only, Not for Plots) */}
+            {isProperty && !isPlot && hasFloorPlans && (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>

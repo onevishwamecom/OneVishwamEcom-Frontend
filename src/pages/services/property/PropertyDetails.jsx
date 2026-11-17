@@ -76,16 +76,24 @@ export default function PropertyDetails() {
       overviewHighlights.push({ label: isPlot ? 'Plot Area' : 'Built-up Area', value: String(areaVal), icon: 'fa-vector-square', color: 'text-emerald-600 bg-emerald-50' });
     }
     if (rawProperty.facing) {
-      overviewHighlights.push({ label: 'Door Facing', value: rawProperty.facing, icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' });
+      overviewHighlights.push({ label: isPlot ? 'Facing Direction' : 'Door Facing', value: rawProperty.facing, icon: 'fa-compass', color: 'text-amber-600 bg-amber-50' });
     }
-    if (rawProperty.bathrooms) {
+    if (!isPlot && rawProperty.bathrooms) {
       overviewHighlights.push({ label: 'Bathrooms', value: `${rawProperty.bathrooms} Baths`, icon: 'fa-bath', color: 'text-cyan-600 bg-cyan-50' });
     }
-    if (rawProperty.furnishing) {
+    if (!isPlot && rawProperty.furnishing) {
       overviewHighlights.push({ label: 'Furnishing', value: rawProperty.furnishing, icon: 'fa-couch', color: 'text-indigo-600 bg-indigo-50' });
     }
-    if (rawProperty.parking) {
+    if (!isPlot && rawProperty.parking) {
       overviewHighlights.push({ label: 'Parking', value: rawProperty.parking, icon: 'fa-car', color: 'text-teal-600 bg-teal-50' });
+    }
+    if (isPlot && (rawProperty.khataType || rawProperty.approvalAuthority)) {
+      overviewHighlights.push({
+        label: 'Khata / Approval',
+        value: rawProperty.khataType || rawProperty.approvalAuthority,
+        icon: 'fa-certificate',
+        color: 'text-cyan-600 bg-cyan-50',
+      });
     }
 
     const enterpriseName = rawProperty.channelPartnerName ||
@@ -97,8 +105,8 @@ export default function PropertyDetails() {
 
     // Floor plans
     const fp = rawProperty.floorPlanImages || rawProperty.floorPlans || rawProperty.floorPlanMap;
-    const floorPlanImages = Array.isArray(fp) ? fp.filter(Boolean) : (typeof fp === 'string' && fp ? [fp] : []);
-    const pdfUrl = rawProperty.pdfUrl || rawProperty.floorPlanPdf || rawProperty.pdf || null;
+    const floorPlanImages = !isPlot && Array.isArray(fp) ? fp.filter(Boolean) : (!isPlot && typeof fp === 'string' && fp ? [fp] : []);
+    const pdfUrl = !isPlot ? (rawProperty.pdfUrl || rawProperty.floorPlanPdf || rawProperty.pdf || null) : null;
 
     return {
       ...rawProperty,
@@ -113,10 +121,12 @@ export default function PropertyDetails() {
       priceSuffix: display.priceSuffix,
       statusBadges,
       overviewHighlights: overviewHighlights.length > 0 ? overviewHighlights : undefined,
-      features: (rawProperty.amenities?.length > 0
-        ? rawProperty.amenities
-        : ['Swimming Pool', '24×7 Security', 'Gym', 'Power Backup', 'Clubhouse', 'Garden', '2 Wheeler Parking', '4 Wheeler Parking']
-      ),
+      features: isPlot
+        ? []
+        : (rawProperty.amenities?.length > 0
+          ? rawProperty.amenities
+          : ['Swimming Pool', '24×7 Security', 'Gym', 'Power Backup', 'Clubhouse', 'Garden', '2 Wheeler Parking', '4 Wheeler Parking']
+        ),
       enterpriseName,
       enterpriseLogo,
       floorPlanImages,

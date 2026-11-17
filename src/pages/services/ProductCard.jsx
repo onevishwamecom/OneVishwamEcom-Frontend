@@ -40,6 +40,11 @@ export default React.memo(function ProductCard({
     (alt && (String(alt).toLowerCase().includes('property') || String(alt).toLowerCase().includes('vehicle')))
   );
 
+  const isPlot = Boolean(
+    isPropertyOrVehicle &&
+    /plot|site|land|farm\s*plot/i.test(`${overline || ''} ${title || ''} ${alt || ''}`)
+  );
+
   const handleCardClick = (e) => {
     if (!link || link === '#') return;
     if (!isLoggedIn) {
@@ -150,6 +155,9 @@ export default React.memo(function ProductCard({
               return str.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((s) => s.trim()).filter(Boolean);
             }
             return [str];
+          }).filter((t) => {
+            if (!isPlot) return true;
+            return !/\b(bhk|bed|beds|bedroom|bedrooms|bath|baths|bathroom|bathrooms|parking|garage|floor|furnish|furnished)\b/i.test(t);
           });
           return (
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -181,10 +189,10 @@ export default React.memo(function ProductCard({
                     {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px] shrink-0" />}
                     {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs shrink-0" />}
                     {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs shrink-0" />}
-                    {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
+                    {isBhk && !isPlot && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
                     {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px] shrink-0" />}
                     {isUnits && <i className="fa-solid fa-building text-emerald-600 text-[11px] shrink-0" />}
-                    {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
+                    {isBath && !isPlot && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
                     <span className="truncate">{t}</span>
                   </span>
                 );

@@ -10,6 +10,7 @@ import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import TopNotificationBar from './TopNotificationBar';
 import ListingRedirectModal from './modals/ListingRedirectModal';
 import { useAuth } from '../store/authSlice';
+import { navigateTo } from '../config/navigation';
 import Swal from 'sweetalert2';
 
 const CATEGORY_THEMES = {
@@ -102,7 +103,13 @@ function Navbar() {
     });
 
     if (result.isConfirmed) {
+      sessionStorage.removeItem('vishwam_auth_redirect');
       logout();
+      openAuthModal('login');
+      navigateTo('/');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }
       Swal.fire({
         icon: 'success',
         title: 'Logged Out',

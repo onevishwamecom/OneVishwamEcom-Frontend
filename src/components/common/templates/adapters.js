@@ -4,7 +4,7 @@
  */
 
 import { cleanProductName } from '../../../utils/searchUtils';
-import { formatPropertyAddress, isOneVishwamProperty } from '../../../pages/services/property/propertyHelpers';
+import { formatPropertyAddress, isOneVishwamProperty, isPlotOrLand } from '../../../pages/services/property/propertyHelpers';
 import { ONEVISHWAM_VERIFIED_IMAGE, isPlaceholderImage } from '../../../constants/fallbackImage';
 
 function isPerSqft(priceStr = '', suffix = '') {
@@ -75,10 +75,11 @@ export function mapPropertyToEntityItem(property) {
   }
 
   const details = property.details || {};
+  const isPlot = isPlotOrLand(property);
   const isCorner = Boolean(property.cornerPlot);
 
   if (isCorner) {
-    badges.push({ label: 'Corner Site', className: 'bg-purple-600 text-white font-bold' });
+    badges.push({ label: isPlot ? 'Corner Site' : 'Corner Plot', className: 'bg-purple-600 text-white font-bold' });
   }
 
   // Key Attributes (Dynamic Highlights)
@@ -89,22 +90,22 @@ export function mapPropertyToEntityItem(property) {
   }
 
   const bhk = property.bhk;
-  if (bhk) {
+  if (bhk && !isPlot) {
     keyAttributes.push({ label: 'Configuration', value: String(bhk) });
   }
 
   const area = property.area || property.area_sqft || property.dimensions;
   if (area) {
-    keyAttributes.push({ label: 'Area / Dimensions', value: String(area) });
+    keyAttributes.push({ label: isPlot ? 'Plot Extent' : 'Area / Dimensions', value: String(area) });
   }
 
   const facing = property.facing;
   if (facing) {
-    keyAttributes.push({ label: 'Door Facing', value: String(facing) });
+    keyAttributes.push({ label: isPlot ? 'Facing Direction' : 'Door Facing', value: String(facing) });
   }
 
   if (isCorner) {
-    keyAttributes.push({ label: 'Corner Site', value: 'Yes' });
+    keyAttributes.push({ label: isPlot ? 'Corner Site' : 'Corner Plot', value: 'Yes' });
   }
 
   // Specifications Breakdown mapped over groups
@@ -114,12 +115,12 @@ export function mapPropertyToEntityItem(property) {
   const dimItems = [];
   if (property.propertyType) dimItems.push({ key: 'Property Type', value: property.propertyType });
   if (details.dimensions || property.dimensions) dimItems.push({ key: 'Dimensions', value: String(details.dimensions || property.dimensions) });
-  if (area) dimItems.push({ key: 'Total Extent / Area', value: String(area) });
+  if (area) dimItems.push({ key: isPlot ? 'Plot Area / Extent' : 'Total Extent / Area', value: String(area) });
   if (facing) dimItems.push({ key: 'Facing Direction', value: String(facing) });
-  if (details.cornerPlot !== undefined) dimItems.push({ key: 'Corner Plot', value: details.cornerPlot ? 'Yes' : 'No' });
-  if (details.floors) dimItems.push({ key: 'Total Floors', value: String(details.floors) });
+  if (details.cornerPlot !== undefined) dimItems.push({ key: isPlot ? 'Corner Site' : 'Corner Plot', value: details.cornerPlot ? 'Yes' : 'No' });
+  if (details.floors && !isPlot) dimItems.push({ key: 'Total Floors', value: String(details.floors) });
   if (dimItems.length > 0) {
-    specs.push({ groupName: 'Dimensions & Layout', items: dimItems });
+    specs.push({ groupName: isPlot ? 'Plot Dimensions & Layout' : 'Dimensions & Layout', items: dimItems });
   }
 
   // Group 2: Approvals & Legal Status
@@ -133,16 +134,16 @@ export function mapPropertyToEntityItem(property) {
     specs.push({ groupName: 'Approvals & Legal Documents', items: legalItems });
   }
 
-  // Group 3: Infrastructure & Amenities
+  // Group 3: Infrastructure & Amenities (omit furnishing / parking for plots)
   const infraItems = [];
   if (details.roadFacingWidth || details.roadAccessWidth) {
     infraItems.push({ key: 'Road Width', value: String(details.roadFacingWidth || details.roadAccessWidth) });
   }
   if (details.waterAvailability) infraItems.push({ key: 'Water Supply', value: String(details.waterAvailability) });
-  if (details.furnishingStatus) infraItems.push({ key: 'Furnishing State', value: String(details.furnishingStatus) });
-  if (details.parkingAvailability) infraItems.push({ key: 'Parking', value: String(details.parkingAvailability) });
+  if (!isPlot && details.furnishingStatus) infraItems.push({ key: 'Furnishing State', value: String(details.furnishingStatus) });
+  if (!isPlot && details.parkingAvailability) infraItems.push({ key: 'Parking', value: String(details.parkingAvailability) });
   if (infraItems.length > 0) {
-    specs.push({ groupName: 'Infrastructure & Features', items: infraItems });
+    specs.push({ groupName: isPlot ? 'Site Infrastructure' : 'Infrastructure & Features', items: infraItems });
   }
 
   // Seller Information
@@ -168,6 +169,7 @@ export function mapPropertyToEntityItem(property) {
     description: property.description || 'Verified residential/commercial property listed under the OneVishwam network with complete legal and bank loan assistance.',
     specs,
     seller,
+    features: isPlot ? [] : (property.features || property.amenities || []),
     raw: property,
   };
 }

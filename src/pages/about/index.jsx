@@ -57,7 +57,7 @@ function AboutPage() {
       {/* ── 1. Hero ── */}
       <PageHero
         eyebrow="About OneVishwam"
-        title={<>OneVishwam: A <span className="text-yellow-400">FinVerse</span> for Everyday Life</>}
+        title={<>OneVishwam: Your <span className="text-yellow-400">All-in-One Platform</span> for Everyday Life</>}
         subtitle="One Stop Solution for finance and products to build your life. Lower prices, direct from manufacturers, backed by co-operative finance."
         ctas={[
           { label: 'Enquiry', href: '/enquiry/', primary: true, icon: 'fa-solid fa-envelope' },
@@ -86,7 +86,7 @@ function AboutPage() {
 
               <div className="lg:w-2/3 space-y-4 text-sm sm:text-base text-gray-700 leading-relaxed text-justify">
                 <p>
-                  OneVishwam is a <strong>FinVerse</strong> (finance + ecosystem for all digital needs) that addresses capital investments in useful, daily commodities required in day-to-day life. We offer a <strong>One Stop Solution</strong> for all those who are in need of a complete ecosystem to build their life, by providing them both finance and products to invest in.
+                  OneVishwam is a trusted marketplace and financial platform that addresses capital investments in essential properties and daily commodities required in day-to-day life. We offer a <strong>One Stop Solution</strong> for all those who are in need of a complete ecosystem to build their life, by providing them both finance and products to invest in.
                 </p>
                 <p>
                   We offer products at a price lower than any other market, directly from the manufacturer. By connecting verified supply with cooperative finance, we eliminate unnecessary middlemen markups and empower individuals with genuine, lasting ownership.

@@ -689,8 +689,6 @@ export function getDetailTags(property) {
 
   if (isBhkValid) {
     tags.push(property.bhk);
-  } else if (isPlot && property.bhk && !bhkLower.includes('plot') && !bhkLower.includes('site') && !bhkLower.includes('land')) {
-    tags.push(property.bhk);
   }
 
   if (property.area) {
@@ -732,6 +730,11 @@ export function getDetailTags(property) {
   }
   if (property.floor && !isPlot) tags.push(property.floor);
   if (property.parking && property.parking !== 'N/A' && !isPlot) tags.push(property.parking);
+  if (isPlot) {
+    return tags
+      .filter((t) => !/\b(bhk|bed|beds|bedroom|bedrooms|bath|baths|bathroom|bathrooms|parking|garage|floor|furnish|furnished)\b/i.test(t))
+      .slice(0, 4);
+  }
   return tags.slice(0, 4);
 }
 
