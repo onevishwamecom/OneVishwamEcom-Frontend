@@ -908,14 +908,18 @@ export default function MasterDetailPage({
                 </div>
               ) : isProperty ? (
                 <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-bed text-brand-blue text-sm" />
-                    <span>{bedsDisplay}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-shower text-cyan-600 text-sm" />
-                    <span>{bathsDisplay}</span>
-                  </div>
+                  {!isPlot && bedsDisplay && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-bed text-brand-blue text-sm" />
+                      <span>{bedsDisplay}</span>
+                    </div>
+                  )}
+                  {!isPlot && bathsDisplay && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-shower text-cyan-600 text-sm" />
+                      <span>{bathsDisplay}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-vector-square text-emerald-600 text-sm" />
                     <span>{sqftDisplay}</span>
@@ -1522,17 +1526,19 @@ export default function MasterDetailPage({
                       <span className="font-semibold text-gray-500">{isPlot ? 'Facing Direction' : 'Door Facing'}</span>
                       <span className="font-bold text-slate-900">{item.facing || 'Standard'}</span>
                     </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">{isPlot ? 'Registration / Status' : 'Year Built / Status'}</span>
-                      <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
-                    </div>
+                    {!isPlot && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Year Built</span>
+                        <span className="font-bold text-slate-900">{item.yearBuilt || yearBuiltDisplay}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Property Type</span>
                       <span className="font-bold text-slate-900">{propertyTypeDisplay}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Property Status</span>
-                      <span className="font-bold text-emerald-600">{statusPill?.label || (isPlot ? 'Ready for Registration' : 'For Sale')}</span>
+                      <span className="font-bold text-emerald-600">{yearBuiltDisplay || statusPill?.label || (isPlot ? 'Ready for Registration' : 'For Sale')}</span>
                     </div>
                   </div>
                 </div>
