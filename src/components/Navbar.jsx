@@ -104,6 +104,7 @@ function Navbar() {
 
     if (result.isConfirmed) {
       sessionStorage.removeItem('vishwam_auth_redirect');
+      sessionStorage.setItem('vishwam_direct_login', 'true');
       logout();
       openAuthModal('login');
       navigateTo('/');
@@ -640,7 +641,10 @@ function Navbar() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => openAuthModal('login')}
+                  onClick={() => {
+                    sessionStorage.setItem('vishwam_direct_login', 'true');
+                    openAuthModal('login');
+                  }}
                   className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-black text-action-primary-text bg-action-primary hover:bg-action-primary-hover border border-action-primary-border rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow active:scale-95"
                 >
                   <i className="fa-solid fa-right-to-bracket text-xs text-action-primary-text" />
@@ -703,7 +707,11 @@ function Navbar() {
           ) : (
             <button
               type="button"
-              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              onClick={() => {
+                sessionStorage.setItem('vishwam_direct_login', 'true');
+                setMenuOpen(false);
+                openAuthModal('login');
+              }}
               className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-brand-blue bg-white border border-brand-blue/30 rounded-xl hover:bg-brand-blue/5 transition-colors cursor-pointer shadow-2xs"
             >
               <i className="fa-solid fa-right-to-bracket text-sm text-brand-blue" />

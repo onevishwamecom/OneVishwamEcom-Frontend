@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation as useRouteLocation } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../constants/locations';
@@ -20,8 +20,81 @@ const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Bev
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors';
 const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors';
 
+function useHorizontalSlider() {
+  const ref = useRef(null);
+
+  const scrollBy = useCallback((distance) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: distance, behavior: 'smooth' });
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let hasMoved = false;
+
+    const handleMouseDown = (e) => {
+      if (e.button !== 0) return;
+      isDown = true;
+      hasMoved = false;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDown) return;
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startX);
+      if (Math.abs(walk) > 4) {
+        hasMoved = true;
+        el.scrollLeft = scrollLeft - walk;
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isDown) return;
+      isDown = false;
+      if (hasMoved) {
+        const stopClick = (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+        };
+        window.addEventListener('click', stopClick, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', stopClick, { capture: true }), 100);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      isDown = false;
+    };
+
+    el.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    el.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      el.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return [ref, scrollBy];
+}
+
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredRef, scrollFeatured] = useHorizontalSlider();
+  const [vehiclesRef, scrollVehicles] = useHorizontalSlider();
+  const [freshArrivalsRef, scrollFreshArrivals] = useHorizontalSlider();
+  const [searchResultsRef, scrollSearchResults] = useHorizontalSlider();
   const [activeZone, setActiveZone] = useState('All');
   const navigate = useNavigate();
   const routeLocation = useRouteLocation();
@@ -188,7 +261,7 @@ function Home() {
       }
     }
 
-    return sortPropertiesImagesFirst(candidateList).slice(0, 3);
+    return sortPropertiesImagesFirst(candidateList).slice(0, 6);
   }, [latestProperties, rawProperties, featuredIds, sortPropertiesImagesFirst]);
 
   const availableNearYou = useMemo(() => {
@@ -235,9 +308,13 @@ function Home() {
               )}
             </div>
             {propertyResults.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
+              <div
+                ref={searchResultsRef}
+                className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-x touch-pan-y overscroll-x-contain"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {propertyResults.map((p) => (
-                  <div key={p.id || p._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                  <div key={p.id || p._id} className="shrink-0 snap-start w-[76vw] sm:w-[300px] lg:w-auto">
                     <ProductCard
                       link={`/property/${p.id || p._id}`}
                       image={getPropertyCoverImage(p)}
@@ -276,18 +353,42 @@ function Home() {
                   Handpicked verified residential plots, apartments, villas and commercial spaces.
                 </p>
               </div>
-              <Link
-                to="/our-services/properties"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>See All Properties</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollFeatured(-320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous featured properties"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollFeatured(320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next featured properties"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/our-services/properties"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>See All Properties</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
+            <div
+              ref={featuredRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-5 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {dreamHomes.map((p) => (
-                <div key={p.id || p._id} className="group shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                <div key={p.id || p._id} className="group shrink-0 snap-start w-[76vw] sm:w-[300px] md:w-[320px] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}
@@ -322,18 +423,42 @@ function Home() {
                   Quality verified family cars, two-wheelers &amp; commercial automobiles available nearby.
                 </p>
               </div>
-              <Link
-                to="/categories/automobile"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>See All Automobiles</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollVehicles(-320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous vehicles"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollVehicles(320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next vehicles"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/categories/automobile"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>See All Automobiles</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
+            <div
+              ref={vehiclesRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-5 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {latestVehicles.slice(0, 5).map((v) => (
-                <div key={v.id || v._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                <div key={v.id || v._id} className="shrink-0 snap-start w-[76vw] sm:w-[300px] md:w-[320px] lg:w-auto">
                   <ProductCard
                     link={`/vehicle/${v.id || v._id}`}
                     image={v.images?.[0] || v.image}
@@ -370,18 +495,42 @@ function Home() {
                   Brand new verified residential plots, apartments, and prime listings added today.
                 </p>
               </div>
-              <Link
-                to="/property?sort=newest"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>Browse All New</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollFreshArrivals(-340)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous fresh arrivals"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollFreshArrivals(340)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next fresh arrivals"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/property?sort=newest"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>Browse All New</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 lg:gap-5 sm:snap-none sm:overflow-visible touch-pan-y">
+            <div
+              ref={freshArrivalsRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-3 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {todayListed.map((p) => (
-                <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[72vw] sm:w-[52vw] lg:w-auto">
+                <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[76vw] sm:w-[320px] md:w-[340px] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}

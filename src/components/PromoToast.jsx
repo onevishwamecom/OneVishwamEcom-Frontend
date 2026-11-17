@@ -109,7 +109,7 @@ export default function PromoToast() {
       {/* Toast Card (Clicking opens Promo Modal) */}
       <div
         onClick={handleToastClick}
-        className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200 shadow-xl p-4 sm:p-4.5 cursor-pointer group/toast"
+        className="relative overflow-hidden  rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200 shadow-xl p-4 sm:p-4.5 cursor-pointer group/toast"
       >
         {/* Subtle Ambient Corner Glow */}
         <div className="absolute -top-10 -right-10 w-28 h-28 bg-blue-400/15 rounded-full blur-2xl pointer-events-none" />

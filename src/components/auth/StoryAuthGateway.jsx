@@ -17,39 +17,35 @@ const RULES = [
 const STORY_CHAPTERS = [
   {
     id: 'mission',
-    title: 'Karnataka’s Trusted Marketplace & Finance Hub',
-    tagline: 'Verified Homes, Certified Vehicles & Co-operative Finance',
+    title: 'Karnataka’s FinVerse',
+    tagline: 'Property, Mobility & Direct Co-op Credit',
     image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-    summary:
-      'We connect families directly to verified properties and pre-inspected vehicles, with honest co-operative loans and zero broker fees.',
-    highlight: 'Direct Owner Connect & 0% Hidden Fees',
+    summary: 'Direct connect to verified assets with honest co-operative loans and zero broker fees.',
     leftCard: {
       title: 'Trusted Karnataka Network',
       stats: [
-        { value: '10,000+', label: 'Verified Listings', icon: 'fa-solid fa-city' },
-        { value: '₹100 Cr+', label: 'Safe Transactions', icon: 'fa-solid fa-coins' },
-        { value: '5,000+', label: 'Happy Families', icon: 'fa-solid fa-users' },
+        { value: '10,000+', label: 'Listings', icon: 'fa-solid fa-city' },
+        { value: '₹100 Cr+', label: 'Safe Volume', icon: 'fa-solid fa-coins' },
+        { value: '5,000+', label: 'Families', icon: 'fa-solid fa-users' },
       ],
-      tag: '🏛️ Registered Karnataka Co-op Partners',
+      tag: '🏛️ Registered Co-op Partners',
     },
     bullets: [
-      { icon: 'fa-solid fa-landmark', text: 'Regulated Co-operative Credit Partners across Karnataka' },
-      { icon: 'fa-solid fa-city', text: 'Bengaluru-first field operations with dedicated personal advisors' },
-      { icon: 'fa-solid fa-handshake-slash', text: 'Zero broker commission — direct connect with verified owners' },
+      { icon: 'fa-solid fa-landmark', text: 'Regulated Co-operative Partners across Karnataka' },
+      { icon: 'fa-solid fa-city', text: 'Bengaluru-first field operations & local advisors' },
+      { icon: 'fa-solid fa-handshake-slash', text: '0% Brokerage — direct owner connect' },
     ],
   },
   {
     id: 'properties',
-    title: '10,000+ Legally Verified Properties',
-    tagline: 'Zero Broker Spams • 100% Title Due Diligence',
+    title: 'Verified Real Estate',
+    tagline: '100% Legal Due Diligence',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-    summary:
-      'Discover inspected villas, residential plots, and commercial spaces across Bengaluru with verified legal documentation and direct owner connections.',
-    highlight: 'RERA & BDA Compliant Documentation',
+    summary: 'RERA-checked plots, villas, and commercial spaces with verified title deeds.',
     leftCard: {
       title: 'Property Title Guarantee',
       stats: [
-        { value: '100%', label: 'Legal Due Diligence', icon: 'fa-solid fa-shield-halved' },
+        { value: '100%', label: 'Due Diligence', icon: 'fa-solid fa-shield-halved' },
         { value: '0%', label: 'Broker Fee', icon: 'fa-solid fa-hand-holding-dollar' },
         { value: 'Direct', label: 'Owner Connect', icon: 'fa-solid fa-handshake' },
       ],
@@ -57,41 +53,37 @@ const STORY_CHAPTERS = [
     },
     bullets: [
       { icon: 'fa-solid fa-certificate', text: 'Full legal title check & encumbrance certification' },
-      { icon: 'fa-solid fa-house-chimney', text: '10,000+ active listings across all Bengaluru zones' },
-      { icon: 'fa-solid fa-user-shield', text: 'Direct seller meetings with zero intermediary pressure' },
+      { icon: 'fa-solid fa-house-chimney', text: '10,000+ active listings across Bengaluru zones' },
+      { icon: 'fa-solid fa-user-shield', text: 'Direct seller connect, zero broker pressure' },
     ],
   },
   {
     id: 'mobility',
-    title: 'Inspected Vehicles & Quality Home Living',
-    tagline: 'Multi-Point Inspection • Direct Factory Pricing',
+    title: 'Certified Mobility & Living',
+    tagline: 'Multi-Point Inspection Standard',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
-    summary:
-      'Procure thoroughly inspected vehicles, consumer appliances, and bedding comfort sourced directly from prime manufacturers at transparent prices.',
-    highlight: 'Multi-Point Inspection Certified',
+    summary: 'Pre-inspected vehicles and factory-direct home comfort at transparent prices.',
     leftCard: {
       title: 'Quality Certification',
       stats: [
         { value: '200-Pt', label: 'Vehicle Audit', icon: 'fa-solid fa-clipboard-check' },
         { value: 'Direct', label: 'Factory Sourcing', icon: 'fa-solid fa-industry' },
-        { value: 'Warranty', label: 'Assured Coverage', icon: 'fa-solid fa-award' },
+        { value: 'Warranty', label: 'Assured', icon: 'fa-solid fa-award' },
       ],
-      tag: '🚗 Multi-Point Inspection Certified',
+      tag: '🚗 200-Pt Inspection Certified',
     },
     bullets: [
       { icon: 'fa-solid fa-car-on', text: 'Rigorous 200+ point checks with verified history logs' },
-      { icon: 'fa-solid fa-industry', text: 'Direct manufacturer pricing on appliances and bedding' },
+      { icon: 'fa-solid fa-industry', text: 'Direct manufacturer pricing with no markups' },
       { icon: 'fa-solid fa-shield-halved', text: 'Authentic manufacturer warranty documentation' },
     ],
   },
   {
     id: 'finance',
-    title: 'Low-Interest Co-operative Finance',
-    tagline: 'Affordable Credit for Assets & Lasting Wealth',
+    title: 'Co-operative Finance',
+    tagline: 'Affordable Credit & Fast Approvals',
     image: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=1200&q=80',
-    summary:
-      'Partnered directly with trusted Co-operative credit societies for transparent, low-interest funding on properties and high-value essentials for 5,000+ families.',
-    highlight: 'Ethical Credit & Disciplined Wealth Creation',
+    summary: 'Partnered with registered credit societies for low-interest, ethical asset financing.',
     leftCard: {
       title: 'Co-Operative Society Credit',
       stats: [
@@ -102,9 +94,9 @@ const STORY_CHAPTERS = [
       tag: '🤝 Regulated Community Micro-Credit',
     },
     bullets: [
-      { icon: 'fa-solid fa-percent', text: 'Transparent low-interest rates for sustainable ownership' },
-      { icon: 'fa-solid fa-bolt', text: 'Fast-track digital approvals on verified assets' },
-      { icon: 'fa-solid fa-users', text: 'Over 5,000+ families empowered across Karnataka' },
+      { icon: 'fa-solid fa-percent', text: 'Low-interest rates for sustainable ownership' },
+      { icon: 'fa-solid fa-bolt', text: 'Fast-track digital approvals within 24-48 hours' },
+      { icon: 'fa-solid fa-users', text: 'Empowering 5,000+ Karnataka families' },
     ],
   },
 ];
@@ -369,19 +361,36 @@ export default function StoryAuthGateway() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // If showAuthModal was explicitly triggered (e.g. from logout), show 'auth' directly
-  const [viewState, setViewState] = useState(showAuthModal ? 'auth' : 'story');
+  // When opening unauthenticated, ALWAYS show story walkthrough unless explicitly requested
+  const [viewState, setViewState] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('vishwam_direct_login') === 'true') {
+      return 'auth';
+    }
+    return 'story';
+  });
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const timerRef = useRef(null);
   const checkedPhoneForUserRef = useRef(null);
 
-  // When showAuthModal is true (like on manual Logout or Login button click), show auth form directly
+  // When showAuthModal is true (like on manual Logout or Login button click), switch to auth if explicit
   useEffect(() => {
     if (showAuthModal) {
-      setViewState('auth');
+      if (
+        authModalMode === 'require-phone' ||
+        (typeof window !== 'undefined' && sessionStorage.getItem('vishwam_direct_login') === 'true')
+      ) {
+        setViewState('auth');
+      }
     }
-  }, [showAuthModal]);
+  }, [showAuthModal, authModalMode]);
+
+  // Clean up direct login flag when successfully logged in
+  useEffect(() => {
+    if (isLoggedIn && typeof window !== 'undefined') {
+      sessionStorage.removeItem('vishwam_direct_login');
+    }
+  }, [isLoggedIn]);
 
   // Story progression timer (runs only when in story mode and not logged in)
   useEffect(() => {
@@ -419,13 +428,16 @@ export default function StoryAuthGateway() {
   const handleTransitionToAuth = useCallback(
     (mode = 'login') => {
       setIsTransitioning(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('vishwam_direct_login', 'true');
+      }
       setTimeout(() => {
         setViewState('auth');
         if (authModalMode !== mode) {
           switchAuthMode(mode);
         }
         setIsTransitioning(false);
-      }, 350);
+      }, 300);
     },
     [authModalMode, switchAuthMode]
   );
@@ -433,11 +445,14 @@ export default function StoryAuthGateway() {
   // Return to story from Auth Card
   const handleReturnToStory = useCallback(() => {
     setIsTransitioning(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('vishwam_direct_login');
+    }
     setTimeout(() => {
       setViewState('story');
       setProgress(0);
       setIsTransitioning(false);
-    }, 350);
+    }, 300);
   }, []);
 
   const handleNextChapter = () => {
@@ -537,10 +552,40 @@ export default function StoryAuthGateway() {
           ══════════════════════════════════════════════════════════════════ */}
       {viewState === 'story' && !isLoggedIn && (
         <div
-          className="relative w-full max-w-4xl bg-white rounded-2xl sm:rounded-[2rem] shadow-[0_25px_80px_rgba(15,35,58,0.35)] border border-sky-200/80 overflow-hidden grid grid-cols-1 md:grid-cols-12 max-h-[90vh] sm:max-h-[85vh] h-auto my-auto animate-in fade-in duration-300"
+          className="relative w-full max-w-4xl bg-white rounded-2xl sm:rounded-[2rem] shadow-[0_25px_80px_rgba(15,35,58,0.35)] border border-sky-200/80 overflow-hidden flex flex-col md:grid md:grid-cols-12 max-h-[90vh] sm:max-h-[85vh] h-auto my-auto animate-in fade-in duration-300"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
+          {/* ── TOP SEGMENTED STORY PROGRESS BAR (Without Names) ── */}
+          <div className="w-full md:col-span-12 px-4 sm:px-6 pt-3 pb-2 bg-white/95 border-b border-sky-100/80 flex items-center gap-1.5 sm:gap-2 z-20 shrink-0">
+            {STORY_CHAPTERS.map((ch, idx) => {
+              const isCurrent = idx === activeChapterIndex;
+              const isCompleted = idx < activeChapterIndex;
+              return (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => handleSelectChapter(idx)}
+                  className="flex-1 h-1 sm:h-1.5 rounded-full bg-sky-200/70 overflow-hidden cursor-pointer focus:outline-none transition-all"
+                  aria-label={`Slide ${idx + 1}`}
+                >
+                  <div
+                    className={`h-full rounded-full transition-all duration-75 ${
+                      isCompleted
+                        ? 'w-full bg-brand-blue'
+                        : isCurrent
+                        ? 'bg-brand-blue'
+                        : 'w-0'
+                    }`}
+                    style={{
+                      width: isCurrent ? `${progress}%` : isCompleted ? '100%' : '0%',
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
           {/* ── LEFT HERO: Compact Visual & Live Trust Stat Hub (Light Theme) ── */}
           <div className="md:col-span-5 relative hidden md:flex flex-col justify-between h-full min-h-0 p-4 lg:p-5 overflow-hidden bg-gradient-to-b from-[#d9ebfa] via-[#e8f2fb] to-[#cfe4f6] text-slate-900 select-none border-r border-sky-200/80">
             {/* Background Image */}
@@ -598,47 +643,13 @@ export default function StoryAuthGateway() {
               </div>
             </div>
 
-            {/* Bottom Segmented Story Progress Bar */}
-            <div className="relative z-10 shrink-0 pt-1">
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
-                <span>Story Progress</span>
-                <span className="text-brand-blue font-black">{activeChapterIndex + 1} of {STORY_CHAPTERS.length}</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1.5 mb-1">
-                {STORY_CHAPTERS.map((ch, idx) => {
-                  const isCurrent = idx === activeChapterIndex;
-                  const isCompleted = idx < activeChapterIndex;
-                  return (
-                    <button
-                      key={ch.id}
-                      type="button"
-                      onClick={() => handleSelectChapter(idx)}
-                      className="group relative h-1.5 rounded-full bg-sky-200/80 overflow-hidden cursor-pointer focus:outline-none"
-                      title={ch.title}
-                    >
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          isCompleted
-                            ? 'w-full bg-brand-blue'
-                            : isCurrent
-                            ? 'bg-brand-blue'
-                            : 'w-0'
-                        }`}
-                        style={{
-                          width: isCurrent ? `${progress}%` : isCompleted ? '100%' : '0%',
-                        }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between text-[9px] text-slate-500">
-                <span className="text-slate-700 font-semibold truncate max-w-[170px]">
-                  ✨ {currentChapter.highlight}
-                </span>
-                <span>{isPaused ? 'Paused' : 'Auto'}</span>
-              </div>
+            {/* Bottom Trust Anchor (Clean, No Names) */}
+            <div className="relative z-10 shrink-0 pt-2 flex items-center justify-between text-[10px] text-slate-600 font-semibold border-t border-sky-200/60">
+              <span className="flex items-center gap-1.5 text-brand-blue font-bold">
+                <i className="fa-solid fa-shield-halved text-xs" />
+                <span>100% Certified Direct Connect</span>
+              </span>
+              <span className="text-[9px] text-slate-400">OneVishwam</span>
             </div>
           </div>
 
@@ -671,7 +682,7 @@ export default function StoryAuthGateway() {
             </div>
 
             {/* Middle Narrative & Punchy Trust Points */}
-            <div className="flex-1 min-h-0 overflow-y-auto py-2.5 space-y-2.5 pr-1 select-text">
+            <div className="flex-1 min-h-0 overflow-y-auto py-2.5 space-y-2 pr-1 select-text">
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-slate-950 leading-tight tracking-tight">
                   {currentChapter.title}
@@ -815,9 +826,7 @@ export default function StoryAuthGateway() {
 
                 <h2 className="text-xl sm:text-2xl font-black text-brand-blue tracking-tight">
                   {authModalMode === 'login'
-                    ? 'Member Sign In'
-                    : authModalMode === 'register'
-                    ? 'Join OneVishwam'
+                    ? 'Sign In'
                     : authModalMode === 'require-phone'
                     ? 'One Last Step'
                     : authModalMode === 'forgot'
@@ -902,22 +911,6 @@ export default function StoryAuthGateway() {
               ) : authModalMode === 'reset-success' ? (
                 <ResetSuccessView onClose={() => closeAuthModal()} />
               ) : null}
-
-              {!isLoggedIn && (
-                <div className="text-center pt-2 md:hidden">
-                  <button
-                    type="button"
-                    onClick={handleReturnToStory}
-                    className="text-xs font-bold text-brand-blue hover:underline cursor-pointer"
-                  >
-                    ✨ View OneVishwam Story & Trust
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="text-center pt-2 text-[10px] text-slate-400 border-t border-slate-100 mt-2 shrink-0">
-              <span>🔒 256-Bit SSL Encrypted • Session active for 24 Hours</span>
             </div>
           </div>
         </div>
