@@ -41,6 +41,14 @@ export function isPlaceholderImage(url) {
   ) {
     return true;
   }
+  // Filter out inaccessible Google Drive viewer / fife redirects that require auth or fail cross-origin
+  if (
+    trimmed.includes('googleusercontent.com/d/') ||
+    trimmed.includes('drive.google.com/uc?') ||
+    (trimmed.includes('drive.google.com') && !trimmed.includes('export=view'))
+  ) {
+    return true;
+  }
   return false;
 }
 

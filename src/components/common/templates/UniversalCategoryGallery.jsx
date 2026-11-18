@@ -114,6 +114,7 @@ export default function UniversalCategoryGallery({
   customSidebar = null,
   customCardRenderer = null,
   topExtra = null,
+  filterExtra = null,
   customSorter = null,
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -138,6 +139,7 @@ export default function UniversalCategoryGallery({
         hookResult.garments ||
         hookResult.groceries ||
         hookResult.jewellery ||
+        hookResult.loans ||
         hookResult.data ||
         Object.values(hookResult).find((v) => Array.isArray(v)) ||
         [];
@@ -536,6 +538,7 @@ export default function UniversalCategoryGallery({
   return (
     <>
       <MarketplaceCategoryGallery
+        loading={isLoading}
         categoryTitle={categoryTitle}
         categorySubtitle={categorySubtitle}
         breadcrumbCategory={breadcrumb}
@@ -558,6 +561,7 @@ export default function UniversalCategoryGallery({
         customSidebar={customSidebar}
         customCardRenderer={customCardRenderer}
         topExtra={topExtra}
+        filterExtra={filterExtra}
         customSorter={customSorter}
       />
       {customModals}

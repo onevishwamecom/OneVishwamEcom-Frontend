@@ -1,5 +1,6 @@
 import { isPlotOrLand, getBedrooms, getDetailTags } from '../pages/services/property/propertyHelpers';
 import { mapPropertyToEntityItem } from '../components/common/templates/adapters';
+import { isPlaceholderImage, ONEVISHWAM_VERIFIED_IMAGE } from '../constants/fallbackImage';
 
 describe('Plot & Land feature suppression', () => {
   const mockPlot = {
@@ -16,6 +17,10 @@ describe('Plot & Land feature suppression', () => {
     furnishing: 'Unfurnished',
     floor: 'Ground Floor',
     amenities: ['Swimming Pool', 'Gym', '24/7 Security'],
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/onevishwam.app/o/plot1.jpg',
+      'https://lh3.googleusercontent.com/d/1K870h2ORdHezZG7wLLfJTzpHyhzINDQo',
+    ],
     details: {
       approvalAuthority: 'BDA Approved',
       khataType: 'A-Khata',
@@ -53,5 +58,18 @@ describe('Plot & Land feature suppression', () => {
       expect(infraGroup.items.find((item) => item.key === 'Parking')).toBeUndefined();
       expect(infraGroup.items.find((item) => item.key === 'Furnishing State')).toBeUndefined();
     }
+  });
+
+  test('isPlaceholderImage filters inaccessible Google Drive redirects and leaves genuine images intact', () => {
+    expect(isPlaceholderImage('https://lh3.googleusercontent.com/d/1K870h2ORdHezZG7wLLfJTzpHyhzINDQo')).toBe(true);
+    expect(isPlaceholderImage('https://drive.google.com/uc?id=123')).toBe(true);
+    expect(isPlaceholderImage('https://firebasestorage.googleapis.com/v0/b/onevishwam.app/o/plot1.jpg')).toBe(false);
+  });
+
+  test('plot with at least one image retains only valid real image without fallback pollution', () => {
+    const validImages = mockPlot.images.filter((img) => !isPlaceholderImage(img));
+    expect(validImages).toHaveLength(1);
+    expect(validImages[0]).toBe('https://firebasestorage.googleapis.com/v0/b/onevishwam.app/o/plot1.jpg');
+    expect(validImages).not.toContain(ONEVISHWAM_VERIFIED_IMAGE);
   });
 });

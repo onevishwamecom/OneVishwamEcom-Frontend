@@ -564,9 +564,9 @@ function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowListingModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100/90 border border-amber-300/80 rounded-full transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer ml-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-brand-blue bg-sky-50 hover:bg-sky-100/90 border border-sky-300/80 rounded-full transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer ml-1"
               >
-                <i className="fa-solid fa-circle-plus text-amber-600 text-xs" />
+                <i className="fa-solid fa-circle-plus text-brand-blue text-xs" />
                 <span>Want to list an item?</span>
               </button>
             </nav>
@@ -829,13 +829,13 @@ function Navbar() {
                 setMenuOpen(false);
                 setShowListingModal(true);
               }}
-              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 transition-all text-left shadow-2xs cursor-pointer"
+              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-brand-blue bg-sky-50 hover:bg-sky-100 border border-sky-300/80 transition-all text-left shadow-2xs cursor-pointer"
             >
               <span className="flex items-center gap-2">
-                <i className="fa-solid fa-circle-plus text-amber-600" />
+                <i className="fa-solid fa-circle-plus text-brand-blue" />
                 <span>Want to list an item?</span>
               </span>
-              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-amber-600" />
+              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-brand-blue" />
             </button>
           </div>
         </nav>

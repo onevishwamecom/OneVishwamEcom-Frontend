@@ -127,6 +127,7 @@ export default function MarketplaceCategoryGallery({
   categorySubtitle = 'Explore our verified inventory with complete documentation and direct customer support.',
   breadcrumbCategory = 'Marketplace',
   items = [],
+  loading = false,
   filterGroups = [],
   rangeFilters = [],
   activeFilters = {},
@@ -145,6 +146,7 @@ export default function MarketplaceCategoryGallery({
   perPage = 12,
   hidePrice = false,
   topExtra = null,
+  filterExtra = null,
   customSorter = null,
 }) {
   const navigate = useNavigate();
@@ -438,7 +440,13 @@ export default function MarketplaceCategoryGallery({
             <div className="flex items-center gap-2.5 shrink-0">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-2xs">
                 <i className="fa-solid fa-layer-group text-brand-blue" />
-                <span className="text-brand-blue">{sortedItems.length}</span> Listing{sortedItems.length !== 1 ? 's' : ''} Available
+                {loading ? (
+                  <span className="inline-block w-14 h-3 bg-gray-200 animate-pulse rounded" />
+                ) : (
+                  <>
+                    <span className="text-brand-blue">{sortedItems.length}</span> Listing{sortedItems.length !== 1 ? 's' : ''} Available
+                  </>
+                )}
               </span>
 
               {postRequirementLink && (
@@ -554,9 +562,6 @@ export default function MarketplaceCategoryGallery({
           </div>
         </div>
 
-        {/* ── Optional Top Extra (e.g. Map toggle, custom banners, zone views) ── */}
-        {topExtra && <div className="mb-4">{topExtra}</div>}
-
         {/* ── Homez Horizontal Filter Dropdown Bar ── */}
         <div
           ref={dropdownBarRef}
@@ -665,6 +670,9 @@ export default function MarketplaceCategoryGallery({
                   </span>
                 )}
               </button>
+
+              {/* Extra Filter Actions (e.g. Map toggle button) */}
+              {filterExtra}
             </div>
 
             {/* Right: Results Count, Sort by & Grid/List View Switcher */}
@@ -717,6 +725,9 @@ export default function MarketplaceCategoryGallery({
           </div>
         </div>
 
+        {/* ── Optional Expandable Top Extra (e.g. Map view when toggled open) ── */}
+        {topExtra && <div className="mb-4">{topExtra}</div>}
+
         {/* ── Active Filters Bar ── */}
         {activeChips.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-4 pb-1">
@@ -747,7 +758,38 @@ export default function MarketplaceCategoryGallery({
         )}
 
         {/* ── Main Content: Full-Width 4-Column Grid ── */}
-        {pageItems.length > 0 ? (
+        {loading ? (
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 auto-rows-fr'
+                : 'flex flex-col gap-5'
+            }
+          >
+            {Array.from({ length: perPage || 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs flex flex-col"
+              >
+                <div className="aspect-[16/10] bg-gray-200 animate-pulse relative overflow-hidden" />
+                <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3.5 w-20 rounded bg-gray-200 animate-pulse" />
+                      <div className="h-3.5 w-12 rounded bg-gray-100 animate-pulse" />
+                    </div>
+                    <div className="h-5 w-3/4 rounded bg-gray-200 animate-pulse" />
+                    <div className="h-3.5 w-1/2 rounded bg-gray-100 animate-pulse" />
+                  </div>
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div className="h-5 w-24 rounded bg-gray-200 animate-pulse" />
+                    <div className="h-7 w-20 rounded-lg bg-gray-100 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : pageItems.length > 0 ? (
           <div
             className={
               viewMode === 'grid'
@@ -799,7 +841,7 @@ export default function MarketplaceCategoryGallery({
         )}
 
         {/* ── Modern Pagination Controls ── */}
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
             <button
               type="button"

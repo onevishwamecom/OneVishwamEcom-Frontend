@@ -87,7 +87,7 @@ export default function PromoModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md transition-opacity duration-300"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
@@ -95,15 +95,15 @@ export default function PromoModal() {
     >
       {/* Modal Card Container - Height-constrained & fully responsive */}
       <div
-        className="relative w-full max-w-lg sm:max-w-xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden rounded-3xl bg-white text-slate-900 shadow-2xl border border-slate-200 transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95"
+        className="relative w-full max-w-lg sm:max-w-xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden rounded-3xl bg-white text-slate-900 shadow-[0_25px_80px_rgba(15,35,58,0.35)] border border-sky-200/90 transform transition-all duration-300 scale-100 animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Accent Bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 shrink-0" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#134e8f] via-[#90dafc] to-[#134e8f] shrink-0" />
 
         {/* Ambient Corner Glow Effects */}
-        <div className="absolute -top-16 -left-16 w-44 h-44 bg-blue-400/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -right-16 w-52 h-52 bg-sky-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -left-16 w-44 h-44 bg-sky-300/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-52 h-52 bg-blue-400/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Compact Top Header with Architectural Banner */}
         <div className="relative h-20 sm:h-24 w-full shrink-0 overflow-hidden bg-slate-100">
@@ -118,9 +118,9 @@ export default function PromoModal() {
           <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-transparent to-white/60" />
 
           {/* Top-Left Brand Pill */}
-          <div className="absolute top-2.5 left-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-700 border border-blue-200 shadow-xs">
+          <div className="absolute top-2.5 left-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand-blue border border-sky-200 shadow-xs">
             <img src={logo} alt="Onevishwam" className="h-3.5 sm:h-4 w-auto object-contain" />
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
             <span>Special Offer</span>
           </div>
 
@@ -139,16 +139,16 @@ export default function PromoModal() {
         <div className="px-4 sm:px-6 pt-1 pb-4 flex-1 overflow-y-auto scrollbar-hide relative z-10">
           {/* Main Title & Subtitle */}
           <div className="text-center">
-            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-blue-600 mb-0.5 flex items-center justify-center gap-1.5">
-              <i className="fa-solid fa-sparkles text-[9px] text-blue-500" />
+            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-brand-blue mb-0.5 flex items-center justify-center gap-1.5">
+              <i className="fa-solid fa-sparkles text-[9px] text-brand-blue" />
               Pay EMI, Own Property
             </p>
             <h2
               id="promo-modal-title"
-              className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-tight"
+              className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 leading-tight"
             >
               PAY EMI,{' '}
-              <span className="text-blue-600 underline decoration-blue-300 decoration-4 underline-offset-4">
+              <span className="text-brand-blue underline decoration-[#90dafc] decoration-4 underline-offset-4">
                 OWN PROPERTY!
               </span>
             </h2>
@@ -160,7 +160,7 @@ export default function PromoModal() {
           {/* 2-Column Comparison Sheet (Compact Side-by-Side) */}
           <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3">
             {/* LEFT — CURRENT RENT */}
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 sm:p-3 text-left flex flex-col justify-between shadow-2xs">
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-2.5 sm:p-3 text-left flex flex-col justify-between shadow-2xs">
               <div>
                 <span className="inline-block text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-700 bg-slate-200/80 px-2 py-0.5 rounded">
                   CURRENT RENT
@@ -186,12 +186,12 @@ export default function PromoModal() {
             </div>
 
             {/* RIGHT — ONEVISHWAM EMI */}
-            <div className="rounded-xl bg-gradient-to-b from-blue-50/80 via-blue-50/30 to-white border-2 border-blue-500/60 p-2.5 sm:p-3 text-left flex flex-col justify-between shadow-xs">
+            <div className="rounded-2xl bg-gradient-to-b from-[#d9ebfa]/50 via-[#e8f2fb]/30 to-white border-2 border-brand-blue/35 p-2.5 sm:p-3 text-left flex flex-col justify-between shadow-xs">
               <div>
-                <span className="inline-block text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-200">
+                <span className="inline-block text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-brand-blue bg-sky-100/90 px-2 py-0.5 rounded border border-sky-200">
                   ONEVISHWAM EMI
                 </span>
-                <p className="mt-1.5 text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                <p className="mt-1.5 text-xs sm:text-sm font-black text-slate-950 tracking-tight">
                   Own Your Asset
                 </p>
                 <ul className="mt-1.5 space-y-1 text-[10px] sm:text-[11px] text-slate-800 font-semibold">
@@ -203,7 +203,7 @@ export default function PromoModal() {
                     <i className="fa-solid fa-circle-check text-emerald-600 mt-0.5 text-[10px] shrink-0" />
                     <span>Long-term asset growth</span>
                   </li>
-                  <li className="flex items-start gap-1.5 text-blue-700 font-bold">
+                  <li className="flex items-start gap-1.5 text-brand-blue font-bold">
                     <i className="fa-solid fa-circle-check text-emerald-600 mt-0.5 text-[10px] shrink-0" />
                     <span>Pre-approved loan support</span>
                   </li>
@@ -217,11 +217,11 @@ export default function PromoModal() {
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 shadow-2xs">
               <i className="fa-solid fa-circle-check text-[9px] text-emerald-600" /> Pre-Approved Loans
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 shadow-2xs">
-              <i className="fa-solid fa-shield-halved text-[9px] text-blue-600" /> Clear Legal Titles
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 text-brand-blue border border-sky-200 px-2.5 py-0.5 shadow-2xs">
+              <i className="fa-solid fa-shield-halved text-[9px] text-brand-blue" /> Clear Legal Titles
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 shadow-2xs">
-              <i className="fa-solid fa-location-dot text-[9px] text-blue-600" /> Prime Bengaluru Plots
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 text-brand-blue border border-sky-200 px-2.5 py-0.5 shadow-2xs">
+              <i className="fa-solid fa-location-dot text-[9px] text-brand-blue" /> Prime Bengaluru Plots
             </span>
           </div>
 
@@ -233,7 +233,7 @@ export default function PromoModal() {
                 handleClose();
                 navigate('/enquiry/');
               }}
-              className="w-full inline-flex justify-center items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-4 py-2.5 text-xs sm:text-sm font-extrabold text-white shadow-md shadow-blue-500/25 transition-all cursor-pointer hover:-translate-y-0.5"
+              className="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-[#90dafc] hover:bg-[#78d0f8] text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-black tracking-wide border border-[#70caf5]/70 shadow-md shadow-[#90dafc]/30 active:scale-[0.98] transition-all cursor-pointer hover:-translate-y-0.5"
             >
               <span>Claim Offer Now</span>
               <i className="fa-solid fa-arrow-right text-[11px]" />
@@ -244,9 +244,9 @@ export default function PromoModal() {
                 handleClose();
                 navigate('/property');
               }}
-              className="w-full inline-flex justify-center items-center gap-1.5 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-800 active:scale-[0.98] px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs cursor-pointer hover:-translate-y-0.5"
+              className="w-full inline-flex justify-center items-center gap-2 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-900 active:scale-[0.98] px-4 py-2.5 text-xs sm:text-sm font-black transition-all shadow-xs cursor-pointer hover:-translate-y-0.5"
             >
-              <i className="fa-solid fa-building-columns text-[11px] text-blue-600" />
+              <i className="fa-solid fa-building-columns text-[11px] text-brand-blue" />
               <span>Explore Properties</span>
             </button>
           </div>

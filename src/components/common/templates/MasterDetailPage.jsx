@@ -395,6 +395,32 @@ export default function MasterDetailPage({
     return imgs.length > 0 ? imgs : [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
   }, [item]);
 
+  // Track any image URLs that fail to load so they are cleanly removed from the gallery
+  // rather than showing ugly default placeholder images when real images exist.
+  const [failedImageUrls, setFailedImageUrls] = useState(() => new Set());
+  const currentItemId = item?._id || item?.id;
+
+  useEffect(() => {
+    setFailedImageUrls(new Set());
+    setCurrentImageIndex(0);
+  }, [currentItemId]);
+
+  const handleImageError = useCallback((url) => {
+    if (!url) return;
+    setFailedImageUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }, []);
+
+  const validMediaItems = useMemo(() => {
+    const filtered = mediaItems.filter((m) => !failedImageUrls.has(m.url));
+    if (filtered.length > 0) return filtered;
+    return [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
+  }, [mediaItems, failedImageUrls]);
+
   const floorPlanImages = useMemo(() => {
     if (!item) return [];
     if (Array.isArray(floorPlans) && floorPlans.length > 0) return floorPlans;
@@ -413,14 +439,14 @@ export default function MasterDetailPage({
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
   const goPrev = useCallback(() => {
-    if (!mediaItems.length) return;
-    setCurrentImageIndex((i) => (i === 0 ? mediaItems.length - 1 : i - 1));
-  }, [mediaItems.length]);
+    if (!validMediaItems.length) return;
+    setCurrentImageIndex((i) => (i === 0 ? validMediaItems.length - 1 : i - 1));
+  }, [validMediaItems.length]);
 
   const goNext = useCallback(() => {
-    if (!mediaItems.length) return;
-    setCurrentImageIndex((i) => (i === mediaItems.length - 1 ? 0 : i + 1));
-  }, [mediaItems.length]);
+    if (!validMediaItems.length) return;
+    setCurrentImageIndex((i) => (i === validMediaItems.length - 1 ? 0 : i + 1));
+  }, [validMediaItems.length]);
 
   const goFpPrev = useCallback(() => {
     if (!fpMediaItems.length) return;
@@ -600,7 +626,7 @@ export default function MasterDetailPage({
   }, [itemLinkPrefix, isVehicle, isProperty, isElectronics, isBedding, isGarment, isGrocery, isJewellery, isFinance]);
 
   const activeContact = isVehicle ? contactInfo : getPropertyContactInfo(item.title);
-  const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
+  const currentMedia = validMediaItems[currentImageIndex] || validMediaItems[0];
 
   // Badges normalization
   const badges = item.statusBadges || item.badges || [];
@@ -774,7 +800,7 @@ export default function MasterDetailPage({
       {/* Lightbox Modals */}
       {galleryOpen && (
         <GalleryModal
-          items={mediaItems}
+          items={validMediaItems}
           index={currentImageIndex}
           onClose={() => setGalleryOpen(false)}
           onPrev={goPrev}
@@ -1093,44 +1119,82 @@ export default function MasterDetailPage({
             </div>
           </div>
 
-          {/* ─── 5-PHOTO LUXURY MOSAIC GALLERY (Homez Single V1) ─── */}
+          {/* ─── DYNAMIC LUXURY GALLERY (Adaptive 1 to 5+ Photos) ─── */}
           <div className="mt-5">
-            {mediaItems.length <= 1 ? (
+            {validMediaItems.length <= 1 ? (
+              /* 1 Photo: Full-width Hero Banner */
               <div
                 onClick={() => setGalleryOpen(true)}
                 className="relative h-[340px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden bg-gray-900 shadow-sm cursor-pointer group"
               >
-                <img
-                  src={resolveImage(currentMedia?.url || currentMedia)}
-                  alt={item.title}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                  }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                {validMediaItems[0]?.type === 'video' ? (
+                  <video
+                    src={validMediaItems[0].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <img
+                    src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                    alt={item.title}
+                    onError={() => handleImageError(validMediaItems[0]?.url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 <button className="absolute bottom-5 right-5 rounded-xl bg-white/90 backdrop-blur-md px-4 py-2 text-xs font-bold text-brand-charcoal hover:bg-white transition-colors flex items-center gap-2 shadow-lg cursor-pointer">
                   <i className="fa-solid fa-expand" /> View Fullscreen
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
-                {/* Main Hero Photo (Left 2x2) */}
+            ) : validMediaItems.length === 2 ? (
+              /* 2 Photos: Balanced 50/50 Dual Stage */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-[340px] sm:h-[440px] lg:h-[480px] rounded-2xl overflow-hidden">
+                {validMediaItems.map((media, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => { setCurrentImageIndex(idx); setGalleryOpen(true); }}
+                    className="relative overflow-hidden bg-gray-900 cursor-pointer group"
+                  >
+                    {media.type === 'video' ? (
+                      <video src={media.url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    ) : (
+                      <img
+                        src={resolveImage(media.url)}
+                        alt={`${item.title} - ${idx + 1}`}
+                        onError={() => handleImageError(media.url)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                    {idx === 0 && (
+                      <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                        Featured
+                      </div>
+                    )}
+                    <div className="sm:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg">
+                      <i className="fa-solid fa-images text-[11px]" />
+                      <span>{idx + 1} / 2 Photos</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : validMediaItems.length === 3 ? (
+              /* 3 Photos: 2/3 Hero Left + 2 Stacked Right */
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
                 <div
                   onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
-                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                  className="md:col-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
                 >
-                  {mediaItems[0]?.type === 'video' ? (
-                    <video src={mediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   ) : (
                     <img
-                      src={resolveImage(mediaItems[0]?.url || mediaItems[0])}
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
                       alt={item.title}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                      }}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   )}
@@ -1138,22 +1202,144 @@ export default function MasterDetailPage({
                   <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
                     Featured
                   </div>
-                  {mediaItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-images text-[11px]" />
+                    <span>1 / 3 Photos</span>
+                  </button>
+                </div>
+                <div className="hidden md:grid grid-rows-2 gap-3 md:col-span-1">
+                  {validMediaItems.slice(1, 3).map((media, idx) => {
+                    const actualIdx = idx + 1;
+                    return (
+                      <div
+                        key={actualIdx}
+                        onClick={() => { setCurrentImageIndex(actualIdx); setGalleryOpen(true); }}
+                        className="relative overflow-hidden bg-gray-900 cursor-pointer group"
+                      >
+                        {media.type === 'video' ? (
+                          <video src={media.url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        ) : (
+                          <img
+                            src={resolveImage(media.url)}
+                            alt={`${item.title} - ${actualIdx + 1}`}
+                            onError={() => handleImageError(media.url)}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : validMediaItems.length === 4 ? (
+              /* 4 Photos: Hero Left (2x2) + 2 Top Right + 1 Bottom Right (spans 2 cols) */
+              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
+                <div
+                  onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                >
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <img
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                      alt={item.title}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                  <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                    Featured
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-images text-[11px]" />
+                    <span>1 / 4 Photos</span>
+                  </button>
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(1); setGalleryOpen(true); }}
+                  className="md:col-span-1 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[1].url)}
+                    alt={`${item.title} - 2`}
+                    onError={() => handleImageError(validMediaItems[1].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(2); setGalleryOpen(true); }}
+                  className="md:col-span-1 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[2].url)}
+                    alt={`${item.title} - 3`}
+                    onError={() => handleImageError(validMediaItems[2].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(3); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[3].url)}
+                    alt={`${item.title} - 4`}
+                    onError={() => handleImageError(validMediaItems[3].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+              </div>
+            ) : (
+              /* 5+ Photos: Luxury 5-Photo Mosaic Grid */
+              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
+                <div
+                  onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                >
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <img
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                      alt={item.title}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                  <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                    Featured
+                  </div>
+                  {validMediaItems.length > 1 && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
                       className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
                     >
                       <i className="fa-solid fa-images text-[11px]" />
-                      <span>1 / {mediaItems.length} Photos</span>
+                      <span>1 / {validMediaItems.length} Photos</span>
                     </button>
                   )}
                 </div>
 
                 {/* Right 4 Grid Photos */}
-                {mediaItems.slice(1, 5).map((media, idx) => {
+                {validMediaItems.slice(1, 5).map((media, idx) => {
                   const actualIdx = idx + 1;
-                  const hasMore = mediaItems.length > 5 && idx === 3;
+                  const hasMore = validMediaItems.length > 5 && idx === 3;
 
                   return (
                     <div
@@ -1172,10 +1358,7 @@ export default function MasterDetailPage({
                         <img
                           src={resolveImage(media.url)}
                           alt={`${item.title} - ${actualIdx + 1}`}
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                          }}
+                          onError={() => handleImageError(media.url)}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           loading="lazy"
                         />
@@ -1186,7 +1369,7 @@ export default function MasterDetailPage({
                       {hasMore && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white p-3 text-center group-hover:bg-black/70 transition-colors">
                           <i className="fa-solid fa-images text-xl mb-1 text-amber-400" />
-                          <span className="text-sm font-bold">+{mediaItems.length - 4} More</span>
+                          <span className="text-sm font-bold">+{validMediaItems.length - 4} More</span>
                           <span className="text-[11px] text-gray-300">View all photos</span>
                         </div>
                       )}
@@ -1200,7 +1383,7 @@ export default function MasterDetailPage({
             <div className="mt-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                 <i className="fa-solid fa-camera text-brand-blue" />
-                <span>{mediaItems.length} Photos &amp; Media available</span>
+                <span>{validMediaItems.length} Photos &amp; Media available</span>
               </div>
               <button
                 onClick={() => setGalleryOpen(true)}
@@ -2183,9 +2366,9 @@ export default function MasterDetailPage({
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {mediaItems[0]?.url && (
+            {validMediaItems[0]?.url && (
               <img
-                src={resolveImage(mediaItems[0].url)}
+                src={resolveImage(validMediaItems[0].url)}
                 alt={itemTitle}
                 className="hidden sm:block w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-2xs"
               />
