@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/ensure-prod-env.js",
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest",
+    "env:local": "node scripts/switch-env.js local",
+    "env:prod": "node scripts/switch-env.js prod",
     "deploy": "npm run build && node scripts/deploy-hostinger.js",
     "deploy:fast": "npm run build && npx firebase deploy --only hosting:frontend",
     "deploy:all": "npm run build && node scripts/deploy-hostinger.js && npx firebase deploy --only hosting:frontend",

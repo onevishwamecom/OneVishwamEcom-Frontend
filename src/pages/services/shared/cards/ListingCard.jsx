@@ -262,9 +262,9 @@ export const ListingCard = React.memo(function ListingCard({
                   })
                 );
               }}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text px-4 py-2.5 text-xs sm:text-sm font-black transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98] border border-action-primary-border"
             >
-              <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+              <i className="fa-solid fa-handshake-angle text-xs text-action-primary-text" />
               <span>Are You Interested?</span>
             </button>
           </div>

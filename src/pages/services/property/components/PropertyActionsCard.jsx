@@ -29,9 +29,9 @@ export default function PropertyActionsCard({
           <button
             type="button"
             onClick={onEnquire}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-sm font-bold hover:bg-brand-navy transition-colors shadow-xs"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-action-primary text-action-primary-text px-4 py-3 text-sm font-black hover:bg-action-primary-hover border border-action-primary-border transition-colors shadow-sm"
           >
-            <i className="fa-solid fa-paper-plane text-xs" /> Enquire Now
+            <i className="fa-solid fa-paper-plane text-xs text-action-primary-text" /> Enquire Now
           </button>
           <a
             href={whatsappUrl}
@@ -84,9 +84,9 @@ export default function PropertyActionsCard({
         <button
           type="button"
           onClick={onEnquire}
-          className="flex items-center justify-center gap-2 rounded-xl bg-brand-blue text-white px-4 py-3 text-xs sm:text-sm font-bold hover:bg-brand-navy transition-colors shadow-xs"
+          className="flex items-center justify-center gap-2 rounded-xl bg-action-primary text-action-primary-text px-4 py-3 text-xs sm:text-sm font-black hover:bg-action-primary-hover border border-action-primary-border transition-colors shadow-sm"
         >
-          <i className="fa-solid fa-paper-plane text-xs" /> Enquire Now
+          <i className="fa-solid fa-paper-plane text-xs text-action-primary-text" /> Enquire Now
         </button>
         <a
           href={whatsappUrl}
@@ -98,7 +98,7 @@ export default function PropertyActionsCard({
         </a>
         <Link
           to="/contact-us/"
-          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-white px-4 py-3 text-xs sm:text-sm font-bold hover:bg-amber-600 transition-colors shadow-xs text-center"
+          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-slate-950 px-4 py-3 text-xs sm:text-sm font-extrabold hover:bg-amber-400 transition-colors shadow-xs text-center"
         >
           <i className="fa-solid fa-headset text-xs" /> Contact Us
         </Link>

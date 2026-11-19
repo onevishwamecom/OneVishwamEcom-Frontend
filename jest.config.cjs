@@ -3,6 +3,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/__mocks__/fileMock.cjs',
     '.*/services/api$': '<rootDir>/src/__mocks__/api.js',
     '.*/firebase/config$': '<rootDir>/src/__mocks__/firebase.js',
     '^@/(.*)$': '<rootDir>/src/$1',

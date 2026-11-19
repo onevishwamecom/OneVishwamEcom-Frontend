@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../store/authSlice';
 import ServiceDetails from './ServiceDetails';
 import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 import PageHero from '../../components/PageHero';
@@ -37,6 +38,22 @@ function ServicesPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedCatTab, setSelectedCatTab] = useState('all');
 
+  const auth = useAuth?.() || {};
+  const isLoggedIn = Boolean(auth.isLoggedIn);
+  const openAuthModal = auth.openAuthModal;
+
+  // Immediate Mandatory Login Gate on Category Listings
+  useEffect(() => {
+    if (!isLoggedIn) {
+      try {
+        sessionStorage.setItem('vishwam_auth_redirect', location.pathname + location.search);
+      } catch {}
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+      }
+    }
+  }, [isLoggedIn, location.pathname, location.search, openAuthModal]);
+
   useEffect(() => {
     if (!q) {
       setSearchResults([]);
@@ -50,7 +67,12 @@ function ServicesPage() {
       .then((res) => {
         if (!isMounted) return;
         const items = res.data?.data?.items || res.data?.items || [];
-        setSearchResults(items);
+        const availableItems = (items || []).filter((i) => {
+          if (!i) return false;
+          const st = String(i.availabilityStatus || '').toLowerCase();
+          return st !== 'sold_out' && st !== 'sold' && st !== 'out_of_stock' && i.isSoldOut !== true;
+        });
+        setSearchResults(availableItems);
       })
       .catch((err) => {
         console.error('Failed to load search results:', err);
@@ -130,7 +152,7 @@ function ServicesPage() {
                     onClick={() => setSelectedCatTab(tab.id)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       selectedCatTab === tab.id
-                        ? 'bg-amber-500 text-slate-950 shadow-sm font-extrabold'
+                        ? 'bg-action-primary text-action-primary-text shadow-sm font-black border border-action-primary-border'
                         : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >

@@ -19,6 +19,10 @@ export function normalizeListing(rawItem, sector = '') {
       link = `/property/${id}`;
     } else if (s.includes('vehicle') || s.includes('automobile')) {
       link = `/vehicle/${id}`;
+    } else if (s.includes('bedding') || s.includes('comfort') || s.includes('mattress') || s.includes('pillow')) {
+      link = `/bedding/${id}`;
+    } else if (s.includes('electronic') || s.includes('appliance')) {
+      link = `/electronics/${id}`;
     } else if (s.includes('grocery') || s.includes('consumer') || s.includes('marketplace')) {
       link = `/grocery/${id}`;
     } else if (s.includes('garment') || s.includes('fashion') || s.includes('lifestyle')) {

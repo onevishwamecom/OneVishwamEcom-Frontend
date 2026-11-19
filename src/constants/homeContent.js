@@ -60,7 +60,7 @@ export const whyChoosePoints = [
   {
     icon: 'fa-solid fa-location-dot',
     title: 'Local Presence',
-    description: 'We operate across Karnataka in Bangalore, Mysore, Hubli, Mangalore, and more cities.',
+    description: 'We operate across Bengaluru covering all major localities and neighborhoods.',
   },
 ];
 

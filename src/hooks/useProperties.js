@@ -125,6 +125,13 @@ let storeState = {
 let inFlightPromise = null;
 const listeners = new Set();
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('vishwam_match_clicked', () => {
+    storeState.lastFetchedAt = 0;
+    storeState.isFetched = false;
+  });
+}
+
 function emitChange() {
   for (const listener of listeners) {
     listener();

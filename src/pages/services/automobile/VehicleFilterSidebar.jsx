@@ -131,7 +131,7 @@ export default function VehicleFilterSidebar({
         last={!kmOpen}
       >
         <CheckboxGroup
-          options={locationOptions || ['Bangalore', 'Mysore', 'Hubli', 'Mangalore']}
+          options={locationOptions || ['Bengaluru']}
           selected={filters.locations}
           onChange={(v) => updFilter('locations', v)}
           search

@@ -78,7 +78,7 @@ const SEARCH_TABS = [
     shortLabel: 'All',
     icon: 'fa-solid fa-shapes',
     route: '/categories',
-    placeholder: 'Search across properties, automobiles, electronics, comfort...',
+    placeholder: 'Search properties, automobiles, electronics, comfort...',
   },
   {
     id: 'properties',
@@ -91,7 +91,7 @@ const SEARCH_TABS = [
   {
     id: 'automobile',
     label: 'Automobiles',
-    shortLabel: 'Auto',
+    shortLabel: 'Automobiles',
     icon: 'fa-solid fa-car',
     route: '/categories/automobile',
     placeholder: 'Search cars, bikes, SUVs, commercial fleets...',
@@ -203,15 +203,8 @@ function AllServicesVectorIcon({ className = 'w-10 h-10' }) {
   );
 }
 
-/* ── The 5 Main Categories for Marketplace Points Module ── */
+/* ── The Main Categories for Marketplace Points Module ── */
 const FIVE_CATEGORIES = [
-  {
-    id: 'all-services',
-    title: 'All Categories',
-    link: '/categories',
-    Icon: AllServicesVectorIcon,
-    bgGlow: 'bg-rose-50/90 group-hover:bg-rose-100/90',
-  },
   {
     id: 'properties',
     title: 'Properties',
@@ -244,12 +237,12 @@ const FIVE_CATEGORIES = [
 
 /* ── Popular Search Chips with Category Targeting ── */
 const POPULAR_CHIPS = [
-  { label: 'Gated Plots Bengaluru', category: 'properties' },
-  { label: '3 BHK Whitefield', category: 'properties' },
-  { label: 'Maruti Brezza', category: 'automobile' },
-  { label: 'Orthopedic Mattress', category: 'bedding-comfort' },
-  { label: '5 Star AC', category: 'consumer-electronics' },
-  { label: 'Commercial Spaces', category: 'properties' },
+  { label: 'Gated Plots', category: 'properties', query: 'Gated Plots Bengaluru' },
+  { label: '3 BHK Whitefield', category: 'properties', query: '3 BHK Whitefield' },
+  { label: 'Verified Cars', category: 'automobile', query: 'Verified Cars' },
+  { label: 'Ortho Mattress', category: 'bedding-comfort', query: 'Orthopedic Mattress' },
+  { label: '5 Star AC', category: 'consumer-electronics', query: '5 Star AC' },
+  { label: 'Commercial Spaces', category: 'properties', query: 'Commercial Spaces' },
 ];
 
 /* ── Address Highlight Helper matching NoBroker / Google Places Autocomplete UI ── */
@@ -289,28 +282,34 @@ function highlightAddress(text, query) {
 }
 
 /* Helper to resolve the correct gallery page route for any category */
-function getGalleryRouteForCategory(category) {
-  const cat = String(category || '').toLowerCase();
+export function getGalleryRouteForCategory(category) {
+  const cat = String(category || '').toLowerCase().trim();
   if (cat === 'all' || cat === 'all-services') {
     return '/categories';
   }
-  if (cat === 'properties' || cat === 'property' || cat === 'real-estate') {
-    return '/categories/properties';
-  }
-  if (cat === 'jewellery' || cat === 'jewellery-gold' || cat === 'gold') {
-    return '/categories/jewellery';
-  }
-  if (cat === 'automobiles' || cat === 'automobile' || cat === 'vehicles' || cat === 'vehicle') {
-    return '/categories/automobile';
-  }
-  if (cat === 'electronics' || cat === 'consumer-electronics') {
-    return '/categories/consumer-electronics';
-  }
-  if (cat === 'comfort' || cat === 'bedding' || cat === 'bedding-comfort') {
+  if (cat.includes('comfort') || cat.includes('bedding') || cat.includes('mattress') || cat.includes('pillow') || cat.includes('sleep')) {
     return '/categories/bedding-comfort';
   }
-  if (cat === 'finance' || cat === 'finance-lending' || cat === 'loans') {
+  if (cat.includes('automobile') || cat.includes('vehicle') || cat.includes('car') || cat.includes('bike')) {
+    return '/categories/automobile';
+  }
+  if (cat.includes('jewellery') || cat.includes('gold') || cat.includes('diamond')) {
+    return '/categories/jewellery';
+  }
+  if (cat.includes('electronic') || cat.includes('appliance') || cat.includes('gadget')) {
+    return '/categories/consumer-electronics';
+  }
+  if (cat.includes('finance') || cat.includes('loan') || cat.includes('lending')) {
     return '/categories/finance-lending';
+  }
+  if (cat.includes('garment') || cat.includes('fashion') || cat.includes('cloth') || cat.includes('apparel')) {
+    return '/categories/garments';
+  }
+  if (cat.includes('grocer') || cat.includes('food')) {
+    return '/categories/groceries';
+  }
+  if (cat.includes('propert') || cat.includes('real')) {
+    return '/categories/properties';
   }
   return '/categories/properties';
 }
@@ -338,12 +337,14 @@ export default function HeroSection() {
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total]);
   const prev = useCallback(() => setCurrent((c) => (c - 1 + total) % total), [total]);
 
-  /* Autoplay */
+  /* Autoplay: pause only when user is actively searching or dropdown is open */
+  const shouldPause = isPaused || showSuggestions || (internalQuery.trim().length > 0 && isSearching);
+
   useEffect(() => {
-    if (isPaused || total <= 1) return;
-    timerRef.current = setInterval(next, 6500);
+    if (shouldPause || total <= 1) return;
+    timerRef.current = setInterval(next, 5000);
     return () => clearInterval(timerRef.current);
-  }, [isPaused, next, total]);
+  }, [shouldPause, next, total]);
 
   /* Touch Swiping */
   const onTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
@@ -388,7 +389,12 @@ export default function HeroSection() {
           signal: controller.signal,
         });
         const items = res.data?.data?.items || res.data?.items || [];
-        setSuggestions(items);
+        const availableItems = (items || []).filter((i) => {
+          if (!i) return false;
+          const st = String(i.availabilityStatus || '').toLowerCase();
+          return st !== 'sold_out' && st !== 'sold' && st !== 'out_of_stock' && i.isSoldOut !== true;
+        });
+        setSuggestions(availableItems);
       } catch (err) {
         if (err?.code !== 'ERR_CANCELED' && err?.name !== 'CanceledError') {
           console.error('Live search error:', err.message);
@@ -423,7 +429,7 @@ export default function HeroSection() {
     setShowSuggestions(false);
 
     if (activeCategory === 'all') {
-      // If user typed a query, check if suggestions belong to one category (e.g. they typed "Brezza" -> Vehicles)
+      // If user typed a query, check if suggestions belong to one category
       if (suggestions.length > 0) {
         const firstCat = suggestions[0].category;
         const allSame = suggestions.every((s) => s.category === firstCat);
@@ -445,7 +451,7 @@ export default function HeroSection() {
   };
 
   const handleChipClick = (chip) => {
-    const chipText = typeof chip === 'string' ? chip : chip.label;
+    const chipText = typeof chip === 'string' ? chip : (chip.query || chip.label);
     const cat = typeof chip === 'object' && chip.category ? chip.category : null;
     setShowSuggestions(false);
 
@@ -471,22 +477,41 @@ export default function HeroSection() {
       {/* ═══════════════════════════════════════════════════════════
           1. Category Navigation Bar (Sticky/Stacked at Top)
           ═══════════════════════════════════════════════════════════ */}
-      <section className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-3.5 sm:py-4 border-b-2 border-slate-300 shadow-xs relative z-20">
+      <section
+        className="bg-gradient-to-r from-slate-200/95 via-[#dbe7f4] to-slate-200/95 py-2.5 sm:py-3 border-b-2 border-slate-300 shadow-xs relative z-20"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* 5 Category Cards Grid with Lineal Color Vector Icons */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {/* Header Row: Title & Link to eliminate dead space */}
+          <div className="flex items-center justify-between mb-2 sm:mb-2.5">
+            <div className="flex items-center gap-2">
+              <i className="fa-solid fa-shapes text-brand-blue text-xs sm:text-sm" />
+              <span className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight">Main Categories</span>
+            </div>
+            <Link
+              to="/categories"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-blue hover:text-brand-navy hover:underline group transition-all"
+            >
+              <span>Click here for more</span>
+              <i className="fa-solid fa-arrow-right text-[11px] sm:text-xs group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {/* 4 Category Cards Grid with Lineal Color Vector Icons */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {FIVE_CATEGORIES.map((item) => {
               const IconComponent = item.Icon;
               return (
                 <Link
                   key={item.id}
                   to={item.link}
-                  className="group bg-white hover:bg-slate-50 rounded-2xl py-3.5 sm:py-4 px-3.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 sm:gap-3.5 cursor-pointer min-h-[72px] sm:min-h-[78px]"
+                  className="group bg-white hover:bg-slate-50 rounded-xl sm:rounded-2xl py-3 sm:py-3.5 px-3.5 sm:px-4.5 border-2 border-slate-300/90 hover:border-brand-blue shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer min-h-[72px] sm:min-h-[78px]"
                 >
-                  <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-                    {/* Lineal Illustrated Icon Container (Borderless, Larger Size) */}
-                    <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
-                      <IconComponent className="w-9 h-9 sm:w-10 sm:h-10 object-contain" />
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                    {/* Lineal Illustrated Icon Container */}
+                    <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${item.bgGlow} p-2 flex items-center justify-center shadow-xs group-hover:scale-108 transition-all duration-300 shrink-0`}>
+                      <IconComponent className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
                     </div>
 
                     {/* Category Title */}
@@ -496,6 +521,11 @@ export default function HeroSection() {
                       </h3>
                     </div>
                   </div>
+
+                  {/* Right Arrow Disc to fill empty white space */}
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 group-hover:bg-slate-950 text-slate-400 group-hover:text-white flex items-center justify-center transition-all shrink-0">
+                    <i className="fa-solid fa-arrow-right text-[10px] sm:text-xs group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </Link>
               );
             })}
@@ -504,9 +534,13 @@ export default function HeroSection() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          2. Cinema Hero Banner (Reduced Brightness Balanced Slate)
+          2. Cinema Hero Banner (Balanced Slate Background)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-gradient-to-b from-[#9eb3c9] via-[#b0c4d9] to-[#94abc2]">
+      <div
+        className="relative w-full bg-gradient-to-b from-[#9eb3c9] via-[#b0c4d9] to-[#94abc2]"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         {/* Background Ambient Glows & Carousel Slides Layer (Strictly Clipped) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* ── Ambient Soft Glow Lights (Balanced Slate & Muted Cool Tones) ── */}
@@ -520,30 +554,30 @@ export default function HeroSection() {
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${
-                  active ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out ${active ? 'opacity-100' : 'opacity-0'
+                  }`}
               >
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover scale-105 transition-transform duration-[4000ms] ease-out opacity-40"
+                  className="w-full h-full object-cover scale-105 transition-transform duration-[4000ms] ease-out opacity-75"
                   loading={idx === 0 ? 'eager' : 'lazy'}
                   fetchpriority={idx === 0 ? 'high' : 'auto'}
                   draggable={false}
                 />
-                {/* Balanced Slate Overlay with reduced brightness and crisp depth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/85 via-[#a1b7cd]/75 to-[#859cb3]/85" />
-                <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#859cb3] via-[#859cb3]/60 to-transparent" />
+                {/* Balanced Slate Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#8fa5bc]/40 via-[#a1b7cd]/30 to-[#859cb3]/50" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#859cb3] via-[#859cb3]/50 to-transparent" />
               </div>
             );
           })}
+
+          {/* Luminous Text Scrim for Guaranteed Razor-Sharp Legibility matching PageHero */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-900/40 to-slate-950/65 pointer-events-none" />
         </div>
 
         <section
-          className="relative w-full min-h-[460px] sm:min-h-[510px] md:min-h-[550px] flex flex-col justify-start items-center text-center px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
+          className="relative w-full min-h-[360px] sm:min-h-[400px] md:min-h-[430px] flex flex-col justify-start items-center text-center px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 md:pt-8 pb-8 sm:pb-10"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           aria-roledescription="carousel"
@@ -554,43 +588,45 @@ export default function HeroSection() {
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); prev(); }}
-            className="hidden sm:flex absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-brand-blue text-white items-center justify-center backdrop-blur-md border border-white/30 hover:border-sky-300 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Previous slide"
           >
-            <i className="fa-solid fa-chevron-left text-sm" />
+            <i className="fa-solid fa-chevron-left text-xs sm:text-sm" />
           </button>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); next(); }}
-            className="hidden sm:flex absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-brand-blue text-white items-center justify-center backdrop-blur-md border border-white/30 hover:border-sky-300 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Next slide"
           >
-            <i className="fa-solid fa-chevron-right text-sm" />
+            <i className="fa-solid fa-chevron-right text-xs sm:text-sm" />
           </button>
 
           {/* ── Center Banner Content ── */}
           <div className="relative z-30 max-w-5xl mx-auto w-full pt-1 sm:pt-2">
             {/* Tag / Pill-badge: THE BEST WAY TO */}
-            <div className="inline-flex items-center gap-2 mb-3">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/90 shadow-md backdrop-blur-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                <span className="text-slate-100 text-xs sm:text-[13px] font-black uppercase tracking-[0.2em]">
+            <div className="inline-flex items-center gap-2 mb-2.5 sm:mb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 sm:px-4 py-1 sm:py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/25 shadow-md">
+                <i className={`${activeSlide.badgeIcon || 'fa-solid fa-shapes'} text-xs text-[#90dafc]`} />
+                <span className="text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-white">
                   THE BEST WAY TO
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
               </div>
             </div>
 
-            {/* Main Headline (Strictly One Line) */}
+            {/* Main Headline (Ultra High-Contrast Crisp White + Glowing Brand Highlight matching PageHero) */}
             <div className="flex flex-col items-center justify-center w-full">
-              <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-[42px] font-black text-slate-950 tracking-tight leading-tight text-center drop-shadow-xs whitespace-nowrap">
-                {activeSlide.title} in Bengaluru
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-center break-words sm:whitespace-nowrap px-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                <span>{activeSlide.title} </span>
+                <span className="text-[#90dafc] font-black drop-shadow-[0_2px_8px_rgba(144,218,252,0.4)]">
+                  in Bengaluru
+                </span>
               </h1>
             </div>
 
-            {/* Description Paragraph */}
-            <div className="min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center mt-2 sm:mt-3">
-              <p className="text-xs sm:text-base text-slate-800 font-bold max-w-2xl mx-auto leading-relaxed drop-shadow-2xs">
+            {/* Description Paragraph (Crystal Clear High-Contrast Text) */}
+            <div className="min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center mt-2 sm:mt-2.5">
+              <p className="text-xs sm:text-base text-slate-100 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
                 {activeSlide.subtitle}
               </p>
             </div>
@@ -598,176 +634,175 @@ export default function HeroSection() {
             {/* ═══════════════════════════════════════════════════════════
                 Category Tabs & Search Bar Components
                 ═══════════════════════════════════════════════════════════ */}
-            <div className="mt-6 sm:mt-8 w-full max-w-5xl mx-auto px-1 sm:px-4">
-              <div className="flex flex-row items-end justify-center gap-2 sm:gap-3 w-full">
-                {/* ── Left Column: 5 Search Tabs on top, Search Input Box directly below ──
-                    Both are child elements of this column and share w-full, guaranteeing 
-                    that the search input area is 100% equivalent to the 5 options width. */}
-                <div ref={searchContainerRef} className="relative flex-1 max-w-3xl lg:max-w-4xl min-w-0 flex flex-col z-40">
-                  {/* 5 Equivalent Search Tabs */}
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full">
-                    {SEARCH_TABS.map((tab) => {
-                      const isActive = activeCategory === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setActiveCategory(tab.id)}
-                          className={`w-full inline-flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 h-10 sm:h-11 text-[11px] sm:text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer truncate ${
-                            isActive
-                              ? 'bg-white text-slate-950 font-black shadow-md border-2 border-slate-400 z-20 ring-2 ring-slate-400/20'
-                              : 'bg-slate-200/90 hover:bg-white text-slate-800 hover:text-slate-950 font-extrabold border-2 border-slate-300 shadow-xs'
-                          }`}
-                        >
-                          <i className={`${tab.icon} text-[10px] sm:text-xs shrink-0 ${isActive ? 'text-[#eb4e52]' : 'text-slate-600'}`} />
-                          <span className="hidden sm:inline truncate">{tab.label}</span>
-                          <span className="inline sm:hidden truncate">{tab.shortLabel || tab.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className="mt-3 sm:mt-4 w-full max-w-3xl lg:max-w-4xl mx-auto px-1 sm:px-4 flex flex-col z-40">
+              {/* 1. 5 Equivalent Search Tabs */}
+              <div className="flex items-center gap-1.5 sm:grid sm:grid-cols-5 sm:gap-2 mb-2 sm:mb-2.5 relative z-20 w-full overflow-x-auto scrollbar-hide py-0.5 touch-pan-x">
+                {SEARCH_TABS.map((tab) => {
+                  const isActive = activeCategory === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveCategory(tab.id)}
+                      className={`shrink-0 sm:shrink w-auto sm:w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3 h-9 sm:h-11 text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${isActive
+                        ? 'bg-action-primary text-action-primary-text font-black shadow-md border-2 border-action-primary-border z-20'
+                        : 'bg-white/15 hover:bg-white/25 text-white/90 hover:text-white font-bold border border-white/20 backdrop-blur-md shadow-xs'
+                        }`}
+                    >
+                      <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-action-primary-text' : 'text-[#90dafc]'}`} />
+                      <span className="hidden md:inline">{tab.label}</span>
+                      <span className="inline md:hidden">{tab.shortLabel || tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                  {/* Distinct Search Input Box (100% width matching the 5 tabs above) */}
-                  <div className="relative w-full flex items-center min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3.5 sm:px-5 h-[48px] sm:h-[54px] z-10">
-                    <i className="fa-solid fa-location-dot text-slate-500 text-sm sm:text-base mr-2.5 sm:mr-3 shrink-0" />
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={internalQuery}
-                      onChange={(e) => {
-                        setInternalQuery(e.target.value);
-                        setShowSuggestions(true);
+              {/* 2. Unified Search Row: Input Box + Search Button */}
+              <div ref={searchContainerRef} className="relative w-full flex items-center gap-1.5 sm:gap-3 z-30">
+                {/* Distinct Search Input Box */}
+                <div
+                  onClick={() => inputRef.current?.focus()}
+                  className="hero-search-input-box group relative flex-1 min-w-0 bg-white rounded-xl sm:rounded-2xl shadow-[0_15px_35px_-10px_rgba(15,23,42,0.25)] border-2 border-slate-400 px-3 sm:px-5 h-[44px] sm:h-[54px] flex items-center z-10 cursor-text transition-colors"
+                >
+                  <i className="fa-solid fa-location-dot text-slate-500 group-hover:text-brand-blue group-focus-within:text-brand-blue text-xs sm:text-base mr-2 sm:mr-3 shrink-0 transition-colors" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={internalQuery}
+                    onChange={(e) => {
+                      setInternalQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSearchSubmit(e);
+                      if (e.key === 'Escape') setShowSuggestions(false);
+                    }}
+                    placeholder={
+                      activeCategory === 'properties'
+                        ? "Search locality, landmark, project (e.g. Whitefield)..."
+                        : currentTab.placeholder
+                    }
+                    className="w-full border-0 p-0 text-xs sm:text-sm md:text-base font-bold text-slate-950 placeholder:text-slate-500 outline-none bg-transparent"
+                  />
+                  {internalQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInternalQuery('');
+                        setSuggestions([]);
+                        setAddressSuggestions([]);
                       }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearchSubmit(e);
-                        if (e.key === 'Escape') setShowSuggestions(false);
-                      }}
-                      placeholder={
-                        activeCategory === 'properties'
-                          ? "Search locality, landmark, project or builder (e.g. Banashankari, Whitefield)..."
-                          : currentTab.placeholder
-                      }
-                      className="w-full border-0 p-0 text-xs sm:text-sm md:text-base font-bold text-slate-950 placeholder:text-slate-500 outline-none bg-transparent"
-                    />
-                    {internalQuery && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInternalQuery('');
-                          setSuggestions([]);
-                          setAddressSuggestions([]);
-                        }}
-                        className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors shrink-0 ml-2 cursor-pointer"
-                        aria-label="Clear search"
-                      >
-                        <i className="fa-solid fa-xmark text-[10px]" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
-                  {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
-                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
-                      {/* Header Bar */}
-                      <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900">
-                            {internalQuery ? (
-                              <>Results for &ldquo;<span className="text-[#eb4e52]">{internalQuery}</span>&rdquo;</>
-                            ) : (
-                              'Popular Inventory'
-                            )}
-                          </span>
-                          {isSearching && (
-                            <i className="fa-solid fa-spinner animate-spin text-[#eb4e52] text-xs" />
-                          )}
-                        </div>
-                        <div className="text-[11px] font-extrabold text-slate-600">
-                          {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
-                        </div>
-                      </div>
-
-                      {/* Single Clean Full-Width Column: All Products */}
-                      <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
-                        {suggestions.length > 0 ? (
-                          suggestions.slice(0, 8).map((item) => {
-                            const categoryName =
-                              item.categoryLabel ||
-                              (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
-                            const locationName = item.location || item.locality || item.city || '';
-                            const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
-
-                            return (
-                              <div
-                                key={`${item.category}-${item.id || item._id}`}
-                                onClick={() => handleProductClick(item)}
-                                className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
-                              >
-                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#eb4e52] transition-colors truncate">
-                                  {highlightAddress(item.title, internalQuery)}
-                                </h4>
-                                <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
-                                  {detailLine}
-                                </p>
-                              </div>
-                            );
-                          })
-                        ) : !isSearching ? (
-                          <div className="p-6 text-center text-xs text-slate-500 space-y-2">
-                            <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
-                            <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
-                            <button
-                              type="button"
-                              onClick={handleSearchSubmit}
-                              className="text-xs font-bold text-[#eb4e52] hover:underline cursor-pointer"
-                            >
-                              Search all categories →
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {/* Bottom Global Action Bar */}
-                      <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-medium text-[11px]">
-                          Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleSearchSubmit}
-                          className="font-black text-[#eb4e52] hover:text-[#d94145] flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>See full results</span>
-                          <i className="fa-solid fa-arrow-right text-[10px]" />
-                        </button>
-                      </div>
-                    </div>
+                      className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors shrink-0 ml-1.5 sm:ml-2 cursor-pointer"
+                      aria-label="Clear search"
+                    >
+                      <i className="fa-solid fa-xmark text-[10px]" />
+                    </button>
                   )}
                 </div>
 
-                {/* ── Right Column: Separate Search Button in that same line ── */}
+                {/* Search Button (Harmonized Action Primary #90dafc) */}
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="shrink-0 h-[48px] sm:h-[54px] bg-[#eb4e52] hover:bg-[#d94145] text-white font-extrabold px-4 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border-2 border-red-600/90 shadow-[0_15px_35px_-10px_rgba(235,78,82,0.45)] hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 z-30"
+                  className="hero-search-btn shrink-0 h-[44px] sm:h-[54px] bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black px-3.5 sm:px-9 text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl border border-action-primary-border shadow-md hover:shadow-lg shadow-[#90dafc]/20 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer z-30 transition-all duration-200 active:scale-95"
+                  aria-label="Submit search"
                 >
-                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm" />
-                  <span>Search</span>
+                  <i className="fa-solid fa-magnifying-glass text-xs sm:text-sm pointer-events-none text-action-primary-text" />
+                  <span className="pointer-events-none text-action-primary-text">Search</span>
                 </button>
+
+                {/* ── CRISP SOLID (NON-BLURRED) LIVE SEARCH DROPDOWN ── */}
+                {showSuggestions && (internalQuery.trim().length > 0 || suggestions.length > 0) && (
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.40)] border-2 border-slate-400 z-50 overflow-hidden text-left animate-fade-in max-h-[440px] flex flex-col">
+                    {/* Header Bar */}
+                    <div className="flex items-center justify-between px-5 py-2.5 bg-slate-100 border-b-2 border-slate-200 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">
+                          {internalQuery ? (
+                            <>Results for &ldquo;<span className="text-[#134e8f]">{internalQuery}</span>&rdquo;</>
+                          ) : (
+                            'Popular Inventory'
+                          )}
+                        </span>
+                        {isSearching && (
+                          <i className="fa-solid fa-spinner animate-spin text-[#134e8f] text-xs" />
+                        )}
+                      </div>
+                      <div className="text-[11px] font-extrabold text-slate-600">
+                        {suggestions.length} {suggestions.length === 1 ? 'product' : 'products'}
+                      </div>
+                    </div>
+
+                    {/* Single Clean Full-Width Column: All Products */}
+                    <div className="overflow-y-auto flex-1 divide-y divide-slate-200 bg-white">
+                      {suggestions.length > 0 ? (
+                        suggestions.slice(0, 8).map((item) => {
+                          const categoryName =
+                            item.categoryLabel ||
+                            (item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : '');
+                          const locationName = item.location || item.locality || item.city || '';
+                          const detailLine = [categoryName, locationName].filter(Boolean).join(' · ') || 'Verified Product';
+
+                          return (
+                            <div
+                              key={`${item.category}-${item.id || item._id}`}
+                              onClick={() => handleProductClick(item)}
+                              className="px-5 py-3 hover:bg-slate-100 transition-colors cursor-pointer group"
+                            >
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#134e8f] transition-colors truncate">
+                                {highlightAddress(item.title, internalQuery)}
+                              </h4>
+                              <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5">
+                                {detailLine}
+                              </p>
+                            </div>
+                          );
+                        })
+                      ) : !isSearching ? (
+                        <div className="p-6 text-center text-xs text-slate-500 space-y-2">
+                          <i className="fa-solid fa-box-open text-slate-400 text-2xl block" />
+                          <p className="text-sm font-semibold text-slate-800">No products found for &ldquo;{internalQuery}&rdquo;</p>
+                          <button
+                            type="button"
+                            onClick={handleSearchSubmit}
+                            className="text-xs font-bold text-[#134e8f] hover:underline cursor-pointer"
+                          >
+                            Search all categories →
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Bottom Global Action Bar */}
+                    <div className="px-5 py-2.5 bg-slate-100 border-t-2 border-slate-200 flex items-center justify-between text-xs">
+                      <span className="text-slate-600 font-medium text-[11px]">
+                        Press <kbd className="px-1.5 py-0.5 bg-white border-2 border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Enter</kbd> to search
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleSearchSubmit}
+                        className="font-black text-[#134e8f] hover:text-[#0f233a] flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>See full results</span>
+                        <i className="fa-solid fa-arrow-right text-[10px]" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Trending Section */}
-              <div className="mt-5 flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide py-1">
-                <span className="rounded-full bg-slate-900 text-slate-100 px-3.5 py-1.5 text-xs font-black shadow-sm border border-slate-800 flex items-center gap-1.5 shrink-0">
-                  <i className="fa-solid fa-fire text-[#eb4e52] text-xs" /> TRENDING:
+              {/* 3. Trending Section */}
+              <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
+                <span className="rounded-full bg-white/20 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-white/25 backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
+                  <i className="fa-solid fa-fire text-[#90dafc] text-[9px] sm:text-xs" /> TRENDING:
                 </span>
                 {POPULAR_CHIPS.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleChipClick(chip)}
-                    className="shrink-0 rounded-full bg-slate-100 hover:bg-white text-slate-800 hover:text-brand-blue px-4 py-1.5 text-xs font-bold shadow-xs border-2 border-slate-300 hover:border-brand-blue transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="shrink-0 rounded-full bg-white/15 hover:bg-white/25 text-white px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border border-white/20 hover:border-white/35 backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                   >
                     {chip.label || chip}
                   </button>
@@ -777,22 +812,24 @@ export default function HeroSection() {
           </div>
 
           {/* Slide Indicators (Bottom of Hero - Lower Z-Index so search dropdown floats above) */}
-          <div className="absolute bottom-5 z-10 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-700 shadow-md">
+          <div className="absolute bottom-5 z-10 flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/30 shadow-md">
             {HERO_SLIDES.map((s, i) => (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === current ? 'w-5 bg-white' : 'w-1.5 bg-slate-500 hover:bg-slate-400'
+                  }`}
                 aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>
 
-          {/* ── Seamless Gradient Melting Hero Slate into Below Section (Behind Content & Dropdown) ── */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-slate-200/50 via-slate-200/15 to-transparent pointer-events-none z-0" />
+          {/* ── Seamless Gradient Melting Hero Slate into Below Section ── */}
+          <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-slate-900/30 via-slate-900/10 to-transparent pointer-events-none z-0" />
+
+          {/* Subtle Bottom Border Line matching PageHero */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-slate-300/40 pointer-events-none z-10" />
         </section>
       </div>
     </div>

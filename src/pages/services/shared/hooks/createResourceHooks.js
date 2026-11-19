@@ -38,6 +38,60 @@ function extractDetail(res) {
 /**
  * Creates standardized API resource hooks for list, detail, and similar items.
  */
+async function fetchAllList(api, params = {}) {
+  const queryParams = { limit: 1000, ...params };
+  const firstRes = await api.getAll(queryParams);
+  const items = [...extractList(firstRes)];
+
+  // If caller explicitly requested a specific page, return just that page
+  if (params && params.page !== undefined && params.page !== null) {
+    return items;
+  }
+
+  // Check pagination envelope to see if more pages exist
+  const pagination =
+    firstRes?.data?.pagination ||
+    firstRes?.data?.data?.pagination ||
+    firstRes?.pagination;
+
+  if (pagination && pagination.totalPages > 1 && (pagination.page === 1 || !pagination.page)) {
+    const pageLimit = pagination.limit || 100;
+    const pagePromises = [];
+    for (let p = 2; p <= pagination.totalPages; p++) {
+      pagePromises.push(
+        api
+          .getAll({ ...queryParams, page: p, limit: pageLimit })
+          .then(extractList)
+          .catch((err) => {
+            console.error('Failed to fetch page ' + p + ':', err);
+            return [];
+          })
+      );
+    }
+    const subsequentPages = await Promise.all(pagePromises);
+    for (const pageItems of subsequentPages) {
+      if (Array.isArray(pageItems)) {
+        items.push(...pageItems);
+      }
+    }
+  }
+
+  // Deduplicate items across pages by unique identifier (_id / id)
+  const seenIds = new Set();
+  const uniqueItems = [];
+  for (const it of items) {
+    if (!it) continue;
+    const id = String(it._id || it.id || '');
+    if (id) {
+      if (seenIds.has(id)) continue;
+      seenIds.add(id);
+    }
+    uniqueItems.push(it);
+  }
+
+  return uniqueItems;
+}
+
 export function createResourceHooks({
   singular,
   plural,
@@ -49,7 +103,7 @@ export function createResourceHooks({
     const key = `${plural}:${deterministicKey(params)}`;
     const { data, loading, error, retry } = useCachedData(
       key,
-      () => api.getAll(params).then(extractList),
+      () => fetchAllList(api, params),
       { ttl: CACHE_TTL.products, fallback: listFallback }
     );
     const list = data || listFallback;

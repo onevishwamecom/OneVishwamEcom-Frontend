@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { UniversalCategoryGallery } from '../../../components/common/templates';
 import { useProperties } from '../../../hooks/useProperties';
 import QuickMatchModal from './QuickMatchModal';
+import { signalHomepageRefresh } from '../../../utils/matchEvents';
 import BangalorePropertyPieMap from './components/BangalorePropertyPieMap';
 import { cleanProductName } from '../../../utils/searchUtils';
 import {
@@ -15,6 +16,8 @@ import {
 } from './propertyConstants';
 import {
   getPropertyType,
+  getPropertyFilterTypes,
+  matchesPropertyType,
   getPropertyTypeLabel,
   getDetailTags,
   getPropertyCoverImage,
@@ -34,7 +37,8 @@ const FILTER_GROUPS = [
     id: 'propertyType',
     title: 'Property Type',
     options: PROPERTY_TYPE_OPTIONS,
-    field: (p) => getPropertyType(p),
+    field: (p) => getPropertyFilterTypes(p),
+    matches: (p, selectedSet) => matchesPropertyType(p, selectedSet),
   },
   {
     id: 'bedrooms',
@@ -162,39 +166,35 @@ export default function PropertyGallery() {
     });
   };
 
-  const topExtra = (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setShowMap((prev) => !prev)}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-2xs border cursor-pointer ${
-            showMap || selectedZone
-              ? 'bg-brand-blue text-white border-brand-blue shadow-sm'
-              : 'bg-white text-slate-700 border-gray-200 hover:border-brand-blue/40 hover:bg-gray-50'
-          }`}
-        >
-          <i className="fa-solid fa-map-location-dot" />
-          <span>{showMap ? 'Hide Bangalore Map' : 'Bangalore Property Map'}</span>
-          {selectedZone && (
-            <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] uppercase tracking-wider font-extrabold">
-              {selectedZone}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {showMap && (
-        <div className="animate-fade-in">
-          <BangalorePropertyPieMap
-            properties={properties || []}
-            activeZone={selectedZone || 'All'}
-            onSelectZone={handleSelectZone}
-          />
-        </div>
+  const mapFilterButton = (
+    <button
+      type="button"
+      onClick={() => setShowMap((prev) => !prev)}
+      className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold border transition-all shadow-2xs cursor-pointer ${
+        showMap || selectedZone
+          ? 'bg-brand-blue text-white border-brand-blue shadow-xs font-bold'
+          : 'bg-white text-slate-800 border-gray-200 hover:border-brand-blue hover:text-brand-blue'
+      }`}
+    >
+      <i className={`fa-solid fa-map-location-dot ${showMap || selectedZone ? 'text-white' : 'text-brand-blue'} text-xs`} />
+      <span>{showMap ? 'Hide Map' : 'Bangalore Map'}</span>
+      {selectedZone && (
+        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] uppercase tracking-wider font-extrabold">
+          {selectedZone}
+        </span>
       )}
-    </div>
+    </button>
   );
+
+  const topExtra = showMap ? (
+    <div className="animate-fade-in">
+      <BangalorePropertyPieMap
+        properties={properties || []}
+        activeZone={selectedZone || 'All'}
+        onSelectZone={handleSelectZone}
+      />
+    </div>
+  ) : null;
 
   return (
     <UniversalCategoryGallery
@@ -221,9 +221,13 @@ export default function PropertyGallery() {
       useItems={useProperties}
       hidePrice={true}
       postRequirementLink="/property/requirement"
-      onQuickMatch={() => setQuickMatchOpen(true)}
+      onQuickMatch={() => {
+        signalHomepageRefresh();
+        setQuickMatchOpen(true);
+      }}
       quickMatchLabel="Quick Match"
       topExtra={topExtra}
+      filterExtra={mapFilterButton}
       customSorter={sortPropertiesWithInHousePriority}
       mapping={{
         id: (p) => p._id || p.id,

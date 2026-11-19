@@ -32,24 +32,40 @@ export default React.memo(function CategoryListingCard({
   // Normalize data
   const rawTitle = title !== undefined ? title : (item?.title || '');
   const cardTitle = cleanProductName(rawTitle);
+
+  const resolvedCategory = String(
+    item?.category ||
+    item?.raw?.category ||
+    item?.subcategory ||
+    item?.raw?.subcategory ||
+    item?.overline ||
+    ''
+  ).toLowerCase().trim();
+
+  const itemId = item?.id || item?._id || item?.raw?._id || item?.raw?.id;
+
   const cardLink =
     link ||
     item?.link ||
     item?.detailUrl ||
-    (item?.category === 'vehicles' || item?.category === 'automobile'
-      ? `/vehicle/${item?.id || item?._id}`
-      : item?.category === 'electronics'
-      ? `/electronics/${item?.id || item?._id}`
-      : item?.category === 'bedding' || item?.category === 'bedding-comfort'
-      ? `/bedding/${item?.id || item?._id}`
-      : item?.category === 'garments'
-      ? `/garment/${item?.id || item?._id}`
-      : item?.category === 'grocery'
-      ? `/grocery/${item?.id || item?._id}`
-      : item?.category === 'jewellery'
-      ? `/jewellery/${item?.id || item?._id}`
-      : item?.id
-      ? `/property/${item.id}`
+    (itemId
+      ? (resolvedCategory.includes('bedding') || resolvedCategory.includes('comfort') || resolvedCategory.includes('mattress') || resolvedCategory.includes('pillow') || resolvedCategory.includes('sleep')
+        ? `/bedding/${itemId}`
+        : resolvedCategory.includes('vehicle') || resolvedCategory.includes('auto') || resolvedCategory.includes('car') || resolvedCategory.includes('bike')
+        ? `/vehicle/${itemId}`
+        : resolvedCategory.includes('electronic') || resolvedCategory.includes('gadget') || resolvedCategory.includes('appliance')
+        ? `/electronics/${itemId}`
+        : resolvedCategory.includes('garment') || resolvedCategory.includes('apparel') || resolvedCategory.includes('clothing') || resolvedCategory.includes('fashion')
+        ? `/garment/${itemId}`
+        : resolvedCategory.includes('grocer') || resolvedCategory.includes('food')
+        ? `/grocery/${itemId}`
+        : resolvedCategory.includes('jewel') || resolvedCategory.includes('gold') || resolvedCategory.includes('diamond')
+        ? `/jewellery/${itemId}`
+        : resolvedCategory.includes('loan') || resolvedCategory.includes('finance') || resolvedCategory.includes('lending')
+        ? `/finance/${itemId}`
+        : resolvedCategory.includes('property') || resolvedCategory.includes('real')
+        ? `/property/${itemId}`
+        : `/property/${itemId}`)
       : '#');
   const rawImg = image || (Array.isArray(item?.images) ? item.images.find(s => s && !isPlaceholderImage(s)) : '') || item?.image || '';
   const cardImg = isPlaceholderImage(rawImg) ? '' : rawImg;
@@ -94,6 +110,16 @@ export default React.memo(function CategoryListingCard({
     return { label: b.label, className: cls };
   });
 
+  const isPlot = Boolean(
+    isProperty && (
+      item?.isPlot ||
+      item?.raw?.isPlot ||
+      /plot|site|land|farm\s*plot/i.test(
+        `${item?.propertyType || ''} ${item?.subcategory || ''} ${item?.category || ''} ${item?.raw?.propertyType || ''} ${item?.raw?.subcategory || ''} ${item?.title || ''} ${cardOverline || ''} ${item?.bhk || ''}`
+      )
+    )
+  );
+
   // Attribute Pills (cardPills) - includes propertyType for properties
   const rawPills = cardPills !== undefined ? cardPills : (keyAttributes !== undefined ? keyAttributes : (item?.cardPills || item?.keyAttributes || []));
   const resolvedPropType = isProperty
@@ -109,7 +135,13 @@ export default React.memo(function CategoryListingCard({
       combinedPills.unshift(resolvedPropType);
     }
   }
-  const pills = combinedPills.slice(0, 4);
+  const filteredCombinedPills = isPlot
+    ? combinedPills.filter((p) => {
+        const str = String(typeof p === 'string' ? p : `${p.label || ''} ${p.value || ''}`).trim();
+        return !/\b(bhk|bed|beds|bedroom|bedrooms|bath|baths|bathroom|bathrooms|parking|garage|floor|furnish|furnished)\b/i.test(str);
+      })
+    : combinedPills;
+  const pills = filteredCombinedPills.slice(0, 4);
 
   // Trust highlight banner
   const bannerText =
@@ -266,9 +298,9 @@ export default React.memo(function CategoryListingCard({
                   {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px]" />}
                   {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs" />}
                   {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs" />}
-                  {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
+                  {isBhk && !isPlot && <i className="fa-solid fa-bed text-brand-blue text-[11px]" />}
                   {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px]" />}
-                  {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
+                  {isBath && !isPlot && <i className="fa-solid fa-shower text-brand-blue text-[11px]" />}
                   {label}
                 </span>
               );
@@ -298,9 +330,9 @@ export default React.memo(function CategoryListingCard({
                 })
               );
             }}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text px-4 py-2.5 text-xs sm:text-sm font-black transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98] border border-action-primary-border"
           >
-            <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+            <i className="fa-solid fa-handshake-angle text-xs text-action-primary-text" />
             <span>Are You Interested?</span>
           </button>
         </div>

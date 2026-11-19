@@ -340,7 +340,7 @@ function PostRequirement() {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="submit"
-              className="flex-1 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 py-3.5 text-sm font-extrabold transition-all shadow-md active:scale-[0.98] cursor-pointer"
+              className="flex-1 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text py-3.5 text-sm font-black transition-all shadow-md active:scale-[0.98] cursor-pointer border border-action-primary-border"
             >
               <i className="fa-solid fa-paper-plane mr-2" />
               Submit Requirement

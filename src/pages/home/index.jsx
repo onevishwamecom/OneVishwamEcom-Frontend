@@ -1,9 +1,10 @@
-import { useMemo, useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation as useRouteLocation } from 'react-router-dom';
 import { useLocation } from '../../store/locationSlice';
 import { getCityLabel } from '../../constants/locations';
 import { useHomepageData } from '../../hooks/useHomepageData';
 import { useProperties } from '../../hooks/useProperties';
+import { isHomepageStale, clearHomepageStale, MATCH_EVENT_NAME } from '../../utils/matchEvents';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { formatFinanceAmount } from '../services/finance/financeConstants';
 import { hasPropertyImages, getPropertyCoverImage, getDetailTags, sortPropertiesWithPriority, getPriorityScore, formatPropertyAddress, getPropertyTypeLabel } from '../services/property/propertyHelpers';
@@ -19,19 +20,127 @@ const FOOD_CATEGORIES = ['Fruits & Vegetables', 'Grains & Pulses', 'Dairy', 'Bev
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors';
 const BTN_SECONDARY = 'inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-blue px-6 py-2.5 text-xs font-semibold text-brand-blue hover:bg-brand-blue hover:text-white transition-colors';
 
+function useHorizontalSlider() {
+  const ref = useRef(null);
+
+  const scrollBy = useCallback((distance) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: distance, behavior: 'smooth' });
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let hasMoved = false;
+
+    const handleMouseDown = (e) => {
+      if (e.button !== 0) return;
+      isDown = true;
+      hasMoved = false;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDown) return;
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startX);
+      if (Math.abs(walk) > 4) {
+        hasMoved = true;
+        el.scrollLeft = scrollLeft - walk;
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isDown) return;
+      isDown = false;
+      if (hasMoved) {
+        const stopClick = (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+        };
+        window.addEventListener('click', stopClick, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', stopClick, { capture: true }), 100);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      isDown = false;
+    };
+
+    el.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    el.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      el.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return [ref, scrollBy];
+}
+
 function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredRef, scrollFeatured] = useHorizontalSlider();
+  const [vehiclesRef, scrollVehicles] = useHorizontalSlider();
+  const [freshArrivalsRef, scrollFreshArrivals] = useHorizontalSlider();
+  const [searchResultsRef, scrollSearchResults] = useHorizontalSlider();
   const [activeZone, setActiveZone] = useState('All');
   const navigate = useNavigate();
+  const routeLocation = useRouteLocation();
   const { selectedCity } = useLocation();
-  const { data, loading } = useHomepageData();
+  const { data, loading, refresh } = useHomepageData();
+  const { properties: allProperties, refetch: refetchProperties } = useProperties();
+
+  useEffect(() => {
+    const handleMatchOrStale = () => {
+      if (isHomepageStale()) {
+        clearHomepageStale();
+      }
+      refresh();
+      if (typeof refetchProperties === 'function') {
+        refetchProperties();
+      }
+    };
+
+    if (routeLocation.pathname === '/' && isHomepageStale()) {
+      handleMatchOrStale();
+    }
+
+    const handleWindowCheck = () => {
+      if (isHomepageStale()) {
+        handleMatchOrStale();
+      }
+    };
+
+    window.addEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+    window.addEventListener('focus', handleWindowCheck);
+    window.addEventListener('pageshow', handleWindowCheck);
+    window.addEventListener('popstate', handleWindowCheck);
+
+    return () => {
+      window.removeEventListener(MATCH_EVENT_NAME, handleMatchOrStale);
+      window.removeEventListener('focus', handleWindowCheck);
+      window.removeEventListener('pageshow', handleWindowCheck);
+      window.removeEventListener('popstate', handleWindowCheck);
+    };
+  }, [routeLocation.pathname, refresh, refetchProperties]);
 
   const filterAvailable = useCallback(
     (arr) => (arr || []).filter((item) => item.status !== 'sold_out'),
     []
   );
 
-  const { properties: allProperties } = useProperties();
   const rawProperties = useMemo(() => {
     const list = [...(allProperties || [])];
     const existingIds = new Set(list.map((p) => String(p.id || p._id)));
@@ -152,7 +261,7 @@ function Home() {
       }
     }
 
-    return sortPropertiesImagesFirst(candidateList).slice(0, 3);
+    return sortPropertiesImagesFirst(candidateList).slice(0, 6);
   }, [latestProperties, rawProperties, featuredIds, sortPropertiesImagesFirst]);
 
   const availableNearYou = useMemo(() => {
@@ -199,9 +308,13 @@ function Home() {
               )}
             </div>
             {propertyResults.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-1 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-y">
+              <div
+                ref={searchResultsRef}
+                className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-4 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-6 touch-pan-x touch-pan-y overscroll-x-contain"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {propertyResults.map((p) => (
-                  <div key={p.id || p._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                  <div key={p.id || p._id} className="shrink-0 snap-start w-[76vw] sm:w-[300px] lg:w-auto">
                     <ProductCard
                       link={`/property/${p.id || p._id}`}
                       image={getPropertyCoverImage(p)}
@@ -223,12 +336,12 @@ function Home() {
         </section>
       )}
 
-      <div className="relative z-10 bg-slate-50/70 pb-16 sm:pb-24">
+      <div className="relative z-10 bg-slate-50/70 pb-8 sm:pb-10">
 
         {/* ── Module 1: Discover Our Featured Properties (Homez style) ── */}
-        <section className="pt-12 sm:pt-16">
+        <section className="pt-8 sm:pt-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-house-chimney text-xs" /> {stats.totalProperties || latestProperties.length}+ Available
@@ -240,18 +353,42 @@ function Home() {
                   Handpicked verified residential plots, apartments, villas and commercial spaces.
                 </p>
               </div>
-              <Link
-                to="/our-services/properties"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>See All Properties</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollFeatured(-320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous featured properties"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollFeatured(320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next featured properties"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/our-services/properties"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>See All Properties</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div
+              ref={featuredRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-5 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {dreamHomes.map((p) => (
-                <div key={p.id || p._id} className="group shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                <div key={p.id || p._id} className="group shrink-0 snap-start w-[76vw] sm:w-[300px] md:w-[320px] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}
@@ -272,9 +409,9 @@ function Home() {
 
         {/* ── Module 2: Vehicles Corner (Homez style) ── */}
         {!PROPERTIES_ONLY && (
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-car text-xs" /> Certified Transport
@@ -286,18 +423,42 @@ function Home() {
                   Quality verified family cars, two-wheelers &amp; commercial automobiles available nearby.
                 </p>
               </div>
-              <Link
-                to="/categories/automobile"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>See All Automobiles</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollVehicles(-320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous vehicles"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollVehicles(320)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next vehicles"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/categories/automobile"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>See All Automobiles</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 xl:grid-cols-5 touch-pan-y">
+            <div
+              ref={vehiclesRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-5 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {latestVehicles.slice(0, 5).map((v) => (
-                <div key={v.id || v._id} className="shrink-0 snap-start w-[72vw] sm:w-[48vw] lg:w-auto">
+                <div key={v.id || v._id} className="shrink-0 snap-start w-[76vw] sm:w-[300px] md:w-[320px] lg:w-auto">
                   <ProductCard
                     link={`/vehicle/${v.id || v._id}`}
                     image={v.images?.[0] || v.image}
@@ -320,9 +481,9 @@ function Home() {
         )}
 
         {/* ── Module 3: Fresh Arrivals (Homez style) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-extrabold uppercase tracking-wider mb-2.5">
                   <i className="fa-solid fa-clock text-xs" /> Just Uploaded
@@ -334,18 +495,42 @@ function Home() {
                   Brand new verified residential plots, apartments, and prime listings added today.
                 </p>
               </div>
-              <Link
-                to="/property?sort=newest"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0 self-start sm:self-auto"
-              >
-                <span>Browse All New</span>
-                <i className="fa-solid fa-arrow-right text-xs" />
-              </Link>
+              <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => scrollFreshArrivals(-340)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Previous fresh arrivals"
+                  >
+                    <i className="fa-solid fa-chevron-left text-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollFreshArrivals(340)}
+                    className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 hover:text-brand-blue shadow-2xs transition-all cursor-pointer active:scale-95"
+                    aria-label="Next fresh arrivals"
+                  >
+                    <i className="fa-solid fa-chevron-right text-xs" />
+                  </button>
+                </div>
+                <Link
+                  to="/property?sort=newest"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 hover:text-brand-blue border-b-2 border-slate-900 hover:border-brand-blue pb-0.5 transition-all shrink-0"
+                >
+                  <span>Browse All New</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:gap-5 lg:snap-none lg:overflow-visible lg:grid-cols-3 touch-pan-y">
+            <div
+              ref={freshArrivalsRef}
+              className="flex gap-3.5 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-3 lg:grid lg:grid-cols-3 lg:gap-5 lg:snap-none lg:overflow-visible touch-pan-x touch-pan-y overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               {todayListed.map((p) => (
-                <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[72vw] sm:w-[52vw] lg:w-auto">
+                <div key={`fresh-prop-${p.id || p._id}`} className="shrink-0 snap-start w-[76vw] sm:w-[320px] md:w-[340px] lg:w-auto">
                   <ProductCard
                     link={`/property/${p.id || p._id}`}
                     image={getPropertyCoverImage(p)}
@@ -367,16 +552,16 @@ function Home() {
         </section>
 
         {/* ── Module 4: Properties by Localities (Bangalore BBMP Distribution) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-10">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-3">
+            <div className="text-center max-w-3xl mx-auto mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-xs font-extrabold uppercase tracking-wider mb-2.5">
                 <i className="fa-solid fa-map-location-dot text-xs" /> Regional BBMP Distribution
               </span>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
                 Properties by Localities
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+              <p className="mt-1 text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
                 Click any administrative zone on the official BBMP map below to inspect verified listings, price trends, and availability.
               </p>
             </div>
@@ -398,7 +583,7 @@ function Home() {
         </section>
 
         {/* ── Homez Expert CTA Banner (`Need help? Talk to our expert.`) ── */}
-        <section className="pt-16 sm:pt-20">
+        <section className="pt-10 sm:pt-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="relative rounded-3xl bg-gradient-to-b from-[#d9ebfa] via-[#e5f1fc] to-[#d6e9f9] text-slate-900 p-8 sm:p-12 lg:p-14 overflow-hidden shadow-sm border border-sky-200/90 flex flex-col md:flex-row md:items-center justify-between gap-8">
               {/* Ambient Soft Glow Lights Matching Hero Banner */}
@@ -427,7 +612,7 @@ function Home() {
                       })
                     )
                   }
-                  className="rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black px-7 py-3.5 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                  className="rounded-full bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black px-7 py-3.5 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 border border-action-primary-border"
                 >
                   <i className="fa-solid fa-phone-volume text-xs" />
                   <span>Contact Us</span>

@@ -53,7 +53,7 @@ export default function HitCounterBanner() {
   const formatNumber = (num) => new Intl.NumberFormat('en-IN').format(num || 0);
 
   return (
-    <div className="w-full bg-gradient-to-r from-[#d0e5f7] via-[#def0fc] to-[#d0e5f7] text-slate-700 border-t-2 border-b border-sky-300/80 py-2.5 px-4 text-xs select-none shadow-xs font-semibold">
+    <div className="w-full bg-gradient-to-r from-[#d0e5f7] via-[#def0fc] to-[#d0e5f7] text-slate-700 border-b border-sky-300/60 py-2 px-4 text-xs select-none font-semibold">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         {/* Left Live Indicator */}
         <div className="flex items-center gap-2">

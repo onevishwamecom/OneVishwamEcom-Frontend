@@ -4,6 +4,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import API from '../services/api';
 import { isJwtExpired } from '../utils/tokenUtils';
 import {
+  startSession,
+  isSessionActive,
+  getActiveSessionUser,
+  clearSession,
+} from '../utils/sessionManager';
+import { navigateTo } from '../config/navigation';
+import {
   auth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -55,7 +62,7 @@ export const loginWithEmail = createAsyncThunk(
         console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
       }
 
-      localStorage.setItem('user', JSON.stringify(profileData));
+      startSession(profileData, idToken);
       return profileData;
     } catch (error) {
       let msg = error.response?.data?.message || error.message || 'Login failed';
@@ -126,7 +133,7 @@ export const registerWithEmail = createAsyncThunk(
         console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
       }
 
-      localStorage.setItem('user', JSON.stringify(profileData));
+      startSession(profileData, idToken);
       return profileData;
     } catch (error) {
       console.error('Registration & MongoDB save error:', error.response?.data || error.message);
@@ -186,7 +193,7 @@ export const loginWithGoogle = createAsyncThunk(
         console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
       }
 
-      localStorage.setItem('user', JSON.stringify(profileData));
+      startSession(profileData, idToken);
       return profileData;
     } catch (error) {
       let msg = error.message || 'Google sign-in failed';
@@ -246,7 +253,7 @@ export const loginWithFacebook = createAsyncThunk(
         console.warn('[Auth Sync] Backend profile sync deferred:', syncErr.response?.data || syncErr.message);
       }
 
-      localStorage.setItem('user', JSON.stringify(profileData));
+      startSession(profileData, idToken);
       return profileData;
     } catch (error) {
       let msg = error.message || 'Facebook sign-in failed';
@@ -268,9 +275,14 @@ export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
   } catch (err) {
     console.warn('Sign out error:', err);
   }
-  localStorage.removeItem('user');
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
+  clearSession();
+  try {
+    sessionStorage.removeItem('vishwam_auth_redirect');
+    navigateTo('/');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  } catch {}
   return null;
 });
 
@@ -278,7 +290,7 @@ export const fetchMe = createAsyncThunk('auth/fetchMe', async (_, { rejectWithVa
   try {
     const res = await API.get('/auth/me');
     const user = res.data.data;
-    localStorage.setItem('user', JSON.stringify(user));
+    startSession(user);
     return user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Session expired');
@@ -337,7 +349,7 @@ export const updateUserProfile = createAsyncThunk(
         },
       });
       const user = res.data.data;
-      localStorage.setItem('user', JSON.stringify(user));
+      startSession(user, idToken);
       return user;
     } catch (err) {
       const respData = err.response?.data;
@@ -375,7 +387,7 @@ export const updateUserNotifications = createAsyncThunk(
         },
       });
       const user = res.data.data;
-      localStorage.setItem('user', JSON.stringify(user));
+      startSession(user, idToken);
       return user;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Update failed');
@@ -401,9 +413,7 @@ export const deleteUserAccount = createAsyncThunk(
     try {
       await API.delete('/auth/account');
       await signOut(auth);
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      clearSession();
       return null;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Delete failed');
@@ -413,26 +423,17 @@ export const deleteUserAccount = createAsyncThunk(
 
 // ─── Initial State ────────────────────────────────────────────────────────────
 
-let parsedStoredUser = null;
-try {
-  const rawUser = localStorage.getItem('user');
-  if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
-    parsedStoredUser = JSON.parse(rawUser);
-  } else if (rawUser === 'undefined' || rawUser === 'null') {
-    localStorage.removeItem('user');
-  }
-} catch {
-  localStorage.removeItem('user');
-  parsedStoredUser = null;
-}
+const initialStoredUser = getActiveSessionUser();
+const initialIsLoggedIn = isSessionActive() && !!initialStoredUser;
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    isLoggedIn: !!parsedStoredUser,
-    user: parsedStoredUser,
+    isLoggedIn: initialIsLoggedIn,
+    user: initialStoredUser,
     showAuthModal: false,
     authModalMode: 'login',
+    storyActive: false,
     loading: false,
     error: null,
     successMessage: null,
@@ -446,22 +447,19 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
       if (action.payload && typeof action.payload === 'object') {
-        try {
-          localStorage.setItem('user', JSON.stringify(action.payload));
-        } catch {
-          /* storage error */
-        }
+        startSession(action.payload);
       } else {
-        localStorage.removeItem('user');
+        clearSession();
       }
     },
     logout(state) {
       state.isLoggedIn = false;
       state.user = null;
       state.loading = false;
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      state.showAuthModal = true;
+      state.authModalMode = 'login';
+      state.storyActive = false;
+      clearSession();
     },
     openAuthModal(state, action) {
       state.showAuthModal = true;
@@ -483,6 +481,9 @@ const authSlice = createSlice({
       state.error = null;
       state.successMessage = null;
     },
+    setStoryActive(state, action) {
+      state.storyActive = action.payload;
+    },
     setForgotEmail(state, action) {
       state.forgotEmail = action.payload;
     },
@@ -498,9 +499,17 @@ const authSlice = createSlice({
     forceLogout(state) {
       state.isLoggedIn = false;
       state.user = null;
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      state.showAuthModal = true;
+      state.authModalMode = 'login';
+      state.storyActive = false;
+      clearSession();
+      try {
+        sessionStorage.removeItem('vishwam_auth_redirect');
+        navigateTo('/');
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        }
+      } catch {}
     },
   },
   extraReducers: (builder) => {
@@ -570,6 +579,10 @@ const authSlice = createSlice({
         state.user = null;
         state.isLoggedIn = false;
         state.loading = false;
+        state.showAuthModal = true;
+        state.authModalMode = 'login';
+        state.storyActive = false;
+        clearSession();
       })
 
       // Fetch Me
@@ -585,6 +598,9 @@ const authSlice = createSlice({
         // If session expired
         state.isLoggedIn = false;
         state.user = null;
+        state.showAuthModal = true;
+        state.authModalMode = 'login';
+        clearSession();
       })
 
       // Profile Update
@@ -613,6 +629,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.isLoggedIn = false;
         state.user = null;
+        state.showAuthModal = true;
+        state.authModalMode = 'login';
+        state.storyActive = false;
+        clearSession();
       });
   },
 });
@@ -623,6 +643,7 @@ export const {
   openAuthModal,
   closeAuthModal,
   switchAuthMode,
+  setStoryActive,
   clearError,
   clearSuccess,
   forceLogout,
@@ -633,12 +654,50 @@ export const {
 export default authSlice.reducer;
 
 export function useAuth() {
-  const dispatch = useDispatch();
+  let dispatch;
+  try {
+    dispatch = useDispatch();
+  } catch {
+    return {
+      isLoggedIn: false,
+      user: null,
+      showAuthModal: false,
+      authModalMode: 'login',
+      storyActive: false,
+      loading: false,
+      error: null,
+      successMessage: null,
+      forgotEmail: null,
+      verifyToken: null,
+      login: () => {},
+      loginWithEmail: () => {},
+      loginWithGoogle: () => {},
+      loginWithFacebook: () => {},
+      register: () => {},
+      registerWithEmail: () => {},
+      logout: () => {},
+      openAuthModal: () => {},
+      closeAuthModal: () => {},
+      switchAuthMode: () => {},
+      setStoryActive: () => {},
+      clearError: () => {},
+      clearSuccess: () => {},
+      fetchMe: () => {},
+      updateProfile: () => {},
+      updateNotifications: () => {},
+      forgotPassword: () => {},
+      deleteAccount: () => {},
+      forceLogout: () => {},
+      setForgotEmail: () => {},
+      setVerifyToken: () => {},
+    };
+  }
   return {
     isLoggedIn: useSelector((s) => s.auth.isLoggedIn),
     user: useSelector((s) => s.auth.user),
     showAuthModal: useSelector((s) => s.auth.showAuthModal),
     authModalMode: useSelector((s) => s.auth.authModalMode),
+    storyActive: useSelector((s) => s.auth.storyActive),
     loading: useSelector((s) => s.auth.loading),
     error: useSelector((s) => s.auth.error),
     successMessage: useSelector((s) => s.auth.successMessage),
@@ -654,6 +713,7 @@ export function useAuth() {
     openAuthModal: useCallback((mode) => dispatch(openAuthModal(mode)), [dispatch]),
     closeAuthModal: useCallback(() => dispatch(closeAuthModal()), [dispatch]),
     switchAuthMode: useCallback((mode) => dispatch(switchAuthMode(mode)), [dispatch]),
+    setStoryActive: useCallback((active) => dispatch(setStoryActive(active)), [dispatch]),
     clearError: useCallback(() => dispatch(clearError()), [dispatch]),
     clearSuccess: useCallback(() => dispatch(clearSuccess()), [dispatch]),
     fetchMe: useCallback(() => dispatch(fetchMe()), [dispatch]),

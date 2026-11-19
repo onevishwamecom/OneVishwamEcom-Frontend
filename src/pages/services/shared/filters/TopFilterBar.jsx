@@ -31,7 +31,7 @@ export function FilterToggle({ checked, onChange, label, icon }) {
 export function TopFilterBar({
   cityValue = 'bengaluru',
   onCityChange,
-  citiesList = ['Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Chennai', 'Pune'],
+  citiesList = ['Bengaluru'],
   areaValue = '',
   onAreaChange,
   areasList = [],
@@ -191,6 +191,19 @@ export function TopFilterBar({
                 placeholder={requirementPlaceholder}
                 className="w-full text-xs sm:text-sm font-semibold text-brand-charcoal bg-transparent outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
               />
+            </div>
+
+            {/* 4. SEARCH BUTTON */}
+            <div className="sm:col-span-2 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={onSearch}
+                className="w-full h-10 rounded-xl bg-brand-blue hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer active:scale-95"
+                aria-label={searchButtonText}
+              >
+                <i className="fa-solid fa-magnifying-glass text-xs" />
+                <span>{searchButtonText}</span>
+              </button>
             </div>
           </div>
 

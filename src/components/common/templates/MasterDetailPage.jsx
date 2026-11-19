@@ -210,7 +210,7 @@ export default function MasterDetailPage({
   categoryName = 'Marketplace',
   categoryLink = '/our-services/properties',
   similarItems = [],
-  itemLinkPrefix = '/property/',
+  itemLinkPrefix = '',
   loading = false,
   error = null,
   bentoTitle = 'Overview',
@@ -241,8 +241,15 @@ export default function MasterDetailPage({
   const heroRef = useRef(null);
   const similarRef = useRef(null);
 
-  // Filter Discover Our Featured Properties to products which have real images
+  // Filter Discover Our Featured Properties to products which are available and have real images
   const featuredListings = useMemo(() => {
+    const isAvailable = (sp) => {
+      if (!sp) return false;
+      const st = String(sp.availabilityStatus || '').toLowerCase();
+      if (st === 'sold_out' || st === 'sold' || st === 'out_of_stock' || sp.isSoldOut === true) return false;
+      return true;
+    };
+    const available = (similarItems || []).filter(isAvailable);
     const hasPhoto = (sp) => {
       if (!sp) return false;
       const imgs = Array.isArray(sp.images) ? sp.images : [];
@@ -251,8 +258,8 @@ export default function MasterDetailPage({
       const direct = sp.image || sp.coverImage || sp.imageUrl;
       return direct && !isPlaceholderImage(direct) && direct !== ONEVISHWAM_VERIFIED_IMAGE;
     };
-    const withPhotos = (similarItems || []).filter(hasPhoto);
-    return withPhotos.length > 0 ? withPhotos : (similarItems || []);
+    const withPhotos = available.filter(hasPhoto);
+    return withPhotos.length > 0 ? withPhotos : available;
   }, [similarItems]);
 
   const activeId = item ? (item._id || item.id) : null;
@@ -376,7 +383,17 @@ export default function MasterDetailPage({
       : (item.image ? [item.image] : []);
 
     const imgs = rawList
-      .filter((img) => img && !isPlaceholderImage(typeof img === 'object' ? img.url : img))
+      .filter((img) => {
+        if (!img) return false;
+        const rawUrl = typeof img === 'object' ? (img.url || img) : img;
+        const url = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+        // Must be a non-empty real URL (http/https) or known local asset — not a stray string
+        if (!url) return false;
+        if (isPlaceholderImage(url)) return false;
+        // Reject non-HTTP strings like "null", bare filenames without slashes, etc.
+        if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('data:image/')) return false;
+        return true;
+      })
       .map((img) => ({
         type: 'image',
         url: typeof img === 'object' ? img.url || img : img,
@@ -387,6 +404,32 @@ export default function MasterDetailPage({
     }
     return imgs.length > 0 ? imgs : [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
   }, [item]);
+
+  // Track any image URLs that fail to load so they are cleanly removed from the gallery
+  // rather than showing ugly default placeholder images when real images exist.
+  const [failedImageUrls, setFailedImageUrls] = useState(() => new Set());
+  const currentItemId = item?._id || item?.id;
+
+  useEffect(() => {
+    setFailedImageUrls(new Set());
+    setCurrentImageIndex(0);
+  }, [currentItemId]);
+
+  const handleImageError = useCallback((url) => {
+    if (!url) return;
+    setFailedImageUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }, []);
+
+  const validMediaItems = useMemo(() => {
+    const filtered = mediaItems.filter((m) => !failedImageUrls.has(m.url));
+    if (filtered.length > 0) return filtered;
+    return [{ type: 'image', url: ONEVISHWAM_VERIFIED_IMAGE }];
+  }, [mediaItems, failedImageUrls]);
 
   const floorPlanImages = useMemo(() => {
     if (!item) return [];
@@ -406,14 +449,14 @@ export default function MasterDetailPage({
   const hasFloorPlans = floorPlanImages.length > 0 || Boolean(pdfUrl);
 
   const goPrev = useCallback(() => {
-    if (!mediaItems.length) return;
-    setCurrentImageIndex((i) => (i === 0 ? mediaItems.length - 1 : i - 1));
-  }, [mediaItems.length]);
+    if (!validMediaItems.length) return;
+    setCurrentImageIndex((i) => (i === 0 ? validMediaItems.length - 1 : i - 1));
+  }, [validMediaItems.length]);
 
   const goNext = useCallback(() => {
-    if (!mediaItems.length) return;
-    setCurrentImageIndex((i) => (i === mediaItems.length - 1 ? 0 : i + 1));
-  }, [mediaItems.length]);
+    if (!validMediaItems.length) return;
+    setCurrentImageIndex((i) => (i === validMediaItems.length - 1 ? 0 : i + 1));
+  }, [validMediaItems.length]);
 
   const goFpPrev = useCallback(() => {
     if (!fpMediaItems.length) return;
@@ -453,18 +496,33 @@ export default function MasterDetailPage({
     );
   }
 
-  if (error || !item) {
+  const isItemSoldOut = Boolean(
+    item && (
+      item.isSoldOut === true ||
+      String(item.availabilityStatus || '').toLowerCase() === 'sold_out' ||
+      String(item.availabilityStatus || '').toLowerCase() === 'sold' ||
+      String(item.availabilityStatus || '').toLowerCase() === 'out_of_stock'
+    )
+  );
+
+  if (error || !item || isItemSoldOut) {
     return (
       <div className="min-h-screen pt-32 text-center bg-gray-50 px-4">
         <div className="mx-auto max-w-md bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-          <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 text-2xl">
-            <i className="fa-solid fa-triangle-exclamation" />
+          <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i className={isItemSoldOut ? "fa-solid fa-box-archive" : "fa-solid fa-triangle-exclamation"} />
           </div>
-          <h1 className="text-xl font-bold text-brand-charcoal mb-2">Item Not Found</h1>
-          <p className="text-sm text-gray-500 mb-6">The listing you are searching for might have been sold or removed.</p>
+          <h1 className="text-xl font-bold text-brand-charcoal mb-2">
+            {isItemSoldOut ? 'Listing No Longer Available' : 'Item Not Found'}
+          </h1>
+          <p className="text-sm text-gray-500 mb-6">
+            {isItemSoldOut
+              ? 'This item has been marked as sold and is no longer available on the storefront.'
+              : 'The listing you are searching for might have been sold or removed.'}
+          </p>
           <button
             onClick={goBack}
-            className="w-full rounded-xl bg-brand-blue py-2.5 text-sm font-semibold text-white hover:bg-brand-navy transition-colors cursor-pointer"
+            className="w-full rounded-xl bg-action-primary py-2.5 text-sm font-black text-action-primary-text hover:bg-action-primary-hover border border-action-primary-border transition-colors cursor-pointer shadow-sm"
           >
             &larr; Back to {categoryName}
           </button>
@@ -475,43 +533,110 @@ export default function MasterDetailPage({
 
   const itemTitle = cleanProductName(item.title);
 
-  // Entity Type Resolution: Precise separation of Vehicle vs Property vs General
-  const isVehicle = Boolean(
-    categoryName === 'Automobiles' ||
-    categoryName === 'Vehicles' ||
-    categoryName === 'Automobiles & Vehicles' ||
-    itemLinkPrefix?.includes('vehicle') ||
-    itemLinkPrefix?.includes('automobile') ||
-    item?.category === 'vehicles' ||
-    item?.category === 'automobile' ||
-    item?.category === 'automobiles' ||
-    item?.category === 'Commercial' ||
-    item?.category === 'SUV' ||
-    item?.category === 'Hatchback' ||
-    item?.category === 'Sedan' ||
-    item?.category === 'Luxury' ||
-    item?.wheelerType ||
-    item?.fuelType ||
-    item?.transmission ||
-    (item?.variants && item?.variants.length > 0 && !item?.propertyType)
+  // Precise category and link normalization
+  const catNormalized = String(categoryName || item?.category || item?.raw?.category || '').toLowerCase().trim();
+  const linkPrefixNorm = String(itemLinkPrefix || '').toLowerCase().trim();
+  const subcatNormalized = String(item?.subcategory || item?.raw?.subcategory || '').toLowerCase().trim();
+  const titleNormalized = String(item?.title || item?.name || '').toLowerCase().trim();
+  const combinedContext = `${catNormalized} ${linkPrefixNorm} ${subcatNormalized} ${titleNormalized} ${String(item?.category || '').toLowerCase()}`;
+
+  // Strict Vertical Recognition
+  const isBedding = Boolean(
+    combinedContext.includes('bedding') ||
+    combinedContext.includes('comfort') ||
+    combinedContext.includes('mattress') ||
+    combinedContext.includes('pillow') ||
+    combinedContext.includes('blanket') ||
+    combinedContext.includes('cushion') ||
+    combinedContext.includes('bed ') ||
+    combinedContext.includes('sleep')
   );
 
-  const isProperty = Boolean(
-    !isVehicle && (
-      categoryName === 'Properties' ||
-      categoryName === 'Real Estate' ||
-      itemLinkPrefix?.includes('property') ||
-      item?.category === 'real-estate' ||
-      item?.category === 'properties' ||
-      item?.category === 'property' ||
-      item?.propertyType ||
-      item?.bhk ||
-      item?.bedrooms
+  const isElectronics = Boolean(
+    !isBedding && (
+      combinedContext.includes('electronic') ||
+      combinedContext.includes('gadget') ||
+      combinedContext.includes('appliance') ||
+      combinedContext.includes('television') ||
+      combinedContext.includes('smartphones') ||
+      combinedContext.includes('laptops')
     )
   );
 
+  const isGarment = Boolean(
+    !isBedding && !isElectronics && (
+      combinedContext.includes('garment') ||
+      combinedContext.includes('apparel') ||
+      combinedContext.includes('clothing') ||
+      combinedContext.includes('fashion')
+    )
+  );
+
+  const isGrocery = Boolean(
+    !isBedding && !isElectronics && !isGarment && (
+      combinedContext.includes('grocer') ||
+      combinedContext.includes('food') ||
+      combinedContext.includes('supermarket')
+    )
+  );
+
+  const isJewellery = Boolean(
+    !isBedding && !isElectronics && !isGarment && !isGrocery && (
+      combinedContext.includes('jewel') ||
+      combinedContext.includes('gold') ||
+      combinedContext.includes('diamond')
+    )
+  );
+
+  const isFinance = Boolean(
+    combinedContext.includes('finance') ||
+    combinedContext.includes('loan') ||
+    combinedContext.includes('lending')
+  );
+
+  const isGeneralRetail = isBedding || isElectronics || isGarment || isGrocery || isJewellery;
+
+  // STRICT Vehicle vs Property: CANNOT be true if isGeneralRetail, isFinance, or isBedding
+  const isVehicle = !isGeneralRetail && !isFinance && !isBedding && Boolean(
+    catNormalized === 'automobiles' ||
+    catNormalized === 'vehicles' ||
+    catNormalized === 'automobile' ||
+    catNormalized === 'vehicle' ||
+    linkPrefixNorm.startsWith('/automobile') ||
+    linkPrefixNorm.startsWith('/vehicle') ||
+    item?.category === 'vehicles' ||
+    item?.category === 'automobile' ||
+    item?.category === 'automobiles' ||
+    Boolean(item?.wheelerType && !combinedContext.includes('cushion') && !combinedContext.includes('pillow'))
+  );
+
+  const isProperty = !isGeneralRetail && !isFinance && !isVehicle && Boolean(
+    catNormalized === 'properties' ||
+    catNormalized === 'property' ||
+    catNormalized === 'real estate' ||
+    catNormalized === 'real-estate' ||
+    linkPrefixNorm.startsWith('/property') ||
+    item?.category === 'properties' ||
+    item?.category === 'property' ||
+    item?.category === 'real-estate' ||
+    Boolean(item?.propertyType && (item?.bhk || item?.bedrooms || item?.superBuiltUpArea || item?.carpetArea))
+  );
+
+  const effectiveItemLinkPrefix = useMemo(() => {
+    if (itemLinkPrefix) return itemLinkPrefix;
+    if (isVehicle) return '/automobile/';
+    if (isProperty) return '/property/';
+    if (isElectronics) return '/electronics/';
+    if (isBedding) return '/bedding/';
+    if (isGarment) return '/garment/';
+    if (isGrocery) return '/grocery/';
+    if (isJewellery) return '/jewellery/';
+    if (isFinance) return '/finance/';
+    return '/';
+  }, [itemLinkPrefix, isVehicle, isProperty, isElectronics, isBedding, isGarment, isGrocery, isJewellery, isFinance]);
+
   const activeContact = isVehicle ? contactInfo : getPropertyContactInfo(item.title);
-  const currentMedia = mediaItems[currentImageIndex] || mediaItems[0];
+  const currentMedia = validMediaItems[currentImageIndex] || validMediaItems[0];
 
   // Badges normalization
   const badges = item.statusBadges || item.badges || [];
@@ -590,17 +715,20 @@ export default function MasterDetailPage({
   const isPlot = Boolean(
     isProperty && (
       item.isPlot ||
-      (item.propertyType && String(item.propertyType).toLowerCase().includes('plot')) ||
-      (item.subcategory && String(item.subcategory).toLowerCase().includes('plot'))
+      (item.propertyType && /plot|site|land|farm\s*plot/i.test(String(item.propertyType))) ||
+      (item.subcategory && /plot|site|land|farm\s*plot/i.test(String(item.subcategory))) ||
+      (item.category && /plot|site|land|farm\s*plot/i.test(String(item.category))) ||
+      (item.title && /\b(plot|plots|site|sites|land|acres?|guntas?)\b/i.test(String(item.title))) ||
+      (item.bhk && /plot|site|land|guntas/i.test(String(item.bhk)))
     )
   );
 
-  const bedsDisplay = isProperty ? (item.bhk || item.bedrooms || item.bedroom || (isPlot ? 'N/A (Plot)' : '3 Bedrooms')) : null;
-  const bathsDisplay = isProperty ? (item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : (isPlot ? 'N/A' : '2 Bathrooms')) : null;
+  const bedsDisplay = isProperty && !isPlot ? (item.bhk || item.bedrooms || item.bedroom || '3 Bedrooms') : null;
+  const bathsDisplay = isProperty && !isPlot ? (item.bathrooms ? (String(item.bathrooms).includes('bath') ? item.bathrooms : `${item.bathrooms} Bathrooms`) : '2 Bathrooms') : null;
   const yearBuiltDisplay = isProperty
-    ? (item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : 'Ready to Move'))
+    ? (item.possession || item.possessionStatus || item.yearBuilt || (item.condition === 'new' ? 'New Construction' : (isPlot ? 'Ready for Registration' : 'Ready to Move')))
     : (item.year ? `Model Year ${item.year}` : (item.condition === 'new' ? 'Brand New' : 'Verified'));
-  const garageDisplay = isProperty ? (item.parking || item.garage || (isPlot ? 'N/A' : '1 Covered Parking')) : null;
+  const garageDisplay = isProperty && !isPlot ? (item.parking || item.garage || '1 Covered Parking') : null;
   const sqftDisplay = isProperty ? (item.area || item.superBuiltUpArea || item.dimensions || '1,450 Sq.Ft') : null;
   const propertyTypeDisplay = isProperty ? (item.propertyType || item.subcategory || categoryName || 'Apartment') : null;
 
@@ -637,8 +765,8 @@ export default function MasterDetailPage({
       { label: 'Transmission', value: vehicleTransDisplay, icon: 'fa-gear', color: 'text-blue-600 bg-blue-50' },
       { label: 'Segment / Body', value: vehicleTypeDisplay, icon: 'fa-car', color: 'text-indigo-600 bg-indigo-50' },
       { label: 'Condition', value: item.condition === 'new' ? 'Brand New' : 'Certified Pre-Owned', icon: 'fa-certificate', color: 'text-emerald-600 bg-emerald-50' },
-      { label: 'Model Year', value: String(item.year || '2026'), icon: 'fa-calendar-check', color: 'text-amber-600 bg-amber-50' },
-      { label: 'Authorized Dealership', value: item.showroom?.name || item.location || 'Kalyani Motors Bangalore', icon: 'fa-building', color: 'text-teal-600 bg-teal-50' },
+      { label: 'Model Year', value: String(item.year || 'Verified'), icon: 'fa-calendar-check', color: 'text-amber-600 bg-amber-50' },
+      { label: 'Authorized Dealership', value: item.showroom?.name || item.seller?.name || item.location || 'Authorized Dealership', icon: 'fa-building', color: 'text-teal-600 bg-teal-50' },
     ];
   })();
 
@@ -682,7 +810,7 @@ export default function MasterDetailPage({
       {/* Lightbox Modals */}
       {galleryOpen && (
         <GalleryModal
-          items={mediaItems}
+          items={validMediaItems}
           index={currentImageIndex}
           onClose={() => setGalleryOpen(false)}
           onPrev={goPrev}
@@ -794,7 +922,7 @@ export default function MasterDetailPage({
                 </span>
               </div>
 
-              {/* Header Meta Row: Vehicle vs Property vs Generic */}
+              {/* Header Meta Row: Vehicle vs Property vs Bedding vs Electronics vs Generic */}
               {isVehicle ? (
                 <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
                   <div className="flex items-center gap-2">
@@ -816,14 +944,18 @@ export default function MasterDetailPage({
                 </div>
               ) : isProperty ? (
                 <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-bed text-brand-blue text-sm" />
-                    <span>{bedsDisplay}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-shower text-cyan-600 text-sm" />
-                    <span>{bathsDisplay}</span>
-                  </div>
+                  {!isPlot && bedsDisplay && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-bed text-brand-blue text-sm" />
+                      <span>{bedsDisplay}</span>
+                    </div>
+                  )}
+                  {!isPlot && bathsDisplay && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-shower text-cyan-600 text-sm" />
+                      <span>{bathsDisplay}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <i className="fa-solid fa-vector-square text-emerald-600 text-sm" />
                     <span>{sqftDisplay}</span>
@@ -832,6 +964,56 @@ export default function MasterDetailPage({
                     <i className="fa-solid fa-house-chimney text-amber-600 text-sm" />
                     <span>{propertyTypeDisplay}</span>
                   </div>
+                </div>
+              ) : isBedding ? (
+                <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-bed text-brand-blue text-sm" />
+                    <span>{item.subcategory || item.category || 'Bedding & Sleep Comfort'}</span>
+                  </div>
+                  {item.warranty && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-award text-emerald-600 text-sm" />
+                      <span>{item.warranty}</span>
+                    </div>
+                  )}
+                  {item.condition && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-blue-600 text-sm" />
+                      <span>{item.condition === 'new' ? 'Brand New Sealed' : item.condition}</span>
+                    </div>
+                  )}
+                  {item.brand && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-tag text-amber-600 text-sm" />
+                      <span>{item.brand}</span>
+                    </div>
+                  )}
+                </div>
+              ) : isElectronics ? (
+                <div className="flex flex-wrap items-center gap-5 pt-1 text-sm font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-microchip text-brand-blue text-sm" />
+                    <span>{item.subcategory || item.category || 'Consumer Electronics'}</span>
+                  </div>
+                  {item.warranty && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-shield-check text-emerald-600 text-sm" />
+                      <span>{item.warranty}</span>
+                    </div>
+                  )}
+                  {item.condition && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-box-open text-blue-600 text-sm" />
+                      <span>{item.condition}</span>
+                    </div>
+                  )}
+                  {item.brand && (
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-tag text-amber-600 text-sm" />
+                      <span>{item.brand}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 item.cardPills && item.cardPills.length > 0 && (
@@ -910,14 +1092,14 @@ export default function MasterDetailPage({
                       <button
                         type="button"
                         onClick={() => setEnquiryOpen(true)}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap border border-brand-blue/30"
                       >
                         <i className="fa-solid fa-paper-plane text-xs" />
                         <span>Enquire Now</span>
                       </button>
                       <a
                         href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95 whitespace-nowrap border border-action-primary-border"
                       >
                         <i className="fa-solid fa-phone text-xs" />
                         <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
@@ -929,14 +1111,14 @@ export default function MasterDetailPage({
                     <button
                       type="button"
                       onClick={() => setEnquiryOpen(true)}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 border border-brand-blue/30"
                     >
                       <i className="fa-solid fa-paper-plane text-xs" />
                       <span>Enquire Now</span>
                     </button>
                     <a
                       href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs sm:text-sm shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95 border border-action-primary-border"
                     >
                       <i className="fa-solid fa-phone text-xs" />
                       <span>Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>
@@ -947,44 +1129,82 @@ export default function MasterDetailPage({
             </div>
           </div>
 
-          {/* ─── 5-PHOTO LUXURY MOSAIC GALLERY (Homez Single V1) ─── */}
+          {/* ─── DYNAMIC LUXURY GALLERY (Adaptive 1 to 5+ Photos) ─── */}
           <div className="mt-5">
-            {mediaItems.length <= 1 ? (
+            {validMediaItems.length <= 1 ? (
+              /* 1 Photo: Full-width Hero Banner */
               <div
                 onClick={() => setGalleryOpen(true)}
                 className="relative h-[340px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden bg-gray-900 shadow-sm cursor-pointer group"
               >
-                <img
-                  src={resolveImage(currentMedia?.url || currentMedia)}
-                  alt={item.title}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                  }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                {validMediaItems[0]?.type === 'video' ? (
+                  <video
+                    src={validMediaItems[0].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <img
+                    src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                    alt={item.title}
+                    onError={() => handleImageError(validMediaItems[0]?.url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 <button className="absolute bottom-5 right-5 rounded-xl bg-white/90 backdrop-blur-md px-4 py-2 text-xs font-bold text-brand-charcoal hover:bg-white transition-colors flex items-center gap-2 shadow-lg cursor-pointer">
                   <i className="fa-solid fa-expand" /> View Fullscreen
                 </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
-                {/* Main Hero Photo (Left 2x2) */}
+            ) : validMediaItems.length === 2 ? (
+              /* 2 Photos: Balanced 50/50 Dual Stage */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-[340px] sm:h-[440px] lg:h-[480px] rounded-2xl overflow-hidden">
+                {validMediaItems.map((media, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => { setCurrentImageIndex(idx); setGalleryOpen(true); }}
+                    className="relative overflow-hidden bg-gray-900 cursor-pointer group"
+                  >
+                    {media.type === 'video' ? (
+                      <video src={media.url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    ) : (
+                      <img
+                        src={resolveImage(media.url)}
+                        alt={`${item.title} - ${idx + 1}`}
+                        onError={() => handleImageError(media.url)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                    {idx === 0 && (
+                      <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                        Featured
+                      </div>
+                    )}
+                    <div className="sm:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg">
+                      <i className="fa-solid fa-images text-[11px]" />
+                      <span>{idx + 1} / 2 Photos</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : validMediaItems.length === 3 ? (
+              /* 3 Photos: 2/3 Hero Left + 2 Stacked Right */
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
                 <div
                   onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
-                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                  className="md:col-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
                 >
-                  {mediaItems[0]?.type === 'video' ? (
-                    <video src={mediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   ) : (
                     <img
-                      src={resolveImage(mediaItems[0]?.url || mediaItems[0])}
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
                       alt={item.title}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                      }}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   )}
@@ -992,22 +1212,144 @@ export default function MasterDetailPage({
                   <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
                     Featured
                   </div>
-                  {mediaItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
+                  >
+                    <i className="fa-solid fa-images text-[11px]" />
+                    <span>1 / 3 Photos</span>
+                  </button>
+                </div>
+                <div className="hidden md:grid grid-rows-2 gap-3 md:col-span-1">
+                  {validMediaItems.slice(1, 3).map((media, idx) => {
+                    const actualIdx = idx + 1;
+                    return (
+                      <div
+                        key={actualIdx}
+                        onClick={() => { setCurrentImageIndex(actualIdx); setGalleryOpen(true); }}
+                        className="relative overflow-hidden bg-gray-900 cursor-pointer group"
+                      >
+                        {media.type === 'video' ? (
+                          <video src={media.url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        ) : (
+                          <img
+                            src={resolveImage(media.url)}
+                            alt={`${item.title} - ${actualIdx + 1}`}
+                            onError={() => handleImageError(media.url)}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : validMediaItems.length === 4 ? (
+              /* 4 Photos: Hero Left (2x2) + 2 Top Right + 1 Bottom Right (spans 2 cols) */
+              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
+                <div
+                  onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                >
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <img
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                      alt={item.title}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                  <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                    Featured
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
+                  >
+                    <i className="fa-solid fa-images text-[11px]" />
+                    <span>1 / 4 Photos</span>
+                  </button>
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(1); setGalleryOpen(true); }}
+                  className="md:col-span-1 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[1].url)}
+                    alt={`${item.title} - 2`}
+                    onError={() => handleImageError(validMediaItems[1].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(2); setGalleryOpen(true); }}
+                  className="md:col-span-1 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[2].url)}
+                    alt={`${item.title} - 3`}
+                    onError={() => handleImageError(validMediaItems[2].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+                <div
+                  onClick={() => { setCurrentImageIndex(3); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-1 relative overflow-hidden bg-gray-900 cursor-pointer group hidden md:block"
+                >
+                  <img
+                    src={resolveImage(validMediaItems[3].url)}
+                    alt={`${item.title} - 4`}
+                    onError={() => handleImageError(validMediaItems[3].url)}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+              </div>
+            ) : (
+              /* 5+ Photos: Luxury 5-Photo Mosaic Grid */
+              <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 h-[360px] sm:h-[460px] lg:h-[500px] rounded-2xl overflow-hidden">
+                <div
+                  onClick={() => { setCurrentImageIndex(0); setGalleryOpen(true); }}
+                  className="md:col-span-2 md:row-span-2 relative overflow-hidden bg-gray-900 cursor-pointer group"
+                >
+                  {validMediaItems[0]?.type === 'video' ? (
+                    <video src={validMediaItems[0].url} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <img
+                      src={resolveImage(validMediaItems[0]?.url || validMediaItems[0])}
+                      alt={item.title}
+                      onError={() => handleImageError(validMediaItems[0]?.url)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                  <div className="absolute top-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-xs text-white font-semibold">
+                    Featured
+                  </div>
+                  {validMediaItems.length > 1 && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
-                      className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                      className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
                     >
                       <i className="fa-solid fa-images text-[11px]" />
-                      <span>1 / {mediaItems.length} Photos</span>
+                      <span>1 / {validMediaItems.length} Photos</span>
                     </button>
                   )}
                 </div>
 
                 {/* Right 4 Grid Photos */}
-                {mediaItems.slice(1, 5).map((media, idx) => {
+                {validMediaItems.slice(1, 5).map((media, idx) => {
                   const actualIdx = idx + 1;
-                  const hasMore = mediaItems.length > 5 && idx === 3;
+                  const hasMore = validMediaItems.length > 5 && idx === 3;
 
                   return (
                     <div
@@ -1026,10 +1368,7 @@ export default function MasterDetailPage({
                         <img
                           src={resolveImage(media.url)}
                           alt={`${item.title} - ${actualIdx + 1}`}
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = ONEVISHWAM_VERIFIED_IMAGE;
-                          }}
+                          onError={() => handleImageError(media.url)}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           loading="lazy"
                         />
@@ -1040,7 +1379,7 @@ export default function MasterDetailPage({
                       {hasMore && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white p-3 text-center group-hover:bg-black/70 transition-colors">
                           <i className="fa-solid fa-images text-xl mb-1 text-amber-400" />
-                          <span className="text-sm font-bold">+{mediaItems.length - 4} More</span>
+                          <span className="text-sm font-bold">+{validMediaItems.length - 4} More</span>
                           <span className="text-[11px] text-gray-300">View all photos</span>
                         </div>
                       )}
@@ -1054,7 +1393,7 @@ export default function MasterDetailPage({
             <div className="mt-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
                 <i className="fa-solid fa-camera text-brand-blue" />
-                <span>{mediaItems.length} Photos &amp; Media available</span>
+                <span>{validMediaItems.length} Photos &amp; Media available</span>
               </div>
               <button
                 onClick={() => setGalleryOpen(true)}
@@ -1102,73 +1441,149 @@ export default function MasterDetailPage({
                   })}
                 </div>
               ) : isProperty ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                  {/* 1. Bedroom */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-bed" />
+                isPlot ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                    {/* 1. Plot Area / Extent */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-expand" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Plot Area / Extent</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 2. Bath */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-shower" />
+                    {/* 2. Property Type */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-vector-square" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay || 'Residential Plot'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 3. Year Built / Possession */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-calendar-check" />
+                    {/* 3. Status / Possession */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-certificate" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Possession / Status</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.possessionStatus || item.possession || 'Ready for Registration'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 4. Garage */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-warehouse" />
+                    {/* 4. Facing Direction */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-compass" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Facing Direction</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{item.facing || 'East / North'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 5. Sqft */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-expand" />
+                    {/* 5. Khata / Approvals */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-shield-halved" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval / Title</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.khataType || item.approvalAuthority || item.details?.approvalAuthority || 'Clear Title'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
-                    </div>
-                  </div>
 
-                  {/* 6. Property Type */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-house-chimney" />
-                    </div>
-                    <div>
-                      <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
-                      <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                    {/* 6. Site Configuration */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-map-location-dot" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Site Configuration</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                          {item.cornerPlot ? 'Corner Site' : 'Individual Plot'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+                    {/* 1. Bedroom */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-bed" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bedroom</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bedsDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 2. Bath */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-shower" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bath</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{bathsDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 3. Year Built / Possession */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-calendar-check" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Year Built / Status</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{yearBuiltDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 4. Garage */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-warehouse" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Garage / Parking</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{garageDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 5. Sqft */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-expand" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sqft / Area</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{sqftDisplay}</p>
+                      </div>
+                    </div>
+
+                    {/* 6. Property Type */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                        <i className="fa-solid fa-house-chimney" />
+                      </div>
+                      <div>
+                        <h6 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Type</h6>
+                        <p className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">{propertyTypeDisplay}</p>
+                      </div>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
                   {bentoHighlights.map((hl, idx) => (
@@ -1189,15 +1604,27 @@ export default function MasterDetailPage({
             {/* 2. DESCRIPTION WIDGET */}
             <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs space-y-4">
               <h4 className="text-lg sm:text-xl font-bold text-slate-900">
-                {isVehicle ? 'Vehicle Description' : isProperty ? 'Property Description' : 'Product Description'}
+                {isBedding
+                  ? 'Product Overview & Comfort Details'
+                  : isVehicle
+                  ? 'Vehicle Description'
+                  : isProperty
+                  ? 'Property Description'
+                  : isElectronics
+                  ? 'Device Overview & Specifications'
+                  : 'Product Description'}
               </h4>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
                 {showFullDesc || !item.description || item.description.length < 350
-                  ? item.description || (isVehicle
+                  ? item.description || (isBedding
+                      ? `${itemTitle} crafted with certified ergonomic materials, official manufacturer warranty, and doorstep delivery across Bengaluru.`
+                      : isVehicle
                       ? `${itemTitle} available with verified inspection, manufacturer warranty support, and pre-approved vehicle loans under the OneVishwam Automotive Network.`
                       : isProperty
                       ? `${itemTitle} verified and listed on OneVishwam. Inspected for quality, legal authenticity, and pre-approved for priority bank financing and buyer protection.`
-                      : `${itemTitle} verified and listed on OneVishwam with quality assurance and priority service.`)
+                      : isElectronics
+                      ? `${itemTitle} certified authentic with official brand warranty, GST invoice, and safe express doorstep delivery.`
+                      : `${itemTitle} verified and listed on OneVishwam with quality assurance and priority customer service.`)
                   : item.description.slice(0, 350) + '...'}
               </p>
 
@@ -1246,46 +1673,123 @@ export default function MasterDetailPage({
                       <button
                         type="button"
                         onClick={() => setEnquiryOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-extrabold text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-black text-xs shadow-2xs hover:shadow-sm transition-all cursor-pointer border border-action-primary-border"
                       >
                         <i className="fa-solid fa-handshake-angle text-xs" />
                         <span>Are You Interested?</span>
                       </button>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Property Size</span>
+                      <span className="font-semibold text-gray-500">{isPlot ? 'Plot Extent / Area' : 'Property Size'}</span>
                       <span className="font-bold text-slate-900">{sqftDisplay}</span>
                     </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Bathrooms</span>
-                      <span className="font-bold text-slate-900">{bathsDisplay}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Bedrooms</span>
-                      <span className="font-bold text-slate-900">{bedsDisplay}</span>
-                    </div>
+                    {isPlot ? (
+                      <>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Approval Authority</span>
+                          <span className="font-bold text-slate-900">{item.approvalAuthority || item.details?.approvalAuthority || 'RERA / Verified'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Khata Type</span>
+                          <span className="font-bold text-slate-900">{item.khataType || 'A-Khata / Clear Deed'}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Bathrooms</span>
+                          <span className="font-bold text-slate-900">{bathsDisplay}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 text-sm">
+                          <span className="font-semibold text-gray-500">Bedrooms</span>
+                          <span className="font-bold text-slate-900">{bedsDisplay}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="divide-y divide-gray-100">
+                    {!isPlot && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Garage</span>
+                        <span className="font-bold text-slate-900">{garageDisplay}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Garage</span>
-                      <span className="font-bold text-slate-900">{garageDisplay}</span>
+                      <span className="font-semibold text-gray-500">{isPlot ? 'Facing Direction' : 'Door Facing'}</span>
+                      <span className="font-bold text-slate-900">{item.facing || 'Standard'}</span>
                     </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Door Facing</span>
-                      <span className="font-bold text-slate-900">{item.facing || 'East Facing'}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 text-sm">
-                      <span className="font-semibold text-gray-500">Year Built / Status</span>
-                      <span className="font-bold text-slate-900">{yearBuiltDisplay}</span>
-                    </div>
+                    {!isPlot && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Year Built</span>
+                        <span className="font-bold text-slate-900">{item.yearBuilt || yearBuiltDisplay}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Property Type</span>
                       <span className="font-bold text-slate-900">{propertyTypeDisplay}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Property Status</span>
-                      <span className="font-bold text-emerald-600">{statusPill?.label || 'For Sale'}</span>
+                      <span className="font-bold text-emerald-600">{yearBuiltDisplay || statusPill?.label || (isPlot ? 'Ready for Registration' : 'For Sale')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : isBedding ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
+                    <i className="fa-solid fa-bed" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Bedding &amp; Comfort Specifications</h4>
+                    <p className="text-xs text-gray-500">Authentic manufacturer details, dimensions, and warranty coverage</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Item ID</span>
+                      <span className="font-bold text-slate-900">BD#{String(item.id || item._id || '01').slice(-6)}</span>
+                    </div>
+                    {item.brand && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Brand</span>
+                        <span className="font-bold text-slate-900">{item.brand}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Collection / Category</span>
+                      <span className="font-bold text-slate-900">{item.subcategory || item.category || 'Bedding & Sleep Comfort'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Model / Design</span>
+                      <span className="font-bold text-slate-900">{item.model || itemTitle}</span>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Condition</span>
+                      <span className="font-bold text-emerald-600">{item.condition === 'new' ? 'Brand New Sealed' : (item.condition || 'Brand New')}</span>
+                    </div>
+                    {item.warranty && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Official Warranty</span>
+                        <span className="font-bold text-slate-900">{item.warranty}</span>
+                      </div>
+                    )}
+                    {(item.showroom?.name || item.seller?.name || item.location) && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Experience Store / Store</span>
+                        <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
+                          {item.showroom?.name || item.seller?.name || item.location}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Delivery Status</span>
+                      <span className="font-bold text-emerald-600">Free Doorstep Delivery</span>
                     </div>
                   </div>
                 </div>
@@ -1309,7 +1813,7 @@ export default function MasterDetailPage({
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Brand</span>
-                      <span className="font-bold text-slate-900">{item.brand || 'Maruti Suzuki'}</span>
+                      <span className="font-bold text-slate-900">{item.brand || 'Authorized Brand'}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Model</span>
@@ -1336,7 +1840,7 @@ export default function MasterDetailPage({
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Model Year</span>
-                      <span className="font-bold text-slate-900">{item.year || '2026'}</span>
+                      <span className="font-bold text-slate-900">{item.year ? String(item.year) : 'Verified'}</span>
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">KM Driven</span>
@@ -1344,7 +1848,113 @@ export default function MasterDetailPage({
                     </div>
                     <div className="flex justify-between items-center py-3 text-sm">
                       <span className="font-semibold text-gray-500">Authorized Dealership</span>
-                      <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.location}>{item.showroom?.name || item.location || 'Kalyani Motors Bangalore'}</span>
+                      <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
+                        {item.showroom?.name || item.seller?.name || item.location || 'Authorized Dealership'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : isElectronics ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
+                    <i className="fa-solid fa-tv" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Electronics &amp; Device Specifications</h4>
+                    <p className="text-xs text-gray-500">Certified device parameters, manufacturer warranty, and invoice details</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Product ID</span>
+                      <span className="font-bold text-slate-900">EL#{String(item.id || item._id || '01').slice(-6)}</span>
+                    </div>
+                    {item.brand && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Brand</span>
+                        <span className="font-bold text-slate-900">{item.brand}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Model</span>
+                      <span className="font-bold text-slate-900">{item.model || itemTitle}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Device Type</span>
+                      <span className="font-bold text-slate-900">{item.subcategory || item.category || 'Consumer Electronics'}</span>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Condition</span>
+                      <span className="font-bold text-blue-600">{item.condition || 'Brand New Sealed'}</span>
+                    </div>
+                    {item.warranty && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Warranty</span>
+                        <span className="font-bold text-emerald-600">{item.warranty}</span>
+                      </div>
+                    )}
+                    {(item.showroom?.name || item.seller?.name || item.location) && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Verified Seller / Store</span>
+                        <span className="font-bold text-slate-900 truncate max-w-[200px]" title={item.showroom?.name || item.seller?.name || item.location}>
+                          {item.showroom?.name || item.seller?.name || item.location}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Invoice &amp; Taxes</span>
+                      <span className="font-bold text-slate-900">GST Invoice Provided</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : isGeneralRetail ? (
+              <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-blue flex items-center justify-center text-base">
+                    <i className="fa-solid fa-box-open" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg sm:text-xl font-bold text-slate-900">Product Specifications &amp; Overview</h4>
+                    <p className="text-xs text-gray-500">Authentic details, quality verification, and manufacturer support</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Product ID</span>
+                      <span className="font-bold text-slate-900">PR#{String(item.id || item._id || '01').slice(-6)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Category</span>
+                      <span className="font-bold text-slate-900">{categoryName || item.category || 'Retail Product'}</span>
+                    </div>
+                    {item.brand && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Brand / Make</span>
+                        <span className="font-bold text-slate-900">{item.brand}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Condition</span>
+                      <span className="font-bold text-emerald-600">{item.condition || 'Verified Quality'}</span>
+                    </div>
+                    {item.warranty && (
+                      <div className="flex justify-between items-center py-3 text-sm">
+                        <span className="font-semibold text-gray-500">Warranty / Guarantee</span>
+                        <span className="font-bold text-slate-900">{item.warranty}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3 text-sm">
+                      <span className="font-semibold text-gray-500">Availability</span>
+                      <span className="font-bold text-emerald-600">In Stock</span>
                     </div>
                   </div>
                 </div>
@@ -1416,7 +2026,7 @@ export default function MasterDetailPage({
             )}
 
             {/* 5. FEATURES & AMENITIES WIDGET */}
-            {featuresList.length > 0 && (
+            {!isPlot && featuresList.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center justify-between mb-6">
                   <h4 className="text-lg sm:text-xl font-bold text-slate-900">{featuresTitle}</h4>
@@ -1438,8 +2048,8 @@ export default function MasterDetailPage({
               </div>
             )}
 
-            {/* 6. FLOOR PLANS WIDGET (Properties Only) */}
-            {isProperty && hasFloorPlans && (
+            {/* 6. FLOOR PLANS WIDGET (Properties Only, Not for Plots) */}
+            {isProperty && !isPlot && hasFloorPlans && (
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 sm:p-8 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>
@@ -1572,7 +2182,7 @@ export default function MasterDetailPage({
                 <button
                   type="button"
                   onClick={() => setEnquiryOpen(true)}
-                  className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                  className="w-full rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99] border border-brand-blue/30"
                 >
                   <i className="fa-solid fa-paper-plane text-xs" />
                   <span>{isProperty ? 'Contact Agent' : 'Enquire Now'}</span>
@@ -1618,6 +2228,36 @@ export default function MasterDetailPage({
                       <span>Free Guided Site Visit with Pickup Facility</span>
                     </li>
                   </>
+                ) : isBedding ? (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>100% Authentic Factory Sealed Products</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Direct Brand Warranty & Guarantee</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Free Doorstep Delivery Across Bengaluru</span>
+                    </li>
+                  </>
+                ) : isElectronics ? (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>100% Brand Genuine Sealed Devices</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Official Manufacturer Warranty & Invoice</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-check text-emerald-600 text-xs shrink-0" />
+                      <span>Fast & Safe Express Doorstep Delivery</span>
+                    </li>
+                  </>
                 ) : (
                   <>
                     <li className="flex items-center gap-2">
@@ -1645,14 +2285,26 @@ export default function MasterDetailPage({
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  {isVehicle ? 'Discover Similar Vehicles & Automobiles' : isProperty ? 'Discover Our Featured Properties' : 'Discover Similar Products'}
+                  {isVehicle
+                    ? 'Discover Similar Automobiles'
+                    : isProperty
+                    ? 'Discover Our Featured Properties'
+                    : isBedding
+                    ? 'Discover Similar Sleep & Bedding Comfort'
+                    : isElectronics
+                    ? 'Discover Similar Consumer Electronics'
+                    : 'Discover Similar Products'}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   {isVehicle
                     ? 'Explore comparable verified hatchbacks, sedans, SUVs, and commercial vehicles'
                     : isProperty
-                    ? 'Explore comparable verified listings and premier projects in Bangalore'
-                    : 'Explore comparable verified listings in this category'}
+                    ? 'Explore comparable verified apartments, villas, and plots in Bengaluru'
+                    : isBedding
+                    ? 'Explore certified orthopedic mattresses, memory foam pillows, and luxury bedding'
+                    : isElectronics
+                    ? 'Explore comparable smart televisions, high-performance laptops, and appliances'
+                    : 'Explore comparable verified products with official warranties and priority support'}
                 </p>
               </div>
               <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -1681,7 +2333,7 @@ export default function MasterDetailPage({
                 <div key={sp.id || sp._id} className="w-[280px] sm:w-[320px] lg:w-[340px] flex-shrink-0 snap-start">
                   <CategoryListingCard
                     item={sp}
-                    link={`${itemLinkPrefix}${sp.id || sp._id}`}
+                    link={`${effectiveItemLinkPrefix}${sp.id || sp._id}`}
                   />
                 </div>
               ))}
@@ -1707,7 +2359,7 @@ export default function MasterDetailPage({
                 <div key={(sp.id || sp._id) + '-recent-' + i} className="w-[260px] sm:w-[290px] lg:w-[310px] flex-shrink-0 snap-start">
                   <CategoryListingCard
                     item={sp}
-                    link={`${itemLinkPrefix}${sp.id || sp._id}`}
+                    link={`${effectiveItemLinkPrefix}${sp.id || sp._id}`}
                   />
                 </div>
               ))}
@@ -1724,9 +2376,9 @@ export default function MasterDetailPage({
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {mediaItems[0]?.url && (
+            {validMediaItems[0]?.url && (
               <img
-                src={resolveImage(mediaItems[0].url)}
+                src={resolveImage(validMediaItems[0].url)}
                 alt={itemTitle}
                 className="hidden sm:block w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-2xs"
               />
@@ -1770,7 +2422,7 @@ export default function MasterDetailPage({
 
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-slate-900 px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="rounded-xl bg-brand-blue hover:bg-brand-blue-hover px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md cursor-pointer flex items-center gap-1.5 border border-brand-blue/30"
             >
               <i className="fa-solid fa-paper-plane text-xs" />
               <span>Enquire Now</span>
@@ -1778,7 +2430,7 @@ export default function MasterDetailPage({
 
             <a
               href={`tel:${activeContact.phoneTel || '+918546996622'}`}
-              className="rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 px-3.5 sm:px-4 py-2.5 text-xs font-bold text-slate-950 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="rounded-xl bg-action-primary hover:bg-action-primary-hover px-3.5 sm:px-4 py-2.5 text-xs font-black text-action-primary-text transition-all shadow-xs flex items-center gap-1.5 cursor-pointer border border-action-primary-border"
             >
               <i className="fa-solid fa-phone text-xs" />
               <span className="hidden sm:inline">Call: {activeContact.phoneDisplay || '+91 85469 96622'}</span>

@@ -10,6 +10,7 @@ import { Link, useLocation as useRouterLocation } from 'react-router-dom';
 import TopNotificationBar from './TopNotificationBar';
 import ListingRedirectModal from './modals/ListingRedirectModal';
 import { useAuth } from '../store/authSlice';
+import { navigateTo } from '../config/navigation';
 import Swal from 'sweetalert2';
 
 const CATEGORY_THEMES = {
@@ -70,6 +71,7 @@ const CATEGORY_THEMES = {
 };
 
 function Navbar() {
+  const dropdownCategories = marketplaceCategories.filter((cat) => cat.id !== 'all-categories');
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [showListingModal, setShowListingModal] = useState(false);
@@ -101,7 +103,14 @@ function Navbar() {
     });
 
     if (result.isConfirmed) {
+      sessionStorage.removeItem('vishwam_auth_redirect');
+      sessionStorage.setItem('vishwam_direct_login', 'true');
       logout();
+      openAuthModal('login');
+      navigateTo('/');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }
       Swal.fire({
         icon: 'success',
         title: 'Logged Out',
@@ -167,6 +176,7 @@ function Navbar() {
       const result = await detectCurrentLocation();
       if (result) {
         selectArea(result.cityId, result.area);
+        setDetectStatus('idle');
         close();
       } else {
         setDetectStatus('unsupported');
@@ -293,7 +303,7 @@ function Navbar() {
             aria-expanded={openDropdown === link.id}
             onClick={() => toggleDropdown(link.id)}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-colors ${
-              active ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 shadow-2xs font-extrabold' : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+              active ? 'text-brand-blue bg-blue-50 border border-blue-200 shadow-2xs font-extrabold' : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
             }`}
           >
             {link.label}
@@ -333,7 +343,7 @@ function Navbar() {
         key={link.id}
         to={link.href}
         className={`px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-all ${
-          active ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 shadow-2xs font-extrabold' : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+          active ? 'text-brand-blue bg-blue-50 border border-blue-200 shadow-2xs font-extrabold' : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
         }`}
       >
         {link.label}
@@ -381,10 +391,11 @@ function Navbar() {
           }`}
         >
           <header
-            className={`pointer-events-auto transition-all duration-300 ease-in-out ${
+            style={scrolled ? { backgroundColor: 'rgba(255, 255, 255, 0.96)' } : { backgroundColor: '#ffffff' }}
+            className={`relative z-30 pointer-events-auto transition-all duration-300 ease-in-out ${
               scrolled
-                ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/98 backdrop-blur-md border border-slate-300 shadow-[0_12px_40px_rgba(15,23,42,0.18)] px-4 sm:px-6'
-                : 'w-full bg-white/98 backdrop-blur-md border-b border-slate-300 shadow-sm px-4 sm:px-6 lg:px-8 rounded-none'
+                ? 'mx-auto max-w-6xl xl:max-w-7xl rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.18)] px-4 sm:px-6'
+                : 'w-full bg-white border-b border-slate-200 shadow-xs px-4 sm:px-6 lg:px-8 rounded-none'
             }`}
           >
           <div className="w-full">
@@ -405,8 +416,8 @@ function Navbar() {
                   to="/home"
                   className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-full border transition-all ${
                     currentLocation.pathname === '/' || currentLocation.pathname === '/home'
-                      ? 'text-brand-blue bg-blue-100/80 border-blue-300/90 shadow-2xs font-extrabold'
-                      : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90 border-transparent'
+                      ? 'text-brand-blue bg-blue-50 border-blue-200 font-extrabold shadow-2xs'
+                      : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90 border-transparent'
                   }`}
                 >
                   Home
@@ -422,7 +433,7 @@ function Navbar() {
               {/* Categories Dropdown Menu */}
               <div
                 ref={categoryRef}
-                className="relative"
+                className="relative z-40"
                 onMouseEnter={() => showDropdown('categories')}
                 onMouseLeave={hideDropdown}
               >
@@ -435,8 +446,8 @@ function Navbar() {
                   onClick={() => toggleDropdown('categories')}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full transition-colors ${
                     openDropdown === 'categories' || isCategoryActive
-                      ? 'text-brand-blue bg-blue-100/80 border border-blue-300/90 font-extrabold shadow-2xs'
-                      : 'text-slate-900 hover:text-brand-blue hover:bg-slate-100/90'
+                      ? 'text-brand-blue bg-blue-50 border border-blue-200 font-extrabold shadow-2xs'
+                      : 'text-slate-800 hover:text-brand-blue hover:bg-slate-100/90'
                   }`}
                 >
                   <span>Categories</span>
@@ -465,7 +476,7 @@ function Navbar() {
                             Marketplace Categories
                           </span>
                           <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                            {marketplaceCategories.length} Active
+                            {dropdownCategories.length} Active
                           </span>
                         </div>
                         <Link
@@ -480,7 +491,7 @@ function Navbar() {
 
                       {/* Categories Grid with Highlighting Cards */}
                       <div className="p-3.5 grid grid-cols-2 gap-2.5 bg-gradient-to-b from-slate-50/60 to-white">
-                        {marketplaceCategories.map((cat) => {
+                        {dropdownCategories.map((cat) => {
                           const isItemActive = currentLocation.pathname === cat.href;
                           const theme = CATEGORY_THEMES[cat.id] || {
                             gradient: 'from-blue-600 to-indigo-600',
@@ -553,9 +564,9 @@ function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowListingModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100/90 border border-amber-300/80 rounded-full transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer ml-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-brand-blue bg-sky-50 hover:bg-sky-100/90 border border-sky-300/80 rounded-full transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer ml-1"
               >
-                <i className="fa-solid fa-circle-plus text-amber-600 text-xs" />
+                <i className="fa-solid fa-circle-plus text-brand-blue text-xs" />
                 <span>Want to list an item?</span>
               </button>
             </nav>
@@ -630,10 +641,13 @@ function Navbar() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => openAuthModal('login')}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-brand-blue hover:bg-sky-700 border border-brand-blue rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow active:scale-95"
+                  onClick={() => {
+                    sessionStorage.setItem('vishwam_direct_login', 'true');
+                    openAuthModal('login');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-black text-action-primary-text bg-action-primary hover:bg-action-primary-hover border border-action-primary-border rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow active:scale-95"
                 >
-                  <i className="fa-solid fa-right-to-bracket text-xs text-white" />
+                  <i className="fa-solid fa-right-to-bracket text-xs text-action-primary-text" />
                   <span>Login</span>
                 </button>
               )}
@@ -650,14 +664,14 @@ function Navbar() {
       </header>
 
       {/* ── Notifications / Festival Offers Bar (Directly Under Menubar) ── */}
-      <div className="pointer-events-auto">
+      <div className="relative z-10 pointer-events-auto">
         <TopNotificationBar isScrolled={scrolled} />
       </div>
         </div>
       </div>
 
       {/* Document flow spacer for fixed header & top ribbon */}
-      <div className="h-[96px] lg:h-[92px]" aria-hidden="true" />
+      <div className="h-[102px] lg:h-[98px]" aria-hidden="true" />
 
       {/* Mobile overlay */}
       <div className={`fixed inset-0 z-40 bg-black/30 transition-opacity lg:hidden ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -693,7 +707,11 @@ function Navbar() {
           ) : (
             <button
               type="button"
-              onClick={() => { setMenuOpen(false); openAuthModal('login'); }}
+              onClick={() => {
+                sessionStorage.setItem('vishwam_direct_login', 'true');
+                setMenuOpen(false);
+                openAuthModal('login');
+              }}
               className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-brand-blue bg-white border border-brand-blue/30 rounded-xl hover:bg-brand-blue/5 transition-colors cursor-pointer shadow-2xs"
             >
               <i className="fa-solid fa-right-to-bracket text-sm text-brand-blue" />
@@ -757,7 +775,7 @@ function Navbar() {
 
             {mobileCategoryOpen && (
               <div className="ml-4 pl-3 my-1.5 border-l-2 border-brand-blue/20 space-y-0.5">
-                {marketplaceCategories.map((cat) => {
+                {dropdownCategories.map((cat) => {
                   if (cat.disabled) {
                     return (
                       <div
@@ -811,13 +829,13 @@ function Navbar() {
                 setMenuOpen(false);
                 setShowListingModal(true);
               }}
-              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 transition-all text-left shadow-2xs cursor-pointer"
+              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-bold text-brand-blue bg-sky-50 hover:bg-sky-100 border border-sky-300/80 transition-all text-left shadow-2xs cursor-pointer"
             >
               <span className="flex items-center gap-2">
-                <i className="fa-solid fa-circle-plus text-amber-600" />
+                <i className="fa-solid fa-circle-plus text-brand-blue" />
                 <span>Want to list an item?</span>
               </span>
-              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-amber-600" />
+              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-brand-blue" />
             </button>
           </div>
         </nav>

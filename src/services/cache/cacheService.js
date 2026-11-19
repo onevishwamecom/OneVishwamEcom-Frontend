@@ -122,6 +122,11 @@ export const cache = {
     }
   },
 
+  /** Alias for remove(namespace, key) for clean developer ergonomics */
+  invalidate(namespace, key) {
+    this.remove(namespace, key);
+  },
+
   /** Remove every cache entry whose key starts with `prefix` in a namespace. */
   removeByPrefix(namespace, prefix) {
     const start = `${STORAGE_PREFIX}_v${CACHE_VERSION}_${namespace}_`;
@@ -134,6 +139,11 @@ export const cache = {
       memoryCache.delete(k);
       localStorage.removeItem(k);
     });
+  },
+
+  /** Alias for removeByPrefix(namespace, prefix) */
+  invalidateByPrefix(namespace, prefix) {
+    this.removeByPrefix(namespace, prefix);
   },
 
   clearNamespace(namespace) {

@@ -40,6 +40,11 @@ export default React.memo(function ProductCard({
     (alt && (String(alt).toLowerCase().includes('property') || String(alt).toLowerCase().includes('vehicle')))
   );
 
+  const isPlot = Boolean(
+    isPropertyOrVehicle &&
+    /plot|site|land|farm\s*plot/i.test(`${overline || ''} ${title || ''} ${alt || ''}`)
+  );
+
   const handleCardClick = (e) => {
     if (!link || link === '#') return;
     if (!isLoggedIn) {
@@ -85,7 +90,7 @@ export default React.memo(function ProductCard({
           {badges.map((b, i) => (
             <span
               key={i}
-              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1.5 ${b.className || 'bg-slate-900/80 text-white'}`}
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1.5 ${b.className || 'bg-brand-blue/90 text-white'}`}
             >
               {b.icon !== false && (
                 <i className={`${b.icon || 'fa-solid fa-bolt text-amber-300'} text-[10px]`} />
@@ -93,6 +98,20 @@ export default React.memo(function ProductCard({
               {b.label}
             </span>
           ))}
+          {trustBadge && (
+            <span className="rounded-full px-2.5 py-0.5 text-[10px] font-extrabold tracking-wide shadow-xs backdrop-blur-xs flex items-center gap-1 bg-brand-blue/90 text-white border border-white/20">
+              <i className="fa-solid fa-building-columns text-[9px] text-[#90dafc]" />
+              {typeof trustBadge === 'string' ? trustBadge : 'Verified'}
+            </span>
+          )}
+        </div>
+
+        {/* Interactive Hover Overlay & Quick View Pill */}
+        <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none z-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-brand-blue text-xs font-black shadow-lg backdrop-blur-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 border border-brand-blue/15">
+            <span>Explore Details</span>
+            <i className="fa-solid fa-arrow-right text-[10px]" />
+          </span>
         </div>
 
         {/* Top-Right Favorite Button */}
@@ -102,10 +121,10 @@ export default React.memo(function ProductCard({
             e.stopPropagation();
             setFaved(!faved);
           }}
-          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-10 cursor-pointer"
+          className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md backdrop-blur-sm flex items-center justify-center transition-all z-20 cursor-pointer hover:scale-110 active:scale-90"
           aria-label="Save to favorites"
         >
-          <i className={`${faved ? 'fa-solid text-rose-500' : 'fa-regular text-gray-500'} fa-heart text-xs`} />
+          <i className={`${faved ? 'fa-solid text-rose-500 scale-110' : 'fa-regular text-gray-500'} fa-heart text-xs transition-transform`} />
         </button>
       </div>
 
@@ -122,7 +141,7 @@ export default React.memo(function ProductCard({
         )}
 
         {/* Title */}
-        <div className="min-h-[2.75rem] flex items-start">
+        <div className="min-h-[2.5rem] flex items-start">
           {title && (
             <h3 className="font-extrabold text-brand-charcoal text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-brand-blue transition-colors">
               {cleanProductName(title)}
@@ -132,7 +151,7 @@ export default React.memo(function ProductCard({
 
         {/* Location */}
         {location && (
-          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 min-w-0">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-500 min-w-0">
             <i className="fa-solid fa-location-dot text-brand-blue text-xs shrink-0" />
             <span className="truncate">
               {location}
@@ -141,7 +160,7 @@ export default React.memo(function ProductCard({
           </div>
         )}
 
-        {/* Specs / Detail Tags (Homez style metadata) */}
+        {/* Specs / Detail Tags - Streamlined to remove cluttered extra info */}
         {tags.length > 0 && (() => {
           const splitTags = tags.flatMap((t) => {
             if (!t) return [];
@@ -150,18 +169,28 @@ export default React.memo(function ProductCard({
               return str.split(/\s*[\u00b7\u2022\u2219\u2027\u25cf\u25cb\u2043\u2218•·|]\s*/).map((s) => s.trim()).filter(Boolean);
             }
             return [str];
+          }).filter((t) => {
+            if (!isPropertyOrVehicle) return true;
+            // Remove secondary cluttered items like units count, total project acres, doors, etc.
+            if (/\bunits?\b/i.test(t)) return false;
+            if (/\bacres?\b/i.test(t)) return false;
+            if (/\b(facing|door|parking|garage|floor|furnish)\b/i.test(t)) return false;
+            if (isPlot && /\b(bhk|bed|beds|bedroom|bath)\b/i.test(t)) return false;
+            return true;
           });
+
+          // Limit to max 2 primary specs for properties (e.g. BHK & Area) to eliminate extra cluttered info
+          const displayTags = isPropertyOrVehicle ? splitTags.slice(0, 2) : splitTags;
+
           return (
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {splitTags.map((t, i) => {
+              {displayTags.map((t, i) => {
                 if (!t) return null;
                 const tStr = String(t).trim();
                 const isPropType = isPropertyOrVehicle && ['flat', 'plot', 'land', 'independent house', 'residential', 'commercial', 'industrial', 'agricultural', 'villa', 'apartment'].some(type => tStr.toLowerCase() === type);
-                const isFacing = tStr.startsWith('Door Facing') || tStr.startsWith('Facing');
                 const isCorner = tStr.startsWith('Corner');
                 const isBhk = /\d+\s*bhk/i.test(tStr);
-                const isSqft = /sq\.?ft|sqft|sq\s*ft|acres?|guntas?/i.test(tStr);
-                const isUnits = /\b\d+\s*units?\b/i.test(tStr);
+                const isSqft = /sq\.?ft|sqft|sq\s*ft|guntas?/i.test(tStr);
                 const isBath = /bath/i.test(tStr);
                 return (
                   <span
@@ -171,20 +200,14 @@ export default React.memo(function ProductCard({
                         ? 'bg-blue-50 text-brand-blue border border-blue-200/80 font-bold shadow-2xs'
                         : isCorner
                         ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-2xs'
-                        : isFacing
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                        : isUnits
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs'
                         : 'bg-slate-100 text-slate-700'
                     }`}
                   >
                     {isPropType && <i className="fa-solid fa-house-chimney text-brand-blue text-[11px] shrink-0" />}
                     {isCorner && <i className="fa-solid fa-vector-square text-purple-600 text-xs shrink-0" />}
-                    {isFacing && <i className="fa-solid fa-compass text-amber-600 text-xs shrink-0" />}
-                    {isBhk && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
+                    {isBhk && !isPlot && <i className="fa-solid fa-bed text-brand-blue text-[11px] shrink-0" />}
                     {isSqft && <i className="fa-solid fa-ruler-combined text-brand-blue text-[11px] shrink-0" />}
-                    {isUnits && <i className="fa-solid fa-building text-emerald-600 text-[11px] shrink-0" />}
-                    {isBath && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
+                    {isBath && !isPlot && <i className="fa-solid fa-shower text-brand-blue text-[11px] shrink-0" />}
                     <span className="truncate">{t}</span>
                   </span>
                 );
@@ -192,20 +215,6 @@ export default React.memo(function ProductCard({
             </div>
           );
         })()}
-
-        {/* Trust Badge (e.g. Bank Approved) */}
-        {trustBadge && (
-          <div className="pt-0.5">
-            {typeof trustBadge === 'string' ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-150/80 px-2.5 py-1 text-xs font-bold text-brand-blue">
-                <i className="fa-solid fa-building-columns text-[10px] text-brand-blue" />
-                {trustBadge}
-              </span>
-            ) : (
-              trustBadge
-            )}
-          </div>
-        )}
 
         {/* Extra children (Agent info, Loan banners, etc.) */}
         {children && <div className="pt-1">{children}</div>}
@@ -222,9 +231,9 @@ export default React.memo(function ProductCard({
                 })
               );
             }}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 px-4 py-2.5 text-xs sm:text-sm font-extrabold transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-[0.98]"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-action-primary hover:bg-action-primary-hover text-action-primary-text px-4 py-2.5 text-xs sm:text-sm font-black transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98] border border-action-primary-border group/btn"
           >
-            <i className="fa-solid fa-handshake-angle text-xs text-slate-950" />
+            <i className="fa-solid fa-handshake-angle text-xs text-action-primary-text group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-transform duration-200" />
             <span>Are You Interested?</span>
           </button>
         </div>

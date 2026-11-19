@@ -1,3 +1,4 @@
+import { resolveCityId, cities } from '../../../constants/locations';
 import { useMemo } from 'react';
 import {
   getPropertyType, getCardType, getNumericPrice, getNumericArea,
