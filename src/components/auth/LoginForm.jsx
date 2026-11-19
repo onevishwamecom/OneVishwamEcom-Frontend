@@ -109,11 +109,15 @@ export default function LoginForm({ onSwitch, onClose }) {
         >
           <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
           <input
+            id="login-email"
+            name="email"
             type="email"
+            required
             value={form.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="user@example.com"
             className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+            autoComplete="email"
           />
         </div>
         {errors.email && <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.email}</p>}
@@ -133,11 +137,15 @@ export default function LoginForm({ onSwitch, onClose }) {
         >
           <i className="fa-solid fa-lock text-brand-blue text-sm shrink-0" />
           <input
+            id="login-password"
+            name="password"
             type={showPassword ? 'text' : 'password'}
+            required
             value={form.password}
             onChange={(e) => handleChange('password', e.target.value)}
             placeholder="••••••••••••"
             className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-300 font-medium"
+            autoComplete="current-password"
           />
           <button
             type="button"
@@ -165,7 +173,7 @@ export default function LoginForm({ onSwitch, onClose }) {
       {/* LOGIN Button */}
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !form.email.trim() || !form.password}
         className="w-full py-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
       >
         {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}

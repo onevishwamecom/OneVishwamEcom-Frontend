@@ -120,7 +120,11 @@ export default function RegisterForm({ onSwitch, onClose }) {
         >
           <i className="fa-regular fa-user text-brand-blue text-sm shrink-0" />
           <input
+            id="register-name"
+            name="name"
             type="text"
+            required
+            autoComplete="name"
             value={form.name}
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="John Doe"
@@ -144,7 +148,11 @@ export default function RegisterForm({ onSwitch, onClose }) {
         >
           <i className="fa-solid fa-phone text-brand-blue text-sm shrink-0" />
           <input
+            id="register-phone"
+            name="phone"
             type="tel"
+            required
+            autoComplete="tel"
             value={form.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="9876543210"
@@ -168,7 +176,11 @@ export default function RegisterForm({ onSwitch, onClose }) {
         >
           <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
           <input
+            id="register-email"
+            name="email"
             type="email"
+            required
+            autoComplete="email"
             value={form.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="name@email.com"
@@ -186,7 +198,11 @@ export default function RegisterForm({ onSwitch, onClose }) {
           </span>
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-blue/40 bg-white">
             <input
+              id="register-password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="new-password"
               value={form.password}
               onChange={(e) => handleChange('password', e.target.value)}
               placeholder="••••••••"
@@ -202,7 +218,11 @@ export default function RegisterForm({ onSwitch, onClose }) {
           </span>
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-blue/40 bg-white">
             <input
+              id="register-confirm"
+              name="confirm"
               type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="new-password"
               value={form.confirm}
               onChange={(e) => handleChange('confirm', e.target.value)}
               onPaste={(e) => e.preventDefault()}

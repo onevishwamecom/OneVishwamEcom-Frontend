@@ -58,7 +58,11 @@ export default function ForgotPasswordForm({ onBack, onNext }) {
         <div className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-brand-blue/40 bg-white">
           <i className="fa-regular fa-envelope text-brand-blue text-sm shrink-0" />
           <input
+            id="forgot-email"
+            name="email"
             type="email"
+            required
+            autoComplete="email"
             value={email}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="user@example.com"

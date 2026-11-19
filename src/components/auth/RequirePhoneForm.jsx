@@ -131,7 +131,11 @@ export default function RequirePhoneForm({ onClose }) {
         >
           <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">+91</span>
           <input
+            id="require-phone"
+            name="phone"
             type="tel"
+            required
+            autoComplete="tel"
             maxLength={10}
             value={phone}
             onChange={(e) => {

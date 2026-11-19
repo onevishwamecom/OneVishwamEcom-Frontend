@@ -83,44 +83,28 @@ function Navbar() {
   const closeTimerRef = useRef(null);
   const locationRef = useRef(null);
   const { selectedCity, selectArea, selectCity, detectStatus, setDetectStatus } = useLocation();
-  const { isLoggedIn, user, openAuthModal, logout } = useAuth();
+  const { isLoggedIn, user, openAuthModal, closeAuthModal, logout } = useAuth();
 
   const handleLogoutConfirm = async () => {
-    const result = await Swal.fire({
-      title: 'Log out of your account?',
-      text: 'Are you sure you want to log out?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#1a4b8c',
-      cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'Yes, Log Out',
-      cancelButtonText: 'Cancel',
-      customClass: {
-        popup: 'rounded-3xl',
-        confirmButton: 'rounded-xl px-5 py-2.5 font-bold',
-        cancelButton: 'rounded-xl px-5 py-2.5 font-bold',
-      },
-    });
-
-    if (result.isConfirmed) {
-      sessionStorage.removeItem('vishwam_auth_redirect');
-      sessionStorage.setItem('vishwam_direct_login', 'true');
-      logout();
-      openAuthModal('login');
-      navigateTo('/');
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      }
-      Swal.fire({
-        icon: 'success',
-        title: 'Logged Out',
-        text: 'You have been logged out successfully.',
-        timer: 1500,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end',
-      });
+    sessionStorage.removeItem('vishwam_auth_redirect');
+    sessionStorage.removeItem('vishwam_direct_login');
+    try {
+      await logout();
+    } catch {}
+    closeAuthModal();
+    navigateTo('/');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
+    Swal.fire({
+      icon: 'success',
+      title: 'Logged Out',
+      text: 'You have been logged out successfully.',
+      timer: 1500,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end',
+    });
   };
 
   const visibleNavLinks = navLinks;
@@ -634,6 +618,8 @@ function Navbar() {
                     onClick={handleLogoutConfirm}
                     className="p-1.5 text-slate-500 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Logout"
+                    aria-label="Logout"
+                    data-testid="logout-btn"
                   >
                     <i className="fa-solid fa-right-from-bracket text-xs" />
                   </button>
@@ -641,6 +627,8 @@ function Navbar() {
               ) : (
                 <button
                   type="button"
+                  data-testid="login-btn"
+                  aria-label="Login"
                   onClick={() => {
                     sessionStorage.setItem('vishwam_direct_login', 'true');
                     openAuthModal('login');
@@ -698,8 +686,11 @@ function Navbar() {
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => { setMenuOpen(false); handleLogoutConfirm(); }}
-                className="text-xs font-semibold text-rose-600 hover:underline"
+                className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                aria-label="Logout"
+                data-testid="mobile-logout-btn"
               >
                 Logout
               </button>
@@ -707,6 +698,8 @@ function Navbar() {
           ) : (
             <button
               type="button"
+              data-testid="mobile-login-btn"
+              aria-label="Login"
               onClick={() => {
                 sessionStorage.setItem('vishwam_direct_login', 'true');
                 setMenuOpen(false);
