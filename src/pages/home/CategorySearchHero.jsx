@@ -128,7 +128,7 @@ export default function CategorySearchHero() {
                     className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                       isActive
                         ? 'bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/25 scale-[1.03]'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/70'
+                        : 'bg-white/10 text-white/90 hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md'
                     }`}
                   >
                     <i className={`${tab.icon} text-[10px] ${isActive ? 'text-slate-900' : 'text-amber-400'}`} />
@@ -230,7 +230,7 @@ export default function CategorySearchHero() {
                   key={idx}
                   type="button"
                   onClick={() => handleChipClick(chip)}
-                  className="rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1 text-[11px] font-semibold border border-slate-700/60 transition-all cursor-pointer active:scale-95"
+                  className="rounded-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white px-3 py-1 text-[11px] font-semibold border border-white/20 backdrop-blur-md transition-all cursor-pointer active:scale-95"
                 >
                   {chip}
                 </button>

@@ -670,13 +670,12 @@ export default function MarketplaceCategoryGallery({
                   </span>
                 )}
               </button>
-
-              {/* Extra Filter Actions (e.g. Map toggle button) */}
-              {filterExtra}
             </div>
 
-            {/* Right: Results Count, Sort by & Grid/List View Switcher */}
+            {/* Right: Map Extra + Sort by & Grid/List View Switcher */}
             <div className="flex items-center gap-3">
+              {/* Extra Filter Actions (e.g. Map toggle button) — inline with sort row to avoid wrapping */}
+              {filterExtra}
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-gray-400 font-medium hidden sm:inline">Sort by:</span>
                 <select

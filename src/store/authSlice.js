@@ -654,7 +654,44 @@ export const {
 export default authSlice.reducer;
 
 export function useAuth() {
-  const dispatch = useDispatch();
+  let dispatch;
+  try {
+    dispatch = useDispatch();
+  } catch {
+    return {
+      isLoggedIn: false,
+      user: null,
+      showAuthModal: false,
+      authModalMode: 'login',
+      storyActive: false,
+      loading: false,
+      error: null,
+      successMessage: null,
+      forgotEmail: null,
+      verifyToken: null,
+      login: () => {},
+      loginWithEmail: () => {},
+      loginWithGoogle: () => {},
+      loginWithFacebook: () => {},
+      register: () => {},
+      registerWithEmail: () => {},
+      logout: () => {},
+      openAuthModal: () => {},
+      closeAuthModal: () => {},
+      switchAuthMode: () => {},
+      setStoryActive: () => {},
+      clearError: () => {},
+      clearSuccess: () => {},
+      fetchMe: () => {},
+      updateProfile: () => {},
+      updateNotifications: () => {},
+      forgotPassword: () => {},
+      deleteAccount: () => {},
+      forceLogout: () => {},
+      setForgotEmail: () => {},
+      setVerifyToken: () => {},
+    };
+  }
   return {
     isLoggedIn: useSelector((s) => s.auth.isLoggedIn),
     user: useSelector((s) => s.auth.user),

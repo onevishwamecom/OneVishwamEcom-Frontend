@@ -31,7 +31,7 @@ export default function AuthRequiredView({
         </p>
         <button
           onClick={handleLoginClick}
-          className="w-full py-3 px-6 bg-slate-950 text-white rounded-xl font-bold hover:bg-[#0f233a] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 px-6 bg-brand-blue hover:bg-brand-blue-hover text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
         >
           <i className="fa-solid fa-arrow-right-to-bracket" />
           <span>Login / Sign In to Continue</span>

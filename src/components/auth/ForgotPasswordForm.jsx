@@ -72,7 +72,7 @@ export default function ForgotPasswordForm({ onBack, onNext }) {
         type="submit"
         onClick={handleSubmit}
         disabled={loading || !email}
-        className="w-full py-3 rounded-xl bg-slate-950 hover:bg-[#0f233a] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 cursor-pointer"
+        className="w-full py-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 cursor-pointer"
       >
         {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs mr-2" />}
         <span>SEND RESET LINK</span>

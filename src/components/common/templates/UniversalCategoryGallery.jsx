@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../store/authSlice';
 import MarketplaceCategoryGallery from './MarketplaceCategoryGallery';
 import CategoryListingCard from './CategoryListingCard';
 import { parseIndianPrice } from '../../../utils/priceUtils';
@@ -118,6 +119,22 @@ export default function UniversalCategoryGallery({
   customSorter = null,
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const auth = useAuth?.() || {};
+  const isLoggedIn = Boolean(auth.isLoggedIn);
+  const openAuthModal = auth.openAuthModal;
+
+  // Immediate Mandatory Login Gate on Category Listings
+  useEffect(() => {
+    if (!isLoggedIn) {
+      try {
+        sessionStorage.setItem('vishwam_auth_redirect', location.pathname + location.search);
+      } catch {}
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+      }
+    }
+  }, [isLoggedIn, location.pathname, location.search, openAuthModal]);
 
   // 1. Resolve Data Hook if provided
   let fetchedItems = null;
@@ -537,33 +554,35 @@ export default function UniversalCategoryGallery({
 
   return (
     <>
-      <MarketplaceCategoryGallery
-        loading={isLoading}
-        categoryTitle={categoryTitle}
-        categorySubtitle={categorySubtitle}
-        breadcrumbCategory={breadcrumb}
-        items={filteredItems}
-        filterGroups={resolvedFilterGroups}
-        rangeFilters={rangeFilters}
-        activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
-        activeChips={activeChips}
-        onRemoveChip={handleRemoveChip}
-        onResetFilters={handleResetFilters}
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        searchPlaceholder={searchPlaceholder}
-        postRequirementLink={postRequirementLink}
-        onQuickMatch={onQuickMatch}
-        quickMatchLabel={quickMatchLabel}
-        perPage={perPage}
-        hidePrice={hidePrice}
-        customSidebar={customSidebar}
-        customCardRenderer={customCardRenderer}
-        topExtra={topExtra}
-        filterExtra={filterExtra}
-        customSorter={customSorter}
-      />
+      <div className={!isLoggedIn ? 'filter blur-[1.5px] pointer-events-none select-none transition-all duration-300' : ''}>
+        <MarketplaceCategoryGallery
+          loading={isLoading}
+          categoryTitle={categoryTitle}
+          categorySubtitle={categorySubtitle}
+          breadcrumbCategory={breadcrumb}
+          items={filteredItems}
+          filterGroups={resolvedFilterGroups}
+          rangeFilters={rangeFilters}
+          activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+          activeChips={activeChips}
+          onRemoveChip={handleRemoveChip}
+          onResetFilters={handleResetFilters}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder={searchPlaceholder}
+          postRequirementLink={postRequirementLink}
+          onQuickMatch={onQuickMatch}
+          quickMatchLabel={quickMatchLabel}
+          perPage={perPage}
+          hidePrice={hidePrice}
+          customSidebar={customSidebar}
+          customCardRenderer={customCardRenderer}
+          topExtra={topExtra}
+          filterExtra={filterExtra}
+          customSorter={customSorter}
+        />
+      </div>
       {customModals}
     </>
   );

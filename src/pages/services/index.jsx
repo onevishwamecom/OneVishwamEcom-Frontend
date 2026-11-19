@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../store/authSlice';
 import ServiceDetails from './ServiceDetails';
 import { serviceItems, serviceIconMap } from '../../constants/servicesContent';
 import PageHero from '../../components/PageHero';
@@ -36,6 +37,22 @@ function ServicesPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedCatTab, setSelectedCatTab] = useState('all');
+
+  const auth = useAuth?.() || {};
+  const isLoggedIn = Boolean(auth.isLoggedIn);
+  const openAuthModal = auth.openAuthModal;
+
+  // Immediate Mandatory Login Gate on Category Listings
+  useEffect(() => {
+    if (!isLoggedIn) {
+      try {
+        sessionStorage.setItem('vishwam_auth_redirect', location.pathname + location.search);
+      } catch {}
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+      }
+    }
+  }, [isLoggedIn, location.pathname, location.search, openAuthModal]);
 
   useEffect(() => {
     if (!q) {

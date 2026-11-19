@@ -218,7 +218,7 @@ export default function RegisterForm({ onSwitch, onClose }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 rounded-xl bg-slate-950 hover:bg-[#0f233a] active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1"
+        className="w-full py-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover active:scale-[0.99] text-white text-xs font-black tracking-widest uppercase transition-all shadow-md shadow-brand-blue/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-1"
       >
         {loading && <i className="fa-solid fa-circle-notch fa-spin text-xs" />}
         <span>CREATE ACCOUNT</span>

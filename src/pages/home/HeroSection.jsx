@@ -588,7 +588,7 @@ export default function HeroSection() {
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); prev(); }}
-            className="flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-brand-blue text-white items-center justify-center backdrop-blur-md border border-white/30 hover:border-sky-300 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Previous slide"
           >
             <i className="fa-solid fa-chevron-left text-xs sm:text-sm" />
@@ -596,7 +596,7 @@ export default function HeroSection() {
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); next(); }}
-            className="flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-slate-900/85 hover:bg-slate-950 text-white hover:text-sky-300 items-center justify-center backdrop-blur-md border border-slate-700 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
+            className="flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-brand-blue text-white items-center justify-center backdrop-blur-md border border-white/30 hover:border-sky-300 transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer"
             aria-label="Next slide"
           >
             <i className="fa-solid fa-chevron-right text-xs sm:text-sm" />
@@ -606,7 +606,7 @@ export default function HeroSection() {
           <div className="relative z-30 max-w-5xl mx-auto w-full pt-1 sm:pt-2">
             {/* Tag / Pill-badge: THE BEST WAY TO */}
             <div className="inline-flex items-center gap-2 mb-2.5 sm:mb-3">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 px-3.5 sm:px-4 py-1 sm:py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 shadow-md">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 sm:px-4 py-1 sm:py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/25 shadow-md">
                 <i className={`${activeSlide.badgeIcon || 'fa-solid fa-shapes'} text-xs text-[#90dafc]`} />
                 <span className="text-[10px] sm:text-xs md:text-[13px] font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-white">
                   THE BEST WAY TO
@@ -646,7 +646,7 @@ export default function HeroSection() {
                       onClick={() => setActiveCategory(tab.id)}
                       className={`shrink-0 sm:shrink w-auto sm:w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-3 h-9 sm:h-11 text-xs md:text-sm rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${isActive
                         ? 'bg-action-primary text-action-primary-text font-black shadow-md border-2 border-action-primary-border z-20'
-                        : 'bg-slate-950/60 hover:bg-slate-900/80 text-white/90 hover:text-white font-bold border border-white/20 backdrop-blur-md shadow-xs'
+                        : 'bg-white/15 hover:bg-white/25 text-white/90 hover:text-white font-bold border border-white/20 backdrop-blur-md shadow-xs'
                         }`}
                     >
                       <i className={`${tab.icon} text-[11px] sm:text-xs shrink-0 ${isActive ? 'text-action-primary-text' : 'text-[#90dafc]'}`} />
@@ -794,7 +794,7 @@ export default function HeroSection() {
 
               {/* 3. Trending Section */}
               <div className="mt-2 sm:mt-2.5 w-full flex items-center justify-start sm:justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 sm:py-1 touch-pan-x">
-                <span className="rounded-full bg-slate-950/80 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-white/20 backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
+                <span className="rounded-full bg-white/20 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-xs font-black shadow-xs border border-white/25 backdrop-blur-md flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap">
                   <i className="fa-solid fa-fire text-[#90dafc] text-[9px] sm:text-xs" /> TRENDING:
                 </span>
                 {POPULAR_CHIPS.map((chip, idx) => (
@@ -802,7 +802,7 @@ export default function HeroSection() {
                     key={idx}
                     type="button"
                     onClick={() => handleChipClick(chip)}
-                    className="shrink-0 rounded-full bg-slate-950/60 hover:bg-slate-900/90 text-slate-100 hover:text-white px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border border-white/15 hover:border-white/30 backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                    className="shrink-0 rounded-full bg-white/15 hover:bg-white/25 text-white px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold shadow-xs border border-white/20 hover:border-white/35 backdrop-blur-md transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                   >
                     {chip.label || chip}
                   </button>
@@ -812,7 +812,7 @@ export default function HeroSection() {
           </div>
 
           {/* Slide Indicators (Bottom of Hero - Lower Z-Index so search dropdown floats above) */}
-          <div className="absolute bottom-5 z-10 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-700 shadow-md">
+          <div className="absolute bottom-5 z-10 flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/30 shadow-md">
             {HERO_SLIDES.map((s, i) => (
               <button
                 key={s.id}

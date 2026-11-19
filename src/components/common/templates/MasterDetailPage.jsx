@@ -383,7 +383,17 @@ export default function MasterDetailPage({
       : (item.image ? [item.image] : []);
 
     const imgs = rawList
-      .filter((img) => img && !isPlaceholderImage(typeof img === 'object' ? img.url : img))
+      .filter((img) => {
+        if (!img) return false;
+        const rawUrl = typeof img === 'object' ? (img.url || img) : img;
+        const url = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+        // Must be a non-empty real URL (http/https) or known local asset — not a stray string
+        if (!url) return false;
+        if (isPlaceholderImage(url)) return false;
+        // Reject non-HTTP strings like "null", bare filenames without slashes, etc.
+        if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('data:image/')) return false;
+        return true;
+      })
       .map((img) => ({
         type: 'image',
         url: typeof img === 'object' ? img.url || img : img,
@@ -1082,7 +1092,7 @@ export default function MasterDetailPage({
                       <button
                         type="button"
                         onClick={() => setEnquiryOpen(true)}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 whitespace-nowrap border border-brand-blue/30"
                       >
                         <i className="fa-solid fa-paper-plane text-xs" />
                         <span>Enquire Now</span>
@@ -1101,7 +1111,7 @@ export default function MasterDetailPage({
                     <button
                       type="button"
                       onClick={() => setEnquiryOpen(true)}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 border border-brand-blue/30"
                     >
                       <i className="fa-solid fa-paper-plane text-xs" />
                       <span>Enquire Now</span>
@@ -1205,7 +1215,7 @@ export default function MasterDetailPage({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
-                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
                   >
                     <i className="fa-solid fa-images text-[11px]" />
                     <span>1 / 3 Photos</span>
@@ -1260,7 +1270,7 @@ export default function MasterDetailPage({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
-                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                    className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
                   >
                     <i className="fa-solid fa-images text-[11px]" />
                     <span>1 / 4 Photos</span>
@@ -1328,7 +1338,7 @@ export default function MasterDetailPage({
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setGalleryOpen(true); }}
-                      className="md:hidden absolute bottom-3 right-3 rounded-xl bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer"
+                      className="md:hidden absolute bottom-3 right-3 rounded-xl bg-brand-blue/85 hover:bg-brand-blue text-white backdrop-blur-md px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 z-20 cursor-pointer border border-white/20"
                     >
                       <i className="fa-solid fa-images text-[11px]" />
                       <span>1 / {validMediaItems.length} Photos</span>
@@ -2172,7 +2182,7 @@ export default function MasterDetailPage({
                 <button
                   type="button"
                   onClick={() => setEnquiryOpen(true)}
-                  className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                  className="w-full rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white py-3 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99] border border-brand-blue/30"
                 >
                   <i className="fa-solid fa-paper-plane text-xs" />
                   <span>{isProperty ? 'Contact Agent' : 'Enquire Now'}</span>
@@ -2412,7 +2422,7 @@ export default function MasterDetailPage({
 
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="rounded-xl bg-slate-900 px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="rounded-xl bg-brand-blue hover:bg-brand-blue-hover px-3.5 sm:px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md cursor-pointer flex items-center gap-1.5 border border-brand-blue/30"
             >
               <i className="fa-solid fa-paper-plane text-xs" />
               <span>Enquire Now</span>

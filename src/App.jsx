@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMe } from './store/authSlice';
@@ -8,9 +8,11 @@ import PromoModal from './components/PromoModal';
 import EnquiryModal from './components/EnquiryModal';
 import StoryAuthGateway from './components/auth/StoryAuthGateway';
 import SessionTracker from './components/auth/SessionTracker';
+import WelcomeGateway from './components/welcome/WelcomeGateway';
 import { setNavigate } from './config/navigation';
 import PageSkeleton from './components/ui/PageSkeleton';
 import { trackUserActivity, resolveSectorFromPath } from './utils/activityTracker';
+import useBrowseTimer from './hooks/useBrowseTimer';
 
 // Lazy load routes
 const AboutPage = lazy(() => import('./pages/about'));
@@ -120,6 +122,28 @@ function App() {
       dispatch(fetchMe());
     }
   }, [dispatch, isLoggedIn]);
+
+  // ── Welcome Gateway: show company profile page on first-ever visit ──────────
+  // Session-based: cleared when browser tab is closed. Logged-in users skip it.
+  const [hasEnteredShop, setHasEnteredShop] = useState(() => {
+    try {
+      return sessionStorage.getItem('vishwam_entered_shop') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  if (!isLoggedIn && !hasEnteredShop) {
+    return <WelcomeGateway onEnter={() => setHasEnteredShop(true)} />;
+  }
+
+  return <StoreFront />;
+}
+
+// ─── STOREFRONT (the actual marketplace) ─────────────────────────────────────
+function StoreFront() {
+  // 50-second browse timer for unauthenticated guests
+  useBrowseTimer();
 
   return (
     <>
