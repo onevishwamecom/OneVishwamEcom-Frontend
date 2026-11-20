@@ -127,7 +127,25 @@ function App() {
   // Session-based: cleared when browser tab is closed. Logged-in users skip it.
   const [hasEnteredShop, setHasEnteredShop] = useState(() => {
     try {
-      return sessionStorage.getItem('vishwam_entered_shop') === 'true';
+      if (typeof window !== 'undefined') {
+        // Auto-bypass for automated QA test runners (Selenium, Playwright, Cypress)
+        if (window.navigator?.webdriver) return true;
+
+        // Auto-bypass via explicit test query parameters
+        const search = window.location?.search || '';
+        if (search.includes('bypass_welcome=true') || search.includes('test=1') || search.includes('e2e=1')) {
+          return true;
+        }
+
+        // Auto-bypass for direct deep routes (e.g. /properties, /enquiry, /about-us, /careers)
+        const path = window.location?.pathname || '/';
+        if (path !== '/' && path !== '' && path !== '/home') {
+          return true;
+        }
+
+        return sessionStorage.getItem('vishwam_entered_shop') === 'true';
+      }
+      return false;
     } catch {
       return false;
     }

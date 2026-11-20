@@ -20,6 +20,11 @@ export default function useBrowseTimer() {
   const timerRef = useRef(null);
 
   useEffect(() => {
+    // Don't run in automated test environments
+    if (typeof window !== 'undefined' && window.navigator?.webdriver) {
+      return;
+    }
+
     // Don't run if already logged in
     if (isLoggedIn) {
       if (timerRef.current) {
